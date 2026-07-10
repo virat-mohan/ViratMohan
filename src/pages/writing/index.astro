@@ -2,16 +2,18 @@
 import Base from '../../layouts/Base.astro';
 import { getCollection } from 'astro:content';
 
-const essays = (await getCollection('writing'))
-  .filter((e) => !e.data.draft)
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const essays = (await getCollection('writing')).sort(
+  (a, b) => a.data.order - b.data.order
+);
 
-const fmt = (d: Date) =>
-  d.toLocaleDateString('en-GB', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+function readingTime(body: string | undefined): number {
+  const words = (body ?? '')
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/[#*_>\-`]/g, ' ')
+    .trim()
+    .split(/\s+/).length;
+  return Math.max(1, Math.round(words / 200));
+}
 ---
 
 <Base
@@ -28,13 +30,17 @@ const fmt = (d: Date) =>
 
       <ul class="writing__list">
         {
-          essays.map((e) => (
+          essays.map((e, i) => (
             <li class="writing__item" data-reveal>
-              <hr class="rule-hair" />
+              {i > 0 && <hr class="rule-gold" />}
               <a class="writing__link" href={`/writing/${e.id}`}>
-                <span class="eyebrow writing__date">{fmt(e.data.date)}</span>
+                <span class="eyebrow writing__time">
+                  {readingTime(e.body)} min read
+                </span>
                 <span class="writing__title">{e.data.title}</span>
-                <span class="writing__desc dim">{e.data.description}</span>
+                <span class="writing__standfirst dim">
+                  {e.data.standfirst}
+                </span>
               </a>
             </li>
           ))
@@ -54,41 +60,36 @@ const fmt = (d: Date) =>
     margin: 0;
     padding: 0;
   }
+  .writing__item + .writing__item {
+    margin-top: 0;
+  }
   .writing__link {
-    display: grid;
-    grid-template-columns: 12rem 1fr;
-    gap: 1rem 2rem;
-    align-items: baseline;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
     text-decoration: none;
     padding-block: 2rem;
   }
-  .writing__date {
+  .writing__item:first-child .writing__link {
+    padding-top: 0;
+  }
+  .writing__time {
     margin: 0;
   }
   .writing__title {
     font-family: var(--serif);
-    font-size: clamp(1.4rem, 2.6vw, 2rem);
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
     line-height: 1.1;
     letter-spacing: -0.01em;
-    grid-column: 2;
     transition: color 0.3s ease;
   }
-  .writing__desc {
-    grid-column: 2;
+  .writing__standfirst {
     max-width: 56ch;
-    font-size: 1rem;
+    font-size: 1.0625rem;
+    line-height: 1.5;
   }
   .writing__link:hover .writing__title,
   .writing__link:focus-visible .writing__title {
     color: var(--gold);
-  }
-  @media (max-width: 680px) {
-    .writing__link {
-      grid-template-columns: 1fr;
-    }
-    .writing__title,
-    .writing__desc {
-      grid-column: 1;
-    }
   }
 </style>

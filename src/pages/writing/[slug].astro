@@ -14,19 +14,12 @@ export async function getStaticPaths() {
 const { entry } = Astro.props;
 const { Content } = await render(entry);
 
-const fmt = (d: Date) =>
-  d.toLocaleDateString('en-GB', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-
 const articleSchema = {
   '@type': 'Article',
   '@id': `${site.domain}/writing/${entry.id}#article`,
   headline: entry.data.title,
-  description: entry.data.description,
-  datePublished: entry.data.date.toISOString(),
+  description: entry.data.standfirst,
+  datePublished: entry.data.pubDate.toISOString(),
   author: { '@id': personId },
   publisher: { '@id': personId },
   mainEntityOfPage: `${site.domain}/writing/${entry.id}`,
@@ -35,7 +28,7 @@ const articleSchema = {
 
 <Base
   title={`${entry.data.title} — Virat Mohan`}
-  description={entry.data.description}
+  description={entry.data.standfirst}
   path={`/writing/${entry.id}`}
   schema={[articleSchema]}
 >
@@ -46,14 +39,11 @@ const articleSchema = {
           <a class="link-underline" href="/writing">Writing</a>
         </p>
         <h1 class="essay__title">{entry.data.title}</h1>
-        <p class="essay__meta dim">
-          <time datetime={entry.data.date.toISOString()}>
-            {fmt(entry.data.date)}
-          </time>
-        </p>
+        <p class="essay__standfirst dim">{entry.data.standfirst}</p>
+        <hr class="rule-gold essay__rule" />
       </header>
 
-      <div class="prose" data-reveal style="--reveal-delay: 80ms">
+      <div class="prose tnum" data-reveal style="--reveal-delay: 80ms">
         <Content />
       </div>
     </div>
@@ -66,41 +56,55 @@ const articleSchema = {
     margin-bottom: 3.5rem;
   }
   .essay__title {
-    margin: 1rem 0 1rem;
+    margin: 1rem 0 1.25rem;
     font-size: clamp(2.5rem, 6vw, 4.5rem);
     line-height: 1;
   }
-  .essay__meta {
+  .essay__standfirst {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: clamp(1.15rem, 2vw, 1.4rem);
+    line-height: 1.4;
+    max-width: 44ch;
+    margin: 0 0 2rem;
+  }
+  .essay__rule {
     margin: 0;
-    font-size: 0.9rem;
   }
 
   .prose {
-    max-width: 68ch;
+    max-width: 66ch;
     line-height: 1.75;
   }
   .prose :global(p) {
     margin: 0 0 1.5rem;
   }
+  .prose :global(> p:first-of-type) {
+    font-size: 1.1875rem;
+  }
   .prose :global(h2) {
     margin: 3rem 0 1rem;
   }
   .prose :global(h3) {
-    margin: 2.25rem 0 0.75rem;
+    margin: 3rem 0 0.75rem;
+    font-family: var(--sans);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+  }
+  .prose :global(strong) {
+    color: var(--fg);
+    font-weight: 500;
+  }
+  .prose :global(em) {
+    font-style: italic;
   }
   .prose :global(a) {
     text-decoration: underline;
     text-decoration-color: var(--gold);
     text-underline-offset: 3px;
-  }
-  /* Optional drop-cap on the first paragraph */
-  .prose :global(> p:first-of-type::first-letter) {
-    font-family: var(--serif);
-    font-size: 3.4em;
-    line-height: 0.8;
-    float: left;
-    padding: 0.05em 0.1em 0 0;
-    color: var(--fg);
   }
   .prose :global(blockquote) {
     margin: 2rem 0;

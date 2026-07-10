@@ -1,8 +1,8 @@
 ---
 title: Judgment is the scarce input
-description: Why the businesses that compound in the AI era put their sharpest humans in front of the machine, not behind it.
-date: 2026-01-15
-draft: false
+standfirst: Why the businesses that compound in the AI era put their sharpest humans in front of the machine, not behind it.
+order: 5
+pubDate: 2026-01-15
 ---
 
 <!-- TODO: This is a seeded placeholder essay. Replace or expand with Virat's own draft. -->
