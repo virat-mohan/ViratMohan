@@ -1,30 +1,32 @@
 ---
-import fs from 'node:fs';
-import path from 'node:path';
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
 
-// Prefer /public/virat.png (per brief). Fall back to a deliberate monogram
-// block if no image is present, so the hero never looks broken.
-const candidates = ['virat.png', 'virat.jpg', 'virat.jpeg', 'virat.webp'];
-let src: string | null = null;
-for (const c of candidates) {
-  if (fs.existsSync(path.join(process.cwd(), 'public', c))) {
-    src = '/' + c;
-    break;
-  }
-}
+// Prefer src/assets/virat.* (processed + compressed via Astro's image
+// pipeline). Fall back to a deliberate monogram block if no image is
+// present, so the hero never looks broken.
+const images = import.meta.glob<{ default: ImageMetadata }>(
+  '/src/assets/virat.{png,jpg,jpeg,webp}',
+  { eager: true }
+);
+const imageEntry = Object.values(images)[0];
+const src = imageEntry?.default ?? null;
 ---
 
 <figure class="portrait" data-has-image={src ? 'true' : 'false'}>
   {
     src ? (
-      <img
+      <Image
         class="portrait__img"
         src={src}
         alt="Virat Mohan"
-        width="620"
-        height="827"
+        width={524}
+        height={794}
+        format="webp"
+        quality={82}
         decoding="async"
         fetchpriority="high"
+        loading="eager"
       />
     ) : (
       <div class="portrait__mono" aria-hidden="true">
