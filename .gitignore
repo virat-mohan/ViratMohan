@@ -18,3 +18,9 @@ pnpm-debug.log*
 .idea/
 # local-only Claude Code session permissions
 .claude/settings.local.json
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
