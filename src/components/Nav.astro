@@ -1,0 +1,131 @@
+---
+const links = [
+  { href: '/about', label: 'About' },
+  { href: '/advisory', label: 'Advisory' },
+  { href: '/writing', label: 'Writing' },
+  { href: '/clarityhq', label: 'ClarityHQ' },
+];
+const here = Astro.url.pathname.replace(/\/$/, '') || '/';
+---
+
+<header class="nav">
+  <div class="container nav__inner">
+    <a href="/" class="nav__mark" aria-label="Virat Mohan — home">VM</a>
+    <nav aria-label="Primary">
+      <ul class="nav__list">
+        {
+          links.map((l) => (
+            <li>
+              <a
+                href={l.href}
+                class="nav__link link-underline"
+                aria-current={here === l.href ? 'page' : undefined}
+              >
+                {l.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <button
+      class="nav__toggle"
+      type="button"
+      aria-label="Toggle colour theme"
+      data-theme-toggle
+    >
+      <span class="nav__toggle-dot" aria-hidden="true"></span>
+    </button>
+  </div>
+</header>
+
+<style>
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--bg);
+    border-bottom: 1px solid var(--rule);
+  }
+  .nav__inner {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    height: 4.5rem;
+  }
+  .nav__mark {
+    font-family: var(--serif);
+    font-size: 1.5rem;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    color: var(--fg);
+    line-height: 1;
+  }
+  nav {
+    margin-left: auto;
+  }
+  .nav__list {
+    display: flex;
+    gap: clamp(1rem, 3vw, 2.25rem);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .nav__link {
+    font-size: 0.8125rem;
+    letter-spacing: 0.02em;
+    color: var(--fg);
+  }
+  .nav__link[aria-current='page'] {
+    color: var(--muted);
+  }
+  .nav__toggle {
+    width: 2rem;
+    height: 2rem;
+    display: grid;
+    place-items: center;
+    background: transparent;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    cursor: pointer;
+    padding: 0;
+    transition: border-color 0.3s ease;
+  }
+  .nav__toggle:hover {
+    border-color: var(--gold);
+  }
+  .nav__toggle-dot {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 999px;
+    background: var(--fg);
+    transition: background 0.3s ease;
+  }
+  :global([data-theme='dark']) .nav__toggle-dot {
+    background: var(--gold);
+  }
+  @media (max-width: 540px) {
+    .nav__list {
+      gap: 1rem;
+    }
+    .nav__link {
+      font-size: 0.75rem;
+    }
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    var btn = document.querySelector('[data-theme-toggle]');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      var root = document.documentElement;
+      var next =
+        root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try {
+        localStorage.setItem('theme', next);
+      } catch (e) {}
+    });
+  })();
+</script>

@@ -1,0 +1,83 @@
+---
+import { site } from '../../data/site';
+---
+
+<section class="argument section" aria-labelledby="argument-h">
+  <div class="container argument__grid">
+    <div class="argument__body">
+      <p class="eyebrow" data-reveal>The argument</p>
+      <h2 id="argument-h" class="argument__lead" data-reveal style="--reveal-delay: 60ms">
+        Capability is now cheap. Judgment is the constraint.
+      </h2>
+      <div class="argument__prose measure" data-reveal style="--reveal-delay: 120ms">
+        <p>
+          For twenty years the scarce resource in any operating business was
+          execution — people who could do the work. AI has collapsed the price
+          of that work almost to zero. Drafting, modelling, analysis, support:
+          the machine does it faster than a team ever could.
+        </p>
+        <p>
+          What the machine cannot supply is judgment — knowing which number
+          matters, which deal to walk from, where the unit economics actually
+          break. That has become the rarest and most valuable thing a business
+          can hold.
+        </p>
+        <p>
+          So the design question is no longer how to automate people out. It is
+          where to place them. The firms that compound put their sharpest
+          humans in front of the machine, pointing it, not behind it, cleaning
+          up after it.
+        </p>
+      </div>
+    </div>
+
+    <aside class="argument__quote" data-reveal style="--reveal-delay: 160ms">
+      <hr class="rule-gold argument__quote-rule" />
+      <blockquote>
+        <p>{site.thesis}</p>
+      </blockquote>
+    </aside>
+  </div>
+</section>
+
+<style>
+  .argument__grid {
+    display: grid;
+    grid-template-columns: 7fr 5fr;
+    gap: clamp(2rem, 6vw, 5rem);
+    align-items: start;
+  }
+  .argument__lead {
+    margin: 0.75rem 0 2rem;
+    max-width: 18ch;
+  }
+  .argument__prose p:last-child {
+    margin-bottom: 0;
+  }
+  .argument__quote {
+    position: sticky;
+    top: 7rem;
+  }
+  .argument__quote-rule {
+    width: 100%;
+    margin-bottom: 1.75rem;
+  }
+  .argument__quote blockquote {
+    margin: 0;
+  }
+  .argument__quote blockquote p {
+    font-family: var(--serif);
+    font-size: clamp(1.6rem, 2.8vw, 2.4rem);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+  @media (max-width: 860px) {
+    .argument__grid {
+      grid-template-columns: 1fr;
+    }
+    .argument__quote {
+      position: static;
+    }
+  }
+</style>

@@ -1,0 +1,94 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const essays = (await getCollection('writing'))
+  .filter((e) => !e.data.draft)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const fmt = (d: Date) =>
+  d.toLocaleDateString('en-GB', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+---
+
+<Base
+  title="Writing — Virat Mohan"
+  description="Essays by Virat Mohan on operating businesses, unit economics, capital and the place of judgment in an AI-native firm."
+  path="/writing"
+>
+  <section class="section">
+    <div class="container">
+      <p class="eyebrow" data-reveal>Writing</p>
+      <h1 class="writing__h" data-reveal style="--reveal-delay: 60ms">
+        Notes on capital, execution and judgment.
+      </h1>
+
+      <ul class="writing__list">
+        {
+          essays.map((e) => (
+            <li class="writing__item" data-reveal>
+              <hr class="rule-hair" />
+              <a class="writing__link" href={`/writing/${e.id}`}>
+                <span class="eyebrow writing__date">{fmt(e.data.date)}</span>
+                <span class="writing__title">{e.data.title}</span>
+                <span class="writing__desc dim">{e.data.description}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .writing__h {
+    margin: 0.75rem 0 3.5rem;
+    max-width: 16ch;
+  }
+  .writing__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .writing__link {
+    display: grid;
+    grid-template-columns: 12rem 1fr;
+    gap: 1rem 2rem;
+    align-items: baseline;
+    text-decoration: none;
+    padding-block: 2rem;
+  }
+  .writing__date {
+    margin: 0;
+  }
+  .writing__title {
+    font-family: var(--serif);
+    font-size: clamp(1.4rem, 2.6vw, 2rem);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    grid-column: 2;
+    transition: color 0.3s ease;
+  }
+  .writing__desc {
+    grid-column: 2;
+    max-width: 56ch;
+    font-size: 1rem;
+  }
+  .writing__link:hover .writing__title,
+  .writing__link:focus-visible .writing__title {
+    color: var(--gold);
+  }
+  @media (max-width: 680px) {
+    .writing__link {
+      grid-template-columns: 1fr;
+    }
+    .writing__title,
+    .writing__desc {
+      grid-column: 1;
+    }
+  }
+</style>

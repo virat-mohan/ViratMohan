@@ -1,0 +1,99 @@
+---
+import { site } from '../data/site';
+
+// WhatsApp deep link. wa.me expects digits only (country code + number).
+const wa = `https://wa.me/${site.whatsapp}`;
+const waText = encodeURIComponent(
+  "Hi Virat — I found your site and wanted to reach out."
+);
+---
+
+<div class="social" role="group" aria-label="Contact and social">
+  <a
+    class="social__btn"
+    href={`${wa}?text=${waText}`}
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <svg
+      class="social__icon"
+      viewBox="0 0 24 24"
+      width="15"
+      height="15"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.6"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M12 21a9 9 0 1 0-8.06-5L3 21l5.2-1A9 9 0 0 0 12 21Z"></path>
+      <path
+        d="M8.7 8.5c-.2 0-.5.06-.7.35-.24.35-.9.86-.9 2.1 0 1.25.92 2.46 1.05 2.63.13.18 1.8 2.86 4.44 3.9 2.2.87 2.65.7 3.13.65.48-.04 1.55-.63 1.77-1.24.22-.62.22-1.14.15-1.25-.06-.11-.24-.18-.5-.31-.27-.13-1.56-.77-1.8-.86-.24-.09-.42-.13-.6.13-.18.27-.68.86-.83 1.03-.15.18-.3.2-.57.07"
+      ></path>
+    </svg>
+    <span>WhatsApp</span>
+  </a>
+
+  <a
+    class="social__btn"
+    href={site.linkedin}
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <svg
+      class="social__icon"
+      viewBox="0 0 24 24"
+      width="15"
+      height="15"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.6"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+      <path d="M7 10v7"></path>
+      <path d="M7 7v.01"></path>
+      <path d="M11 17v-4a2 2 0 0 1 4 0v4"></path>
+      <path d="M11 10v7"></path>
+    </svg>
+    <span>LinkedIn</span>
+  </a>
+</div>
+
+<style>
+  .social {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin: 0.25rem 0 0;
+  }
+  .social__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    font-size: 0.78rem;
+    letter-spacing: 0.02em;
+    color: var(--fg);
+    text-decoration: none;
+    background: transparent;
+    transition: border-color 0.3s ease, color 0.3s ease;
+  }
+  .social__btn:hover,
+  .social__btn:focus-visible {
+    border-color: var(--gold);
+  }
+  .social__icon {
+    color: var(--muted);
+    transition: color 0.3s ease;
+  }
+  .social__btn:hover .social__icon,
+  .social__btn:focus-visible .social__icon {
+    color: var(--gold);
+  }
+</style>

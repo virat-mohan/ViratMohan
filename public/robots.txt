@@ -1,0 +1,22 @@
+# Virat Mohan — viratmohan.com
+# LLM and search crawlers are explicitly welcome.
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: *
+Allow: /
+
+Sitemap: https://viratmohan.com/sitemap-index.xml

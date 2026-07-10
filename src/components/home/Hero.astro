@@ -1,0 +1,99 @@
+---
+import { site } from '../../data/site';
+import Portrait from '../Portrait.astro';
+---
+
+<section class="hero" aria-labelledby="hero-name">
+  <div class="hero__grid container">
+    <div class="hero__copy">
+      <p class="eyebrow" data-reveal>Virat Mohan</p>
+      <h1 id="hero-name" data-reveal style="--reveal-delay: 80ms">
+        Virat<br />Mohan
+      </h1>
+      <p class="hero__line dim" data-reveal style="--reveal-delay: 160ms">
+        {site.positioning}
+      </p>
+    </div>
+    <div class="hero__portrait">
+      <div class="hero__portrait-reveal" data-reveal style="--reveal-delay: 120ms">
+        <Portrait />
+      </div>
+    </div>
+  </div>
+  <hr class="rule-gold hero__hair" />
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .hero__grid {
+    display: grid;
+    grid-template-columns: 60% 40%;
+    align-items: center;
+    gap: clamp(1.5rem, 4vw, 3rem);
+    width: 100%;
+    padding-block: 6rem 4rem;
+  }
+  .hero__copy {
+    max-width: 40ch;
+  }
+  .hero h1 {
+    margin: 0.5rem 0 1.75rem;
+  }
+  .hero__line {
+    font-size: clamp(1.125rem, 1.8vw, 1.4rem);
+    line-height: 1.4;
+    max-width: 30ch;
+    margin: 0;
+  }
+
+  /* Portrait bleeds full off the right edge of the viewport. */
+  .hero__portrait {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(42vw, 620px);
+    height: 100%;
+  }
+  .hero__portrait-reveal {
+    width: 100%;
+    height: 100%;
+  }
+
+  .hero__hair {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+
+  @media (max-width: 860px) {
+    .hero {
+      min-height: auto;
+    }
+    .hero__grid {
+      grid-template-columns: 1fr;
+      padding-block: 0 3rem;
+    }
+    /* Portrait moves above the name, bleeds off BOTH edges. */
+    .hero__portrait {
+      position: relative;
+      width: 100vw;
+      margin-left: calc(50% - 50vw);
+      height: auto;
+      aspect-ratio: 16 / 10;
+      order: -1;
+      margin-bottom: 2.5rem;
+    }
+    .hero__copy {
+      max-width: none;
+    }
+  }
+</style>

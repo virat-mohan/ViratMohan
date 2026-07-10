@@ -1,0 +1,112 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../data/site';
+
+const areas = [
+  {
+    title: 'Commercial & operational due diligence',
+    body: 'Reading a target the way an auditor and an operator would at once — where value is real, where it is fragile, and what breaks under growth.',
+  },
+  {
+    title: 'Financial modelling & unit economics',
+    body: 'Site-by-site and cohort-level economics for food, retail and services businesses, built to survive scrutiny rather than flatter a deck.',
+  },
+  {
+    title: 'Capital allocation',
+    body: 'Where the next rupee or dollar earns its highest return, across equity, debt and internal reinvestment.',
+  },
+  {
+    title: 'GCC & India market entry',
+    body: 'Structuring and sequencing entry across India, the UAE, KSA and the wider Gulf — regulatory, operational and commercial.',
+  },
+  {
+    title: 'Operational turnarounds',
+    body: 'Stabilising unit economics and operating cadence in businesses that have outgrown their systems.',
+  },
+  {
+    title: 'DRHP & IPO readiness',
+    body: 'Preparing the numbers, the operations and the narrative to withstand regulators and institutional investors.',
+  },
+];
+---
+
+<Base
+  title="Advisory — Virat Mohan"
+  description="Virat Mohan advises on commercial and operational due diligence, financial modelling, unit economics, capital allocation, GCC and India market entry, operational turnarounds, and DRHP/IPO readiness across India, the UAE and the UK."
+  path="/advisory"
+>
+  <section class="section">
+    <div class="container">
+      <p class="eyebrow" data-reveal>Advisory</p>
+      <h1 class="advisory__h" data-reveal style="--reveal-delay: 60ms">
+        Where capital meets execution.
+      </h1>
+      <p class="advisory__intro dim measure" data-reveal style="--reveal-delay: 120ms">
+        Selective advisory for founders, investors and operating teams. The
+        work concentrates on the seam between financing and operations — the
+        place a career spent on both sides of the term sheet is most useful.
+        Geographic focus: India, the UAE and the UK.
+      </p>
+
+      <ul class="advisory__list">
+        {
+          areas.map((a) => (
+            <li class="advisory__item" data-reveal>
+              <hr class="rule-hair" />
+              <h2 class="advisory__title">{a.title}</h2>
+              <p class="advisory__body dim">{a.body}</p>
+            </li>
+          ))
+        }
+      </ul>
+
+      <p class="advisory__cta" data-reveal>
+        <a class="link-underline advisory__mail" href={`mailto:${site.email}`}>
+          {site.email}
+        </a>
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .advisory__h {
+    margin: 0.75rem 0 1.75rem;
+    max-width: 14ch;
+  }
+  .advisory__intro {
+    margin: 0 0 4rem;
+    font-size: 1.125rem;
+  }
+  .advisory__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0 4rem;
+  }
+  .advisory__item {
+    padding-block: 2.25rem;
+  }
+  .advisory__title {
+    font-size: clamp(1.25rem, 2vw, 1.6rem);
+    margin: 1.25rem 0 0.75rem;
+  }
+  .advisory__body {
+    margin: 0;
+    font-size: 1rem;
+    max-width: 46ch;
+  }
+  .advisory__cta {
+    margin-top: 4.5rem;
+    font-family: var(--serif);
+    font-size: clamp(1.75rem, 4vw, 3rem);
+  }
+  @media (max-width: 720px) {
+    .advisory__list {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+  }
+</style>

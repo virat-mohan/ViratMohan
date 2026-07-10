@@ -1,0 +1,140 @@
+---
+import fs from 'node:fs';
+import path from 'node:path';
+
+// Prefer /public/virat.png (per brief). Fall back to a deliberate monogram
+// block if no image is present, so the hero never looks broken.
+const candidates = ['virat.png', 'virat.jpg', 'virat.jpeg', 'virat.webp'];
+let src: string | null = null;
+for (const c of candidates) {
+  if (fs.existsSync(path.join(process.cwd(), 'public', c))) {
+    src = '/' + c;
+    break;
+  }
+}
+---
+
+<figure class="portrait" data-has-image={src ? 'true' : 'false'}>
+  {
+    src ? (
+      <img
+        class="portrait__img"
+        src={src}
+        alt="Virat Mohan"
+        width="620"
+        height="827"
+        decoding="async"
+        fetchpriority="high"
+      />
+    ) : (
+      <div class="portrait__mono" aria-hidden="true">
+        <span>VM</span>
+      </div>
+    )
+  }
+
+  <!-- +6% warm shift so skin does not go corpse-grey -->
+  <div class="portrait__warm" aria-hidden="true"></div>
+
+  <!-- Grain: SVG feTurbulence, barely perceptible -->
+  <svg class="portrait__grain" aria-hidden="true" preserveAspectRatio="none">
+    <filter id="grain">
+      <feTurbulence
+        type="fractalNoise"
+        baseFrequency="0.8"
+        numOctaves="2"
+        stitchTiles="stitch"></feTurbulence>
+      <feColorMatrix type="saturate" values="0"></feColorMatrix>
+    </filter>
+    <rect width="100%" height="100%" filter="url(#grain)"></rect>
+  </svg>
+
+  <!-- Single 1px gold hairline, LEFT edge only, floor to ceiling -->
+  <span class="portrait__hair" aria-hidden="true"></span>
+</figure>
+
+<style>
+  .portrait {
+    position: relative;
+    margin: 0;
+    height: 100%;
+    width: 100%;
+    background: var(--portrait-grad);
+    overflow: hidden;
+  }
+  .portrait__img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* subject weighted left-of-centre */
+    object-position: 35% 30%;
+    filter: grayscale(1) contrast(1.08) brightness(1.02);
+    mix-blend-mode: var(--portrait-blend);
+  }
+
+  /* Monogram fallback — must read as deliberate, not broken. */
+  .portrait__mono {
+    position: absolute;
+    inset: 0;
+    background: var(--ink);
+    display: grid;
+    place-items: center;
+  }
+  .portrait__mono span {
+    font-family: var(--serif);
+    font-size: clamp(6rem, 16vw, 13rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: var(--paper);
+    opacity: 0.92;
+  }
+  :global([data-theme='dark']) .portrait__mono {
+    background: #0f0b08;
+  }
+
+  .portrait__warm {
+    position: absolute;
+    inset: 0;
+    background: #d4af37;
+    opacity: 0.06;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+  }
+  [data-has-image='false'] .portrait__warm {
+    display: none;
+  }
+
+  .portrait__grain {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.035;
+    pointer-events: none;
+    mix-blend-mode: multiply;
+  }
+  :global([data-theme='dark']) .portrait__grain {
+    mix-blend-mode: screen;
+  }
+
+  .portrait__hair {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 1px;
+    background: var(--gold);
+    pointer-events: none;
+  }
+
+  @media (max-width: 860px) {
+    /* Bleeds off both edges; hairline is not meaningful full-width */
+    .portrait__hair {
+      display: none;
+    }
+    .portrait__img {
+      object-position: 50% 28%;
+    }
+  }
+</style>

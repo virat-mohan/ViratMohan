@@ -1,0 +1,62 @@
+---
+import { network } from '../../data/site';
+---
+
+<section class="network section" aria-labelledby="network-h">
+  <div class="container">
+    <p class="eyebrow" data-reveal>The network</p>
+    <h2 id="network-h" class="network__h" data-reveal style="--reveal-delay: 60ms">
+      A firm assembled on demand.
+    </h2>
+
+    <div class="network__grid">
+      {
+        network.map((col) => (
+          <div class="network__col" data-reveal>
+            <span class="network__n">{col.n}</span>
+            <h3 class="network__title">{col.title}</h3>
+            <p class="network__text dim">{col.body}</p>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .network__h {
+    margin: 0.75rem 0 3.5rem;
+    max-width: 18ch;
+  }
+  .network__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(2rem, 5vw, 4rem);
+  }
+  .network__col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+  .network__n {
+    font-family: var(--sans);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    color: var(--gold);
+  }
+  .network__title {
+    margin: 0;
+    font-size: clamp(1.2rem, 2vw, 1.5rem);
+  }
+  .network__text {
+    margin: 0;
+    font-size: 1rem;
+  }
+  @media (max-width: 760px) {
+    .network__grid {
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+    }
+  }
+</style>

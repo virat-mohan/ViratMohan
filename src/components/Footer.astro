@@ -1,0 +1,49 @@
+---
+import { site } from '../data/site';
+import SocialButtons from './SocialButtons.astro';
+const year = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <hr class="rule-hair" />
+  <div class="container footer__inner">
+    <p class="eyebrow footer__wordmark">Virat Mohan</p>
+    <p class="dim footer__line">
+      The operating layer between capital and execution.
+    </p>
+    <SocialButtons />
+    <p class="dim footer__meta">
+      <span>© {year}</span>
+      <span aria-hidden="true">·</span>
+      <span>{site.location.city}, {site.location.region}</span>
+    </p>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    margin-top: 0;
+  }
+  .footer__inner {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding-block: 4rem;
+  }
+  .footer__wordmark {
+    margin: 0;
+  }
+  .footer__line {
+    font-family: var(--serif);
+    font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+    line-height: 1.2;
+    max-width: 24ch;
+    margin: 0;
+  }
+  .footer__meta {
+    display: flex;
+    gap: 0.6rem;
+    font-size: 0.8125rem;
+    margin: 0.5rem 0 0;
+  }
+</style>

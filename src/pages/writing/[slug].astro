@@ -1,0 +1,113 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection, render } from 'astro:content';
+import { site, personId } from '../../data/site';
+
+export async function getStaticPaths() {
+  const essays = await getCollection('writing');
+  return essays.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+
+const fmt = (d: Date) =>
+  d.toLocaleDateString('en-GB', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+const articleSchema = {
+  '@type': 'Article',
+  '@id': `${site.domain}/writing/${entry.id}#article`,
+  headline: entry.data.title,
+  description: entry.data.description,
+  datePublished: entry.data.date.toISOString(),
+  author: { '@id': personId },
+  publisher: { '@id': personId },
+  mainEntityOfPage: `${site.domain}/writing/${entry.id}`,
+};
+---
+
+<Base
+  title={`${entry.data.title} — Virat Mohan`}
+  description={entry.data.description}
+  path={`/writing/${entry.id}`}
+  schema={[articleSchema]}
+>
+  <article class="essay section">
+    <div class="container">
+      <header class="essay__head" data-reveal>
+        <p class="eyebrow">
+          <a class="link-underline" href="/writing">Writing</a>
+        </p>
+        <h1 class="essay__title">{entry.data.title}</h1>
+        <p class="essay__meta dim">
+          <time datetime={entry.data.date.toISOString()}>
+            {fmt(entry.data.date)}
+          </time>
+        </p>
+      </header>
+
+      <div class="prose" data-reveal style="--reveal-delay: 80ms">
+        <Content />
+      </div>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .essay__head {
+    max-width: 68ch;
+    margin-bottom: 3.5rem;
+  }
+  .essay__title {
+    margin: 1rem 0 1rem;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 1;
+  }
+  .essay__meta {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+
+  .prose {
+    max-width: 68ch;
+    line-height: 1.75;
+  }
+  .prose :global(p) {
+    margin: 0 0 1.5rem;
+  }
+  .prose :global(h2) {
+    margin: 3rem 0 1rem;
+  }
+  .prose :global(h3) {
+    margin: 2.25rem 0 0.75rem;
+  }
+  .prose :global(a) {
+    text-decoration: underline;
+    text-decoration-color: var(--gold);
+    text-underline-offset: 3px;
+  }
+  /* Optional drop-cap on the first paragraph */
+  .prose :global(> p:first-of-type::first-letter) {
+    font-family: var(--serif);
+    font-size: 3.4em;
+    line-height: 0.8;
+    float: left;
+    padding: 0.05em 0.1em 0 0;
+    color: var(--fg);
+  }
+  .prose :global(blockquote) {
+    margin: 2rem 0;
+    padding-left: 1.5rem;
+    border-left: 1px solid var(--gold);
+    font-family: var(--serif);
+    font-size: 1.35rem;
+    line-height: 1.35;
+  }
+</style>

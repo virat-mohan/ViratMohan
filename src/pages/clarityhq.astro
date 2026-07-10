@@ -1,0 +1,59 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../data/site';
+---
+
+<Base
+  title="ClarityHQ — Virat Mohan"
+  description="ClarityHQ is Virat Mohan's AI-native growth practice: a brand intelligence layer and distributed human network that put judgment in front of the machine."
+  path="/clarityhq"
+>
+  <section class="section">
+    <div class="container clarity">
+      <p class="eyebrow" data-reveal>ClarityHQ</p>
+      <h1 class="clarity__h" data-reveal style="--reveal-delay: 60ms">
+        Growth, with a human in front of the machine.
+      </h1>
+      <div class="clarity__body measure" data-reveal style="--reveal-delay: 120ms">
+        <p>
+          ClarityHQ is an AI-native growth practice. It pairs a brand
+          intelligence layer — a shared spine of context that briefs every
+          engagement — with human pods and a distributed network of specialists
+          deployed on demand.
+        </p>
+        <p>
+          Virat Mohan founded and leads it, building on two decades of
+          operating, scaling and financing businesses across finance,
+          hospitality and technology. The premise is simple: AI has made
+          capability cheap and judgment scarce, so ClarityHQ puts senior
+          humans where the judgment is required and lets the machine carry the
+          volume behind them.
+        </p>
+        <p class="clarity__out">
+          <a
+            class="link-underline"
+            href={site.clarityhq}
+            target="_blank"
+            rel="noopener noreferrer">clarityhq.ai →</a
+          >
+        </p>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .clarity__h {
+    margin: 0.75rem 0 2rem;
+    max-width: 16ch;
+  }
+  .clarity__body {
+    font-size: 1.125rem;
+    line-height: 1.7;
+  }
+  .clarity__out {
+    margin-top: 2rem;
+    font-family: var(--serif);
+    font-size: clamp(1.5rem, 3vw, 2.25rem);
+  }
+</style>

@@ -1,0 +1,38 @@
+---
+import { site } from '../../data/site';
+import SocialButtons from '../SocialButtons.astro';
+---
+
+<section class="contact section" aria-labelledby="contact-h" id="contact">
+  <div class="container">
+    <p class="eyebrow" data-reveal>Contact</p>
+    <h2 id="contact-h" class="contact__line" data-reveal style="--reveal-delay: 60ms">
+      If you are placing capital, or executing on it —
+      <a class="link-underline" href={`mailto:${site.email}`}>{site.email}</a>
+    </h2>
+    <div class="contact__social" data-reveal style="--reveal-delay: 120ms">
+      <SocialButtons />
+    </div>
+  </div>
+</section>
+
+<style>
+  .contact {
+    padding-block: 12rem;
+  }
+  .contact__line {
+    max-width: 20ch;
+    margin: 1rem 0 0;
+  }
+  .contact__line a {
+    white-space: nowrap;
+  }
+  .contact__social {
+    margin-top: 3rem;
+  }
+  @media (max-width: 768px) {
+    .contact {
+      padding-block: 6rem;
+    }
+  }
+</style>

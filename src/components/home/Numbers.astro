@@ -1,0 +1,127 @@
+---
+import { stats } from '../../data/site';
+---
+
+<section class="numbers" aria-label="The numbers">
+  <div class="container">
+    <ul class="numbers__grid">
+      {
+        stats.map((s) => (
+          <li class="stat">
+            <p class="eyebrow stat__label" data-reveal>
+              {s.label}
+            </p>
+            {s.countTo !== undefined ? (
+              <span
+                class="stat__num tnum"
+                data-reveal
+                data-count={s.countTo}
+                data-suffix={s.suffix ?? ''}
+              >
+                {s.value}
+              </span>
+            ) : (
+              <span class="stat__num tnum" data-reveal>
+                {s.value}
+              </span>
+            )}
+            <p class="stat__context dim" data-reveal>
+              {s.context}
+            </p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .numbers {
+    padding-block: 14rem;
+  }
+  .numbers__grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .stat {
+    position: relative;
+    padding-inline: clamp(0.75rem, 2vw, 2rem);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .stat__label {
+    margin: 0;
+    max-width: 16ch;
+  }
+  .stat__num {
+    display: block;
+    font-family: var(--serif);
+    font-size: clamp(4rem, 10vw, 9rem);
+    line-height: 0.82;
+    letter-spacing: -0.05em;
+    font-feature-settings: 'tnum' 1, 'lnum' 1;
+    font-variant-numeric: tabular-nums lining-nums;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  :global([data-theme='dark']) .stat__num {
+    color: var(--paper);
+  }
+  .stat__context {
+    margin: 0;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    max-width: 22ch;
+  }
+
+  /* Gold hairline dividers — vertical, middle 60% of column height */
+  .stat:not(:first-child)::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 20%;
+    height: 60%;
+    width: 1px;
+    background: var(--gold);
+  }
+
+  @media (max-width: 768px) {
+    .numbers {
+      padding-block: 6.5rem;
+    }
+    .numbers__grid {
+      grid-template-columns: repeat(2, 1fr);
+      row-gap: 3.5rem;
+      column-gap: 0;
+    }
+    /* reset desktop verticals */
+    .stat:not(:first-child)::before {
+      display: none;
+    }
+    /* vertical divider between the two columns */
+    .stat:nth-child(even)::before {
+      display: block;
+      left: 0;
+      top: 20%;
+      height: 60%;
+      width: 1px;
+    }
+    /* horizontal divider between the two rows, middle 60% width */
+    .stat:nth-child(n + 3)::after {
+      content: '';
+      position: absolute;
+      top: -1.75rem;
+      left: 20%;
+      width: 60%;
+      height: 1px;
+      background: var(--gold);
+    }
+    .stat__num {
+      font-size: clamp(3rem, 16vw, 5rem);
+    }
+  }
+</style>
