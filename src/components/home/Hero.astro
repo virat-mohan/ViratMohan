@@ -53,14 +53,13 @@ import Portrait from '../Portrait.astro';
     margin: 0;
   }
 
-  /* Portrait bleeds full off the right edge of the viewport. */
+  /* Portrait sits inset as a smaller, softly framed card. */
   .hero__portrait {
     position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: min(42vw, 620px);
-    height: 100%;
+    top: 3.5rem;
+    right: 3.5rem;
+    bottom: 3.5rem;
+    width: min(36vw, 540px);
   }
   .hero__portrait-reveal {
     width: 100%;
@@ -82,11 +81,13 @@ import Portrait from '../Portrait.astro';
       grid-template-columns: 1fr;
       padding-block: 0 3rem;
     }
-    /* Portrait moves above the name, bleeds off BOTH edges. */
+    /* Portrait moves above the name, inset within the container as a card. */
     .hero__portrait {
       position: relative;
-      width: 100vw;
-      margin-left: calc(50% - 50vw);
+      top: auto;
+      right: auto;
+      bottom: auto;
+      width: 100%;
       height: auto;
       aspect-ratio: 16 / 10;
       order: -1;

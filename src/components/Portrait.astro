@@ -61,6 +61,13 @@ for (const c of candidates) {
     width: 100%;
     background: var(--portrait-grad);
     overflow: hidden;
+    border-radius: 10px;
+    box-shadow: 0 32px 64px -24px rgba(26, 20, 16, 0.4),
+      0 12px 28px -14px rgba(26, 20, 16, 0.28);
+  }
+  :global([data-theme='dark']) .portrait {
+    box-shadow: 0 32px 64px -24px rgba(0, 0, 0, 0.6),
+      0 12px 28px -14px rgba(0, 0, 0, 0.45);
   }
   .portrait__img {
     display: block;
@@ -129,10 +136,6 @@ for (const c of candidates) {
   }
 
   @media (max-width: 860px) {
-    /* Bleeds off both edges; hairline is not meaningful full-width */
-    .portrait__hair {
-      display: none;
-    }
     .portrait__img {
       object-position: 50% 28%;
     }
