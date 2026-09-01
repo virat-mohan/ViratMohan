@@ -1,0 +1,101 @@
+---
+import { getCollection } from 'astro:content';
+
+const projects = (await getCollection('work'))
+  .sort((a, b) => a.data.order - b.data.order)
+  .slice(0, 4);
+---
+
+<section class="work-teaser section" aria-labelledby="work-teaser-h">
+  <div class="container">
+    <p class="eyebrow" data-reveal>Recent projects</p>
+    <h2
+      id="work-teaser-h"
+      class="work-teaser__h"
+      data-reveal
+      style="--reveal-delay: 60ms"
+    >
+      Products, proven in production.
+    </h2>
+    <p
+      class="work-teaser__intro dim"
+      data-reveal
+      style="--reveal-delay: 120ms"
+    >
+      Four live systems, built end to end for real businesses — each one
+      licensable for yours.
+    </p>
+
+    <ul class="work-teaser__list">
+      {
+        projects.map((p) => (
+          <li class="work-teaser__item" data-reveal>
+            <a class="work-teaser__link" href={`/work/${p.id}`}>
+              <span class="eyebrow work-teaser__category">
+                {p.data.category}
+              </span>
+              <span class="work-teaser__brand">{p.data.brand}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <p class="work-teaser__more" data-reveal>
+      <a class="link-underline" href="/work">See all work and pricing →</a>
+    </p>
+  </div>
+</section>
+
+<style>
+  .work-teaser__h {
+    margin: 0.75rem 0 1rem;
+    max-width: 18ch;
+  }
+  .work-teaser__intro {
+    max-width: 48ch;
+    font-size: 1.0625rem;
+    margin: 0 0 3rem;
+  }
+  .work-teaser__list {
+    list-style: none;
+    margin: 0 0 2.5rem;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+  }
+  .work-teaser__link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    text-decoration: none;
+    background: var(--bg);
+    padding: 1.75rem 1.5rem;
+    height: 100%;
+    transition: background 0.3s ease;
+  }
+  .work-teaser__link:hover,
+  .work-teaser__link:focus-visible {
+    background: color-mix(in srgb, var(--gold) 6%, var(--bg));
+  }
+  .work-teaser__category {
+    margin: 0;
+  }
+  .work-teaser__brand {
+    font-family: var(--serif);
+    font-size: clamp(1.2rem, 2.2vw, 1.5rem);
+    color: var(--fg);
+  }
+  .work-teaser__more {
+    margin: 0;
+    font-size: 1rem;
+  }
+  @media (max-width: 620px) {
+    .work-teaser__list {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
