@@ -13,6 +13,7 @@ export const site = {
   whatsapp: '910000000000',
   linkedin: 'https://www.linkedin.com/in/viratmohan/', // TODO: confirm exact handle
   clarityhq: 'https://clarityhq.ai',
+  bookingUrl: 'https://meetings-na2.hubspot.com/virat-mohan',
   location: {
     city: 'Gurugram',
     region: 'Haryana',

@@ -1,0 +1,117 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+import LogoMark from '../../components/work/LogoMark.astro';
+
+const projects = (await getCollection('work')).sort(
+  (a, b) => a.data.order - b.data.order
+);
+
+const displayDomain = (d: string) =>
+  d.replace(/^https?:\/\//, '').replace(/\/$/, '');
+---
+
+<Base
+  title="Work — Virat Mohan"
+  description="Products built end to end, running in production for real businesses — e-commerce infrastructure, booking and property management, enquiry platforms, and marketplaces, licensable for your own business."
+  path="/work"
+>
+  <section class="section">
+    <div class="container">
+      <p class="eyebrow" data-reveal>Work</p>
+      <h1 class="work__h" data-reveal style="--reveal-delay: 60ms">
+        Products, proven in production.
+      </h1>
+      <p class="work__intro dim" data-reveal style="--reveal-delay: 120ms">
+        Each of these is a live system, built end to end for a real business
+        — not a mockup. If you are a small business or a solo operator, the
+        fastest way to get one of these running for you is not to build it
+        or learn it. It is to plug into a system that already works.
+      </p>
+
+      <ul class="work__list">
+        {
+          projects.map((p, i) => (
+            <li class="work__item" data-reveal>
+              {i > 0 && <hr class="rule-gold" />}
+              <a class="work__link" href={`/work/${p.id}`}>
+                <LogoMark
+                  logo={p.data.logo}
+                  brand={p.data.brand}
+                  accent={p.data.accent}
+                  founder={p.data.founder}
+                />
+                <span class="work__text">
+                  <span class="eyebrow work__category">
+                    {p.data.category}
+                  </span>
+                  <span class="work__tagline">{p.data.tagline}</span>
+                  <span class="work__proof dim">
+                    Built for {p.data.brand} — {displayDomain(p.data.domain)}
+                  </span>
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .work__h {
+    margin: 0.75rem 0 1.5rem;
+    max-width: 16ch;
+  }
+  .work__intro {
+    max-width: 56ch;
+    font-size: 1.0625rem;
+    margin: 0 0 3.5rem;
+  }
+  .work__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .work__link {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+    text-decoration: none;
+    padding-block: 2.5rem;
+  }
+  .work__item:first-child .work__link {
+    padding-top: 0;
+  }
+  .work__text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding-top: 0.25rem;
+  }
+  .work__category {
+    margin: 0;
+  }
+  .work__tagline {
+    font-family: var(--serif);
+    font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: var(--fg);
+    max-width: 34ch;
+    transition: color 0.3s ease;
+  }
+  .work__proof {
+    font-size: 0.9375rem;
+  }
+  .work__link:hover .work__tagline,
+  .work__link:focus-visible .work__tagline {
+    color: var(--gold);
+  }
+  @media (max-width: 540px) {
+    .work__link {
+      gap: 1rem;
+    }
+  }
+</style>
