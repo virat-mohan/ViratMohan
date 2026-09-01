@@ -9,8 +9,7 @@ export const site = {
   thesis:
     'AI has made capability cheap and judgment scarce. The businesses that compound are the ones that put humans in front of the machine, not behind it.',
   email: 'viratmohan@gmail.com',
-  // TODO: confirm public-facing WhatsApp number (E.164, no +/spaces for wa.me)
-  whatsapp: '910000000000',
+  whatsapp: '919999277240',
   linkedin: 'https://www.linkedin.com/in/viratmohan/', // TODO: confirm exact handle
   clarityhq: 'https://clarityhq.ai',
   bookingUrl: 'https://meetings-na2.hubspot.com/virat-mohan',
