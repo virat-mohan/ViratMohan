@@ -2,6 +2,7 @@ export type SendEmailInput = {
   to: string;
   subject: string;
   html: string;
+  replyTo?: string;
 };
 
 export async function sendEmail(
@@ -19,6 +20,7 @@ export async function sendEmail(
       to: [input.to],
       subject: input.subject,
       html: input.html,
+      ...(input.replyTo ? { reply_to: input.replyTo } : {}),
     }),
   });
 

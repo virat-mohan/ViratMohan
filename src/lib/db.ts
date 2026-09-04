@@ -6,6 +6,7 @@ export type SolutionNotes = {
   problemBreakdown: ProblemBreakdown[];
   solutionMechanisms: SolutionMechanism[];
   artefactPlan: ArtefactPlan;
+  clarifyingQuestions: string[];
 };
 
 export type Submission = {
@@ -15,10 +16,12 @@ export type Submission = {
   website: string | null;
   tools: string | null;
   email: string;
-  status: 'received' | 'demo_ready' | 'sent' | 'failed';
+  status: 'received' | 'demo_ready' | 'revising' | 'sent' | 'failed';
   pnl_levers: PnlLeverHit[] | null;
   solution_notes: SolutionNotes | null;
   artefact_html: string | null;
+  feedback_text: string | null;
+  feedback_round: number;
   error: string | null;
   created_at: string;
 };
@@ -70,6 +73,30 @@ export function getDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: st
         .update({ status: 'sent', approved_at: now, sent_at: now })
         .eq('id', id);
       if (error) throw new Error(`supabase update (sent) failed: ${error.message}`);
+    },
+
+    // Reply-to-email feedback loop — one round, per product rule.
+    async startRevision(id: string, feedbackText: string) {
+      const { error } = await supabase
+        .from('submissions')
+        .update({ status: 'revising', feedback_text: feedbackText })
+        .eq('id', id);
+      if (error) throw new Error(`supabase update (revising) failed: ${error.message}`);
+    },
+
+    async markRevised(id: string, levers: PnlLeverHit[], notes: SolutionNotes, artefactHtml: string) {
+      const { error } = await supabase
+        .from('submissions')
+        .update({
+          status: 'demo_ready',
+          pnl_levers: levers,
+          solution_notes: notes,
+          artefact_html: artefactHtml,
+          feedback_round: 1,
+          classified_at: new Date().toISOString(),
+        })
+        .eq('id', id);
+      if (error) throw new Error(`supabase update (revised) failed: ${error.message}`);
     },
 
     async getById(id: string): Promise<Submission | null> {

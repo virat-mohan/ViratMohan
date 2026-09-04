@@ -43,7 +43,15 @@ const notes = row.solution_notes;
     </div>
 
     {row.status === 'received' && <p class="hint">Still classifying and generating the demo artefact — refresh in a moment.</p>}
+    {row.status === 'revising' && <p class="hint">Incorporating client feedback into a revised demo — refresh in a moment.</p>}
     {row.status === 'failed' && <p class="hint error">Generation failed: {row.error}</p>}
+
+    {row.feedback_text && (
+      <div class="reasoning-block">
+        <h2>Client feedback (round {row.feedback_round || 1})</h2>
+        <div class="note-card"><p>{row.feedback_text}</p></div>
+      </div>
+    )}
 
     {notes && notes.problemBreakdown.length > 0 && (
       <div class="reasoning-block">
@@ -97,6 +105,17 @@ const notes = row.solution_notes;
       </div>
     )}
 
+    {notes && notes.clarifyingQuestions.length > 0 && (
+      <div class="reasoning-block">
+        <h2>Clarifying questions (sent to client)</h2>
+        <div class="note-card">
+          <ul class="sections-list">
+            {notes.clarifyingQuestions.map((q) => <li>{q}</li>)}
+          </ul>
+        </div>
+      </div>
+    )}
+
     {row.artefact_html && (
       <div class="artefact">
         <h2>Generated demo artefact</h2>
@@ -105,9 +124,9 @@ const notes = row.solution_notes;
     )}
 
     {row.status === 'demo_ready' && (
-      <button id="approveBtn" data-id={row.id}>Approve & send to client →</button>
+      <button id="approveBtn" data-id={row.id}>{row.feedback_round >= 1 ? 'Approve & send revised demo →' : 'Approve & send to client →'}</button>
     )}
-    {row.status === 'sent' && <p class="hint sent">Sent to {row.email}.</p>}
+    {row.status === 'sent' && <p class="hint sent">Sent to {row.email}{row.feedback_round >= 1 ? ' (final, revised version)' : ''}.</p>}
   </main>
 
   <script type="module" define:vars={{ id: row.id }}>

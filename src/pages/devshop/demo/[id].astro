@@ -12,6 +12,10 @@ const row = id ? await getDb(env).getById(id) : null;
 if (!row || !row.artefact_html || (row.status !== 'sent' && row.status !== 'demo_ready')) {
   return new Response('Not found', { status: 404 });
 }
+
+const notes = row.solution_notes;
+const levers = row.pnl_levers ?? [];
+const title = row.company ? `Your demo — ${row.company}` : 'Your demo';
 ---
 
 <!doctype html>
@@ -19,12 +23,108 @@ if (!row || !row.artefact_html || (row.status !== 'sent' && row.status !== 'demo
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Your demo — Fast Tech Dev Shop</title>
+  <title>{title}</title>
   <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
 </head>
-<body set:html={row.artefact_html}></body>
+<body>
+
+  <main class="brief">
+    <div class="eyebrow">SOLUTION BRIEF{row.company ? ` — ${row.company}` : ''}</div>
+    <h1>What we heard, and what we're proposing.</h1>
+
+    {notes && notes.problemBreakdown.length > 0 && (
+      <section class="block">
+        <h2>The problem{notes.problemBreakdown.length > 1 ? 's' : ''}</h2>
+        {notes.problemBreakdown.map((p) => (
+          <div class="card">
+            <p class="card-title">{p.problem_statement}</p>
+            <p><strong>Root cause —</strong> {p.root_cause}</p>
+            <p><strong>Cost of not fixing it —</strong> {p.current_cost_of_inaction}</p>
+          </div>
+        ))}
+      </section>
+    )}
+
+    {notes && notes.solutionMechanisms.length > 0 && (
+      <section class="block">
+        <h2>What we'd build</h2>
+        {notes.solutionMechanisms.map((m) => (
+          <div class="card">
+            <p class="card-title">{m.mechanism_name}</p>
+            <p>{m.how_it_works}</p>
+          </div>
+        ))}
+      </section>
+    )}
+
+    {levers.length > 0 && (
+      <section class="block">
+        <h2>Expected impact</h2>
+        {levers.map((l) => (
+          <div class="card">
+            <p class="card-title">{l.lever}</p>
+            <p>{l.reasoning}</p>
+          </div>
+        ))}
+      </section>
+    )}
+
+    {notes && notes.clarifyingQuestions.length > 0 && (
+      <section class="block questions">
+        <h2>To sharpen these numbers, we'd ask</h2>
+        <p class="questions-intro">The estimates above use industry-typical assumptions where we didn't have your real figures. Answering these in your reply will make the next version exact rather than assumed:</p>
+        <ul>
+          {notes.clarifyingQuestions.map((q) => <li>{q}</li>)}
+        </ul>
+      </section>
+    )}
+
+    <p class="feedback-note">
+      Reply to the email this came from with one round of feedback — that's the scope for the 7-day build. No proposal, no scoping call.
+    </p>
+  </main>
+
+  <div class="divider"><span>Try it yourself</span></div>
+
+  <div class="artefact-embed" set:html={row.artefact_html}></div>
+
+</body>
 </html>
 
 <style>
-  html, body { margin: 0; background: #15130f; }
+  :root { color-scheme: light; }
+  html, body { margin: 0; background: #fafaf8; }
+  body { font-family: 'Inter', system-ui, sans-serif; color: #24211d; }
+
+  .brief { max-width: 760px; margin: 0 auto; padding: 64px 32px 40px; }
+  .eyebrow { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a8378; margin-bottom: 16px; }
+  h1 { font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: clamp(28px, 4vw, 40px); line-height: 1.15; margin: 0 0 40px; max-width: 20ch; }
+  h2 { font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 20px; margin: 0 0 16px; }
+  .block { margin-bottom: 40px; }
+  .card { padding: 18px 0; border-top: 1px solid rgba(36,33,29,0.1); font-size: 15px; line-height: 1.6; }
+  .card:first-of-type { border-top: none; }
+  .card-title { font-weight: 600; margin: 0 0 6px; }
+  .card p { margin: 4px 0; color: #4a453e; }
+  .card p strong { color: #24211d; }
+  .questions { background: #fff6ea; border: 1px solid rgba(196,141,46,0.3); border-radius: 8px; padding: 24px 28px; }
+  .questions-intro { font-size: 14px; color: #6b5f4a; margin: 0 0 14px; }
+  .questions ul { margin: 0; padding-left: 20px; font-size: 15px; line-height: 1.7; }
+  .feedback-note { font-size: 14px; color: #6b6459; border-top: 1px solid rgba(36,33,29,0.1); padding-top: 24px; }
+
+  .divider { display: flex; align-items: center; gap: 16px; max-width: 760px; margin: 8px auto 32px; padding: 0 32px; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: rgba(36,33,29,0.15); }
+  .divider span { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a8378; white-space: nowrap; }
+
+  .artefact-embed { max-width: 960px; margin: 0 auto 64px; padding: 0 32px; }
+
+  @media (max-width: 640px) {
+    .brief { padding: 40px 20px 32px; }
+    .artefact-embed { padding: 0 20px; }
+  }
 </style>

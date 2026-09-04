@@ -69,6 +69,7 @@ export const POST: APIRoute = async ({ request }) => {
         problemBreakdown: result.problemBreakdown,
         solutionMechanisms: result.solutionMechanisms,
         artefactPlan: result.artefactPlan,
+        clarifyingQuestions: result.clarifyingQuestions,
       },
       result.artefactHtml
     );

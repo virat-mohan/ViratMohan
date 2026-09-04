@@ -735,6 +735,9 @@ const canonical = new URL('/devshop', site.domain).href;
 
     btn.disabled = true;
     btn.textContent = 'Submitting…';
+    var slowNoticeTimer = setTimeout(function () {
+      btn.textContent = 'Building your demo — this can take a minute…';
+    }, 4000);
 
     fetch('/devshop/api/intake', {
       method: 'POST',
@@ -755,6 +758,7 @@ const canonical = new URL('/devshop', site.domain).href;
         errorEl.hidden = false;
       })
       .finally(function () {
+        clearTimeout(slowNoticeTimer);
         btn.disabled = false;
         btn.textContent = 'Submit →';
       });

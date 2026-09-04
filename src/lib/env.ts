@@ -9,6 +9,9 @@ export type Env = {
   RESEND_API_KEY: string;
   RESEND_FROM_EMAIL: string;
   ADMIN_NOTIFY_EMAIL: string;
+  // Reply-to-email feedback loop
+  INBOUND_EMAIL_DOMAIN: string; // e.g. "reply.viratmohan.com" — must be configured for Resend Inbound
+  RESEND_WEBHOOK_SECRET: string; // Resend webhook signing secret (Svix-based)
 };
 
 export function getEnv(): Env {
@@ -19,5 +22,7 @@ export function getEnv(): Env {
     RESEND_API_KEY: process.env.RESEND_API_KEY ?? '',
     RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL ?? '',
     ADMIN_NOTIFY_EMAIL: process.env.ADMIN_NOTIFY_EMAIL ?? '',
+    INBOUND_EMAIL_DOMAIN: process.env.INBOUND_EMAIL_DOMAIN ?? '',
+    RESEND_WEBHOOK_SECRET: process.env.RESEND_WEBHOOK_SECRET ?? '',
   };
 }

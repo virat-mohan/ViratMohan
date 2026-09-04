@@ -19,6 +19,7 @@
     "@tailwindcss/vite": "^4.0.0",
     "@vercel/functions": "^3.9.5",
     "astro": "^5.1.0",
+    "svix": "^2.3.0",
     "tailwindcss": "^4.0.0"
   }
 }
