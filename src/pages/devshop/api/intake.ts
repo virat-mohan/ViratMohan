@@ -1,12 +1,13 @@
 export const prerender = false;
 
 import type { APIRoute } from 'astro';
+import { waitUntil } from '@vercel/functions';
 import { classifyAndBuild, fetchWebsiteSnippet } from '../../../lib/llm';
 import { sendEmail } from '../../../lib/email';
 import { getDb } from '../../../lib/db';
 
-export const POST: APIRoute = async ({ request, locals }) => {
-  const env = locals.runtime.env;
+export const POST: APIRoute = async ({ request }) => {
+  const env = import.meta.env;
 
   let body: { problem?: string; company?: string; website?: string; tools?: string; email?: string };
   try {
@@ -74,7 +75,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     }
   })();
 
-  locals.runtime.ctx.waitUntil(Promise.all([notify, classify]));
+  waitUntil(Promise.all([notify, classify]));
 
   return json({ id, status: 'received' }, 201);
 };

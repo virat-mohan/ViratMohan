@@ -1,8 +1,10 @@
 # viratmohan.com
 
-Personal site for Virat Mohan. Astro + Tailwind, fully static, deployed to
-Cloudflare Pages. No client-side JS beyond a reveal-on-scroll observer, a
-stat count-up, and the theme toggle.
+Personal site for Virat Mohan. Astro + Tailwind, deployed on Vercel. Every
+page except `/devshop/api/*` and `/devshop/admin/*` still prerenders to
+static HTML (no client-side JS beyond a reveal-on-scroll observer, a stat
+count-up, and the theme toggle); those two route groups are the one part of
+the site that runs as real server functions — see `/devshop` below.
 
 ## Develop
 
@@ -13,15 +15,28 @@ npm run build    # static output → dist/
 npm run preview  # serve the build locally
 ```
 
-## Deploy — Cloudflare Pages
+## Deploy — Vercel
 
-Static site, no adapter required.
+Uses `@astrojs/vercel` (build output is Vercel-specific, not a plain static
+`dist/`). Point the Vercel project at this repo — it auto-detects Astro, no
+custom build/output settings needed — and set the domain to `viratmohan.com`.
 
-- **Build command:** `npm run build`
-- **Output directory:** `dist`
-- **Node version:** 18+ (built on 24)
+Required environment variables (Vercel project → Settings → Environment
+Variables), used only by `/devshop/api/*` and `/devshop/admin/*`:
 
-Point the Pages project at this repo and set the domain to `viratmohan.com`.
+| Variable | Where to get it |
+| --- | --- |
+| `SUPABASE_URL` | Supabase project → Settings → API → Project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase project → Settings → API → `service_role` secret (never expose client-side) |
+| `ANTHROPIC_API_KEY` | console.anthropic.com |
+| `RESEND_API_KEY` | resend.com |
+| `RESEND_FROM_EMAIL` | e.g. `Fast Tech Dev Shop <devshop@mail.clarityhq.ai>` — domain must be verified in Resend |
+| `ADMIN_NOTIFY_EMAIL` | `virat@clarityhq.ai` |
+
+Before this is live, also run `migrations/0001_init.sql` once against the
+Supabase project (SQL editor) and put some form of access control in front
+of `/devshop/admin/*` (Vercel Password Protection, or a similar gate) — it
+has no app-level auth of its own.
 
 ## Before launch — fill these in
 

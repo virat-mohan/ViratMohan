@@ -1,20 +1,18 @@
 /// <reference path="../.astro/types.d.ts" />
 /// <reference types="astro/client" />
 
-import type { Runtime } from '@astrojs/cloudflare';
+// Plain secrets, set as Vercel project environment variables (Settings >
+// Environment Variables), read server-side via import.meta.env — no adapter
+// bindings, no CLI setup.
+interface ImportMetaEnv {
+  readonly SUPABASE_URL: string;
+  readonly SUPABASE_SERVICE_ROLE_KEY: string;
+  readonly ANTHROPIC_API_KEY: string;
+  readonly RESEND_API_KEY: string;
+  readonly RESEND_FROM_EMAIL: string;
+  readonly ADMIN_NOTIFY_EMAIL: string;
+}
 
-// Plain secrets, set as Cloudflare Pages environment variables (dashboard —
-// Settings > Environment variables), not Cloudflare bindings. No wrangler
-// CLI or D1/KV setup needed.
-type CloudflareEnv = {
-  SUPABASE_URL: string;
-  SUPABASE_SERVICE_ROLE_KEY: string;
-  ANTHROPIC_API_KEY: string;
-  RESEND_API_KEY: string;
-  RESEND_FROM_EMAIL: string;
-  ADMIN_NOTIFY_EMAIL: string;
-};
-
-declare namespace App {
-  interface Locals extends Runtime<CloudflareEnv> {}
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
 }

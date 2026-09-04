@@ -7,7 +7,7 @@ export const prerender = false;
 
 import { getDb } from '../../../lib/db';
 
-const env = Astro.locals.runtime.env;
+const env = import.meta.env;
 const results = await getDb(env).listRecent(100);
 
 function leverSummary(levers: { lever: string }[] | null): string {

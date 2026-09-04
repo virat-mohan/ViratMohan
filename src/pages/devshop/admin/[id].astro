@@ -4,7 +4,7 @@ export const prerender = false;
 
 import { getDb } from '../../../lib/db';
 
-const env = Astro.locals.runtime.env;
+const env = import.meta.env;
 const { id } = Astro.params;
 
 const row = id ? await getDb(env).getById(id) : null;
