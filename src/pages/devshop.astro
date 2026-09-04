@@ -224,6 +224,17 @@ const canonical = new URL('/devshop', site.domain).href;
     </div>
   </section>
 
+  <!-- 05a BUILDING — shown while the synchronous Claude classify+build call runs (~60-90s) -->
+  <section class="screen wizard-screen" id="building">
+    <div class="wizard">
+      <div class="eyebrow">BUILDING</div>
+      <h1 class="serif wizard-q" style="margin-bottom:8px;">Working the problem through the orchestrator.</h1>
+      <p class="wizard-sub" id="buildCountdown">Usually takes about a minute.</p>
+      <div class="build-progress"><div class="build-progress-fill" id="buildProgressFill"></div></div>
+      <p class="build-message" id="buildMessage"></p>
+    </div>
+  </section>
+
   <!-- 05b CONFIRMATION — real intake landed, no fake login/dashboard after this -->
   <section class="screen" id="confirmation">
     <div class="eyebrow">RECEIVED</div>
@@ -496,6 +507,14 @@ const canonical = new URL('/devshop', site.domain).href;
   .wizard-hint { font-size: 12px; color: var(--dev-muted3); letter-spacing: 0.02em; }
   .wizard-error { margin-top: 24px; color: var(--dev-rose); font-size: 14px; }
 
+  .build-progress { width: 100%; max-width: 420px; height: 3px; background: var(--dev-hair); margin: 32px auto 0; overflow: hidden; }
+  .build-progress-fill { height: 100%; width: 0%; background: var(--dev-gold); transition: width 1s linear; }
+  .build-message {
+    margin-top: 40px; font-size: 15px; color: var(--dev-muted1); max-width: 480px; line-height: 1.6;
+    min-height: 3.2em; opacity: 0; transition: opacity 0.4s ease;
+  }
+  .build-message.show { opacity: 1; }
+
   .chip-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 4px; }
   .chip {
     font-family: 'Inter', sans-serif; font-size: 13px; padding: 9px 16px; border: 1px solid var(--dev-hair);
@@ -718,10 +737,108 @@ const canonical = new URL('/devshop', site.domain).href;
     });
   }
 
+  /* ---- building screen: countdown + contextual rotating messages ---- */
+  var BENCHMARK_LIBRARY = [
+    { keywords: ['checkout', 'cart', 'abandon', 'ecommerce', 'e-commerce', 'shopify', 'order'],
+      lines: [
+        'Cart abandonment averages 65–70% across e-commerce — most of it is friction, not disinterest.',
+        'Recovering even 10–15% of abandoned checkouts is typical once the right nudge fires at the right moment.',
+        'Faster checkout flows routinely lift conversion 5–10 points in direct comparisons.',
+      ] },
+    { keywords: ['support', 'ticket', 'inbox', 'helpdesk', 'email', 'customer service', 'query', 'queries'],
+      lines: [
+        'Support teams typically see 40–60% of inbound volume fall into a handful of repeat categories.',
+        'Auto-classifying and drafting replies for repeat questions commonly cuts response time from hours to minutes.',
+        'A well-scoped triage layer usually absorbs 30–50% of ticket volume without touching complex cases.',
+      ] },
+    { keywords: ['proposal', 'quote', 'lead', 'sales', 'pipeline', 'crm', 'pricing'],
+      lines: [
+        'Speed-to-quote is one of the strongest predictors of close rate in B2B sales — hours beat days, consistently.',
+        'Teams that automate first-draft proposals typically cut turnaround from hours to minutes, with a human finishing the send.',
+        'Lead response within 5 minutes converts several times better than response after an hour, across most benchmarks.',
+      ] },
+    { keywords: ['budget', 'spreadsheet', 'sheet', 'finance', 'cost', 'vendor', 'invoice', 'expense'],
+      lines: [
+        'Budget overruns caught at the moment of commitment are far cheaper to fix than ones caught at reconciliation.',
+        'Manual spreadsheet reconciliation is one of the most common sources of silent margin leakage in operating businesses.',
+        'Real-time budget-vs-committed tracking typically catches overspend 2-4 weeks earlier than periodic review.',
+      ] },
+    { keywords: ['inventory', 'stock', 'warehouse', 'fulfillment', 'fulfilment', 'supply'],
+      lines: [
+        'Manual stock counts are one of the highest-friction, highest-error tasks in retail operations.',
+        'Automated stock reconciliation typically cuts count time by 70-90% versus manual spreadsheet tracking.',
+      ] },
+    { keywords: ['schedule', 'booking', 'appointment', 'calendar', 'staffing'],
+      lines: [
+        'Automated scheduling typically removes 60-80% of the back-and-forth in manual booking coordination.',
+        'No-show rates commonly drop 20-30% with automated confirmation and reminder flows.',
+      ] },
+  ];
+
+  var GENERIC_LINES = [
+    'Fast Tech Dev Shop builds a working demo, not a mockup — every number you\'ll see is either a real assumption or a question we\'ll ask you.',
+    'The orchestrator is mapping your problem against a fixed set of P&L levers — revenue or cost, not a vague "AI opportunity."',
+    'One round of feedback, then a 7-day build — the demo you\'re about to see is the actual scope document.',
+    'Every demo is skinned to your brand where possible, not ours — this isn\'t a generic AI-wrapper pitch.',
+  ];
+
+  function buildMessageQueue(problemText, toolsText) {
+    var haystack = (problemText + ' ' + toolsText).toLowerCase();
+    var matched = [];
+    BENCHMARK_LIBRARY.forEach(function (entry) {
+      var hit = entry.keywords.some(function (k) { return haystack.indexOf(k) !== -1; });
+      if (hit) matched = matched.concat(entry.lines);
+    });
+    // Matched, industry-specific lines first, generic lines as filler/fallback.
+    return matched.concat(GENERIC_LINES);
+  }
+
+  var buildTimers = [];
+  function startBuildingUi(problemText, toolsText) {
+    var countdownEl = document.getElementById('buildCountdown');
+    var messageEl = document.getElementById('buildMessage');
+    var fillEl = document.getElementById('buildProgressFill');
+    var queue = buildMessageQueue(problemText, toolsText);
+    var qIndex = 0;
+    var ESTIMATE_SECONDS = 75;
+    var elapsed = 0;
+
+    function tick() {
+      elapsed++;
+      var remaining = ESTIMATE_SECONDS - elapsed;
+      if (remaining > 0) {
+        countdownEl.textContent = 'About ' + remaining + 's left…';
+      } else {
+        countdownEl.textContent = 'Almost there — the good ones take a little longer.';
+      }
+      var pct = Math.min(100, Math.round((elapsed / ESTIMATE_SECONDS) * 92)); // never hit 100 until done
+      fillEl.style.width = pct + '%';
+    }
+    tick();
+    buildTimers.push(setInterval(tick, 1000));
+
+    function showNextMessage() {
+      messageEl.classList.remove('show');
+      setTimeout(function () {
+        messageEl.textContent = queue[qIndex % queue.length];
+        qIndex++;
+        messageEl.classList.add('show');
+      }, 250);
+    }
+    showNextMessage();
+    buildTimers.push(setInterval(showNextMessage, 4500));
+  }
+
+  function stopBuildingUi(success) {
+    buildTimers.forEach(function (t) { clearInterval(t); });
+    buildTimers = [];
+    var fillEl = document.getElementById('buildProgressFill');
+    if (fillEl) fillEl.style.width = success ? '100%' : fillEl.style.width;
+  }
+
   document.getElementById('intakeForm').addEventListener('submit', function (e) {
     e.preventDefault();
     var form = e.target;
-    var btn = document.getElementById('intakeSubmitBtn');
     var errorEl = document.getElementById('intakeError');
     errorEl.hidden = true;
 
@@ -733,11 +850,8 @@ const canonical = new URL('/devshop', site.domain).href;
       email: form.email.value.trim(),
     };
 
-    btn.disabled = true;
-    btn.textContent = 'Submitting…';
-    var slowNoticeTimer = setTimeout(function () {
-      btn.textContent = 'Building your demo — this can take a minute…';
-    }, 4000);
+    showScreen('building');
+    startBuildingUi(payload.problem, payload.tools);
 
     fetch('/devshop/api/intake', {
       method: 'POST',
@@ -749,18 +863,16 @@ const canonical = new URL('/devshop', site.domain).href;
         return res.json();
       })
       .then(function () {
+        stopBuildingUi(true);
         form.reset();
         document.querySelectorAll('.chip.selected').forEach(function (c) { c.classList.remove('selected'); });
         showScreen('confirmation');
       })
       .catch(function (err) {
+        stopBuildingUi(false);
+        showScreen('intake');
         errorEl.textContent = err.message || 'Something went wrong — try again.';
         errorEl.hidden = false;
-      })
-      .finally(function () {
-        clearTimeout(slowNoticeTimer);
-        btn.disabled = false;
-        btn.textContent = 'Submit →';
       });
   });
 
