@@ -15,7 +15,12 @@ export default defineConfig({
   site: 'https://viratmohan.com',
   trailingSlash: 'ignore',
   integrations: [sitemap()],
-  adapter: vercel(),
+  // The Claude classify+build call is slow (deep reasoning + a full HTML
+  // artefact) and runs synchronously inside /devshop/api/intake — needs
+  // more than the default serverless timeout. Requires a Vercel plan that
+  // allows >10s (Hobby caps at 10s regardless of this setting; Pro+ allows
+  // up to 800s / 15min).
+  adapter: vercel({ maxDuration: 90 }),
   vite: {
     plugins: [tailwindcss()],
   },

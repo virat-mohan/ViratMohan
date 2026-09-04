@@ -50,27 +50,31 @@ export const POST: APIRoute = async ({ request }) => {
     env
   ).catch((err) => console.error('intake: admin notify failed', err));
 
-  // Classify + generate the demo artefact in the background so the client
-  // gets an immediate response; the admin page polls status.
-  const classify = (async () => {
-    try {
-      const websiteSnippet = website ? await fetchWebsiteSnippet(website) : null;
-      const result = await classifyAndBuild(
-        { problem, company, tools, websiteSnippet },
-        env.ANTHROPIC_API_KEY
-      );
-      await db.markDemoReady(
-        id,
-        result.levers,
-        {
-          problemBreakdown: result.problemBreakdown,
-          solutionMechanisms: result.solutionMechanisms,
-          artefactPlan: result.artefactPlan,
-        },
-        result.artefactHtml
-      );
+  waitUntil(notify);
 
-      await sendEmail(
+  // Classify + generate the demo artefact SYNCHRONOUSLY. This is slow (a
+  // forced multi-step reasoning call plus a full HTML artefact), but
+  // Vercel serverless functions aren't guaranteed to keep running true
+  // background work after the response is sent unless Fluid Compute is on
+  // — awaiting here is what makes this reliable regardless of that setting.
+  // maxDuration is raised in astro.config.mjs to give this room to run.
+  let status: 'demo_ready' | 'failed' = 'demo_ready';
+  try {
+    const websiteSnippet = website ? await fetchWebsiteSnippet(website) : null;
+    const result = await classifyAndBuild({ problem, company, tools, websiteSnippet }, env.ANTHROPIC_API_KEY);
+    await db.markDemoReady(
+      id,
+      result.levers,
+      {
+        problemBreakdown: result.problemBreakdown,
+        solutionMechanisms: result.solutionMechanisms,
+        artefactPlan: result.artefactPlan,
+      },
+      result.artefactHtml
+    );
+
+    waitUntil(
+      sendEmail(
         {
           to: env.ADMIN_NOTIFY_EMAIL,
           subject: `Demo ready for review${company ? ` — ${company}` : ''}`,
@@ -79,16 +83,15 @@ export const POST: APIRoute = async ({ request }) => {
           )}</strong> is ready.</p><p><a href="${origin}/devshop/admin/${id}">Review and approve →</a></p>`,
         },
         env
-      ).catch((err) => console.error('intake: demo-ready notify failed', err));
-    } catch (err) {
-      console.error('intake: classification failed', err);
-      await db.markFailed(id, err instanceof Error ? err.message : String(err)).catch(() => {});
-    }
-  })();
+      ).catch((err) => console.error('intake: demo-ready notify failed', err))
+    );
+  } catch (err) {
+    console.error('intake: classification failed', err);
+    status = 'failed';
+    await db.markFailed(id, err instanceof Error ? err.message : String(err)).catch(() => {});
+  }
 
-  waitUntil(Promise.all([notify, classify]));
-
-  return json({ id, status: 'received' }, 201);
+  return json({ id, status }, 201);
 };
 
 function json(data: unknown, status: number) {
