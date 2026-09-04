@@ -13,7 +13,10 @@ import { getOrigin } from '../../../lib/http';
 // (feedback_round 1 — final, no Reply-To routing, copy says so explicitly).
 export const POST: APIRoute = async ({ request }) => {
   const env = getEnv();
-  const { id } = (await request.json().catch(() => ({}))) as { id?: string };
+  const { id, overrideEmail } = (await request.json().catch(() => ({}))) as {
+    id?: string;
+    overrideEmail?: string;
+  };
   if (!id) return json({ error: 'id is required' }, 400);
 
   const db = getDb(env);
@@ -39,9 +42,11 @@ export const POST: APIRoute = async ({ request }) => {
          <ul>${questions.map((q) => `<li>${escapeHtml(q)}</li>`).join('')}</ul>`
       : '';
 
+  const recipient = (overrideEmail || '').trim() || row.email;
+
   await sendEmail(
     {
-      to: row.email,
+      to: recipient,
       subject: isFinal
         ? `Your Updated Demo${row.company ? ` for ${row.company}` : ''} is ready from Fast Tech Dev Shop`
         : `Your Demo${row.company ? ` for ${row.company}` : ''} is ready from Fast Tech Dev Shop`,
@@ -64,7 +69,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   await db.markSent(id);
 
-  return json({ ok: true, demoUrl }, 200);
+  return json({ ok: true, demoUrl, sentTo: recipient }, 200);
 };
 
 function json(data: unknown, status: number) {

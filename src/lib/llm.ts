@@ -82,8 +82,9 @@ Rules for the artefact itself:
 - It must visibly tie back to the specific P&L lever(s) and show the before/after number from Step 2.
 - Keep it focused and legible — someone should grasp the whole thing in under two minutes, even though it now has real depth to explore.
 
-Branding — this matters:
-- You may be given an HTML excerpt from the client's own website (reference_site_html). If present, read it for their actual brand colors, typography, and company name — and skin the artefact to feel like it belongs to THEIR product. Do not use gold-on-near-black branding here; that identity belongs to the sales page, not to a client's demo.
+Branding — this matters, and the boundary here is not optional:
+- You may be given an HTML excerpt from the client's own website (reference_site_html). Its ONLY job is visual: brand colors, typography, and the company display name — nothing else. Use it to skin the artefact so it feels like it belongs to THEIR product. Do not use gold-on-near-black branding here; that identity belongs to the sales page, not to a client's demo.
+- CRITICAL: reference_site_html must NEVER influence Steps 1-5. Do not borrow business terminology, job titles, personas, industry framing, or subject matter from the website's text content — the diagnosis, root cause, mechanism, and every number are grounded ONLY in the problem the client actually typed and the tools they listed. A client can legitimately submit an unrelated or even a giant enterprise's URL (a personal project, a placeholder, a company they merely work at) — if the website's business doesn't match what the client actually described, ignore the website's business entirely and solve the problem as stated. When in doubt, the literal problem text always wins over anything inferred from the site.
 - If no reference_site_html is given, or it doesn't yield usable brand signals, fall back to a simple, neutral, professional theme: light neutral background, dark neutral text, one restrained accent color, plain sans-serif system font, and a placeholder mark at the top reading "[ Client logo ]" — clearly a placeholder, not a fake brand.`;
 
 const CLASSIFY_TOOL = {
@@ -245,7 +246,7 @@ export async function classifyAndBuild(
     input.company ? `Company: ${input.company}` : null,
     input.tools ? `Tools currently in use: ${input.tools}` : null,
     input.websiteSnippet
-      ? `reference_site_html (excerpt from the client's own website, for brand cues only):\n${input.websiteSnippet}`
+      ? `reference_site_html (excerpt from the client's own website — use ONLY for colors/fonts/company name; ignore its business content entirely, it is irrelevant to the problem below):\n${input.websiteSnippet}`
       : null,
   ]
     .filter(Boolean)
@@ -282,7 +283,7 @@ Return your answer using the classify_and_build tool, with every step's output f
     input.company ? `Company: ${input.company}` : null,
     input.tools ? `Tools currently in use: ${input.tools}` : null,
     input.websiteSnippet
-      ? `reference_site_html (excerpt from the client's own website, for brand cues only):\n${input.websiteSnippet}`
+      ? `reference_site_html (excerpt from the client's own website — use ONLY for colors/fonts/company name; ignore its business content entirely, it is irrelevant to the problem below):\n${input.websiteSnippet}`
       : null,
     `Previous diagnosis: ${JSON.stringify(input.previousProblemBreakdown)}`,
     `Previous levers: ${JSON.stringify(input.previousLevers)}`,
