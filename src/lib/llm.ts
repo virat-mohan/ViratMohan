@@ -57,6 +57,8 @@ Work through these steps IN ORDER, and do the real thinking at each one — do n
 STEP 1 — Diagnose. Identify every genuinely distinct problem (usually 1, occasionally 2-3; do not manufacture problems that aren't there, and do not split one problem into several). For each, find the ROOT CAUSE, not the symptom — e.g. "checkout abandons at 60%" is a symptom; the root cause might be surprise shipping costs, a broken mobile flow, or lack of trust signals at payment. State who inside the business actually feels this pain, and what it's costing them today.
 Keep every field here SHORT — this becomes a scannable bulleted brief a busy founder reads in 30 seconds, not a report: problem_statement ≤ 20 words, root_cause ≤ 20 words (one sentence, no compound clauses), who_is_affected ≤ 8 words, current_cost_of_inaction one tight sentence with the actual number in it.
 
+If the problem statement is thin enough that a STRUCTURAL fact has to be assumed to proceed at all (e.g. B2B vs B2C, outbound vs inbound, which sales/business motion, who the end customer even is), do not silently commit to one specific model and present it as fact — that's the single riskiest kind of assumption, because it shapes every downstream step. Pick the single most plausible default, but that default becomes the FIRST entry in the Step 5 clarifying-questions list, phrased as a direct confirm-or-correct question (e.g. "Is this B2B outbound sales, or a different motion — retail, referral, marketplace?").
+
 STEP 2 — Map to the P&L. For each problem, classify it against exactly one of these fixed levers:
    Revenue levers: ${PNL_LEVERS.revenue.join(', ')}
    Cost levers: ${PNL_LEVERS.cost.join(', ')}
@@ -66,7 +68,7 @@ STEP 3 — Design the mechanism. For each problem, design the SPECIFIC mechanism
 
 STEP 4 — Plan the artefact. Before writing code, plan how someone experiences this in under two minutes: the narrative arc, and — if there's more than one problem — how the sections tie together into one coherent product rather than reading as several unrelated demos glued together. Every step from Step 3's how_it_works_steps should map to something the visitor can actually trigger or watch happen in the artefact — see the interactivity rule below.
 
-STEP 5 — Flag what's genuinely unknown. List any specific real numbers that would sharpen the estimates in Step 2 if the client provided them (e.g. "your actual average order value," "current monthly lead volume," "your real cart-abandonment rate"). Only list things you couldn't reasonably assume — not everything.
+STEP 5 — Flag what's genuinely unknown. If Step 1 had to assume a structural fact (business/sales motion, customer type, etc.), that confirm-or-correct question goes FIRST here. After that, list any specific real numbers that would sharpen the estimates in Step 2 if the client provided them (e.g. "your actual average order value," "current monthly lead volume," "your real cart-abandonment rate"). Only list things you couldn't reasonably assume — not everything.
 
 STEP 6 — Build the artefact. One working, self-contained interactive HTML demo covering every mechanism from Step 3, following the plan from Step 4.
 
