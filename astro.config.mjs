@@ -20,7 +20,7 @@ export default defineConfig({
   // more than the default serverless timeout. Requires a Vercel plan that
   // allows >10s (Hobby caps at 10s regardless of this setting; Pro+ allows
   // up to 800s / 15min).
-  adapter: vercel({ maxDuration: 90 }),
+  adapter: vercel({ maxDuration: 300 }),
   vite: {
     plugins: [tailwindcss()],
   },
