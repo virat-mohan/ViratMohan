@@ -1,10 +1,11 @@
 ---
 export const prerender = false;
-// Same Cloudflare Access protection as /devshop/admin — see index.astro.
+// Same access protection as /devshop/admin — see index.astro.
 
 import { getDb } from '../../../lib/db';
+import { getEnv } from '../../../lib/env';
 
-const env = import.meta.env;
+const env = getEnv();
 const { id } = Astro.params;
 
 const row = id ? await getDb(env).getById(id) : null;

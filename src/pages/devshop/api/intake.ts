@@ -5,9 +5,10 @@ import { waitUntil } from '@vercel/functions';
 import { classifyAndBuild, fetchWebsiteSnippet } from '../../../lib/llm';
 import { sendEmail } from '../../../lib/email';
 import { getDb } from '../../../lib/db';
+import { getEnv } from '../../../lib/env';
 
 export const POST: APIRoute = async ({ request }) => {
-  const env = import.meta.env;
+  const env = getEnv();
 
   let body: { problem?: string; company?: string; website?: string; tools?: string; email?: string };
   try {

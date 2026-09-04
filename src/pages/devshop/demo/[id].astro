@@ -2,8 +2,9 @@
 export const prerender = false;
 
 import { getDb } from '../../../lib/db';
+import { getEnv } from '../../../lib/env';
 
-const env = import.meta.env;
+const env = getEnv();
 const { id } = Astro.params;
 
 const row = id ? await getDb(env).getById(id) : null;

@@ -3,12 +3,13 @@ export const prerender = false;
 import type { APIRoute } from 'astro';
 import { sendEmail } from '../../../lib/email';
 import { getDb } from '../../../lib/db';
+import { getEnv } from '../../../lib/env';
 
 // Approve is a one-shot action, per the product rule: one round of feedback
 // before build starts. Approving sends the client their demo link — it does
 // not re-run the LLM or accept further revision.
 export const POST: APIRoute = async ({ request }) => {
-  const env = import.meta.env;
+  const env = getEnv();
   const { id } = (await request.json().catch(() => ({}))) as { id?: string };
   if (!id) return json({ error: 'id is required' }, 400);
 

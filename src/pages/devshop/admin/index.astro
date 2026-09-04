@@ -1,13 +1,13 @@
 ---
 export const prerender = false;
-// Protect this route (and /devshop/admin/*) with Cloudflare Access, gated to
-// virat@clarityhq.ai — configure in the Cloudflare dashboard under
-// Zero Trust > Access > Applications, path: viratmohan.com/devshop/admin*.
-// No app-level auth is implemented here; Access sits in front of it.
+// Protect this route (and /devshop/admin/*) — e.g. Vercel Deployment
+// Protection scoped to this path, or an equivalent gate. No app-level auth
+// is implemented here.
 
 import { getDb } from '../../../lib/db';
+import { getEnv } from '../../../lib/env';
 
-const env = import.meta.env;
+const env = getEnv();
 const results = await getDb(env).listRecent(100);
 
 function leverSummary(levers: { lever: string }[] | null): string {
