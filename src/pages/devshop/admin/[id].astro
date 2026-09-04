@@ -59,9 +59,11 @@ const notes = row.solution_notes;
         {notes.problemBreakdown.map((p, i) => (
           <div class="note-card">
             <p class="note-title">{i + 1}. {p.problem_statement}</p>
-            <p><span class="note-label">Root cause</span>{p.root_cause}</p>
-            <p><span class="note-label">Who's affected</span>{p.who_is_affected}</p>
-            <p><span class="note-label">Cost of inaction</span>{p.current_cost_of_inaction}</p>
+            <ul class="bullets">
+              <li><span class="note-label">Root cause</span>{p.root_cause}</li>
+              <li><span class="note-label">Who's affected</span>{p.who_is_affected}</li>
+              <li><span class="note-label">Cost of inaction</span>{p.current_cost_of_inaction}</li>
+            </ul>
           </div>
         ))}
       </div>
@@ -85,7 +87,9 @@ const notes = row.solution_notes;
         {notes.solutionMechanisms.map((m) => (
           <div class="note-card">
             <p class="note-title">{m.mechanism_name}</p>
-            <p><span class="note-label">How it works</span>{m.how_it_works}</p>
+            <ol class="bullets numbered">
+              {m.how_it_works_steps.map((step) => <li>{step}</li>)}
+            </ol>
             <p><span class="note-label">Trigger / data source</span>{m.trigger_or_data_source}</p>
             <p><span class="note-label">Why not generic</span>{m.why_not_generic}</p>
           </div>
@@ -174,6 +178,9 @@ const notes = row.solution_notes;
   .note-title { font-size: 15px; margin-bottom: 6px !important; }
   .note-label { display: inline-block; min-width: 160px; color: #625f59; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; vertical-align: top; }
   .sections-list { margin: 8px 0 0; padding-left: 18px; color: #b7b5af; }
+  .bullets { margin: 0; padding-left: 18px; color: #b7b5af; }
+  .bullets li { margin-bottom: 4px; }
+  .bullets.numbered { margin-bottom: 8px; }
   .reasoning { color: #b7b5af; font-size: 14px; }
   .artefact iframe { width: 100%; height: 560px; border: 1px solid rgba(245,245,240,0.18); margin-top: 8px; background: #15130f; }
   button { margin-top: 32px; font-size: 14px; padding: 14px 24px; border: 1px solid #d4af37; color: #d4af37; background: none; cursor: pointer; border-radius: 2px; }

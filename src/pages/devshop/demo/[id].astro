@@ -44,8 +44,10 @@ const title = row.company ? `Your demo — ${row.company}` : 'Your demo';
         {notes.problemBreakdown.map((p) => (
           <div class="card">
             <p class="card-title">{p.problem_statement}</p>
-            <p><strong>Root cause —</strong> {p.root_cause}</p>
-            <p><strong>Cost of not fixing it —</strong> {p.current_cost_of_inaction}</p>
+            <ul class="bullets">
+              <li><span class="bullet-label">Root cause</span>{p.root_cause}</li>
+              <li><span class="bullet-label">Cost of inaction</span>{p.current_cost_of_inaction}</li>
+            </ul>
           </div>
         ))}
       </section>
@@ -57,7 +59,9 @@ const title = row.company ? `Your demo — ${row.company}` : 'Your demo';
         {notes.solutionMechanisms.map((m) => (
           <div class="card">
             <p class="card-title">{m.mechanism_name}</p>
-            <p>{m.how_it_works}</p>
+            <ol class="bullets numbered">
+              {m.how_it_works_steps.map((step) => <li>{step}</li>)}
+            </ol>
           </div>
         ))}
       </section>
@@ -66,20 +70,19 @@ const title = row.company ? `Your demo — ${row.company}` : 'Your demo';
     {levers.length > 0 && (
       <section class="block">
         <h2>Expected impact</h2>
-        {levers.map((l) => (
-          <div class="card">
-            <p class="card-title">{l.lever}</p>
-            <p>{l.reasoning}</p>
-          </div>
-        ))}
+        <ul class="bullets flat">
+          {levers.map((l) => (
+            <li><span class="bullet-label">{l.lever}</span>{l.reasoning}</li>
+          ))}
+        </ul>
       </section>
     )}
 
     {notes && notes.clarifyingQuestions.length > 0 && (
       <section class="block questions">
         <h2>To sharpen these numbers, we'd ask</h2>
-        <p class="questions-intro">The estimates above use industry-typical assumptions where we didn't have your real figures. Answering these in your reply will make the next version exact rather than assumed:</p>
-        <ul>
+        <p class="questions-intro">Assumptions used industry benchmarks where we didn't have your real figures — answer any of these in your reply for the exact number:</p>
+        <ul class="bullets">
           {notes.clarifyingQuestions.map((q) => <li>{q}</li>)}
         </ul>
       </section>
@@ -102,29 +105,34 @@ const title = row.company ? `Your demo — ${row.company}` : 'Your demo';
   html, body { margin: 0; background: #fafaf8; }
   body { font-family: 'Inter', system-ui, sans-serif; color: #24211d; }
 
-  .brief { max-width: 760px; margin: 0 auto; padding: 64px 32px 40px; }
-  .eyebrow { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a8378; margin-bottom: 16px; }
-  h1 { font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: clamp(28px, 4vw, 40px); line-height: 1.15; margin: 0 0 40px; max-width: 20ch; }
-  h2 { font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 20px; margin: 0 0 16px; }
-  .block { margin-bottom: 40px; }
-  .card { padding: 18px 0; border-top: 1px solid rgba(36,33,29,0.1); font-size: 15px; line-height: 1.6; }
+  .brief { max-width: 720px; margin: 0 auto; padding: 56px 32px 32px; }
+  .eyebrow { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a8378; margin-bottom: 14px; }
+  h1 { font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: clamp(26px, 4vw, 36px); line-height: 1.15; margin: 0 0 32px; max-width: 20ch; }
+  h2 { font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 17px; margin: 0 0 12px; }
+  .block { margin-bottom: 28px; }
+  .card { padding: 14px 0; border-top: 1px solid rgba(36,33,29,0.1); }
   .card:first-of-type { border-top: none; }
-  .card-title { font-weight: 600; margin: 0 0 6px; }
-  .card p { margin: 4px 0; color: #4a453e; }
-  .card p strong { color: #24211d; }
-  .questions { background: #fff6ea; border: 1px solid rgba(196,141,46,0.3); border-radius: 8px; padding: 24px 28px; }
-  .questions-intro { font-size: 14px; color: #6b5f4a; margin: 0 0 14px; }
-  .questions ul { margin: 0; padding-left: 20px; font-size: 15px; line-height: 1.7; }
-  .feedback-note { font-size: 14px; color: #6b6459; border-top: 1px solid rgba(36,33,29,0.1); padding-top: 24px; }
+  .card-title { font-weight: 600; font-size: 15px; margin: 0 0 8px; }
 
-  .divider { display: flex; align-items: center; gap: 16px; max-width: 760px; margin: 8px auto 32px; padding: 0 32px; }
+  .bullets { margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.55; color: #3a3630; }
+  .bullets li { margin-bottom: 4px; }
+  .bullets.flat > li { padding: 10px 0; border-top: 1px solid rgba(36,33,29,0.08); list-style: none; padding-left: 0; margin-left: -18px; }
+  .bullets.flat > li:first-child { border-top: none; }
+  .bullets.numbered { padding-left: 20px; }
+  .bullet-label { display: block; font-weight: 600; color: #24211d; font-size: 12px; text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 2px; }
+
+  .questions { background: #fff6ea; border: 1px solid rgba(196,141,46,0.3); border-radius: 8px; padding: 20px 24px; }
+  .questions-intro { font-size: 13px; color: #6b5f4a; margin: 0 0 10px; }
+  .feedback-note { font-size: 13px; color: #6b6459; border-top: 1px solid rgba(36,33,29,0.1); padding-top: 20px; }
+
+  .divider { display: flex; align-items: center; gap: 16px; max-width: 720px; margin: 8px auto 28px; padding: 0 32px; }
   .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: rgba(36,33,29,0.15); }
   .divider span { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a8378; white-space: nowrap; }
 
   .artefact-embed { max-width: 960px; margin: 0 auto 64px; padding: 0 32px; }
 
   @media (max-width: 640px) {
-    .brief { padding: 40px 20px 32px; }
+    .brief { padding: 36px 20px 24px; }
     .artefact-embed { padding: 0 20px; }
   }
 </style>

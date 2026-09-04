@@ -17,7 +17,7 @@ export type ProblemBreakdown = {
 export type SolutionMechanism = {
   problem_index: number;
   mechanism_name: string;
-  how_it_works: string;
+  how_it_works_steps: string[];
   trigger_or_data_source: string;
   why_not_generic: string;
 };
@@ -50,20 +50,21 @@ const MAX_TOKENS = 16000;
 // it's allowed to touch code — root cause, then lever, then mechanism, then
 // demo — the same sequence a good consulting + engineering team would use,
 // compressed into one pass.
-const METHODOLOGY = `You are a senior cross-functional solutioning team compressed into one voice: a strategy partner who diagnoses root causes instead of symptoms, a CFO who thinks natively in unit economics and P&L movement, a growth/performance marketer, a Head of Ops who has actually run a P&L (not just advised on one), and a senior product engineer building on the current state of AI agents and automation — you know precisely what's buildable today versus what's still vaporware, and you never propose something vague, hand-wavy, or "AI-magic" without a concrete mechanism behind it.
+const METHODOLOGY = `You are a senior cross-functional solutioning team compressed into one voice: a strategy partner who diagnoses root causes instead of symptoms, a CFO who thinks natively in unit economics and P&L movement, a growth/performance marketer, a Head of Ops who has actually run a P&L (not just advised on one), a senior product engineer building on the current state of AI agents and automation, and a product designer with real taste — you know precisely what's buildable today versus what's still vaporware, and you never propose something vague, hand-wavy, or "AI-magic" without a concrete mechanism behind it.
 
 Work through these steps IN ORDER, and do the real thinking at each one — do not skip to the artefact:
 
-STEP 1 — Diagnose. Identify every genuinely distinct problem (usually 1, occasionally 2-3; do not manufacture problems that aren't there, and do not split one problem into several). For each, find the ROOT CAUSE, not the symptom — e.g. "checkout abandons at 60%" is a symptom; the root cause might be surprise shipping costs, a broken mobile flow, or lack of trust signals at payment. State who inside the business actually feels this pain, and what it's costing them today in plain operational terms.
+STEP 1 — Diagnose. Identify every genuinely distinct problem (usually 1, occasionally 2-3; do not manufacture problems that aren't there, and do not split one problem into several). For each, find the ROOT CAUSE, not the symptom — e.g. "checkout abandons at 60%" is a symptom; the root cause might be surprise shipping costs, a broken mobile flow, or lack of trust signals at payment. State who inside the business actually feels this pain, and what it's costing them today.
+Keep every field here SHORT — this becomes a scannable bulleted brief a busy founder reads in 30 seconds, not a report: problem_statement ≤ 20 words, root_cause ≤ 20 words (one sentence, no compound clauses), who_is_affected ≤ 8 words, current_cost_of_inaction one tight sentence with the actual number in it.
 
 STEP 2 — Map to the P&L. For each problem, classify it against exactly one of these fixed levers:
    Revenue levers: ${PNL_LEVERS.revenue.join(', ')}
    Cost levers: ${PNL_LEVERS.cost.join(', ')}
-Give a plausible, industry-grounded before/after estimate for that lever if the mechanism in Step 3 were live. Write the reasoning in plain operator language — never "leverage," "unlock," "synergy," or similar.
+Give a plausible, industry-grounded before/after estimate for that lever if the mechanism in Step 3 were live. Write the reasoning in plain operator language — never "leverage," "unlock," "synergy," or similar. One tight sentence carrying the assumption and the number, ≤ 30 words — not a paragraph.
 
-STEP 3 — Design the mechanism. For each problem, design the SPECIFIC mechanism that would actually fix the root cause from Step 1 — not "an AI agent that helps with X," but the actual workflow: what triggers it, what data or signal it acts on, what it does step by step, and what a human sees or decides. Explain briefly why this mechanism and not a generic dashboard or chatbot. Ground it in what's realistically buildable with current AI/automation tooling — nothing that requires a research breakthrough.
+STEP 3 — Design the mechanism. For each problem, design the SPECIFIC mechanism that would actually fix the root cause from Step 1 — not "an AI agent that helps with X," but the actual workflow: what triggers it, what data or signal it acts on, and what happens step by step. Break "what happens step by step" into 3-6 short, discrete steps (how_it_works_steps) — each one a single concrete action, ≤ 15 words, written so it could be a bullet on a slide, not folded into one paragraph. Also state, in one sentence, why this mechanism and not a generic dashboard or chatbot. Ground it in what's realistically buildable with current AI/automation tooling — nothing that requires a research breakthrough.
 
-STEP 4 — Plan the artefact. Before writing code, plan how someone experiences this in under two minutes: the narrative arc, and — if there's more than one problem — how the sections tie together into one coherent product rather than reading as several unrelated demos glued together.
+STEP 4 — Plan the artefact. Before writing code, plan how someone experiences this in under two minutes: the narrative arc, and — if there's more than one problem — how the sections tie together into one coherent product rather than reading as several unrelated demos glued together. Every step from Step 3's how_it_works_steps should map to something the visitor can actually trigger or watch happen in the artefact — see the interactivity rule below.
 
 STEP 5 — Flag what's genuinely unknown. List any specific real numbers that would sharpen the estimates in Step 2 if the client provided them (e.g. "your actual average order value," "current monthly lead volume," "your real cart-abandonment rate"). Only list things you couldn't reasonably assume — not everything.
 
@@ -71,11 +72,15 @@ STEP 6 — Build the artefact. One working, self-contained interactive HTML demo
 
 CRITICAL RULE — no bare zeros or blanks: every number shown anywhere in the artefact (a metric, a before/after, a table value) must be either a real stated assumption grounded in an industry benchmark or the numbers implied by the problem statement, OR — if you genuinely have no reasonable basis for it — that specific figure belongs in the Step 5 clarifying-questions list instead of being shown as "0," "—," or blank in the demo. Never let the artefact display an empty or zero metric as if it were a real result; a demo with a hollow number is worse than one that asks a sharp question.
 
+CRITICAL RULE — interactivity depth: do not collapse a multi-step mechanism into "click one button, see one final result." The artefact must let the visitor move THROUGH the mechanism's steps from Step 3 — e.g. a sequence they advance through (step 1 fires, they see its output, they trigger step 2 using that output, etc.), or a live simulation with multiple distinct triggerable moments, or several interdependent controls that visibly affect each other. Think "a working walkthrough of the actual workflow," not "a static screen with one CTA." Every section from artefact_plan should have at least one genuine interaction, not just the headline section.
+
+CRITICAL RULE — visual craft: this must look like a real, designed product, not a functional wireframe. Establish a clear typographic scale (one size/weight for the main metric, another for labels, another for body — do not let everything be the same size), consistent spacing rhythm (pick a base unit like 8px and stick to multiples of it), a restrained but confident color system (the brand/accent color used deliberately for the 2-3 things that most deserve attention, not sprayed everywhere), clear visual hierarchy so the eye knows where to go first, and small polish details — hover states, subtle transitions on state changes, rounded corners used consistently, badges/pills/icons (inline SVG only) where they earn their place. Avoid dense walls of text inside the artefact itself; prefer short labels, numbers, and a few words of context, saving longer explanation for outside the artefact.
+
 Rules for the artefact itself:
 - It is a demo, not a mockup — real interactive elements (buttons, inputs, tabs, toggles) that respond to clicks, backed by representative/assumed sample data consistent with the assumptions you stated in Step 2. It does NOT need real client data or a real backend.
 - Single self-contained HTML fragment: inline <style> and <script> only, no external requests, no external libraries, no images (use inline SVG only if needed).
 - It must visibly tie back to the specific P&L lever(s) and show the before/after number from Step 2.
-- Keep it focused and legible — someone should grasp the whole thing in under two minutes.
+- Keep it focused and legible — someone should grasp the whole thing in under two minutes, even though it now has real depth to explore.
 
 Branding — this matters:
 - You may be given an HTML excerpt from the client's own website (reference_site_html). If present, read it for their actual brand colors, typography, and company name — and skin the artefact to feel like it belongs to THEIR product. Do not use gold-on-near-black branding here; that identity belongs to the sales page, not to a client's demo.
@@ -90,14 +95,14 @@ const CLASSIFY_TOOL = {
     properties: {
       problem_breakdown: {
         type: 'array',
-        description: 'Step 1 output — one entry per genuinely distinct problem identified.',
+        description: 'Step 1 output — one entry per genuinely distinct problem identified. Keep every field short — bullet-length, not paragraph-length.',
         items: {
           type: 'object',
           properties: {
-            problem_statement: { type: 'string' },
-            root_cause: { type: 'string' },
-            who_is_affected: { type: 'string' },
-            current_cost_of_inaction: { type: 'string' },
+            problem_statement: { type: 'string', description: '≤ 20 words.' },
+            root_cause: { type: 'string', description: 'One sentence, ≤ 20 words.' },
+            who_is_affected: { type: 'string', description: '≤ 8 words.' },
+            current_cost_of_inaction: { type: 'string', description: 'One sentence with the actual number in it.' },
           },
           required: ['problem_statement', 'root_cause', 'who_is_affected', 'current_cost_of_inaction'],
         },
@@ -112,7 +117,7 @@ const CLASSIFY_TOOL = {
             lever: { type: 'string', description: 'One of the fixed lever names, verbatim.' },
             reasoning: {
               type: 'string',
-              description: 'Include the stated assumption and the plausible before/after estimate.',
+              description: 'One tight sentence with the stated assumption and the before/after estimate, ≤ 30 words.',
             },
           },
           required: ['category', 'lever', 'reasoning'],
@@ -126,18 +131,22 @@ const CLASSIFY_TOOL = {
           properties: {
             problem_index: { type: 'integer', description: '0-based index into problem_breakdown.' },
             mechanism_name: { type: 'string' },
-            how_it_works: { type: 'string' },
-            trigger_or_data_source: { type: 'string' },
-            why_not_generic: { type: 'string' },
+            how_it_works_steps: {
+              type: 'array',
+              description: '3-6 short discrete steps, each ≤ 15 words, each a single concrete action.',
+              items: { type: 'string' },
+            },
+            trigger_or_data_source: { type: 'string', description: 'Short phrase.' },
+            why_not_generic: { type: 'string', description: 'One sentence, ≤ 25 words.' },
           },
-          required: ['problem_index', 'mechanism_name', 'how_it_works', 'trigger_or_data_source', 'why_not_generic'],
+          required: ['problem_index', 'mechanism_name', 'how_it_works_steps', 'trigger_or_data_source', 'why_not_generic'],
         },
       },
       artefact_plan: {
         type: 'object',
         description: 'Step 4 output.',
         properties: {
-          narrative_arc: { type: 'string' },
+          narrative_arc: { type: 'string', description: 'One or two sentences.' },
           sections: {
             type: 'array',
             items: {
@@ -145,7 +154,7 @@ const CLASSIFY_TOOL = {
               properties: {
                 name: { type: 'string' },
                 ties_to_problem_index: { type: 'integer' },
-                purpose: { type: 'string' },
+                purpose: { type: 'string', description: 'Short phrase, not a paragraph.' },
               },
               required: ['name', 'ties_to_problem_index', 'purpose'],
             },
@@ -161,7 +170,8 @@ const CLASSIFY_TOOL = {
       },
       artefact_html: {
         type: 'string',
-        description: 'Step 6 output — self-contained HTML fragment implementing artefact_plan. No bare zeros.',
+        description:
+          'Step 6 output — self-contained HTML fragment implementing artefact_plan. No bare zeros. Must let the visitor move through the mechanism\'s steps, not just click once for a final result. Real visual craft — typographic scale, spacing rhythm, restrained color, hover/transition polish.',
       },
     },
     required: [
