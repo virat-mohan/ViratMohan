@@ -6,6 +6,7 @@ import { classifyAndBuild, fetchWebsiteSnippet } from '../../../lib/llm';
 import { sendEmail } from '../../../lib/email';
 import { getDb } from '../../../lib/db';
 import { getEnv } from '../../../lib/env';
+import { getOrigin } from '../../../lib/http';
 
 export const POST: APIRoute = async ({ request }) => {
   const env = getEnv();
@@ -28,7 +29,7 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const id = crypto.randomUUID();
-  const origin = new URL(request.url).origin;
+  const origin = getOrigin(request);
   const db = getDb(env);
 
   await db.insertSubmission({ id, problem, company, website, tools, email });

@@ -4,6 +4,7 @@ import type { APIRoute } from 'astro';
 import { sendEmail } from '../../../lib/email';
 import { getDb } from '../../../lib/db';
 import { getEnv } from '../../../lib/env';
+import { getOrigin } from '../../../lib/http';
 
 // Approve is a one-shot action, per the product rule: one round of feedback
 // before build starts. Approving sends the client their demo link — it does
@@ -22,7 +23,7 @@ export const POST: APIRoute = async ({ request }) => {
   }
   if (!row.artefact_html) return json({ error: 'no artefact generated yet' }, 409);
 
-  const origin = new URL(request.url).origin;
+  const origin = getOrigin(request);
   const demoUrl = `${origin}/devshop/demo/${id}`;
 
   await sendEmail(
