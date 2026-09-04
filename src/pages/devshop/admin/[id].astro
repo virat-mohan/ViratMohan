@@ -15,6 +15,7 @@ if (!row) {
 }
 
 const levers = row.pnl_levers ?? [];
+const notes = row.solution_notes;
 ---
 
 <!doctype html>
@@ -44,15 +45,55 @@ const levers = row.pnl_levers ?? [];
     {row.status === 'received' && <p class="hint">Still classifying and generating the demo artefact — refresh in a moment.</p>}
     {row.status === 'failed' && <p class="hint error">Generation failed: {row.error}</p>}
 
+    {notes && notes.problemBreakdown.length > 0 && (
+      <div class="reasoning-block">
+        <h2>Diagnosis ({notes.problemBreakdown.length} problem{notes.problemBreakdown.length > 1 ? 's' : ''} identified)</h2>
+        {notes.problemBreakdown.map((p, i) => (
+          <div class="note-card">
+            <p class="note-title">{i + 1}. {p.problem_statement}</p>
+            <p><span class="note-label">Root cause</span>{p.root_cause}</p>
+            <p><span class="note-label">Who's affected</span>{p.who_is_affected}</p>
+            <p><span class="note-label">Cost of inaction</span>{p.current_cost_of_inaction}</p>
+          </div>
+        ))}
+      </div>
+    )}
+
     {levers.length > 0 && (
-      <div class="lever">
-        <h2>P&amp;L lever{levers.length > 1 ? 's' : ''} ({levers.length} problem{levers.length > 1 ? 's' : ''} identified)</h2>
+      <div class="reasoning-block">
+        <h2>P&amp;L lever{levers.length > 1 ? 's' : ''}</h2>
         {levers.map((l) => (
-          <div class="lever-row">
-            <p><strong>{l.category}</strong> — {l.lever}</p>
+          <div class="note-card">
+            <p class="note-title"><strong>{l.category}</strong> — {l.lever}</p>
             <p class="reasoning">{l.reasoning}</p>
           </div>
         ))}
+      </div>
+    )}
+
+    {notes && notes.solutionMechanisms.length > 0 && (
+      <div class="reasoning-block">
+        <h2>Mechanism</h2>
+        {notes.solutionMechanisms.map((m) => (
+          <div class="note-card">
+            <p class="note-title">{m.mechanism_name}</p>
+            <p><span class="note-label">How it works</span>{m.how_it_works}</p>
+            <p><span class="note-label">Trigger / data source</span>{m.trigger_or_data_source}</p>
+            <p><span class="note-label">Why not generic</span>{m.why_not_generic}</p>
+          </div>
+        ))}
+      </div>
+    )}
+
+    {notes && notes.artefactPlan && (
+      <div class="reasoning-block">
+        <h2>Demo plan</h2>
+        <div class="note-card">
+          <p>{notes.artefactPlan.narrative_arc}</p>
+          <ul class="sections-list">
+            {notes.artefactPlan.sections.map((s) => <li><strong>{s.name}</strong> — {s.purpose}</li>)}
+          </ul>
+        </div>
       </div>
     )}
 
@@ -108,8 +149,12 @@ const levers = row.pnl_levers ?? [];
   .hint { color: #d4af37; font-size: 14px; }
   .hint.error { color: #a66a62; }
   .hint.sent { color: #718a78; }
-  .lever { border-top: 1px solid rgba(245,245,240,0.18); padding-top: 8px; }
-  .lever-row { margin-bottom: 12px; }
+  .reasoning-block { border-top: 1px solid rgba(245,245,240,0.18); padding-top: 8px; }
+  .note-card { margin-bottom: 16px; font-size: 14px; line-height: 1.6; }
+  .note-card p { margin: 2px 0; }
+  .note-title { font-size: 15px; margin-bottom: 6px !important; }
+  .note-label { display: inline-block; min-width: 160px; color: #625f59; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; vertical-align: top; }
+  .sections-list { margin: 8px 0 0; padding-left: 18px; color: #b7b5af; }
   .reasoning { color: #b7b5af; font-size: 14px; }
   .artefact iframe { width: 100%; height: 560px; border: 1px solid rgba(245,245,240,0.18); margin-top: 8px; background: #15130f; }
   button { margin-top: 32px; font-size: 14px; padding: 14px 24px; border: 1px solid #d4af37; color: #d4af37; background: none; cursor: pointer; border-radius: 2px; }

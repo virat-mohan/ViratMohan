@@ -7,7 +7,30 @@ export type ClassifyAndBuildInput = {
   websiteSnippet: string | null; // best-effort HTML excerpt from the client's site, for brand cues
 };
 
+export type ProblemBreakdown = {
+  problem_statement: string;
+  root_cause: string;
+  who_is_affected: string;
+  current_cost_of_inaction: string;
+};
+
+export type SolutionMechanism = {
+  problem_index: number;
+  mechanism_name: string;
+  how_it_works: string;
+  trigger_or_data_source: string;
+  why_not_generic: string;
+};
+
+export type ArtefactPlan = {
+  narrative_arc: string;
+  sections: { name: string; ties_to_problem_index: number; purpose: string }[];
+};
+
 export type ClassifyAndBuildResult = {
+  problemBreakdown: ProblemBreakdown[];
+  solutionMechanisms: SolutionMechanism[];
+  artefactPlan: ArtefactPlan;
   levers: PnlLeverHit[];
   artefactHtml: string;
 };
@@ -17,26 +40,42 @@ const ANTHROPIC_VERSION = '2023-06-01';
 // Model id per current Claude lineup — update here if the account's default changes.
 const MODEL = 'claude-sonnet-5';
 
-const SYSTEM_PROMPT = `You are the solutioning engine behind Fast Tech Dev Shop, an AI orchestration studio.
-A prospective client has described one or more business problems in plain language. Your job, in order:
+// The methodology below is the actual product. A bad prompt here produces a
+// generic "AI wrapper" demo that looks like every other AI-slop pitch; a
+// good one produces something a CFO or ops lead would recognize as their
+// own problem, solved by a mechanism they can picture actually running.
+// The schema forces the model to do that work in writing, in order, before
+// it's allowed to touch code — root cause, then lever, then mechanism, then
+// demo — the same sequence a good consulting + engineering team would use,
+// compressed into one pass.
+const SYSTEM_PROMPT = `You are a senior cross-functional solutioning team compressed into one voice: a strategy partner who diagnoses root causes instead of symptoms, a CFO who thinks natively in unit economics and P&L movement, a growth/performance marketer, a Head of Ops who has actually run a P&L (not just advised on one), and a senior product engineer building on the current state of AI agents and automation — you know precisely what's buildable today versus what's still vaporware, and you never propose something vague, hand-wavy, or "AI-magic" without a concrete mechanism behind it.
 
-1. Identify every distinct problem in their text (there may be just one, or several). For EACH one, classify it against this fixed P&L lever taxonomy (pick exactly one lever per problem):
+A prospective client has described one or more business problems in plain, often messy language. Work through these steps IN ORDER, and do the real thinking at each one — do not skip to the artefact:
+
+STEP 1 — Diagnose. Identify every genuinely distinct problem in their text (usually 1, occasionally 2-3; do not manufacture problems that aren't there, and do not split one problem into several). For each, find the ROOT CAUSE, not the symptom they described — e.g. "checkout abandons at 60%" is a symptom; the root cause might be surprise shipping costs, a broken mobile flow, or lack of trust signals at payment. State who inside the business actually feels this pain, and what it's costing them today in plain operational terms (time, money, churn, error rate) — use a stated, plausible assumption if you don't have their real numbers, and say so.
+
+STEP 2 — Map to the P&L. For each problem, classify it against exactly one of these fixed levers:
    Revenue levers: ${PNL_LEVERS.revenue.join(', ')}
    Cost levers: ${PNL_LEVERS.cost.join(', ')}
-   Write one or two plain-language sentences per problem explaining why that lever, no "leverage/unlock/synergy" jargon.
-2. Build ONE working interactive HTML demo artefact that solves every problem you identified, as a single coherent product experience — not several unrelated demos stitched together. If there are multiple problems, the artefact should read as one tool with a section, tab, or view per problem, sharing one navigation and one visual system.
+Give a plausible, industry-grounded before/after estimate for that lever if the mechanism in Step 3 were live (state your assumptions explicitly — e.g. "assuming a $70 AOV and a 12% cart-abandonment-recovery rate typical for targeted nudge campaigns"). Write the reasoning in plain operator language — never "leverage," "unlock," "synergy," or similar.
 
-Rules for the artefact:
-- It is a demo, not a mockup — real interactive elements (buttons, inputs, tabs) that respond to clicks, backed by representative/assumed sample data you invent. It does NOT need real client data or a real backend.
+STEP 3 — Design the mechanism. For each problem, design the SPECIFIC mechanism that would actually fix the root cause from Step 1 — not "an AI agent that helps with X," but the actual workflow: what triggers it, what data or signal it acts on, what it does step by step, and what a human sees or decides. Explain briefly why this mechanism and not a generic dashboard or chatbot — what makes it fit this specific root cause. Ground it in what's realistically buildable with current AI/automation tooling (LLM classification and generation, workflow automation, existing business-tool APIs, agentic multi-step execution) — nothing that requires a research breakthrough.
+
+STEP 4 — Plan the artefact. Before writing code, plan how someone experiences this in under two minutes: the narrative arc (what they see first, what they click, what resolves), and — if there's more than one problem — how the sections tie together into one coherent product rather than reading as several unrelated demos glued together.
+
+STEP 5 — Build the artefact. One working, self-contained interactive HTML demo covering every mechanism from Step 3, following the plan from Step 4.
+
+Rules for the artefact itself:
+- It is a demo, not a mockup — real interactive elements (buttons, inputs, tabs, toggles) that respond to clicks, backed by representative/assumed sample data you invent, consistent with the assumptions you stated in Step 2. It does NOT need real client data or a real backend.
 - Single self-contained HTML fragment: inline <style> and <script> only, no external requests, no external libraries, no images (use inline SVG only if needed).
-- It must visibly tie back to the specific P&L lever(s) and give a plausible before/after number for each.
-- Keep it focused and legible: a client should grasp the whole thing in under a couple of minutes.
+- It must visibly tie back to the specific P&L lever(s) and show the before/after number from Step 2, not just describe a workflow abstractly.
+- Keep it focused and legible — someone should grasp the whole thing in under two minutes, not need a walkthrough.
 
 Branding — this matters:
-- You may be given an HTML excerpt from the client's own website (reference_site_html below). If present, read it for their actual brand colors (CSS custom properties, inline styles, common hex/rgb values), typography (font-family declarations), and company name — and skin the artefact to feel like it belongs to THEIR product, not to Fast Tech Dev Shop. Do not use Fast Tech Dev Shop's own gold-on-near-black identity here; that identity belongs to the sales page, not to a client's demo.
-- If no reference_site_html is given, or it doesn't yield usable brand signals, fall back to a simple, neutral, professional placeholder: light neutral background, dark neutral text, one restrained accent color, plain sans-serif system font, and a placeholder mark at the top reading "[ Client logo ]" in place of a real logo — clearly a placeholder, not a fake brand.
+- You may be given an HTML excerpt from the client's own website (reference_site_html below). If present, read it for their actual brand colors (CSS custom properties, inline styles, common hex/rgb values), typography (font-family declarations), and company name — and skin the artefact to feel like it belongs to THEIR product. Do not use gold-on-near-black branding here; that identity belongs to the sales page, not to a client's demo.
+- If no reference_site_html is given, or it doesn't yield usable brand signals, fall back to a simple, neutral, professional theme: light neutral background, dark neutral text, one restrained accent color, plain sans-serif system font, and a placeholder mark at the top reading "[ Client logo ]" — clearly a placeholder, not a fake brand.
 
-Return your answer using the classify_and_build tool. Do not include any text outside the tool call.`;
+Return your answer using the classify_and_build tool, with every step's output filled in — do not include any text outside the tool call.`;
 
 export async function classifyAndBuild(
   input: ClassifyAndBuildInput,
@@ -62,36 +101,94 @@ export async function classifyAndBuild(
     },
     body: JSON.stringify({
       model: MODEL,
-      max_tokens: 8000,
+      max_tokens: 16000,
       system: SYSTEM_PROMPT,
       messages: [{ role: 'user', content: userMessage }],
       tools: [
         {
           name: 'classify_and_build',
-          description: 'Report the P&L lever classification(s) and the generated demo artefact.',
+          description:
+            'Report the step-by-step solutioning trail (diagnosis, lever, mechanism, plan) and the generated demo artefact.',
           input_schema: {
             type: 'object',
             properties: {
+              problem_breakdown: {
+                type: 'array',
+                description: 'Step 1 output — one entry per genuinely distinct problem identified.',
+                items: {
+                  type: 'object',
+                  properties: {
+                    problem_statement: { type: 'string' },
+                    root_cause: { type: 'string' },
+                    who_is_affected: { type: 'string' },
+                    current_cost_of_inaction: { type: 'string' },
+                  },
+                  required: ['problem_statement', 'root_cause', 'who_is_affected', 'current_cost_of_inaction'],
+                },
+              },
               levers: {
                 type: 'array',
-                description: 'One entry per distinct problem identified.',
+                description: 'Step 2 output — one entry per problem, in the same order as problem_breakdown.',
                 items: {
                   type: 'object',
                   properties: {
                     category: { type: 'string', enum: ['revenue', 'cost'] },
                     lever: { type: 'string', description: 'One of the fixed lever names, verbatim.' },
-                    reasoning: { type: 'string' },
+                    reasoning: {
+                      type: 'string',
+                      description: 'Include the stated assumption and the plausible before/after estimate.',
+                    },
                   },
                   required: ['category', 'lever', 'reasoning'],
                 },
               },
+              solution_mechanisms: {
+                type: 'array',
+                description: 'Step 3 output — one entry per problem.',
+                items: {
+                  type: 'object',
+                  properties: {
+                    problem_index: { type: 'integer', description: '0-based index into problem_breakdown.' },
+                    mechanism_name: { type: 'string' },
+                    how_it_works: { type: 'string' },
+                    trigger_or_data_source: { type: 'string' },
+                    why_not_generic: { type: 'string' },
+                  },
+                  required: [
+                    'problem_index',
+                    'mechanism_name',
+                    'how_it_works',
+                    'trigger_or_data_source',
+                    'why_not_generic',
+                  ],
+                },
+              },
+              artefact_plan: {
+                type: 'object',
+                description: 'Step 4 output.',
+                properties: {
+                  narrative_arc: { type: 'string' },
+                  sections: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        name: { type: 'string' },
+                        ties_to_problem_index: { type: 'integer' },
+                        purpose: { type: 'string' },
+                      },
+                      required: ['name', 'ties_to_problem_index', 'purpose'],
+                    },
+                  },
+                },
+                required: ['narrative_arc', 'sections'],
+              },
               artefact_html: {
                 type: 'string',
-                description:
-                  'Self-contained HTML fragment for the interactive demo artefact, covering every problem in `levers`.',
+                description: 'Step 5 output — self-contained HTML fragment implementing artefact_plan.',
               },
             },
-            required: ['levers', 'artefact_html'],
+            required: ['problem_breakdown', 'levers', 'solution_mechanisms', 'artefact_plan', 'artefact_html'],
           },
         },
       ],
@@ -110,10 +207,19 @@ export async function classifyAndBuild(
   const toolUse = data.content.find((b) => b.type === 'tool_use');
   if (!toolUse?.input) throw new Error('Anthropic response did not include a tool_use block');
 
-  const out = toolUse.input as { levers: PnlLeverHit[]; artefact_html: string };
+  const out = toolUse.input as {
+    problem_breakdown: ProblemBreakdown[];
+    levers: PnlLeverHit[];
+    solution_mechanisms: SolutionMechanism[];
+    artefact_plan: ArtefactPlan;
+    artefact_html: string;
+  };
 
   return {
+    problemBreakdown: out.problem_breakdown,
     levers: out.levers,
+    solutionMechanisms: out.solution_mechanisms,
+    artefactPlan: out.artefact_plan,
     artefactHtml: out.artefact_html,
   };
 }

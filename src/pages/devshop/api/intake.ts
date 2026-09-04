@@ -59,7 +59,16 @@ export const POST: APIRoute = async ({ request }) => {
         { problem, company, tools, websiteSnippet },
         env.ANTHROPIC_API_KEY
       );
-      await db.markDemoReady(id, result.levers, result.artefactHtml);
+      await db.markDemoReady(
+        id,
+        result.levers,
+        {
+          problemBreakdown: result.problemBreakdown,
+          solutionMechanisms: result.solutionMechanisms,
+          artefactPlan: result.artefactPlan,
+        },
+        result.artefactHtml
+      );
 
       await sendEmail(
         {

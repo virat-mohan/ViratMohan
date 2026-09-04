@@ -1,5 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 import type { PnlLeverHit } from './pnl-levers';
+import type { ProblemBreakdown, SolutionMechanism, ArtefactPlan } from './llm';
+
+export type SolutionNotes = {
+  problemBreakdown: ProblemBreakdown[];
+  solutionMechanisms: SolutionMechanism[];
+  artefactPlan: ArtefactPlan;
+};
 
 export type Submission = {
   id: string;
@@ -10,6 +17,7 @@ export type Submission = {
   email: string;
   status: 'received' | 'demo_ready' | 'sent' | 'failed';
   pnl_levers: PnlLeverHit[] | null;
+  solution_notes: SolutionNotes | null;
   artefact_html: string | null;
   error: string | null;
   created_at: string;
@@ -36,12 +44,13 @@ export function getDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: st
       if (error) throw new Error(`supabase insert failed: ${error.message}`);
     },
 
-    async markDemoReady(id: string, levers: PnlLeverHit[], artefactHtml: string) {
+    async markDemoReady(id: string, levers: PnlLeverHit[], notes: SolutionNotes, artefactHtml: string) {
       const { error } = await supabase
         .from('submissions')
         .update({
           status: 'demo_ready',
           pnl_levers: levers,
+          solution_notes: notes,
           artefact_html: artefactHtml,
           classified_at: new Date().toISOString(),
         })
