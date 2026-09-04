@@ -42,7 +42,9 @@ export const POST: APIRoute = async ({ request }) => {
   await sendEmail(
     {
       to: row.email,
-      subject: isFinal ? `Your updated demo — Fast Tech Dev Shop` : `Your demo is ready — Fast Tech Dev Shop`,
+      subject: isFinal
+        ? `Your Updated Demo${row.company ? ` for ${row.company}` : ''} is ready from Fast Tech Dev Shop`
+        : `Your Demo${row.company ? ` for ${row.company}` : ''} is ready from Fast Tech Dev Shop`,
       replyTo,
       html: isFinal
         ? `
