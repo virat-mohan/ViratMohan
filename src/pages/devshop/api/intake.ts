@@ -3,6 +3,7 @@ export const prerender = false;
 import type { APIRoute } from 'astro';
 import { classifyAndBuild, fetchWebsiteSnippet } from '../../../lib/llm';
 import { sendEmail } from '../../../lib/email';
+import { getDb } from '../../../lib/db';
 
 export const POST: APIRoute = async ({ request, locals }) => {
   const env = locals.runtime.env;
@@ -26,13 +27,9 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
   const id = crypto.randomUUID();
   const origin = new URL(request.url).origin;
+  const db = getDb(env);
 
-  await env.DB.prepare(
-    `INSERT INTO submissions (id, problem, company, website, tools, email, status)
-     VALUES (?1, ?2, ?3, ?4, ?5, ?6, 'received')`
-  )
-    .bind(id, problem, company, website, tools, email)
-    .run();
+  await db.insertSubmission({ id, problem, company, website, tools, email });
 
   // Notify the desk immediately — don't block the client's response on this.
   const notify = sendEmail(
@@ -59,13 +56,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
         { problem, company, tools, websiteSnippet },
         env.ANTHROPIC_API_KEY
       );
-      await env.DB.prepare(
-        `UPDATE submissions
-         SET status = 'demo_ready', pnl_levers = ?1, artefact_html = ?2, classified_at = datetime('now')
-         WHERE id = ?3`
-      )
-        .bind(JSON.stringify(result.levers), result.artefactHtml, id)
-        .run();
+      await db.markDemoReady(id, result.levers, result.artefactHtml);
 
       await sendEmail(
         {
@@ -79,10 +70,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       ).catch((err) => console.error('intake: demo-ready notify failed', err));
     } catch (err) {
       console.error('intake: classification failed', err);
-      await env.DB.prepare(`UPDATE submissions SET status = 'failed', error = ?1 WHERE id = ?2`)
-        .bind(err instanceof Error ? err.message : String(err), id)
-        .run()
-        .catch(() => {});
+      await db.markFailed(id, err instanceof Error ? err.message : String(err)).catch(() => {});
     }
   })();
 

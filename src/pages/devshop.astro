@@ -72,7 +72,7 @@ const canonical = new URL('/devshop', site.domain).href;
 
 <header>
   <div class="header-inner">
-    <div class="logo">FAST TECH DEV SHOP</div>
+    <div class="logo">DevShop</div>
     <nav id="marketingNav">
       <a href="#" data-go="how-it-works">How it works</a>
       <a href="#" data-go="proof">Proof</a>
@@ -102,7 +102,7 @@ const canonical = new URL('/devshop', site.domain).href;
       <button class="btn" type="submit">Submit</button>
     </form>
     <p class="sub">No proposal. No scoping call. Just show us what's broken.</p>
-    <div class="footer-bar"><span>Built fast / for real business</span><span class="page-count"></span></div>
+    <div class="footer-bar"><span>Built fast, for real businesses</span><span class="page-count"></span></div>
   </section>
 
   <!-- 02 HOW IT WORKS -->
@@ -114,7 +114,7 @@ const canonical = new URL('/devshop', site.domain).href;
       <div class="step"><div class="num">02</div><div class="rule"></div><h3><span class="tint-gold">24h</span> demo</h3><p>We build and show you<br />a working demo in 24 hours.</p></div>
       <div class="step"><div class="num">03</div><div class="rule"></div><h3>7-day build</h3><p>You give feedback.<br />We build and ship in 7 days.</p></div>
     </div>
-    <div class="footer-bar"><span>Built fast / for real business</span><span class="page-count"></span></div>
+    <div class="footer-bar"><span>Built fast, for real businesses</span><span class="page-count"></span></div>
   </section>
 
   <!-- 03 PROOF -->
@@ -126,7 +126,7 @@ const canonical = new URL('/devshop', site.domain).href;
         <div class="proof-row"><div class="name">{p.name}</div><div class="result">{p.result}</div></div>
       ))}
     </div>
-    <div class="footer-bar"><span>Built fast / for real business</span><span class="page-count"></span></div>
+    <div class="footer-bar"><span>Built fast, for real businesses</span><span class="page-count"></span></div>
   </section>
 
   <!-- 04 PRICING -->
@@ -149,25 +149,79 @@ const canonical = new URL('/devshop', site.domain).href;
       <p class="sub" style="margin-top:36px;">Variable / custom pricing available outside this range. No proposals. No scoping calls.</p>
       <div style="margin-top:40px;"><button class="btn" data-go="intake">Start →</button></div>
     </div>
-    <div class="footer-bar"><span>Built fast / for real business</span><span class="page-count"></span></div>
+    <div class="footer-bar"><span>Built fast, for real businesses</span><span class="page-count"></span></div>
   </section>
 
-  <!-- 05 INTAKE -->
-  <section class="screen" id="intake" data-marketing-index="5">
-    <div class="eyebrow">START</div>
-    <h1 class="hero serif" style="max-width:760px;">Describe the problem,<br />not the spec.</h1>
-    <form class="intake-form" id="intakeForm">
-      <div class="field">
-        <textarea name="problem" placeholder="Tell us what isn't working, what takes too long, or what you wish existed. More than one problem? List them all — we'll solve for each." required></textarea>
-      </div>
-      <div class="field"><label>Company</label><input type="text" name="company" placeholder="Company name" /></div>
-      <div class="field"><label>Your website</label><input type="text" name="website" placeholder="company.com — optional, helps us match your brand" /></div>
-      <div class="field"><label>What tools do you currently use?</label><input type="text" name="tools" placeholder="CRM, sheets, comms platform, etc." /></div>
-      <div class="field"><label>Where should the demo go</label><input type="email" name="email" placeholder="you@company.com" required /></div>
-      <div><button type="submit" class="btn" id="intakeSubmitBtn">Submit →</button></div>
-      <p class="sub" id="intakeError" style="display:none; color:var(--dev-rose);"></p>
-    </form>
-    <div class="footer-bar"><span>Built fast / for real business</span><span class="page-count"></span></div>
+  <!-- 05 INTAKE — one question at a time, centered, keyboard-driven -->
+  <section class="screen wizard-screen" id="intake" data-marketing-index="5">
+    <div class="wizard" id="intakeWizard">
+      <div class="wizard-progress" id="wizardProgress" aria-hidden="true"></div>
+      <form id="intakeForm" novalidate>
+        <div class="wizard-step" data-field="problem" data-required="true">
+          <p class="eyebrow">START</p>
+          <h1 class="serif wizard-q">What's the problem?</h1>
+          <p class="wizard-sub">More than one? List them all — we'll solve for each.</p>
+          <textarea
+            name="problem"
+            class="wizard-input"
+            rows="3"
+            placeholder="Tell us what isn't working, what takes too long, or what you wish existed…"
+          ></textarea>
+          <div class="wizard-actions">
+            <button type="button" class="btn wizard-next">Next →</button>
+            <span class="wizard-hint">shift + enter for a new line, enter to continue</span>
+          </div>
+        </div>
+
+        <div class="wizard-step" data-field="company" hidden>
+          <h1 class="serif wizard-q">Who's asking?</h1>
+          <input type="text" name="company" class="wizard-input" placeholder="Company name" />
+          <div class="wizard-actions">
+            <button type="button" class="btn wizard-next">Next →</button>
+            <button type="button" class="btn-plain wizard-skip">Skip</button>
+          </div>
+        </div>
+
+        <div class="wizard-step" data-field="website" hidden>
+          <h1 class="serif wizard-q">Got a website?</h1>
+          <p class="wizard-sub">Helps the demo match your brand instead of ours.</p>
+          <input type="text" name="website" class="wizard-input" placeholder="company.com" />
+          <div class="wizard-actions">
+            <button type="button" class="btn wizard-next">Next →</button>
+            <button type="button" class="btn-plain wizard-skip">Skip</button>
+          </div>
+        </div>
+
+        <div class="wizard-step" data-field="tools" hidden>
+          <h1 class="serif wizard-q">What do you run on today?</h1>
+          <p class="wizard-sub">Pick what applies — whatever the eventual build needs to connect to.</p>
+          <div class="chip-row" id="toolsChips">
+            <button type="button" class="chip" data-value="CRM">CRM</button>
+            <button type="button" class="chip" data-value="Spreadsheets">Spreadsheets</button>
+            <button type="button" class="chip" data-value="Slack">Slack</button>
+            <button type="button" class="chip" data-value="Email">Email</button>
+            <button type="button" class="chip" data-value="Accounting / ERP">Accounting / ERP</button>
+            <button type="button" class="chip" data-value="Project management">Project management</button>
+            <button type="button" class="chip" data-value="E-commerce platform">E-commerce platform</button>
+            <button type="button" class="chip" data-value="Support / helpdesk">Support / helpdesk</button>
+          </div>
+          <input type="text" name="tools" class="wizard-input wizard-input--secondary" placeholder="Other — name the specific tool(s)" />
+          <div class="wizard-actions">
+            <button type="button" class="btn wizard-next">Next →</button>
+            <button type="button" class="btn-plain wizard-skip">Skip</button>
+          </div>
+        </div>
+
+        <div class="wizard-step" data-field="email" data-required="true" hidden>
+          <h1 class="serif wizard-q">Where should the demo go?</h1>
+          <input type="email" name="email" class="wizard-input" placeholder="you@company.com" />
+          <div class="wizard-actions">
+            <button type="submit" class="btn" id="intakeSubmitBtn">Submit →</button>
+          </div>
+        </div>
+      </form>
+      <p class="wizard-error" id="intakeError" hidden></p>
+    </div>
   </section>
 
   <!-- 05b CONFIRMATION — real intake landed, no fake login/dashboard after this -->
@@ -176,7 +230,7 @@ const canonical = new URL('/devshop', site.domain).href;
     <h1 class="hero serif" style="max-width:760px;">Got it. <span class="tint-gold">Watch your inbox.</span></h1>
     <p class="sub" style="max-width:560px;">We're working the problem through the orchestrator now. A demo — and one round of feedback before we build — lands in your inbox within 24 hours.</p>
     <div style="margin-top:40px;"><a href="#" data-go="landing" class="btn-plain">← Back to start</a></div>
-    <div class="footer-bar"><span>Built fast / for real business</span><span class="page-count"></span></div>
+    <div class="footer-bar"><span>Built fast, for real businesses</span><span class="page-count"></span></div>
   </section>
 
   <!-- 06 LOGIN (UI-only — no real auth, see script comments) -->
@@ -336,9 +390,13 @@ const canonical = new URL('/devshop', site.domain).href;
   button { font-family: inherit; cursor: pointer; background: none; border: none; color: inherit; }
 
   header { position: sticky; top: 0; z-index: 50; background: var(--dev-bg); }
-  .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 26px 64px; }
-  .logo { font-size: 14px; letter-spacing: 0.18em; font-weight: 600; }
-  nav { display: flex; align-items: center; gap: 40px; }
+  .header-inner { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 22px 64px; }
+  .logo {
+    grid-column: 2; justify-self: center;
+    font-family: 'Instrument Serif', Georgia, serif; font-style: italic;
+    font-size: 40px; letter-spacing: 0.01em; color: var(--dev-gold); font-weight: 400; line-height: 1;
+  }
+  nav { grid-column: 3; justify-self: end; display: flex; align-items: center; gap: 40px; }
   nav a, nav button.navlink {
     font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase;
     color: var(--dev-muted1); transition: color 0.2s;
@@ -409,8 +467,42 @@ const canonical = new URL('/devshop', site.domain).href;
 
   .pricing-block { margin-top: auto; margin-bottom: auto; }
 
-  .intake-form { margin-top: 48px; max-width: 680px; display: flex; flex-direction: column; gap: 22px; }
   .field label { display: block; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dev-muted2); margin-bottom: 10px; }
+
+  /* ---- intake wizard ---- */
+  .wizard-screen { justify-content: center; align-items: center; text-align: center; padding-top: 0; }
+  .wizard { width: 100%; max-width: 640px; margin: 0 auto; position: relative; }
+  .wizard-progress {
+    position: absolute; top: -40px; left: 50%; transform: translateX(-50%);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: var(--dev-muted3);
+  }
+  .wizard-step { display: flex; flex-direction: column; align-items: center; }
+  .wizard-step[hidden] { display: none; }
+  .wizard-step .eyebrow { margin-bottom: 14px; }
+  .wizard-q { font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: clamp(30px, 4.6vw, 52px); line-height: 1.1; margin: 0 0 12px; }
+  .wizard-sub { font-size: 15px; color: var(--dev-muted1); margin: 0 0 28px; max-width: 480px; }
+  .wizard-step .wizard-q:only-of-type { margin-bottom: 28px; }
+  .wizard-input {
+    width: 100%; text-align: center; font-family: 'Instrument Serif', Georgia, serif; font-size: 26px;
+    background: transparent; border: none; border-bottom: 1px solid var(--dev-hair); color: var(--dev-text);
+    padding: 10px 4px 16px; resize: none;
+  }
+  textarea.wizard-input { font-size: 22px; line-height: 1.5; }
+  .wizard-input::placeholder { font-family: 'Inter', sans-serif; font-size: 15px; color: var(--dev-muted3); }
+  .wizard-input:focus { outline: none; border-color: var(--dev-gold); }
+  .wizard-input--error { border-color: var(--dev-rose); }
+  .wizard-input--secondary { margin-top: 20px; font-family: 'Inter', sans-serif; font-size: 15px; }
+  .wizard-actions { display: flex; align-items: center; gap: 20px; margin-top: 32px; }
+  .wizard-hint { font-size: 12px; color: var(--dev-muted3); letter-spacing: 0.02em; }
+  .wizard-error { margin-top: 24px; color: var(--dev-rose); font-size: 14px; }
+
+  .chip-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 4px; }
+  .chip {
+    font-family: 'Inter', sans-serif; font-size: 13px; padding: 9px 16px; border: 1px solid var(--dev-hair);
+    color: var(--dev-muted1); border-radius: 999px; transition: border-color 0.2s, color 0.2s, background 0.2s;
+  }
+  .chip:hover { border-color: var(--dev-muted1); color: var(--dev-text); }
+  .chip.selected { border-color: var(--dev-gold); color: var(--dev-gold); background: rgba(212, 175, 55, 0.08); }
 
   .login-box { max-width: 420px; margin: auto; width: 100%; }
   .login-box h2 { font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: 38px; margin-bottom: 34px; }
@@ -533,7 +625,83 @@ const canonical = new URL('/devshop', site.domain).href;
     window.scrollTo(0, 0);
 
     if (id === 'orchestrator') setTimeout(startOrchestrator, 50);
+    if (id === 'intake') resetWizard();
   }
+
+  /* ---- intake wizard: one question at a time ---- */
+  var wizardSteps = Array.prototype.slice.call(document.querySelectorAll('#intakeForm .wizard-step'));
+  var wizardIndex = 0;
+
+  function updateWizardProgress() {
+    var el = document.getElementById('wizardProgress');
+    if (el) el.textContent = (wizardIndex + 1) + ' / ' + wizardSteps.length;
+  }
+
+  function showWizardStep(i) {
+    wizardSteps.forEach(function (s, idx) { s.hidden = idx !== i; });
+    updateWizardProgress();
+    var input = wizardSteps[i].querySelector('.wizard-input');
+    if (input) setTimeout(function () { input.focus(); }, 60);
+  }
+
+  function resetWizard() {
+    wizardIndex = 0;
+    showWizardStep(0);
+    var errorEl = document.getElementById('intakeError');
+    if (errorEl) errorEl.hidden = true;
+  }
+
+  function combineToolsChips(step) {
+    var selected = Array.prototype.slice.call(step.querySelectorAll('.chip.selected')).map(function (c) {
+      return c.dataset.value;
+    });
+    var otherInput = step.querySelector('input[name="tools"]');
+    var otherVal = otherInput.value.trim();
+    // Strip any previously-combined chip text so re-visiting the step doesn't duplicate it.
+    var combined = selected.concat(otherVal && selected.indexOf(otherVal) === -1 ? [otherVal] : []).join(', ');
+    otherInput.value = combined;
+  }
+
+  function wizardAdvance() {
+    var step = wizardSteps[wizardIndex];
+    if (step.dataset.field === 'tools') combineToolsChips(step);
+
+    var required = step.dataset.required === 'true';
+    var input = step.querySelector('.wizard-input:not(.wizard-input--secondary)') || step.querySelector('.wizard-input');
+    if (required && input && !input.value.trim()) {
+      input.classList.add('wizard-input--error');
+      input.focus();
+      return;
+    }
+    if (input) input.classList.remove('wizard-input--error');
+
+    if (wizardIndex < wizardSteps.length - 1) {
+      wizardIndex++;
+      showWizardStep(wizardIndex);
+    }
+  }
+
+  document.querySelectorAll('.chip').forEach(function (chip) {
+    chip.addEventListener('click', function () { chip.classList.toggle('selected'); });
+  });
+
+  document.querySelectorAll('.wizard-next, .wizard-skip').forEach(function (btn) {
+    btn.addEventListener('click', wizardAdvance);
+  });
+
+  document.querySelectorAll('.wizard-input').forEach(function (input) {
+    input.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter') return;
+      if (input.tagName === 'TEXTAREA' && e.shiftKey) return; // allow newlines for multi-problem lists
+      e.preventDefault();
+      var step = input.closest('.wizard-step');
+      if (step.dataset.field === 'email') {
+        document.getElementById('intakeForm').requestSubmit();
+      } else {
+        wizardAdvance();
+      }
+    });
+  });
 
   document.querySelectorAll('[data-go]').forEach(function (el) {
     el.addEventListener('click', function (e) {
@@ -555,7 +723,7 @@ const canonical = new URL('/devshop', site.domain).href;
     var form = e.target;
     var btn = document.getElementById('intakeSubmitBtn');
     var errorEl = document.getElementById('intakeError');
-    errorEl.style.display = 'none';
+    errorEl.hidden = true;
 
     var payload = {
       problem: form.problem.value.trim(),
@@ -579,11 +747,12 @@ const canonical = new URL('/devshop', site.domain).href;
       })
       .then(function () {
         form.reset();
+        document.querySelectorAll('.chip.selected').forEach(function (c) { c.classList.remove('selected'); });
         showScreen('confirmation');
       })
       .catch(function (err) {
         errorEl.textContent = err.message || 'Something went wrong — try again.';
-        errorEl.style.display = 'block';
+        errorEl.hidden = false;
       })
       .finally(function () {
         btn.disabled = false;

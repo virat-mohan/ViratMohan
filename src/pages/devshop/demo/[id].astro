@@ -1,14 +1,12 @@
 ---
 export const prerender = false;
 
+import { getDb } from '../../../lib/db';
+
 const env = Astro.locals.runtime.env;
 const { id } = Astro.params;
 
-const row = await env.DB.prepare(
-  `SELECT company, status, artefact_html FROM submissions WHERE id = ?1`
-)
-  .bind(id)
-  .first<{ company: string | null; status: string; artefact_html: string | null }>();
+const row = id ? await getDb(env).getById(id) : null;
 
 if (!row || !row.artefact_html || (row.status !== 'sent' && row.status !== 'demo_ready')) {
   return new Response('Not found', { status: 404 });

@@ -5,29 +5,14 @@ export const prerender = false;
 // Zero Trust > Access > Applications, path: viratmohan.com/devshop/admin*.
 // No app-level auth is implemented here; Access sits in front of it.
 
-const env = Astro.locals.runtime.env;
-const { results } = await env.DB.prepare(
-  `SELECT id, problem, company, email, status, pnl_levers, created_at
-   FROM submissions ORDER BY created_at DESC LIMIT 100`
-).all<{
-  id: string;
-  problem: string;
-  company: string | null;
-  email: string;
-  status: string;
-  pnl_levers: string | null;
-  created_at: string;
-}>();
+import { getDb } from '../../../lib/db';
 
-function leverSummary(json: string | null): string {
-  if (!json) return '—';
-  try {
-    const levers = JSON.parse(json) as { lever: string }[];
-    if (levers.length === 0) return '—';
-    return levers.length === 1 ? levers[0].lever : `${levers.length} levers`;
-  } catch {
-    return '—';
-  }
+const env = Astro.locals.runtime.env;
+const results = await getDb(env).listRecent(100);
+
+function leverSummary(levers: { lever: string }[] | null): string {
+  if (!levers || levers.length === 0) return '—';
+  return levers.length === 1 ? levers[0].lever : `${levers.length} levers`;
 }
 ---
 

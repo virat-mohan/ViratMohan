@@ -2,32 +2,18 @@
 export const prerender = false;
 // Same Cloudflare Access protection as /devshop/admin — see index.astro.
 
+import { getDb } from '../../../lib/db';
+
 const env = Astro.locals.runtime.env;
 const { id } = Astro.params;
 
-const row = await env.DB.prepare(`SELECT * FROM submissions WHERE id = ?1`)
-  .bind(id)
-  .first<{
-    id: string;
-    problem: string;
-    company: string | null;
-    website: string | null;
-    tools: string | null;
-    email: string;
-    status: string;
-    pnl_levers: string | null;
-    artefact_html: string | null;
-    error: string | null;
-    created_at: string;
-  }>();
+const row = id ? await getDb(env).getById(id) : null;
 
 if (!row) {
   return new Response('Not found', { status: 404 });
 }
 
-const levers: { category: string; lever: string; reasoning: string }[] = row.pnl_levers
-  ? JSON.parse(row.pnl_levers)
-  : [];
+const levers = row.pnl_levers ?? [];
 ---
 
 <!doctype html>

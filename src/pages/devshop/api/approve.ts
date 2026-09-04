@@ -2,6 +2,7 @@ export const prerender = false;
 
 import type { APIRoute } from 'astro';
 import { sendEmail } from '../../../lib/email';
+import { getDb } from '../../../lib/db';
 
 // Approve is a one-shot action, per the product rule: one round of feedback
 // before build starts. Approving sends the client their demo link — it does
@@ -11,11 +12,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const { id } = (await request.json().catch(() => ({}))) as { id?: string };
   if (!id) return json({ error: 'id is required' }, 400);
 
-  const row = await env.DB.prepare(
-    `SELECT id, email, company, status, artefact_html FROM submissions WHERE id = ?1`
-  )
-    .bind(id)
-    .first<{ id: string; email: string; company: string | null; status: string; artefact_html: string | null }>();
+  const db = getDb(env);
+  const row = await db.getById(id);
 
   if (!row) return json({ error: 'not found' }, 404);
   if (row.status !== 'demo_ready') {
@@ -39,11 +37,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     env
   );
 
-  await env.DB.prepare(
-    `UPDATE submissions SET status = 'sent', approved_at = datetime('now'), sent_at = datetime('now') WHERE id = ?1`
-  )
-    .bind(id)
-    .run();
+  await db.markSent(id);
 
   return json({ ok: true, demoUrl }, 200);
 };
