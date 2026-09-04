@@ -1,0 +1,31 @@
+---
+export const prerender = false;
+
+const env = Astro.locals.runtime.env;
+const { id } = Astro.params;
+
+const row = await env.DB.prepare(
+  `SELECT company, status, artefact_html FROM submissions WHERE id = ?1`
+)
+  .bind(id)
+  .first<{ company: string | null; status: string; artefact_html: string | null }>();
+
+if (!row || !row.artefact_html || (row.status !== 'sent' && row.status !== 'demo_ready')) {
+  return new Response('Not found', { status: 404 });
+}
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your demo — Fast Tech Dev Shop</title>
+  <meta name="robots" content="noindex, nofollow" />
+</head>
+<body set:html={row.artefact_html}></body>
+</html>
+
+<style>
+  html, body { margin: 0; background: #15130f; }
+</style>

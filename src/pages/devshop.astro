@@ -158,13 +158,24 @@ const canonical = new URL('/devshop', site.domain).href;
     <h1 class="hero serif" style="max-width:760px;">Describe the problem,<br />not the spec.</h1>
     <form class="intake-form" id="intakeForm">
       <div class="field">
-        <textarea placeholder="Tell us what isn't working, what takes too long, or what you wish existed." required></textarea>
+        <textarea name="problem" placeholder="Tell us what isn't working, what takes too long, or what you wish existed. More than one problem? List them all — we'll solve for each." required></textarea>
       </div>
-      <div class="field"><label>Company</label><input type="text" placeholder="Company name" /></div>
-      <div class="field"><label>What tools do you currently use?</label><input type="text" placeholder="CRM, sheets, comms platform, etc." /></div>
-      <div class="field"><label>Where should the demo go</label><input type="email" placeholder="you@company.com" required /></div>
-      <div><button type="submit" class="btn">Submit →</button></div>
+      <div class="field"><label>Company</label><input type="text" name="company" placeholder="Company name" /></div>
+      <div class="field"><label>Your website</label><input type="text" name="website" placeholder="company.com — optional, helps us match your brand" /></div>
+      <div class="field"><label>What tools do you currently use?</label><input type="text" name="tools" placeholder="CRM, sheets, comms platform, etc." /></div>
+      <div class="field"><label>Where should the demo go</label><input type="email" name="email" placeholder="you@company.com" required /></div>
+      <div><button type="submit" class="btn" id="intakeSubmitBtn">Submit →</button></div>
+      <p class="sub" id="intakeError" style="display:none; color:var(--dev-rose);"></p>
     </form>
+    <div class="footer-bar"><span>Built fast / for real business</span><span class="page-count"></span></div>
+  </section>
+
+  <!-- 05b CONFIRMATION — real intake landed, no fake login/dashboard after this -->
+  <section class="screen" id="confirmation">
+    <div class="eyebrow">RECEIVED</div>
+    <h1 class="hero serif" style="max-width:760px;">Got it. <span class="tint-gold">Watch your inbox.</span></h1>
+    <p class="sub" style="max-width:560px;">We're working the problem through the orchestrator now. A demo — and one round of feedback before we build — lands in your inbox within 24 hours.</p>
+    <div style="margin-top:40px;"><a href="#" data-go="landing" class="btn-plain">← Back to start</a></div>
     <div class="footer-bar"><span>Built fast / for real business</span><span class="page-count"></span></div>
   </section>
 
@@ -540,8 +551,44 @@ const canonical = new URL('/devshop', site.domain).href;
   }
 
   document.getElementById('intakeForm').addEventListener('submit', function (e) {
-    e.preventDefault(); // UI-only: no backend endpoint wired up yet
-    showScreen('login');
+    e.preventDefault();
+    var form = e.target;
+    var btn = document.getElementById('intakeSubmitBtn');
+    var errorEl = document.getElementById('intakeError');
+    errorEl.style.display = 'none';
+
+    var payload = {
+      problem: form.problem.value.trim(),
+      company: form.company.value.trim(),
+      website: form.website.value.trim(),
+      tools: form.tools.value.trim(),
+      email: form.email.value.trim(),
+    };
+
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+
+    fetch('/devshop/api/intake', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+      .then(function (res) {
+        if (!res.ok) return res.json().then(function (b) { throw new Error(b.error || 'Submission failed'); });
+        return res.json();
+      })
+      .then(function () {
+        form.reset();
+        showScreen('confirmation');
+      })
+      .catch(function (err) {
+        errorEl.textContent = err.message || 'Something went wrong — try again.';
+        errorEl.style.display = 'block';
+      })
+      .finally(function () {
+        btn.disabled = false;
+        btn.textContent = 'Submit →';
+      });
   });
 
   document.getElementById('loginForm').addEventListener('submit', function (e) {

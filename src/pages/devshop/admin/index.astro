@@ -1,0 +1,83 @@
+---
+export const prerender = false;
+// Protect this route (and /devshop/admin/*) with Cloudflare Access, gated to
+// virat@clarityhq.ai — configure in the Cloudflare dashboard under
+// Zero Trust > Access > Applications, path: viratmohan.com/devshop/admin*.
+// No app-level auth is implemented here; Access sits in front of it.
+
+const env = Astro.locals.runtime.env;
+const { results } = await env.DB.prepare(
+  `SELECT id, problem, company, email, status, pnl_levers, created_at
+   FROM submissions ORDER BY created_at DESC LIMIT 100`
+).all<{
+  id: string;
+  problem: string;
+  company: string | null;
+  email: string;
+  status: string;
+  pnl_levers: string | null;
+  created_at: string;
+}>();
+
+function leverSummary(json: string | null): string {
+  if (!json) return '—';
+  try {
+    const levers = JSON.parse(json) as { lever: string }[];
+    if (levers.length === 0) return '—';
+    return levers.length === 1 ? levers[0].lever : `${levers.length} levers`;
+  } catch {
+    return '—';
+  }
+}
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Fast Tech Dev Shop</title>
+  <meta name="robots" content="noindex, nofollow" />
+</head>
+<body>
+  <main class="wrap">
+    <h1>Queries</h1>
+    <table>
+      <thead>
+        <tr><th>Received</th><th>Company</th><th>Problem</th><th>Lever</th><th>Status</th><th></th></tr>
+      </thead>
+      <tbody>
+        {results.map((r) => (
+          <tr>
+            <td>{r.created_at}</td>
+            <td>{r.company || '—'}</td>
+            <td class="problem">{r.problem}</td>
+            <td>{leverSummary(r.pnl_levers)}</td>
+            <td><span class={`status status--${r.status}`}>{r.status}</span></td>
+            <td><a href={`/devshop/admin/${r.id}`}>Open →</a></td>
+          </tr>
+        ))}
+        {results.length === 0 && (
+          <tr><td colspan="6">No queries yet.</td></tr>
+        )}
+      </tbody>
+    </table>
+  </main>
+</body>
+</html>
+
+<style>
+  :root { color-scheme: dark; }
+  body { background: #15130f; color: #f5f5f0; font-family: system-ui, sans-serif; margin: 0; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 48px 32px; }
+  h1 { font-weight: 500; font-size: 22px; margin-bottom: 24px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; color: #85837e; font-weight: 500; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; padding: 0 12px 10px; border-bottom: 1px solid rgba(245,245,240,0.18); }
+  td { padding: 12px; border-bottom: 1px solid rgba(245,245,240,0.1); vertical-align: top; }
+  .problem { max-width: 360px; color: #b7b5af; }
+  a { color: #d4af37; }
+  .status { padding: 2px 8px; border-radius: 2px; border: 1px solid #625f59; color: #b7b5af; font-size: 12px; }
+  .status--demo_ready { border-color: #d4af37; color: #d4af37; }
+  .status--sent { border-color: #718a78; color: #718a78; }
+  .status--failed { border-color: #a66a62; color: #a66a62; }
+</style>

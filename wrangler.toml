@@ -1,0 +1,21 @@
+name = "viratmohan-com"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "dist"
+
+# ---- D1 database: intake submissions, LLM classification + generated demo artefacts ----
+# Create it once with:
+#   npx wrangler d1 create devshop
+# then paste the returned database_id below (replace the placeholder).
+[[d1_databases]]
+binding = "DB"
+database_name = "devshop"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "migrations"
+
+# ---- Secrets (set via `npx wrangler pages secret put <NAME>`, NOT here) ----
+# ANTHROPIC_API_KEY   — console.anthropic.com
+# RESEND_API_KEY      — resend.com
+# ADMIN_NOTIFY_EMAIL  — virat@clarityhq.ai (where new-intake notifications go)
+# RESEND_FROM_EMAIL   — e.g. "Fast Tech Dev Shop <devshop@mail.clarityhq.ai>"
+#                        (must be a domain verified in Resend)

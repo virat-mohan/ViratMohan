@@ -18,3 +18,6 @@ pnpm-debug.log*
 .idea/
 # local-only Claude Code session permissions
 .claude/settings.local.json
+
+# Cloudflare local dev state
+.wrangler/
