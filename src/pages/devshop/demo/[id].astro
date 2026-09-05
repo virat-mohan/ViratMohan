@@ -3,6 +3,7 @@ export const prerender = false;
 
 import { getDb } from '../../../lib/db';
 import { getEnv } from '../../../lib/env';
+import { FIT_DIMENSIONS } from '../../../lib/llm';
 
 const env = getEnv();
 const { id } = Astro.params;
@@ -16,6 +17,40 @@ if (!row || !row.artefact_html || (row.status !== 'sent' && row.status !== 'demo
 const notes = row.solution_notes;
 const levers = row.pnl_levers ?? [];
 const title = row.company ? `Your demo — ${row.company}` : 'Your demo';
+
+// Plain-language column labels for the framework evaluation table — same
+// fixed dimensions the admin scoring uses (src/lib/llm.ts FIT_DIMENSIONS),
+// worded for a reader who's never seen the internal taxonomy.
+const DIMENSION_LABELS: Record<string, string> = {
+  problem_pattern_fit: 'Matches this problem',
+  root_cause_fit: 'Addresses the root cause',
+  business_function_fit: 'Fits the right team',
+  evidence_sufficiency: 'Enough evidence to apply',
+  intervention_compatibility: 'Fits the planned fix',
+  pnl_relevance: 'Likely to move the numbers',
+  framework_specificity: 'Specific, not generic',
+  contraindication_risk: 'No red flags here',
+  industry_relevance: 'Track record in your industry',
+};
+// One-line plain descriptor per column, so "why does this score exist" is
+// answered without needing to already know the internal taxonomy.
+const DIMENSION_DESCRIPTIONS: Record<string, string> = {
+  problem_pattern_fit: 'Does this approach generally fit the kind of problem you described?',
+  root_cause_fit: 'Does it address the specific root cause we found, not just the general topic?',
+  business_function_fit: 'Is it built for the part of the business actually feeling this pain?',
+  evidence_sufficiency: 'Do we know enough yet to apply it with real confidence?',
+  intervention_compatibility: 'Does it match the actual fix we\'re planning to build?',
+  pnl_relevance: 'Would using it plausibly move the number we\'re targeting?',
+  framework_specificity: 'Does it give concrete steps, or is it vague enough to fit anything?',
+  contraindication_risk: 'Any known reason this approach could mislead or misfire here?',
+  industry_relevance: 'Does it have a real track record in businesses like yours?',
+};
+const FIT_TABLE_MAX = FIT_DIMENSIONS.length * 5;
+
+const frameworkEvaluations = (notes?.frameworkSelections ?? []).map((f) => ({
+  problem_index: f.problem_index,
+  candidates: [...(f.fitCandidates ?? [])].sort((a, b) => b.total_score - a.total_score),
+}));
 ---
 
 <!doctype html>
@@ -64,6 +99,43 @@ const title = row.company ? `Your demo — ${row.company}` : 'Your demo';
             <p class="plain-copy">{f.plain_explanation || f.why_selected}</p>
           </div>
         ))}
+      </section>
+    )}
+
+    {frameworkEvaluations.some((e) => e.candidates.length > 1) && (
+      <section class="block eval-block">
+        <h2>How we compared approaches</h2>
+        <p class="eval-intro">We don't just pick the first framework that sounds relevant — every candidate below was scored on the same 9 points before we chose. Higher is better on every column; the approach we went with isn't always the highest scorer on every single point, but it's the best overall fit.</p>
+        {frameworkEvaluations.map((evaln) => evaln.candidates.length > 1 && (
+          <div class="eval-table-wrap">
+            <table class="eval-table">
+              <thead>
+                <tr>
+                  <th>Approach</th>
+                  {FIT_DIMENSIONS.map((d) => <th title={DIMENSION_DESCRIPTIONS[d]}>{DIMENSION_LABELS[d]}</th>)}
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {evaln.candidates.map((c) => (
+                  <tr class={c.is_selected ? 'eval-row-selected' : ''}>
+                    <td>{c.framework_name}{c.is_selected && <span class="eval-pick">our pick</span>}</td>
+                    {FIT_DIMENSIONS.map((d) => {
+                      const entry = c.dimension_scores.find((s) => s.dimension === d);
+                      return <td class="eval-score-cell">{entry ? entry.score : '—'}</td>;
+                    })}
+                    <td class="eval-total-cell">{c.total_score}/{FIT_TABLE_MAX}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))}
+        <ul class="eval-legend">
+          {FIT_DIMENSIONS.map((d) => (
+            <li><strong>{DIMENSION_LABELS[d]}</strong> — {DIMENSION_DESCRIPTIONS[d]}</li>
+          ))}
+        </ul>
       </section>
     )}
 
@@ -216,6 +288,20 @@ const title = row.company ? `Your demo — ${row.company}` : 'Your demo';
   .framework-block .card { border-top-color: rgba(31,122,92,0.15); }
   .framework-block .card:first-of-type { border-top: none; }
   .also-considered { font-size: 12.5px; color: #6b6459; margin: 10px 0 0; }
+
+  .eval-block { background: #f5f8f6; border: 1px solid rgba(31,122,92,0.2); border-radius: 8px; padding: 20px 24px; }
+  .eval-intro { font-size: 13.5px; color: #4a453e; line-height: 1.55; margin: 0 0 16px; }
+  .eval-table-wrap { overflow-x: auto; margin-bottom: 18px; -webkit-overflow-scrolling: touch; }
+  .eval-table { border-collapse: collapse; font-size: 12px; width: 100%; min-width: 640px; }
+  .eval-table th, .eval-table td { padding: 8px 10px; border: 1px solid rgba(31,122,92,0.15); text-align: center; }
+  .eval-table th { font-weight: 600; color: #2c5a44; font-size: 11px; cursor: help; }
+  .eval-table th:first-child, .eval-table td:first-child { text-align: left; font-weight: 500; }
+  .eval-row-selected { background: rgba(31,122,92,0.08); }
+  .eval-pick { display: inline-block; margin-left: 8px; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.04em; color: #1f7a5c; border: 1px solid rgba(31,122,92,0.4); padding: 2px 6px; border-radius: 10px; }
+  .eval-score-cell { color: #4a453e; }
+  .eval-total-cell { font-weight: 600; color: #24211d; }
+  .eval-legend { margin: 0; padding: 0; list-style: none; font-size: 12px; color: #6b6459; line-height: 1.7; }
+  .eval-legend strong { color: #4a453e; }
   .questions-intro { font-size: 13px; color: #6b5f4a; margin: 0 0 10px; }
   .feedback-note { font-size: 13px; color: #6b6459; border-top: 1px solid rgba(36,33,29,0.1); padding-top: 20px; }
   .plain-copy { font-size: 15px; line-height: 1.6; color: #3a3630; margin: 0; }
