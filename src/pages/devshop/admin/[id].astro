@@ -33,9 +33,13 @@ const inPipeline = ['sent', 'interested', 'scoping_scheduled', 'scoping_complete
 const stageOptions = PIPELINE_STAGES.filter((s) => !['received', 'demo_ready', 'revising'].includes(s)).concat(['refunded'] as any);
 const trackerVisible = ['interested', 'scoping_scheduled', 'scoping_complete', 'proposal_sent', 'deposit_paid', 'build_scheduled', 'in_build', 'delivered', 'feedback_requested', 'amc_active', 'refunded'].includes(row.status);
 const amcRelevant = ['build_scheduled', 'in_build', 'delivered', 'feedback_requested', 'amc_active'].includes(row.status);
-const transitions = await getDb(env).listTransitions(row.id);
-const reviewActions = await getDb(env).listReviewActions(row.id);
-const generations = await getDb(env).listGenerations(row.id);
+// These three are observability/audit add-ons, not core to reviewing a
+// submission — a missing table (e.g. a migration not yet applied) must
+// never take down the whole admin page over a "nice to have" panel.
+const db = getDb(env);
+const transitions = await db.listTransitions(row.id).catch((err) => { console.error('listTransitions failed', err); return []; });
+const reviewActions = await db.listReviewActions(row.id).catch((err) => { console.error('listReviewActions failed', err); return []; });
+const generations = await db.listGenerations(row.id).catch((err) => { console.error('listGenerations failed', err); return []; });
 const amcProfile = row.amc_solution_profile;
 const amcEstimate = row.amc_resource_estimate;
 const amcRecommendation = row.amc_pricing_recommendation;
