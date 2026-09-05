@@ -4,10 +4,12 @@ export const prerender = false;
 import type { APIRoute } from 'astro';
 import { getDb } from '../../../lib/db';
 import { getEnv } from '../../../lib/env';
+import { suggestFrameworkDetails } from '../../../lib/llm';
 
 type Body =
   | { action: 'add'; name: string; source: string; business_function: string; when_to_use: string; link?: string }
-  | { action: 'setActive'; id: string; active: boolean };
+  | { action: 'setActive'; id: string; active: boolean }
+  | { action: 'suggest'; name: string; hint?: string };
 
 export const POST: APIRoute = async ({ request }) => {
   const env = getEnv();
@@ -29,6 +31,10 @@ export const POST: APIRoute = async ({ request }) => {
       });
     } else if (body.action === 'setActive') {
       await db.setFrameworkActive(body.id, body.active);
+    } else if (body.action === 'suggest') {
+      if (!body.name?.trim()) return json({ error: 'name is required' }, 400);
+      const suggestion = await suggestFrameworkDetails(body.name.trim(), body.hint?.trim() || null, env.ANTHROPIC_API_KEY);
+      return json({ ok: true, suggestion }, 200);
     } else {
       return json({ error: 'unknown action' }, 400);
     }

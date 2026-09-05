@@ -447,6 +447,97 @@ export function resolveFrameworkSelections(
   });
 }
 
+export type SuggestedFrameworkDetails = {
+  source: string;
+  business_function: string;
+  when_to_use: string;
+  link: string | null;
+  confidence: 'high' | 'medium' | 'low';
+  note: string; // e.g. "link unverified — confirm before publishing" when confidence isn't high
+};
+
+// Admin utility: given just a framework name (and an optional hint), draft
+// the library fields for review — NEVER auto-saved, the admin sees and can
+// edit every field before it's added. This is the one place in the product
+// where an unverified model claim about a framework is allowed to surface
+// at all, precisely because a human reviews it before it becomes part of
+// the trusted library everything else resolves facts from.
+export async function suggestFrameworkDetails(
+  name: string,
+  hint: string | null,
+  apiKey: string
+): Promise<SuggestedFrameworkDetails> {
+  const system = `You help maintain a curated library of real, globally documented, proven-at-scale business/consulting frameworks. Given a framework name, draft its library entry.
+
+Rules:
+- Only proceed if this is a REAL, documented framework/methodology you're genuinely aware of — actually used in business, consulting, engineering, or a standards body. If you don't recognize it as real, or you're not confident it's a genuine established framework (not something you're constructing to sound plausible), say so plainly: set confidence to "low" and explain in note why you're unsure, rather than inventing plausible-sounding details.
+- source: who originated or popularized it (a real person, firm, or standards body).
+- business_function: exactly one of ${BUSINESS_FUNCTIONS.join(', ')} — whichever one this framework is most naturally applied within.
+- when_to_use: one or two sentences — what kind of root cause or problem pattern this framework fits.
+- link: a study link ONLY if you are confident it's a real, correct URL (e.g. a well-known Wikipedia article title you're sure exists) — otherwise null. A wrong link is worse than no link.
+- confidence: "high" if you're confident in all fields including the link, "medium" if fields are right but the link is uncertain/omitted, "low" if you're not sure this is a real framework at all.
+- note: one short sentence flagging anything the admin should double-check, or empty string if nothing to flag.`;
+
+  const userMessage = `Framework name: ${name}${hint ? `\nAdditional context from admin: ${hint}` : ''}`;
+
+  const tool = {
+    name: 'suggest_framework',
+    description: 'Draft a framework library entry for admin review.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        source: { type: 'string' },
+        business_function: { type: 'string', enum: BUSINESS_FUNCTIONS as unknown as string[] },
+        when_to_use: { type: 'string' },
+        link: { type: 'string', description: 'A real URL, or omit/empty if not confident.' },
+        confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
+        note: { type: 'string' },
+      },
+      required: ['source', 'business_function', 'when_to_use', 'confidence', 'note'],
+    },
+  } as const;
+
+  const res = await fetch(ANTHROPIC_API_URL, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': ANTHROPIC_VERSION },
+    body: JSON.stringify({
+      model: MODEL,
+      max_tokens: 1024,
+      system,
+      messages: [{ role: 'user', content: userMessage }],
+      tools: [tool],
+      tool_choice: { type: 'tool', name: tool.name },
+    }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`Anthropic API error ${res.status}: ${body.slice(0, 500)}`);
+  }
+
+  const data = (await res.json()) as { content: Array<{ type: string; input?: Record<string, unknown> }> };
+  const toolUse = data.content.find((b) => b.type === 'tool_use');
+  if (!toolUse?.input) throw new Error('Anthropic response did not include a tool_use block');
+
+  const out = toolUse.input as {
+    source: string;
+    business_function: string;
+    when_to_use: string;
+    link?: string;
+    confidence: 'high' | 'medium' | 'low';
+    note: string;
+  };
+
+  return {
+    source: out.source,
+    business_function: out.business_function,
+    when_to_use: out.when_to_use,
+    link: out.link?.trim() || null,
+    confidence: out.confidence,
+    note: out.note,
+  };
+}
+
 export async function fetchWebsiteSnippet(url: string): Promise<string | null> {
   try {
     const normalized = /^https?:\/\//i.test(url) ? url : `https://${url}`;

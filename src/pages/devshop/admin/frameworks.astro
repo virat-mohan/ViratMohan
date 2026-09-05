@@ -28,6 +28,10 @@ const frameworks = await getDb(env).listAllFrameworks();
       <h2>Add a framework</h2>
       <div class="form-row">
         <input id="fwName" type="text" placeholder="Framework name" />
+        <button id="suggestBtn" class="btn-small" type="button">Suggest via Claude</button>
+      </div>
+      <p class="hint" id="suggestNote" hidden></p>
+      <div class="form-row">
         <input id="fwSource" type="text" placeholder="Source / originator (e.g. Korn Ferry)" />
       </div>
       <div class="form-row">
@@ -67,6 +71,44 @@ const frameworks = await getDb(env).listAllFrameworks();
   </main>
 
   <script type="module">
+    const suggestBtn = document.getElementById('suggestBtn');
+    const suggestNote = document.getElementById('suggestNote');
+    suggestBtn.addEventListener('click', async () => {
+      const name = document.getElementById('fwName').value.trim();
+      if (!name) {
+        suggestNote.textContent = 'Type a framework name first.';
+        suggestNote.hidden = false;
+        return;
+      }
+      suggestBtn.disabled = true;
+      suggestBtn.textContent = 'Asking Claude…';
+      suggestNote.hidden = true;
+      try {
+        const res = await fetch('/devshop/api/frameworks', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ action: 'suggest', name }),
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const { suggestion } = await res.json();
+        document.getElementById('fwSource').value = suggestion.source;
+        document.getElementById('fwFunction').value = suggestion.business_function;
+        document.getElementById('fwWhen').value = suggestion.when_to_use;
+        document.getElementById('fwLink').value = suggestion.link || '';
+        const parts = [`Confidence: ${suggestion.confidence}`];
+        if (suggestion.note) parts.push(suggestion.note);
+        if (suggestion.confidence !== 'high') parts.push('Review every field before saving.');
+        suggestNote.textContent = parts.join(' — ');
+        suggestNote.hidden = false;
+      } catch (err) {
+        suggestNote.textContent = 'Failed: ' + err.message;
+        suggestNote.hidden = false;
+      } finally {
+        suggestBtn.disabled = false;
+        suggestBtn.textContent = 'Suggest via Claude';
+      }
+    });
+
     const addBtn = document.getElementById('addBtn');
     const addHint = document.getElementById('addHint');
     addBtn.addEventListener('click', async () => {
