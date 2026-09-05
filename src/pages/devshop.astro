@@ -255,13 +255,17 @@ const canonical = new URL('/devshop', site.domain).href;
   </section>
 
   <!-- 05a BUILDING — shown while the synchronous Claude classify+build call runs (~60-90s) -->
-  <section class="screen wizard-screen" id="building">
-    <div class="wizard">
-      <div class="eyebrow">BUILDING</div>
-      <h1 class="serif wizard-q" style="margin-bottom:8px;">Working the problem through the orchestrator.</h1>
-      <p class="wizard-sub" id="buildCountdown">Usually takes about a minute.</p>
-      <div class="build-progress"><div class="build-progress-fill" id="buildProgressFill"></div></div>
-      <p class="build-message" id="buildMessage"></p>
+  <section class="screen wizard-screen build-screen" id="building">
+    <div class="build-layout">
+      <div class="build-left">
+        <div class="eyebrow">BUILDING</div>
+        <h1 class="serif wizard-q" style="margin-bottom:8px;">Working the problem through the orchestrator.</h1>
+        <p class="wizard-sub" id="buildCountdown">Usually takes about a minute.</p>
+        <div class="build-progress"><div class="build-progress-fill" id="buildProgressFill"></div></div>
+      </div>
+      <div class="build-right">
+        <div class="build-log" id="buildLog"></div>
+      </div>
     </div>
   </section>
 
@@ -537,13 +541,26 @@ const canonical = new URL('/devshop', site.domain).href;
   .wizard-hint { font-size: 12px; color: var(--dev-muted3); letter-spacing: 0.02em; }
   .wizard-error { margin-top: 24px; color: var(--dev-rose); font-size: 14px; }
 
-  .build-progress { width: 100%; max-width: 420px; height: 3px; background: var(--dev-hair); margin: 32px auto 0; overflow: hidden; }
+  .build-progress { width: 100%; max-width: 320px; height: 3px; background: var(--dev-hair); margin: 32px 0 0; overflow: hidden; }
   .build-progress-fill { height: 100%; width: 0%; background: var(--dev-gold); transition: width 1s linear; }
-  .build-message {
-    margin-top: 40px; font-size: 15px; color: var(--dev-muted1); max-width: 480px; line-height: 1.6;
-    min-height: 3.2em; opacity: 0; transition: opacity 0.4s ease;
+
+  .build-screen { text-align: left; align-items: flex-start; }
+  .build-layout { display: flex; gap: 56px; width: 100%; max-width: 1000px; margin: 0 auto; align-items: flex-start; }
+  .build-left { flex: 0 0 320px; }
+  .build-right { flex: 1; min-width: 0; max-height: 62vh; overflow-y: auto; padding-right: 8px; }
+  .build-log-line {
+    font-size: 15px; color: var(--dev-muted1); line-height: 1.6; margin: 0 0 18px;
+    padding-left: 16px; border-left: 2px solid var(--dev-hair);
+    opacity: 0; transform: translateY(4px); transition: opacity 0.4s ease, transform 0.4s ease;
   }
-  .build-message.show { opacity: 1; }
+  .build-log-line.show { opacity: 1; transform: translateY(0); }
+  .build-log-line:last-child { color: var(--dev-text); border-left-color: var(--dev-gold); }
+
+  @media (max-width: 760px) {
+    .build-layout { flex-direction: column; gap: 28px; }
+    .build-left { flex: none; width: 100%; }
+    .build-right { max-height: 40vh; }
+  }
 
   .chip-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 4px; }
   .chip {
@@ -680,6 +697,10 @@ const canonical = new URL('/devshop', site.domain).href;
   /* ---- intake wizard: one question at a time ---- */
   var wizardSteps = Array.prototype.slice.call(document.querySelectorAll('#intakeForm .wizard-step'));
   var wizardIndex = 0;
+  // Set just before showScreen('intake') when the landing page's own
+  // "What's the problem?" field already has an answer — skips re-asking
+  // the identical question as wizard step 1.
+  var wizardStartIndex = 0;
 
   function updateWizardProgress() {
     var el = document.getElementById('wizardProgress');
@@ -694,8 +715,9 @@ const canonical = new URL('/devshop', site.domain).href;
   }
 
   function resetWizard() {
-    wizardIndex = 0;
-    showWizardStep(0);
+    wizardIndex = wizardStartIndex;
+    wizardStartIndex = 0;
+    showWizardStep(wizardIndex);
     var errorEl = document.getElementById('intakeError');
     if (errorEl) errorEl.hidden = true;
   }
@@ -778,6 +800,13 @@ const canonical = new URL('/devshop', site.domain).href;
   if (landingForm) {
     landingForm.addEventListener('submit', function (e) {
       e.preventDefault();
+      var landingInput = document.getElementById('landingProblem');
+      var landingValue = landingInput ? landingInput.value.trim() : '';
+      if (landingValue) {
+        var problemField = document.querySelector('#intakeForm textarea[name="problem"]');
+        if (problemField) problemField.value = landingValue;
+        wizardStartIndex = 1; // skip re-asking "What's the problem?" — already answered above
+      }
       showScreen('intake');
     });
   }
@@ -839,7 +868,6 @@ const canonical = new URL('/devshop', site.domain).href;
     'Fast Tech Dev Shop builds a working demo, not a mockup — every number you\'ll see is either a real assumption or a question we\'ll ask you.',
     'The orchestrator is mapping your problem against a fixed set of P&L levers — revenue or cost, not a vague "AI opportunity."',
     'One round of feedback, then a 30-day build — the demo you\'re about to see is the actual scope document.',
-    'Every demo is skinned to your brand where possible, not ours — this isn\'t a generic AI-wrapper pitch.',
   ];
 
   function buildMessageQueue(problemText, toolsText) {
@@ -850,14 +878,21 @@ const canonical = new URL('/devshop', site.domain).href;
       if (hit) matched = matched.concat(entry.lines);
     });
     // The real methodology narrative plays first, in order; industry-matched
-    // benchmark lines and generic lines fill the rest of the wait.
-    return PROCESS_STEPS.concat(matched).concat(GENERIC_LINES);
+    // benchmark lines and generic lines fill the rest of the wait. Dedupe so
+    // the same line never appears twice in one run.
+    var combined = PROCESS_STEPS.concat(matched).concat(GENERIC_LINES);
+    var seen = {};
+    return combined.filter(function (line) {
+      if (seen[line]) return false;
+      seen[line] = true;
+      return true;
+    });
   }
 
   var buildTimers = [];
   function startBuildingUi(problemText, toolsText) {
     var countdownEl = document.getElementById('buildCountdown');
-    var messageEl = document.getElementById('buildMessage');
+    var logEl = document.getElementById('buildLog');
     var fillEl = document.getElementById('buildProgressFill');
     var queue = buildMessageQueue(problemText, toolsText);
     var qIndex = 0;
@@ -878,16 +913,27 @@ const canonical = new URL('/devshop', site.domain).href;
     tick();
     buildTimers.push(setInterval(tick, 1000));
 
-    function showNextMessage() {
-      messageEl.classList.remove('show');
-      setTimeout(function () {
-        messageEl.textContent = queue[qIndex % queue.length];
-        qIndex++;
-        messageEl.classList.add('show');
-      }, 250);
+    // Builds a running log, oldest first, newest highlighted — each new
+    // line adds to the story instead of replacing the last one. Previous
+    // lines lose their highlight as a new one arrives, and it never
+    // repeats: once every unique line has appeared, it just stops adding.
+    var messageTimer = null;
+    function addNextMessage() {
+      if (qIndex >= queue.length) {
+        clearInterval(messageTimer);
+        return;
+      }
+      var line = document.createElement('p');
+      line.className = 'build-log-line';
+      line.textContent = queue[qIndex];
+      qIndex++;
+      logEl.appendChild(line);
+      requestAnimationFrame(function () { line.classList.add('show'); });
+      logEl.scrollTop = logEl.scrollHeight;
     }
-    showNextMessage();
-    buildTimers.push(setInterval(showNextMessage, 4500));
+    addNextMessage();
+    messageTimer = setInterval(addNextMessage, 4500);
+    buildTimers.push(messageTimer);
   }
 
   function stopBuildingUi(success) {
@@ -895,6 +941,8 @@ const canonical = new URL('/devshop', site.domain).href;
     buildTimers = [];
     var fillEl = document.getElementById('buildProgressFill');
     if (fillEl) fillEl.style.width = success ? '100%' : fillEl.style.width;
+    var logEl = document.getElementById('buildLog');
+    if (logEl) logEl.innerHTML = '';
   }
 
   document.getElementById('intakeForm').addEventListener('submit', function (e) {
