@@ -1,6 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 import type { PnlLeverHit } from './pnl-levers';
 import type { ProblemBreakdown, SolutionMechanism, ArtefactPlan, FrameworkSelection, SolutionValidation } from './llm';
+import type { AmcRateBenchmark, AmcSolutionProfile, AmcResourceEstimate, AmcPricingRecommendation, ResourceCategory } from './amc';
+
+export type AmcPricingDecision = {
+  mode: 'approved' | 'adjusted' | 'custom';
+  monthly_amount_inr: number;
+  rationale: string;
+  decided_at: string;
+};
 
 export type SolutionNotes = {
   problemBreakdown: ProblemBreakdown[];
@@ -73,6 +81,10 @@ export type Submission = {
   delivery_deadline: string | null;
   weekly_updates: WeeklyUpdate[];
   handoff_markdown: string | null;
+  amc_solution_profile: AmcSolutionProfile | null;
+  amc_resource_estimate: AmcResourceEstimate | null;
+  amc_pricing_recommendation: AmcPricingRecommendation | null;
+  amc_pricing_decision: AmcPricingDecision | null;
   error: string | null;
   created_at: string;
 };
@@ -243,6 +255,68 @@ export function getDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: st
     async setFrameworkActive(id: string, active: boolean) {
       const { error } = await supabase.from('frameworks').update({ active }).eq('id', id);
       if (error) throw new Error(`supabase framework update failed: ${error.message}`);
+    },
+
+    // AMC rate benchmarks (4b) — admin-curated, source-cited market rates.
+    // The pricing math in src/lib/amc.ts only ever uses a rate from here,
+    // flagged `verified: false` when sourced but not cross-checked.
+    async listActiveAmcRates(): Promise<AmcRateBenchmark[]> {
+      const { data, error } = await supabase
+        .from('amc_rate_benchmarks')
+        .select('*')
+        .eq('active', true)
+        .order('resource_category', { ascending: true });
+      if (error) throw new Error(`supabase amc rates list failed: ${error.message}`);
+      return (data ?? []) as AmcRateBenchmark[];
+    },
+
+    async listAllAmcRates(): Promise<AmcRateBenchmark[]> {
+      const { data, error } = await supabase.from('amc_rate_benchmarks').select('*').order('created_at', { ascending: false });
+      if (error) throw new Error(`supabase amc rates list-all failed: ${error.message}`);
+      return (data ?? []) as AmcRateBenchmark[];
+    },
+
+    async addAmcRate(rate: {
+      resource_category: ResourceCategory;
+      domain: string;
+      role_label: string;
+      rate_per_hour_inr: number;
+      source: string;
+      verified: boolean;
+      note?: string | null;
+    }) {
+      const { error } = await supabase.from('amc_rate_benchmarks').insert(rate);
+      if (error) throw new Error(`supabase amc rate insert failed: ${error.message}`);
+    },
+
+    async setAmcRateActive(id: string, active: boolean) {
+      const { error } = await supabase.from('amc_rate_benchmarks').update({ active }).eq('id', id);
+      if (error) throw new Error(`supabase amc rate update failed: ${error.message}`);
+    },
+
+    // AMC solution profile / estimate / pricing recommendation (4c/4d) —
+    // computed once, stored, reviewed by a human in admin (4e) before it
+    // ever reaches a customer-facing offer (4f).
+    async saveAmcProposal(
+      id: string,
+      profile: AmcSolutionProfile,
+      estimate: AmcResourceEstimate,
+      recommendation: AmcPricingRecommendation
+    ) {
+      const { error } = await supabase
+        .from('submissions')
+        .update({
+          amc_solution_profile: profile,
+          amc_resource_estimate: estimate,
+          amc_pricing_recommendation: recommendation,
+        })
+        .eq('id', id);
+      if (error) throw new Error(`supabase update (amc proposal) failed: ${error.message}`);
+    },
+
+    async saveAmcPricingDecision(id: string, decision: AmcPricingDecision) {
+      const { error } = await supabase.from('submissions').update({ amc_pricing_decision: decision }).eq('id', id);
+      if (error) throw new Error(`supabase update (amc decision) failed: ${error.message}`);
     },
   };
 }

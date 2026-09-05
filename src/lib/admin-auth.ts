@@ -1,6 +1,13 @@
 // Pure decision logic behind the admin Basic Auth gate (src/middleware.ts).
 // Split out so it can be unit-tested without the astro:middleware runtime.
-export const PROTECTED_PREFIXES = ['/devshop/admin', '/devshop/api/track-update', '/devshop/api/frameworks'];
+export const PROTECTED_PREFIXES = [
+  '/devshop/admin',
+  '/devshop/api/track-update',
+  '/devshop/api/frameworks',
+  '/devshop/api/amc-rates',
+  '/devshop/api/amc-proposal',
+  '/devshop/api/amc-decision',
+];
 
 export function isProtectedPath(pathname: string): boolean {
   return PROTECTED_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + '/'));

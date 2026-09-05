@@ -98,6 +98,23 @@ const title = row.company ? `Project tracker — ${row.company}` : 'Project trac
     {updates.length === 0 && (row.status === 'build_scheduled' || row.status === 'in_build') && (
       <p class="empty-note">No weekly updates posted yet — check back soon.</p>
     )}
+
+    {row.amc_pricing_decision && row.amc_resource_estimate && (
+      <section class="amc-offer">
+        <h2>Ongoing service (AMC)</h2>
+        <p class="amc-monthly">₹{row.amc_pricing_decision.monthly_amount_inr.toLocaleString('en-IN')}<span class="amc-per">/month</span></p>
+        <p class="amc-note">What that covers, transparently — the actual monthly hours behind the number:</p>
+        <div class="amc-breakdown">
+          {row.amc_resource_estimate.estimates.map((e) => (
+            <div class="amc-row">
+              <span class="amc-category">{e.category.replace(/_/g, ' ')}</span>
+              <span class="amc-hours">{e.monthly_hours} hrs/mo</span>
+            </div>
+          ))}
+        </div>
+        <p class="amc-includes">Includes model/framework updates, ongoing data study against your original target, client satisfaction support, a dedicated account manager, and two 1-hour domain-expert calls each month.</p>
+      </section>
+    )}
   </main>
 </body>
 </html>
@@ -125,4 +142,14 @@ const title = row.company ? `Project tracker — ${row.company}` : 'Project trac
   .blocker-client { background: #fff6ea; color: #7a5416; }
   .blocker-internal { background: #f7e9e5; color: #7a3527; }
   .empty-note { font-size: 14px; color: #8a8378; }
+
+  .amc-offer { margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(36,33,29,0.1); }
+  .amc-monthly { font-family: 'Source Serif 4', Georgia, serif; font-size: 28px; font-weight: 600; margin: 0 0 4px; }
+  .amc-per { font-size: 14px; font-weight: 400; color: #8a8378; margin-left: 4px; }
+  .amc-note { font-size: 13.5px; color: #6b6459; margin: 0 0 12px; }
+  .amc-breakdown { margin-bottom: 14px; }
+  .amc-row { display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px solid rgba(36,33,29,0.08); font-size: 14px; text-transform: capitalize; }
+  .amc-row:first-child { border-top: none; }
+  .amc-hours { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: #6b6459; }
+  .amc-includes { font-size: 13px; color: #8a8378; line-height: 1.6; }
 </style>

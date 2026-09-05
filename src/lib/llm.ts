@@ -8,6 +8,7 @@ import {
   type ConfidenceLevel,
   type ValidationStatus,
 } from './pnl-levers';
+import { RESOURCE_CATEGORIES, type AmcSolutionProfile, type AmcResourceEstimate } from './amc';
 
 export type FrameworkLibraryEntry = {
   name: string;
@@ -686,6 +687,87 @@ Rules:
     confidence: out.confidence,
     note: out.note,
   };
+}
+
+// 4c — AMC resource-hours estimation. Given a delivered solution's profile,
+// estimate monthly ongoing-service hours per resource category. This is the
+// highest-uncertainty piece of the AMC model — kept as its own isolated call
+// (not folded into the main solutioning schema) so it can be re-run and
+// live-verified independently, and each estimate is honestly tagged known/
+// assumed/needs_confirmation rather than presented as a precise figure.
+export async function estimateAmcResourceHours(
+  profile: AmcSolutionProfile,
+  apiKey: string
+): Promise<AmcResourceEstimate> {
+  const system = `You estimate ongoing monthly service hours (AMC — Annual Maintenance Contract) for a delivered AI-orchestration solution, across exactly these 4 resource categories: fde_client_engagement (dedicated account management, satisfaction support, domain-expert calls), technical (model/infra updates, monitoring, integration maintenance), sme (domain subject-matter-expert oversight specific to this problem/framework), ai_optimisation (prompt/framework advancement, ongoing data study against the original P&L target).
+
+For each category, estimate realistic monthly hours given the solution's profile (mechanism type, workflow/integration count, automation level, decision criticality — higher automation and higher decision criticality generally mean MORE technical/SME hours, not fewer, because more is riding on it staying correct). Tag each estimate's status: "known" only if the profile itself effectively dictates this number, "assumed" for an industry-grounded default given the profile, "needs_confirmation" if you genuinely don't have enough in the profile to estimate confidently. Give a one-sentence rationale per category tied to the actual profile fields, not generic filler. Never inflate hours to justify a higher price, and never estimate zero hours for a category without saying so plainly in the rationale.
+
+End with one sentence (overall_confidence_note) on how solid this whole estimate is, given what's actually known about the solution.`;
+
+  const userMessage = `Solution profile:
+- Business function: ${profile.business_function}
+- Domain: ${profile.domain}
+- Problem type: ${profile.problem_type}
+- Framework applied: ${profile.framework_name}
+- Mechanism type: ${profile.mechanism_type}
+- Distinct workflows: ${profile.workflow_count}
+- Distinct integrations: ${profile.integration_count}
+- Automation level: ${profile.automation_level}
+- Decision criticality: ${profile.decision_criticality}`;
+
+  const tool = {
+    name: 'estimate_amc_hours',
+    description: 'Estimate monthly AMC service hours per resource category.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        estimates: {
+          type: 'array',
+          description: 'Exactly 4 entries, one per fixed resource category.',
+          items: {
+            type: 'object',
+            properties: {
+              category: {
+                type: 'string',
+                enum: RESOURCE_CATEGORIES as unknown as string[],
+              },
+              monthly_hours: { type: 'number' },
+              status: { type: 'string', enum: EPISTEMIC_STATUSES as unknown as string[] },
+              rationale: { type: 'string', description: 'One sentence tied to the actual profile fields.' },
+            },
+            required: ['category', 'monthly_hours', 'status', 'rationale'],
+          },
+        },
+        overall_confidence_note: { type: 'string' },
+      },
+      required: ['estimates', 'overall_confidence_note'],
+    },
+  } as const;
+
+  const res = await fetch(ANTHROPIC_API_URL, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': ANTHROPIC_VERSION },
+    body: JSON.stringify({
+      model: MODEL,
+      max_tokens: 1500,
+      system,
+      messages: [{ role: 'user', content: userMessage }],
+      tools: [tool],
+      tool_choice: { type: 'tool', name: tool.name },
+    }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`Anthropic API error ${res.status}: ${body.slice(0, 500)}`);
+  }
+
+  const data = (await res.json()) as { content: Array<{ type: string; input?: Record<string, unknown> }> };
+  const toolUse = data.content.find((b) => b.type === 'tool_use');
+  if (!toolUse?.input) throw new Error('Anthropic response did not include a tool_use block');
+
+  return toolUse.input as unknown as AmcResourceEstimate;
 }
 
 export async function fetchWebsiteSnippet(url: string): Promise<string | null> {

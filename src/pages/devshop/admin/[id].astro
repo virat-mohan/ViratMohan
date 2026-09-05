@@ -5,6 +5,7 @@ export const prerender = false;
 import { getDb, PIPELINE_STAGES } from '../../../lib/db';
 import { getEnv } from '../../../lib/env';
 import { FIT_DIMENSIONS } from '../../../lib/llm';
+import { MECHANISM_TYPES, AUTOMATION_LEVELS, DECISION_CRITICALITY, RESOURCE_CATEGORY_LABELS } from '../../../lib/amc';
 
 const env = getEnv();
 const { id } = Astro.params;
@@ -26,6 +27,11 @@ const warningCount = validations.filter((v) => v.status === 'warning').length;
 const inPipeline = ['sent', 'interested', 'scoping_scheduled', 'scoping_complete', 'proposal_sent', 'deposit_paid', 'build_scheduled', 'in_build', 'delivered', 'feedback_requested', 'amc_active', 'refunded'].includes(row.status);
 const stageOptions = PIPELINE_STAGES.filter((s) => !['received', 'demo_ready', 'revising'].includes(s)).concat(['refunded'] as any);
 const trackerVisible = ['interested', 'scoping_scheduled', 'scoping_complete', 'proposal_sent', 'deposit_paid', 'build_scheduled', 'in_build', 'delivered', 'feedback_requested', 'amc_active', 'refunded'].includes(row.status);
+const amcRelevant = ['build_scheduled', 'in_build', 'delivered', 'feedback_requested', 'amc_active'].includes(row.status);
+const amcProfile = row.amc_solution_profile;
+const amcEstimate = row.amc_resource_estimate;
+const amcRecommendation = row.amc_pricing_recommendation;
+const amcDecision = row.amc_pricing_decision;
 ---
 
 <!doctype html>
@@ -296,6 +302,83 @@ const trackerVisible = ['interested', 'scoping_scheduled', 'scoping_complete', '
             ))}
           </div>
         )}
+
+        {amcRelevant && (
+          <div class="amc-panel">
+            <h2>AMC pricing</h2>
+            <p class="panel-note">Calculated from estimated monthly service hours × <a href="/devshop/admin/amc-rates" style="color:#d4af37;">curated rate benchmarks</a> — never a model-invented number. Always a range + rationale, floored at ₹50,000/month.</p>
+
+            <div class="amc-form">
+              <div class="panel-row">
+                <input id="amcDomain" type="text" placeholder='Domain (e.g. "e-commerce")' value={amcProfile?.domain || ''} />
+                <select id="amcMechanism">
+                  {MECHANISM_TYPES.map((m) => <option value={m} selected={amcProfile?.mechanism_type === m}>{m.replace(/_/g, ' ')}</option>)}
+                </select>
+              </div>
+              <div class="panel-row">
+                <input id="amcWorkflows" type="number" min="1" placeholder="Distinct workflows" value={amcProfile?.workflow_count ?? 1} />
+                <input id="amcIntegrations" type="number" min="0" placeholder="Distinct integrations" value={amcProfile?.integration_count ?? 0} />
+              </div>
+              <div class="panel-row">
+                <select id="amcAutomation">
+                  {AUTOMATION_LEVELS.map((a) => <option value={a} selected={amcProfile?.automation_level === a}>{a.replace(/_/g, ' ')}</option>)}
+                </select>
+                <select id="amcCriticality">
+                  {DECISION_CRITICALITY.map((c) => <option value={c} selected={amcProfile?.decision_criticality === c}>{c}</option>)}
+                </select>
+                <button id="amcGenerateBtn" class="btn-small">{amcRecommendation ? 'Re-generate estimate' : 'Generate estimate'}</button>
+              </div>
+              <p class="hint" id="amcGenerateHint" hidden></p>
+            </div>
+
+            {amcEstimate && (
+              <table class="amc-table">
+                <thead><tr><th>Resource category</th><th>Monthly hours</th><th>Status</th><th>Rationale</th></tr></thead>
+                <tbody>
+                  {amcEstimate.estimates.map((e) => (
+                    <tr>
+                      <td>{RESOURCE_CATEGORY_LABELS[e.category]}</td>
+                      <td>{e.monthly_hours}</td>
+                      <td><span class={`value-status value-status-${e.status}`}>{e.status.replace(/_/g, ' ')}</span></td>
+                      <td class="when">{e.rationale}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+            {amcEstimate && <p class="panel-note">{amcEstimate.overall_confidence_note}</p>}
+
+            {amcRecommendation && (
+              <div class="amc-recommendation">
+                <p><span class="note-label">Market-equivalent value</span>₹{amcRecommendation.market_equivalent_value_low_inr.toLocaleString('en-IN')}–₹{amcRecommendation.market_equivalent_value_high_inr.toLocaleString('en-IN')}/month</p>
+                <p><span class="note-label">FTDS cost to serve</span>₹{amcRecommendation.cost_to_serve_inr.toLocaleString('en-IN')}/month</p>
+                <p><span class="note-label">Recommended range</span><strong>₹{amcRecommendation.recommended_range_low_inr.toLocaleString('en-IN')}–₹{amcRecommendation.recommended_range_high_inr.toLocaleString('en-IN')}/month</strong>{amcRecommendation.used_minimum_floor && <span class="fw-flag">minimum floor applied</span>}</p>
+                <p class="panel-note">{amcRecommendation.rationale}</p>
+                {amcRecommendation.unverified_rate_categories.length > 0 && (
+                  <p class="hint">Unverified rate for: {amcRecommendation.unverified_rate_categories.map((c) => RESOURCE_CATEGORY_LABELS[c]).join(', ')} — review before quoting.</p>
+                )}
+              </div>
+            )}
+
+            {amcRecommendation && (
+              <div class="amc-decision-form">
+                <h2>Pricing decision</h2>
+                <div class="panel-row">
+                  <select id="amcMode">
+                    <option value="approved" selected={amcDecision?.mode === 'approved'}>Approve as calculated</option>
+                    <option value="adjusted" selected={amcDecision?.mode === 'adjusted'}>Adjust</option>
+                    <option value="custom" selected={amcDecision?.mode === 'custom'}>Custom (complex build)</option>
+                  </select>
+                  <input id="amcAmount" type="number" placeholder="Monthly amount (INR)" value={amcDecision?.monthly_amount_inr ?? amcRecommendation.recommended_range_low_inr} />
+                </div>
+                <textarea id="amcRationale" rows="2" placeholder="Rationale (required unless approving as-is)">{amcDecision?.rationale || ''}</textarea>
+                <button id="amcDecisionBtn" class="btn-small">Save decision</button>
+                <p class="hint" id="amcDecisionHint" hidden></p>
+                {amcDecision && <p class="panel-note">Current: ₹{amcDecision.monthly_amount_inr.toLocaleString('en-IN')}/month ({amcDecision.mode}) — decided {new Date(amcDecision.decided_at).toLocaleDateString()}</p>}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     )}
   </main>
@@ -378,6 +461,78 @@ const trackerVisible = ['interested', 'scoping_scheduled', 'scoping_complete', '
         } catch (err) {
           depositBtn.disabled = false;
           alert('Failed: ' + err.message);
+        }
+      });
+    }
+
+    const amcGenerateBtn = document.getElementById('amcGenerateBtn');
+    if (amcGenerateBtn) {
+      amcGenerateBtn.addEventListener('click', async () => {
+        const domain = document.getElementById('amcDomain').value.trim();
+        if (!domain) {
+          const hint = document.getElementById('amcGenerateHint');
+          hint.textContent = 'Enter a domain first.';
+          hint.hidden = false;
+          return;
+        }
+        amcGenerateBtn.disabled = true;
+        amcGenerateBtn.textContent = 'Estimating…';
+        try {
+          const res = await fetch('/devshop/api/amc-proposal', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({
+              id,
+              domain,
+              mechanism_type: document.getElementById('amcMechanism').value,
+              workflow_count: parseInt(document.getElementById('amcWorkflows').value || '1', 10),
+              integration_count: parseInt(document.getElementById('amcIntegrations').value || '0', 10),
+              automation_level: document.getElementById('amcAutomation').value,
+              decision_criticality: document.getElementById('amcCriticality').value,
+            }),
+          });
+          if (!res.ok) throw new Error(await res.text());
+          location.reload();
+        } catch (err) {
+          amcGenerateBtn.disabled = false;
+          amcGenerateBtn.textContent = 'Generate estimate';
+          const hint = document.getElementById('amcGenerateHint');
+          hint.textContent = 'Failed: ' + err.message;
+          hint.hidden = false;
+        }
+      });
+    }
+
+    const amcDecisionBtn = document.getElementById('amcDecisionBtn');
+    if (amcDecisionBtn) {
+      amcDecisionBtn.addEventListener('click', async () => {
+        const mode = document.getElementById('amcMode').value;
+        const monthly_amount_inr = parseFloat(document.getElementById('amcAmount').value);
+        const rationale = document.getElementById('amcRationale').value.trim();
+        const hint = document.getElementById('amcDecisionHint');
+        if (!monthly_amount_inr) {
+          hint.textContent = 'Enter a monthly amount.';
+          hint.hidden = false;
+          return;
+        }
+        if (mode !== 'approved' && !rationale) {
+          hint.textContent = 'A rationale is required when adjusting or setting a custom price.';
+          hint.hidden = false;
+          return;
+        }
+        amcDecisionBtn.disabled = true;
+        try {
+          const res = await fetch('/devshop/api/amc-decision', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ id, mode, monthly_amount_inr, rationale }),
+          });
+          if (!res.ok) throw new Error(await res.text());
+          location.reload();
+        } catch (err) {
+          amcDecisionBtn.disabled = false;
+          hint.textContent = 'Failed: ' + err.message;
+          hint.hidden = false;
         }
       });
     }
@@ -480,4 +635,13 @@ const trackerVisible = ['interested', 'scoping_scheduled', 'scoping_complete', '
   .weekly-entry { display: flex; gap: 12px; padding: 8px 0; border-top: 1px solid rgba(245,245,240,0.08); font-size: 13px; color: #b7b5af; flex-wrap: wrap; }
   .weekly-date { font-family: monospace; color: #625f59; flex-shrink: 0; }
   .weekly-blocker { color: #d4af37; }
+  .amc-panel { margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(245,245,240,0.1); }
+  .amc-form { margin-bottom: 16px; }
+  .amc-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-bottom: 12px; }
+  .amc-table th { text-align: left; color: #85837e; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; padding: 0 8px 8px; border-bottom: 1px solid rgba(245,245,240,0.15); }
+  .amc-table td { padding: 8px; border-bottom: 1px solid rgba(245,245,240,0.06); vertical-align: top; color: #b7b5af; }
+  .amc-table td.when { max-width: 300px; }
+  .amc-recommendation p { font-size: 13px; margin: 4px 0; }
+  .amc-decision-form { margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(245,245,240,0.08); }
+  .amc-decision-form textarea { width: 100%; margin-bottom: 10px; resize: vertical; }
 </style>
