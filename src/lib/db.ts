@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import type { PnlLeverHit } from './pnl-levers';
-import type { ProblemBreakdown, SolutionMechanism, ArtefactPlan, FrameworkSelection, SolutionValidation } from './llm';
+import type { ProblemBreakdown, SolutionMechanism, ArtefactPlan, FrameworkSelection, SolutionValidation, ArtefactValidation } from './llm';
 import type { AmcRateBenchmark, AmcSolutionProfile, AmcResourceEstimate, AmcPricingRecommendation, ResourceCategory } from './amc';
 import { summarizeFrameworkUsage, type PastFrameworkUsage } from './industry';
 
@@ -16,6 +16,7 @@ export type SolutionNotes = {
   frameworkSelections: FrameworkSelection[];
   solutionMechanisms: SolutionMechanism[];
   validations: SolutionValidation[];
+  artefactValidations: ArtefactValidation[];
   artefactPlan: ArtefactPlan;
   clarifyingQuestions: string[];
 };
@@ -31,6 +32,20 @@ export type Framework = {
   when_to_use: string;
   link: string | null;
   active: boolean;
+  created_at: string;
+  framework_version: number;
+  source_verified_at: string | null;
+  reviewed_by: string | null;
+  problem_archetypes: string[];
+};
+
+export type StageTransition = {
+  id: string;
+  submission_id: string;
+  previous_status: string | null;
+  new_status: string;
+  actor: 'admin' | 'client' | 'system';
+  reason: string | null;
   created_at: string;
 };
 
@@ -284,9 +299,24 @@ export function getDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: st
       return (data ?? []) as Framework[];
     },
 
-    async addFramework(fw: { name: string; source: string; business_function: string; when_to_use: string; link?: string | null }) {
+    async addFramework(fw: {
+      name: string;
+      source: string;
+      business_function: string;
+      when_to_use: string;
+      link?: string | null;
+      problem_archetypes?: string[];
+    }) {
       const { error } = await supabase.from('frameworks').insert(fw);
       if (error) throw new Error(`supabase framework insert failed: ${error.message}`);
+    },
+
+    async markFrameworkReviewed(id: string, reviewedBy: string) {
+      const { error } = await supabase
+        .from('frameworks')
+        .update({ source_verified_at: new Date().toISOString(), reviewed_by: reviewedBy })
+        .eq('id', id);
+      if (error) throw new Error(`supabase framework review update failed: ${error.message}`);
     },
 
     async setFrameworkActive(id: string, active: boolean) {
@@ -354,6 +384,32 @@ export function getDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: st
     async saveAmcPricingDecision(id: string, decision: AmcPricingDecision) {
       const { error } = await supabase.from('submissions').update({ amc_pricing_decision: decision }).eq('id', id);
       if (error) throw new Error(`supabase update (amc decision) failed: ${error.message}`);
+    },
+
+    // Pipeline transition audit trail — best-effort, logging-only: a
+    // failure here must never block the actual stage change it's
+    // recording, so errors are caught and swallowed (logged to console).
+    async logTransition(
+      submissionId: string,
+      previousStatus: string | null,
+      newStatus: string,
+      actor: 'admin' | 'client' | 'system',
+      reason: string | null
+    ) {
+      const { error } = await supabase
+        .from('stage_transitions')
+        .insert({ submission_id: submissionId, previous_status: previousStatus, new_status: newStatus, actor, reason });
+      if (error) console.error('supabase stage_transitions insert failed:', error.message);
+    },
+
+    async listTransitions(submissionId: string): Promise<StageTransition[]> {
+      const { data, error } = await supabase
+        .from('stage_transitions')
+        .select('*')
+        .eq('submission_id', submissionId)
+        .order('created_at', { ascending: false });
+      if (error) throw new Error(`supabase stage_transitions list failed: ${error.message}`);
+      return (data ?? []) as StageTransition[];
     },
   };
 }

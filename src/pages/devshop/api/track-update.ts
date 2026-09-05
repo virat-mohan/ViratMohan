@@ -9,7 +9,7 @@ import { getEnv } from '../../../lib/env';
 import { buildHandoffMarkdown } from '../../../lib/handoff';
 
 type Body =
-  | { id: string; action: 'setStage'; status: PipelineStage }
+  | { id: string; action: 'setStage'; status: PipelineStage; reason?: string }
   | { id: string; action: 'setComplexity'; tier: 'standard' | 'complex'; recommendation: string }
   | { id: string; action: 'markDepositPaid' }
   | { id: string; action: 'addWeeklyUpdate'; summary: string; blocker: WeeklyUpdate['blocker']; blockerDetail: string | null };
@@ -30,12 +30,14 @@ export const POST: APIRoute = async ({ request }) => {
       case 'setStage':
         if (!VALID_STAGES.has(body.status)) return json({ error: `invalid status "${body.status}"` }, 400);
         await db.setStage(body.id, body.status);
+        await db.logTransition(body.id, row.status, body.status, 'admin', body.reason?.trim() || null);
         break;
       case 'setComplexity':
         await db.setComplexity(body.id, body.tier, body.recommendation);
         break;
       case 'markDepositPaid': {
         await db.markDepositPaid(body.id);
+        await db.logTransition(body.id, row.status, 'build_scheduled', 'admin', 'Deposit confirmed');
         // Deposit clearing IS "approved for build" — generate the tech
         // handoff doc right here, off the row as it stood at approval.
         const updated = await db.getById(body.id);

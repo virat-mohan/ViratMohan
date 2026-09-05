@@ -79,43 +79,71 @@ export const POST: APIRoute = async ({ request }) => {
         frameworkSelections: resolveFrameworkSelections(result.frameworkSelections, frameworkLibrary),
         solutionMechanisms: result.solutionMechanisms,
         validations: result.validations,
+        artefactValidations: result.artefactValidations,
         artefactPlan: result.artefactPlan,
         clarifyingQuestions: result.clarifyingQuestions,
       },
       result.artefactHtml
     );
+    await db.logTransition(id, 'received', 'demo_ready', 'system', 'Classification complete');
 
-    // The demo now sends to the client immediately, no admin approval gate
-    // in between — the client's own browser also redirects straight to it
-    // (see devshop.astro), so both need the same URL at the same moment.
-    // Kept in its own try/catch: a Resend hiccup here must not overwrite a
-    // perfectly good demo_ready row with "failed" — if this fails, the row
-    // simply stays at demo_ready and /devshop/api/approve remains a manual
-    // retry path (its own gate is `status === 'demo_ready'`).
-    try {
-      const row = await db.getById(id);
-      if (row) {
-        const sent = await sendDemoDoneEmail(row, origin, env);
-        await db.markSent(id);
-        demoUrl = sent.demoUrl;
-      }
-    } catch (err) {
-      console.error('intake: auto-send failed, leaving row at demo_ready for manual retry', err);
+    const artefactBlocked = result.artefactValidations.some((v) => v.status === 'block');
+
+    if (artefactBlocked) {
+      // The artefact self-audit (Step 9) flagged a real defect — e.g. the
+      // before/after numbers never actually change, or there's no Run
+      // control. Auto-sending a demo we already know is broken defeats the
+      // point of validating it. Skip the send, leave status at demo_ready
+      // (the client's browser still lands on the demo page, since it's not
+      // hidden at that status), and flag the desk urgently instead of the
+      // routine "demo sent" notice.
       demoUrl = `${origin}/devshop/demo/${id}`;
-    }
+      waitUntil(
+        sendEmail(
+          {
+            to: env.ADMIN_NOTIFY_EMAIL,
+            subject: `⚠ Artefact validation blocked auto-send — ${company || email}`,
+            html: `<p>The generated artefact for <strong>${escapeHtml(
+              company || email
+            )}</strong> failed its own self-check and was NOT auto-sent — review before approving.</p><p><a href="${origin}/devshop/admin/${id}">Review in admin →</a></p>`,
+          },
+          env
+        ).catch((err) => console.error('intake: artefact-blocked notify failed', err))
+      );
+    } else {
+      // The demo now sends to the client immediately, no admin approval gate
+      // in between — the client's own browser also redirects straight to it
+      // (see devshop.astro), so both need the same URL at the same moment.
+      // Kept in its own try/catch: a Resend hiccup here must not overwrite a
+      // perfectly good demo_ready row with "failed" — if this fails, the row
+      // simply stays at demo_ready and /devshop/api/approve remains a manual
+      // retry path (its own gate is `status === 'demo_ready'`).
+      try {
+        const row = await db.getById(id);
+        if (row) {
+          const sent = await sendDemoDoneEmail(row, origin, env);
+          await db.markSent(id);
+          await db.logTransition(id, 'demo_ready', 'sent', 'system', 'Auto-sent to client');
+          demoUrl = sent.demoUrl;
+        }
+      } catch (err) {
+        console.error('intake: auto-send failed, leaving row at demo_ready for manual retry', err);
+        demoUrl = `${origin}/devshop/demo/${id}`;
+      }
 
-    waitUntil(
-      sendEmail(
-        {
-          to: env.ADMIN_NOTIFY_EMAIL,
-          subject: `Demo sent to client${company ? ` — ${company}` : ''}`,
-          html: `<p>The demo for <strong>${escapeHtml(
-            company || email
-          )}</strong> was generated and sent automatically.</p><p><a href="${origin}/devshop/admin/${id}">View in admin →</a></p>`,
-        },
-        env
-      ).catch((err) => console.error('intake: demo-sent notify failed', err))
-    );
+      waitUntil(
+        sendEmail(
+          {
+            to: env.ADMIN_NOTIFY_EMAIL,
+            subject: `Demo sent to client${company ? ` — ${company}` : ''}`,
+            html: `<p>The demo for <strong>${escapeHtml(
+              company || email
+            )}</strong> was generated and sent automatically.</p><p><a href="${origin}/devshop/admin/${id}">View in admin →</a></p>`,
+          },
+          env
+        ).catch((err) => console.error('intake: demo-sent notify failed', err))
+      );
+    }
   } catch (err) {
     console.error('intake: classification failed', err);
     status = 'failed';

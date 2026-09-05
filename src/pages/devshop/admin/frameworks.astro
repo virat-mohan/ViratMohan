@@ -41,13 +41,27 @@ const frameworks = await getDb(env).listAllFrameworks();
         <input id="fwLink" type="text" placeholder="Study link (optional, e.g. Wikipedia or a primary source)" />
       </div>
       <textarea id="fwWhen" rows="2" placeholder="When to use it — what kind of root cause this fits"></textarea>
+      <div class="form-row">
+        <input id="fwArchetypes" type="text" placeholder="Problem archetypes, comma-separated (e.g. funnel-drop-off, repeat-cost-leakage)" />
+      </div>
       <button id="addBtn" class="btn-small">Add to library</button>
       <p class="hint" id="addHint" hidden></p>
     </div>
 
-    <table>
+    <table class="sortable">
       <thead>
-        <tr><th>Name</th><th>Source</th><th>Function</th><th>When to use</th><th>Link</th><th>Active</th><th></th></tr>
+        <tr>
+          <th data-sort-type="text">Name</th>
+          <th data-sort-type="text">Source</th>
+          <th data-sort-type="text">Function</th>
+          <th data-sort-type="text" data-no-sort="true">Archetypes</th>
+          <th data-sort-type="text" data-no-sort="true">When to use</th>
+          <th data-no-sort="true">Link</th>
+          <th data-sort-type="text">Version</th>
+          <th data-sort-type="text">Reviewed</th>
+          <th data-sort-type="text">Active</th>
+          <th data-no-sort="true"></th>
+        </tr>
       </thead>
       <tbody>
         {frameworks.map((f) => (
@@ -55,17 +69,29 @@ const frameworks = await getDb(env).listAllFrameworks();
             <td>{f.name}</td>
             <td>{f.source}</td>
             <td>{f.business_function}</td>
+            <td class="archetypes">
+              {f.problem_archetypes.length > 0
+                ? f.problem_archetypes.map((a) => <span class="archetype-pill">{a}</span>)
+                : '—'}
+            </td>
             <td class="when">{f.when_to_use}</td>
             <td>{f.link ? <a href={f.link} target="_blank" style="color:#d4af37;">study →</a> : '—'}</td>
-            <td>{f.active ? 'Yes' : 'No'}</td>
+            <td>v{f.framework_version}</td>
             <td>
+              {f.reviewed_by
+                ? <span title={f.source_verified_at ? new Date(f.source_verified_at).toLocaleDateString() : ''}>✓ {f.reviewed_by}</span>
+                : <span class="unreviewed">Not yet</span>}
+            </td>
+            <td>{f.active ? 'Yes' : 'No'}</td>
+            <td class="actions-cell">
               <button class="toggle-btn" data-id={f.id} data-active={String(!f.active)}>
                 {f.active ? 'Deactivate' : 'Reactivate'}
               </button>
+              <button class="review-btn" data-id={f.id}>Mark reviewed</button>
             </td>
           </tr>
         ))}
-        {frameworks.length === 0 && <tr><td colspan="7">No frameworks yet — add one above, or run migrations/0005_frameworks.sql for the starter set.</td></tr>}
+        {frameworks.length === 0 && <tr><td colspan="10">No frameworks yet — add one above, or run migrations/0005_frameworks.sql for the starter set.</td></tr>}
       </tbody>
     </table>
   </main>
@@ -117,6 +143,7 @@ const frameworks = await getDb(env).listAllFrameworks();
       const business_function = document.getElementById('fwFunction').value;
       const when_to_use = document.getElementById('fwWhen').value.trim();
       const link = document.getElementById('fwLink').value.trim();
+      const problem_archetypes = document.getElementById('fwArchetypes').value.trim();
       if (!name || !source || !when_to_use) {
         addHint.textContent = 'Fill in name, source, and when-to-use.';
         addHint.hidden = false;
@@ -127,7 +154,7 @@ const frameworks = await getDb(env).listAllFrameworks();
         const res = await fetch('/devshop/api/frameworks', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ action: 'add', name, source, business_function, when_to_use, link }),
+          body: JSON.stringify({ action: 'add', name, source, business_function, when_to_use, link, problem_archetypes }),
         });
         if (!res.ok) throw new Error(await res.text());
         location.reload();
@@ -153,6 +180,49 @@ const frameworks = await getDb(env).listAllFrameworks();
           btn.disabled = false;
           alert('Failed: ' + err.message);
         }
+      });
+    });
+
+    document.querySelectorAll('.review-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const reviewedBy = prompt('Your name, for the review record:');
+        if (!reviewedBy?.trim()) return;
+        btn.disabled = true;
+        try {
+          const res = await fetch('/devshop/api/frameworks', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ action: 'markReviewed', id: btn.dataset.id, reviewedBy: reviewedBy.trim() }),
+          });
+          if (!res.ok) throw new Error(await res.text());
+          location.reload();
+        } catch (err) {
+          btn.disabled = false;
+          alert('Failed: ' + err.message);
+        }
+      });
+    });
+
+    document.querySelectorAll('table.sortable').forEach((table) => {
+      const headers = Array.from(table.querySelectorAll('thead th'));
+      headers.forEach((th, colIndex) => {
+        if (th.dataset.noSort === 'true') return;
+        th.style.cursor = 'pointer';
+        let ascending = true;
+        th.addEventListener('click', () => {
+          const tbody = table.querySelector('tbody');
+          const rows = Array.from(tbody.querySelectorAll('tr')).filter((r) => !r.querySelector('td[colspan]'));
+          rows.sort((a, b) => {
+            const rawA = a.children[colIndex].textContent.trim();
+            const rawB = b.children[colIndex].textContent.trim();
+            const cmp = rawA.localeCompare(rawB, undefined, { numeric: true, sensitivity: 'base' });
+            return ascending ? cmp : -cmp;
+          });
+          rows.forEach((r) => tbody.appendChild(r));
+          headers.forEach((h) => h.classList.remove('sort-asc', 'sort-desc'));
+          th.classList.add(ascending ? 'sort-asc' : 'sort-desc');
+          ascending = !ascending;
+        });
       });
     });
   </script>
@@ -181,5 +251,11 @@ const frameworks = await getDb(env).listAllFrameworks();
   td { padding: 12px 10px; border-bottom: 1px solid rgba(245,245,240,0.08); vertical-align: top; }
   td.when { color: #b7b5af; max-width: 320px; }
   tr.inactive { opacity: 0.45; }
-  .toggle-btn { font-size: 11.5px; padding: 6px 10px; border: 1px solid rgba(245,245,240,0.25); color: #b7b5af; background: none; cursor: pointer; border-radius: 3px; }
+  .toggle-btn, .review-btn { font-size: 11.5px; padding: 6px 10px; border: 1px solid rgba(245,245,240,0.25); color: #b7b5af; background: none; cursor: pointer; border-radius: 3px; }
+  .actions-cell { display: flex; gap: 6px; flex-wrap: wrap; }
+  th.sort-asc::after { content: ' \25B2'; }
+  th.sort-desc::after { content: ' \25BC'; }
+  .archetypes { max-width: 200px; }
+  .archetype-pill { display: inline-block; font-size: 10.5px; color: #d4af37; border: 1px solid rgba(212,175,55,0.35); padding: 1px 6px; border-radius: 10px; margin: 2px 4px 2px 0; }
+  .unreviewed { color: #a66a62; font-size: 12.5px; }
 </style>

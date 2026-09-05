@@ -10,7 +10,8 @@
     "preview": "astro preview",
     "astro": "astro",
     "test": "vitest run tests/unit",
-    "test:watch": "vitest tests/unit"
+    "test:watch": "vitest tests/unit",
+    "test:live": "vitest run tests/benchmarks"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.2.1",

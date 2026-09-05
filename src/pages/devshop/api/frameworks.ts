@@ -7,9 +7,10 @@ import { getEnv } from '../../../lib/env';
 import { suggestFrameworkDetails } from '../../../lib/llm';
 
 type Body =
-  | { action: 'add'; name: string; source: string; business_function: string; when_to_use: string; link?: string }
+  | { action: 'add'; name: string; source: string; business_function: string; when_to_use: string; link?: string; problem_archetypes?: string }
   | { action: 'setActive'; id: string; active: boolean }
-  | { action: 'suggest'; name: string; hint?: string };
+  | { action: 'suggest'; name: string; hint?: string }
+  | { action: 'markReviewed'; id: string; reviewedBy: string };
 
 export const POST: APIRoute = async ({ request }) => {
   const env = getEnv();
@@ -28,9 +29,16 @@ export const POST: APIRoute = async ({ request }) => {
         business_function: body.business_function,
         when_to_use: body.when_to_use.trim(),
         link: body.link?.trim() || null,
+        problem_archetypes: (body.problem_archetypes || '')
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean),
       });
     } else if (body.action === 'setActive') {
       await db.setFrameworkActive(body.id, body.active);
+    } else if (body.action === 'markReviewed') {
+      if (!body.reviewedBy?.trim()) return json({ error: 'reviewedBy is required' }, 400);
+      await db.markFrameworkReviewed(body.id, body.reviewedBy.trim());
     } else if (body.action === 'suggest') {
       if (!body.name?.trim()) return json({ error: 'name is required' }, 400);
       const suggestion = await suggestFrameworkDetails(body.name.trim(), body.hint?.trim() || null, env.ANTHROPIC_API_KEY);

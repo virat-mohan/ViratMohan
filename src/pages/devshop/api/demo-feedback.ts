@@ -56,6 +56,7 @@ export const POST: APIRoute = async ({ request }) => {
   // admin-approval gate for the on-site path. finalize the status the same
   // way /devshop/api/approve would for the email path.
   await db.markSent(body.id);
+  await db.logTransition(body.id, row.status, 'sent', 'client', 'Revised from on-site feedback');
 
   const origin = getOrigin(request);
   sendEmail(

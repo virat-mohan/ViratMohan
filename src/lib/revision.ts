@@ -50,6 +50,7 @@ export async function runRevision(
         frameworkSelections: resolveFrameworkSelections(result.frameworkSelections, frameworkLibrary),
         solutionMechanisms: result.solutionMechanisms,
         validations: result.validations,
+        artefactValidations: result.artefactValidations,
         artefactPlan: result.artefactPlan,
         clarifyingQuestions: result.clarifyingQuestions,
       },

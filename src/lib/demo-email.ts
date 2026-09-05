@@ -38,7 +38,7 @@ export async function sendDemoDoneEmail(
         ? `
         <p>Here's the updated demo, incorporating your feedback${row.company ? ` for ${escapeHtml(row.company)}` : ''}:</p>
         <p><a href="${demoUrl}">View your demo here →</a></p>
-        <p>This is the version we build from — the 30-day build starts here. No further revision rounds at this stage; if anything material changes, just let us know directly.</p>
+        <p>This is the version we build from. The 30-day build clock starts once your deposit is in — no further revision rounds at this stage; if anything material changes, just let us know directly.</p>
       `
         : `
         <p>Here's the working demo — and the reasoning behind it — for the problem you sent us${row.company ? ` at ${escapeHtml(row.company)}` : ''}:</p>

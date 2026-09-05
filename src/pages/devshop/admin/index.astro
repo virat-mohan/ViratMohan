@@ -6,6 +6,7 @@ export const prerender = false;
 
 import { getDb } from '../../../lib/db';
 import { getEnv } from '../../../lib/env';
+import { formatTimestamp } from '../../../lib/format';
 
 const env = getEnv();
 const results = await getDb(env).listRecent(100);
@@ -33,14 +34,21 @@ function leverSummary(levers: { lever: string }[] | null): string {
         <a href="/devshop/admin/amc-rates" style="font-size:13px; color:#d4af37;">AMC rate benchmarks →</a>
       </div>
     </div>
-    <table>
+    <table id="queriesTable" class="sortable">
       <thead>
-        <tr><th>Received</th><th>Company</th><th>Problem</th><th>Lever</th><th>Status</th><th></th></tr>
+        <tr>
+          <th data-sort-type="date">Received</th>
+          <th data-sort-type="text">Company</th>
+          <th data-sort-type="text" data-no-sort="true">Problem</th>
+          <th data-sort-type="text">Lever</th>
+          <th data-sort-type="text">Status</th>
+          <th data-no-sort="true"></th>
+        </tr>
       </thead>
       <tbody>
         {results.map((r) => (
           <tr>
-            <td>{r.created_at}</td>
+            <td data-sort-value={r.created_at}>{formatTimestamp(r.created_at)}</td>
             <td>{r.company || '—'}</td>
             <td class="problem">{r.problem}</td>
             <td>{leverSummary(r.pnl_levers)}</td>
@@ -54,6 +62,42 @@ function leverSummary(levers: { lever: string }[] | null): string {
       </tbody>
     </table>
   </main>
+
+  <script>
+    // Generic click-to-sort: reads data-sort-value if present, else the
+    // cell's own text; data-sort-type="date" compares as timestamps.
+    // Columns marked data-no-sort are left alone (free text / actions).
+    document.querySelectorAll('table.sortable').forEach((table) => {
+      const headers = Array.from(table.querySelectorAll('thead th'));
+      headers.forEach((th, colIndex) => {
+        if (th.dataset.noSort === 'true') return;
+        th.style.cursor = 'pointer';
+        let ascending = true;
+        th.addEventListener('click', () => {
+          const tbody = table.querySelector('tbody');
+          const rows = Array.from(tbody.querySelectorAll('tr')).filter((r) => !r.querySelector('td[colspan]'));
+          const type = th.dataset.sortType || 'text';
+          rows.sort((a, b) => {
+            const cellA = a.children[colIndex];
+            const cellB = b.children[colIndex];
+            const rawA = cellA.dataset.sortValue ?? cellA.textContent.trim();
+            const rawB = cellB.dataset.sortValue ?? cellB.textContent.trim();
+            let cmp;
+            if (type === 'date') {
+              cmp = new Date(rawA).getTime() - new Date(rawB).getTime();
+            } else {
+              cmp = rawA.localeCompare(rawB, undefined, { numeric: true, sensitivity: 'base' });
+            }
+            return ascending ? cmp : -cmp;
+          });
+          rows.forEach((r) => tbody.appendChild(r));
+          headers.forEach((h) => h.classList.remove('sort-asc', 'sort-desc'));
+          th.classList.add(ascending ? 'sort-asc' : 'sort-desc');
+          ascending = !ascending;
+        });
+      });
+    });
+  </script>
 </body>
 </html>
 
@@ -63,7 +107,9 @@ function leverSummary(levers: { lever: string }[] | null): string {
   .wrap { max-width: 1100px; margin: 0 auto; padding: 48px 32px; }
   h1 { font-weight: 500; font-size: 22px; margin-bottom: 24px; }
   table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  th { text-align: left; color: #85837e; font-weight: 500; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; padding: 0 12px 10px; border-bottom: 1px solid rgba(245,245,240,0.18); }
+  th { text-align: left; color: #85837e; font-weight: 500; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; padding: 0 12px 10px; border-bottom: 1px solid rgba(245,245,240,0.18); user-select: none; }
+  th.sort-asc::after { content: ' \25B2'; }
+  th.sort-desc::after { content: ' \25BC'; }
   td { padding: 12px; border-bottom: 1px solid rgba(245,245,240,0.1); vertical-align: top; }
   .problem { max-width: 360px; color: #b7b5af; }
   a { color: #d4af37; }

@@ -53,6 +53,26 @@ export type SolutionValidation = {
   recommended_action: string;
 };
 
+// Step 9 — validates the ACTUAL generated HTML/JS artefact, not the
+// reasoning that led to it (that's SolutionValidation/Step 5). Admin-only,
+// same as Step 5's validations — this is a QA signal, not customer copy.
+export const ARTEFACT_VALIDATION_TYPES = [
+  'has_run_control',
+  'before_after_integrity',
+  'uses_real_tools',
+  'framework_vocabulary_present',
+  'no_bare_zeros',
+] as const;
+export type ArtefactValidationType = (typeof ARTEFACT_VALIDATION_TYPES)[number];
+
+export type ArtefactValidation = {
+  validation_type: ArtefactValidationType;
+  status: ValidationStatus;
+  severity: 'low' | 'medium' | 'high';
+  explanation: string;
+  recommended_action: string;
+};
+
 // The model only ever names frameworks (by exact library name) — every
 // factual detail (source, description, link) is resolved from OUR curated
 // data afterward (see resolveFrameworkSelections), never trusted from the
@@ -141,6 +161,7 @@ export type ClassifyAndBuildResult = {
   artefactPlan: ArtefactPlan;
   levers: PnlLeverHit[];
   validations: SolutionValidation[];
+  artefactValidations: ArtefactValidation[];
   clarifyingQuestions: string[];
   artefactHtml: string;
 };
@@ -268,7 +289,15 @@ Rules for the artefact itself:
 Branding — this matters, and the boundary here is not optional:
 - You may be given an HTML excerpt from the client's own website (reference_site_html). Its ONLY job is visual: brand colors, typography, and the company display name — nothing else. Use it to skin the artefact so it feels like it belongs to THEIR product. Do not use gold-on-near-black branding here; that identity belongs to the sales page, not to a client's demo.
 - CRITICAL: reference_site_html must NEVER influence Steps 1-7. Do not borrow business terminology, job titles, personas, industry framing, or subject matter from the website's text content — the diagnosis, root cause, framework choice, mechanism, and every number are grounded ONLY in the problem the client actually typed and the tools they listed. A client can legitimately submit an unrelated or even a giant enterprise's URL (a personal project, a placeholder, a company they merely work at) — if the website's business doesn't match what the client actually described, ignore the website's business entirely and solve the problem as stated. When in doubt, the literal problem text always wins over anything inferred from the site.
-- If no reference_site_html is given, or it doesn't yield usable brand signals, fall back to a simple, neutral, professional theme: light neutral background, dark neutral text, one restrained accent color, plain sans-serif system font, and a placeholder mark at the top reading "[ Client logo ]" — clearly a placeholder, not a fake brand.`;
+- If no reference_site_html is given, or it doesn't yield usable brand signals, fall back to a simple, neutral, professional theme: light neutral background, dark neutral text, one restrained accent color, plain sans-serif system font, and a placeholder mark at the top reading "[ Client logo ]" — clearly a placeholder, not a fake brand.
+
+STEP 9 — Validate the artefact you just built. Step 5 checked your reasoning; this checks the actual HTML/JS/CSS you wrote in Step 8, since a valid reasoning trail doesn't guarantee the artefact faithfully implements it. Re-read the artefact_html you just produced and honestly report on:
+- has_run_control: does it have a single primary "Run"/play-style control that autoplays through the mechanism's steps on its own (per the interactivity-depth rule), rather than requiring manual click-through for every step? "block" if it's still a manual-click-only slideshow.
+- before_after_integrity: do the BEFORE and AFTER numbers shown actually differ, and do they match Step 3's calculation exactly (not a second, independently-invented set of numbers)? "block" if before equals after, or if a live counter's after-value never actually updates when the run sequence completes.
+- uses_real_tools: does the artefact reference the ACTUAL tool names the client listed (or a sensible default if none were given), not generic placeholders like "Tool A" or "the CRM"? "warning" if genuinely no tools were given and it had to stay generic.
+- framework_vocabulary_present: does the artefact visibly use the selected framework's own vocabulary/structure per Step 2's rule, or at minimum name-check it? "block" if there's no trace of the selected framework anywhere in the artefact.
+- no_bare_zeros: does every number shown have a real basis (per the no-bare-zeros rule), with nothing rendering as "0", "—", "NaN", or blank where a real result should be?
+For each: explanation (one specific sentence — quote or describe what you actually see, not "looks fine") and recommended_action ("none" only if status is pass). This is a real self-audit — if you find a genuine problem, fix the artefact_html itself before finalizing your answer rather than just reporting the defect and shipping it anyway; only report a "block" you couldn't fix within this pass.`;
 }
 
 const CLASSIFY_TOOL = {
@@ -477,7 +506,23 @@ const CLASSIFY_TOOL = {
       artefact_html: {
         type: 'string',
         description:
-          'Step 8 output — self-contained HTML fragment implementing artefact_plan. No bare zeros. Must let the visitor move through the mechanism\'s steps, not just click once for a final result. Real visual craft — typographic scale, spacing rhythm, restrained color, hover/transition polish.',
+          'Step 8 output — self-contained HTML fragment implementing artefact_plan. No bare zeros. Must have a single primary Run control that autoplays through the mechanism, not manual click-through. Real visual craft — typographic scale, spacing rhythm, restrained color, hover/transition polish.',
+      },
+      artefact_validations: {
+        type: 'array',
+        description:
+          'Step 9 output — self-audit of the artefact_html you just wrote, exactly the 5 fixed checks: has_run_control, before_after_integrity, uses_real_tools, framework_vocabulary_present, no_bare_zeros. Fix the artefact_html itself if you find a real problem, rather than reporting a defect you could have fixed.',
+        items: {
+          type: 'object',
+          properties: {
+            validation_type: { type: 'string', enum: ARTEFACT_VALIDATION_TYPES as unknown as string[] },
+            status: { type: 'string', enum: VALIDATION_STATUSES as unknown as string[] },
+            severity: { type: 'string', enum: ['low', 'medium', 'high'] },
+            explanation: { type: 'string', description: 'One specific sentence describing what you actually see.' },
+            recommended_action: { type: 'string', description: 'What to fix, or "none" if status is pass.' },
+          },
+          required: ['validation_type', 'status', 'severity', 'explanation', 'recommended_action'],
+        },
       },
     },
     required: [
@@ -489,6 +534,7 @@ const CLASSIFY_TOOL = {
       'artefact_plan',
       'clarifying_questions',
       'artefact_html',
+      'artefact_validations',
     ],
   },
 } as const;
@@ -499,6 +545,7 @@ type ToolOutput = {
   levers: PnlLeverHit[];
   solution_mechanisms: SolutionMechanism[];
   validations: SolutionValidation[];
+  artefact_validations: ArtefactValidation[];
   artefact_plan: ArtefactPlan;
   clarifying_questions: string[];
   artefact_html: string;
@@ -540,6 +587,7 @@ function toResult(out: ToolOutput): ClassifyAndBuildResult {
     levers: out.levers,
     solutionMechanisms: out.solution_mechanisms,
     validations: out.validations,
+    artefactValidations: out.artefact_validations,
     artefactPlan: out.artefact_plan,
     clarifyingQuestions: out.clarifying_questions,
     artefactHtml: out.artefact_html,
@@ -586,7 +634,7 @@ export async function reviseArtefact(
 
 You are REVISING a demo you already built, based on the client's actual reply. This is the one and only revision round — make it count, and do not ask further clarifying questions unless the client's feedback itself raises a genuinely new unknown.
 
-Re-run the same eight steps, but:
+Re-run the same nine steps, but:
 - Keep everything from the previous version that the feedback doesn't touch — do not regenerate from scratch or change things that were already working and weren't criticized. This includes the framework selected in Step 2, unless the feedback itself reveals it was the wrong lens.
 - Directly address every point in the client's feedback. If they gave you a real number, use it in place of your prior assumption and say so.
 - If their feedback describes a different or additional problem, incorporate it the same way Step 1 would.

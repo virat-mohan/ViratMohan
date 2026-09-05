@@ -25,6 +25,7 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   await db.setStage(id, 'interested');
+  await db.logTransition(id, 'sent', 'interested', 'client', 'Confirmed via demo page');
 
   const origin = getOrigin(request);
   sendEmail(
