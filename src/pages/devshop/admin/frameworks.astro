@@ -7,7 +7,23 @@ import { getEnv } from '../../../lib/env';
 import { BUSINESS_FUNCTIONS } from '../../../lib/pnl-levers';
 
 const env = getEnv();
-const frameworks = await getDb(env).listAllFrameworks();
+const rawFrameworks = await getDb(env).listAllFrameworks();
+// Defensive: if migrations 0011/0014 (framework metadata columns) haven't
+// landed in this environment yet, Supabase returns rows without those
+// fields rather than erroring — normalize here so a missing column can
+// never crash this whole page over metadata that's still optional.
+const frameworks = rawFrameworks.map((f) => ({
+  ...f,
+  problem_archetypes: f.problem_archetypes ?? [],
+  ideal_use_cases: f.ideal_use_cases ?? [],
+  required_conditions: f.required_conditions ?? [],
+  required_evidence: f.required_evidence ?? [],
+  contraindications: f.contraindications ?? [],
+  expected_intervention_types: f.expected_intervention_types ?? [],
+  applicable_business_functions: f.applicable_business_functions ?? [],
+  applicable_pnl_levers: f.applicable_pnl_levers ?? [],
+  framework_version: f.framework_version ?? 1,
+}));
 ---
 
 <!doctype html>
