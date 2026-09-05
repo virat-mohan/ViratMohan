@@ -229,6 +229,8 @@ STEP 3 — Map to the P&L. This is a drill-down, not a jump: business function (
    Cost levers: ${PNL_LEVERS.cost.join(', ')}
 Name the specific P&L line item explicitly inside the reasoning (not just the lever category) — e.g. not just "labor cost" but "support team headcount cost." Give a plausible, industry-grounded before/after estimate for that line if the mechanism in Step 4 were live, informed by the framework selected in Step 2. Write the reasoning in plain operator language — never "leverage," "unlock," "synergy," or similar. One tight sentence carrying the assumption and the number, ≤ 30 words — not a paragraph. Tag value_status: "known" only if the client's own text gave you this number; "assumed" if you're using an industry-grounded placeholder; "needs_confirmation" if you're not confident even the assumption is a reasonable placeholder for this specific business. Do not mark a number "known" unless the client actually stated it. Then write plain_explanation, per the PLAIN-LANGUAGE RULE — the same number, in everyday terms a founder feels immediately, e.g. "That's roughly 40 more completed orders a month, without spending more on ads," not "a projected uplift in the conversion-rate lever."
 
+Then build the "calculation" field — a simple 2-4 row hypothesis table making the arithmetic behind plain_explanation's headline number visible, not just asserted. Every row must use ONLY numbers already implied by "reasoning" above — this is the same math shown as a table, never a new figure invented for the table. Typical shape: one row per input (each figure tagged inline as "known" if the client stated it or "assumed" if it's an industry placeholder), then a final row with the resulting number. E.g. for "cutting first-contact time lifts close rate from 15% to 21% on 500 leads/month": row 1 "Inbound leads / month" → "~500 (assumed)"; row 2 "Close rate today" → "15% (assumed)"; row 3 "Close rate after the fix" → "21% (assumed)"; row 4 "Extra sales / month" → "≈30". Keep every label and value short — this is a simple math table a founder can check in their head, not a financial model.
+
 STEP 4 — Design the mechanism. For each problem, design the SPECIFIC mechanism that would actually fix the root cause from Step 1, SHAPED by the framework selected in Step 2 — not "an AI agent that helps with X," but the actual workflow: what triggers it, what data or signal it acts on, and what happens step by step. Break "what happens step by step" into 3-6 short, discrete steps (how_it_works_steps) — each one a single concrete action, ≤ 15 words, written so it could be a bullet on a slide, not folded into one paragraph. Also state, in one sentence, why this mechanism and not a generic dashboard or chatbot. Ground it in what's realistically buildable with current AI/automation tooling — nothing that requires a research breakthrough. Then write plain_explanation, per the PLAIN-LANGUAGE RULE — one or two everyday sentences on what the tool actually does for the customer day to day, e.g. "When someone starts checking out and stalls, it waits a few minutes, then sends a short reminder with their exact cart — no manual follow-up needed," not a restatement of how_it_works_steps in engineering language.
 
 STEP 5 — Validate the solution so far. A valid schema is NOT evidence the solution is correct — this step is where you check your own work before it goes any further, the same way a second reviewer would. For each problem, produce validation entries covering AT LEAST:
@@ -383,13 +385,25 @@ const CLASSIFY_TOOL = {
               description: 'One tight sentence with the stated assumption and the before/after estimate, ≤ 30 words.',
             },
             plain_explanation: { type: 'string', description: '≤ 20 words — the same number in everyday terms, no finance jargon. See the PLAIN-LANGUAGE RULE.' },
+            calculation: {
+              type: 'array',
+              description: '2-4 rows making the arithmetic behind plain_explanation visible — inputs then a result row. Only numbers already implied by "reasoning" above, never a new figure.',
+              items: {
+                type: 'object',
+                properties: {
+                  label: { type: 'string', description: 'Short plain label, e.g. "Inbound leads / month".' },
+                  value: { type: 'string', description: 'Short value, e.g. "~500 (assumed)" or "≈30".' },
+                },
+                required: ['label', 'value'],
+              },
+            },
             value_status: {
               type: 'string',
               enum: EPISTEMIC_STATUSES as unknown as string[],
               description: '"known" only if the client stated this number themselves; "assumed" for an industry-grounded placeholder; "needs_confirmation" if even the assumption is shaky.',
             },
           },
-          required: ['category', 'lever', 'reasoning', 'plain_explanation', 'value_status'],
+          required: ['category', 'lever', 'reasoning', 'plain_explanation', 'calculation', 'value_status'],
         },
       },
       solution_mechanisms: {

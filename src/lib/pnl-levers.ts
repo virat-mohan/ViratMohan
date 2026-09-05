@@ -24,11 +24,22 @@ export type PnlLeverCategory = keyof typeof PNL_LEVERS;
 export const EPISTEMIC_STATUSES = ['known', 'assumed', 'needs_confirmation'] as const;
 export type EpistemicStatus = (typeof EPISTEMIC_STATUSES)[number];
 
+export type PnlCalculationRow = {
+  label: string; // e.g. "Inbound leads / month" — plain, no jargon
+  value: string; // e.g. "~500 (assumed)" — the figure, with its own status noted inline if not known
+};
+
 export type PnlLeverHit = {
   category: PnlLeverCategory;
   lever: string;
   reasoning: string;
   plain_explanation: string; // one everyday sentence restating `reasoning` with no finance jargon — for the customer-facing document
+  // A simple, visible hypothesis table showing exactly how the headline
+  // number in plain_explanation was arrived at — 2-4 rows, inputs then
+  // result. Never a new number not already implied by `reasoning`; this is
+  // the same math shown as a table instead of buried in one sentence, so
+  // "how did it get that number" always has a visible answer.
+  calculation: PnlCalculationRow[];
   value_status: EpistemicStatus; // is the core number in `reasoning` known, assumed, or unconfirmed?
 };
 
