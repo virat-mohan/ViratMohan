@@ -212,6 +212,16 @@ const canonical = new URL('/devshop', site.domain).href;
           </div>
         </div>
 
+        <div class="wizard-step" data-field="preferredFramework" hidden>
+          <h1 class="serif wizard-q">Want a specific framework applied?</h1>
+          <p class="wizard-sub">Optional — name it and we'll use it. Otherwise we'll pick the best fit for your problem.</p>
+          <input type="text" name="preferredFramework" class="wizard-input" placeholder="e.g. Lean Six Sigma, OKRs, Jobs to Be Done…" />
+          <div class="wizard-actions">
+            <button type="button" class="btn wizard-next">Next →</button>
+            <button type="button" class="btn-plain wizard-skip">Skip</button>
+          </div>
+        </div>
+
         <div class="wizard-step" data-field="email" data-required="true" hidden>
           <h1 class="serif wizard-q">Where should the demo go?</h1>
           <input type="email" name="email" class="wizard-input" placeholder="you@company.com" />
@@ -847,6 +857,7 @@ const canonical = new URL('/devshop', site.domain).href;
       company: form.company.value.trim(),
       website: form.website.value.trim(),
       tools: form.tools.value.trim(),
+      preferredFramework: form.preferredFramework.value.trim(),
       email: form.email.value.trim(),
     };
 

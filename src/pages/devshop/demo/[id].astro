@@ -58,6 +58,22 @@ const title = row.company ? `Your demo — ${row.company}` : 'Your demo';
       </section>
     )}
 
+    {notes && notes.frameworkSelections.length > 0 && (
+      <section class="block framework-block">
+        <h2>Grounded in a proven approach</h2>
+        {notes.frameworkSelections.map((f) => (
+          <div class="card">
+            <p class="card-title">{f.framework_name}</p>
+            <p class="card-function">{f.framework_source}</p>
+            <ul class="bullets">
+              <li><span class="bullet-label">Why this fits</span>{f.why_selected}</li>
+              <li><span class="bullet-label">Also considered</span>{f.alternatives_considered}</li>
+            </ul>
+          </div>
+        ))}
+      </section>
+    )}
+
     {notes && notes.solutionMechanisms.length > 0 && (
       <section class="block">
         <h2>What we'd build</h2>
@@ -137,6 +153,9 @@ const title = row.company ? `Your demo — ${row.company}` : 'Your demo';
   .bullet-label { display: block; font-weight: 600; color: #24211d; font-size: 12px; text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 2px; }
 
   .questions { background: #fff6ea; border: 1px solid rgba(196,141,46,0.3); border-radius: 8px; padding: 20px 24px; }
+  .framework-block { background: #f5f8f6; border: 1px solid rgba(31,122,92,0.2); border-radius: 8px; padding: 20px 24px; }
+  .framework-block .card { border-top-color: rgba(31,122,92,0.15); }
+  .framework-block .card:first-of-type { border-top: none; }
   .questions-intro { font-size: 13px; color: #6b5f4a; margin: 0 0 10px; }
   .feedback-note { font-size: 13px; color: #6b6459; border-top: 1px solid rgba(36,33,29,0.1); padding-top: 20px; }
 

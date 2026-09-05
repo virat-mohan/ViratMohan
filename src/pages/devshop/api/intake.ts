@@ -11,7 +11,7 @@ import { getOrigin } from '../../../lib/http';
 export const POST: APIRoute = async ({ request }) => {
   const env = getEnv();
 
-  let body: { problem?: string; company?: string; website?: string; tools?: string; email?: string };
+  let body: { problem?: string; company?: string; website?: string; tools?: string; email?: string; preferredFramework?: string };
   try {
     body = await request.json();
   } catch {
@@ -23,6 +23,7 @@ export const POST: APIRoute = async ({ request }) => {
   const company = (body.company || '').trim() || null;
   const website = (body.website || '').trim() || null;
   const tools = (body.tools || '').trim() || null;
+  const preferredFramework = (body.preferredFramework || '').trim() || null;
 
   if (!problem || !email) {
     return json({ error: 'problem and email are required' }, 400);
@@ -61,12 +62,17 @@ export const POST: APIRoute = async ({ request }) => {
   let status: 'demo_ready' | 'failed' = 'demo_ready';
   try {
     const websiteSnippet = website ? await fetchWebsiteSnippet(website) : null;
-    const result = await classifyAndBuild({ problem, company, tools, websiteSnippet }, env.ANTHROPIC_API_KEY);
+    const frameworkLibrary = await db.listActiveFrameworks();
+    const result = await classifyAndBuild(
+      { problem, company, tools, websiteSnippet, frameworkLibrary, preferredFramework },
+      env.ANTHROPIC_API_KEY
+    );
     await db.markDemoReady(
       id,
       result.levers,
       {
         problemBreakdown: result.problemBreakdown,
+        frameworkSelections: result.frameworkSelections,
         solutionMechanisms: result.solutionMechanisms,
         artefactPlan: result.artefactPlan,
         clarifyingQuestions: result.clarifyingQuestions,

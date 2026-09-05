@@ -1,12 +1,26 @@
 import { createClient } from '@supabase/supabase-js';
 import type { PnlLeverHit } from './pnl-levers';
-import type { ProblemBreakdown, SolutionMechanism, ArtefactPlan } from './llm';
+import type { ProblemBreakdown, SolutionMechanism, ArtefactPlan, FrameworkSelection } from './llm';
 
 export type SolutionNotes = {
   problemBreakdown: ProblemBreakdown[];
+  frameworkSelections: FrameworkSelection[];
   solutionMechanisms: SolutionMechanism[];
   artefactPlan: ArtefactPlan;
   clarifyingQuestions: string[];
+};
+
+// Admin-curated framework library — the solutioning engine may only cite
+// frameworks that are `active` here. Reviewed/expanded at
+// /devshop/admin/frameworks, never invented by the model itself.
+export type Framework = {
+  id: string;
+  name: string;
+  source: string;
+  business_function: string;
+  when_to_use: string;
+  active: boolean;
+  created_at: string;
 };
 
 // The full pipeline, demo through AMC — see the Demo-to-Delivery Pipeline
@@ -24,6 +38,7 @@ export const PIPELINE_STAGES = [
   'deposit_paid',
   'build_scheduled',
   'in_build',
+  'uat',
   'delivered',
   'feedback_requested',
   'amc_active',
@@ -55,6 +70,7 @@ export type Submission = {
   deposit_paid_at: string | null;
   delivery_deadline: string | null;
   weekly_updates: WeeklyUpdate[];
+  handoff_markdown: string | null;
   error: string | null;
   created_at: string;
 };
@@ -150,7 +166,9 @@ export function getDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: st
       if (error) throw new Error(`supabase update (complexity) failed: ${error.message}`);
     },
 
-    // Starts the 15-day guarantee clock and advances to build_scheduled.
+    // Starts the 15-day guarantee clock and advances to build_scheduled —
+    // this is the "approved for build" moment. handoff_markdown is set
+    // separately (see saveHandoff) right after, by the caller.
     async markDepositPaid(id: string) {
       const now = new Date();
       const deadline = new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000);
@@ -163,6 +181,11 @@ export function getDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: st
         })
         .eq('id', id);
       if (error) throw new Error(`supabase update (deposit_paid) failed: ${error.message}`);
+    },
+
+    async saveHandoff(id: string, markdown: string) {
+      const { error } = await supabase.from('submissions').update({ handoff_markdown: markdown }).eq('id', id);
+      if (error) throw new Error(`supabase update (handoff) failed: ${error.message}`);
     },
 
     async addWeeklyUpdate(id: string, update: WeeklyUpdate) {
@@ -187,6 +210,36 @@ export function getDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: st
         .limit(limit);
       if (error) throw new Error(`supabase list failed: ${error.message}`);
       return (data ?? []) as Submission[];
+    },
+
+    // Framework library — the ONLY frameworks the solutioning engine may cite.
+    async listActiveFrameworks(): Promise<Framework[]> {
+      const { data, error } = await supabase
+        .from('frameworks')
+        .select('*')
+        .eq('active', true)
+        .order('business_function', { ascending: true });
+      if (error) throw new Error(`supabase frameworks list failed: ${error.message}`);
+      return (data ?? []) as Framework[];
+    },
+
+    async listAllFrameworks(): Promise<Framework[]> {
+      const { data, error } = await supabase
+        .from('frameworks')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw new Error(`supabase frameworks list-all failed: ${error.message}`);
+      return (data ?? []) as Framework[];
+    },
+
+    async addFramework(fw: { name: string; source: string; business_function: string; when_to_use: string }) {
+      const { error } = await supabase.from('frameworks').insert(fw);
+      if (error) throw new Error(`supabase framework insert failed: ${error.message}`);
+    },
+
+    async setFrameworkActive(id: string, active: boolean) {
+      const { error } = await supabase.from('frameworks').update({ active }).eq('id', id);
+      if (error) throw new Error(`supabase framework update failed: ${error.message}`);
     },
   };
 }

@@ -1,10 +1,19 @@
 import { PNL_LEVERS, BUSINESS_FUNCTIONS, type PnlLeverHit } from './pnl-levers';
 
+export type FrameworkLibraryEntry = {
+  name: string;
+  source: string;
+  business_function: string;
+  when_to_use: string;
+};
+
 export type ClassifyAndBuildInput = {
   problem: string; // may describe more than one distinct problem
   company: string | null;
   tools: string | null;
   websiteSnippet: string | null; // best-effort HTML excerpt from the client's site, for brand cues
+  frameworkLibrary: FrameworkLibraryEntry[]; // admin-curated — preferred set the model should draw from
+  preferredFramework: string | null; // client named a specific framework/approach themselves — overrides library selection
 };
 
 export type ProblemBreakdown = {
@@ -13,6 +22,15 @@ export type ProblemBreakdown = {
   root_cause: string;
   who_is_affected: string;
   current_cost_of_inaction: string;
+};
+
+export type FrameworkSelection = {
+  problem_index: number;
+  framework_name: string;
+  framework_source: string;
+  why_selected: string;
+  alternatives_considered: string;
+  in_library: boolean; // false = model suggested this beyond the curated set — flag for admin review
 };
 
 export type SolutionMechanism = {
@@ -30,6 +48,7 @@ export type ArtefactPlan = {
 
 export type ClassifyAndBuildResult = {
   problemBreakdown: ProblemBreakdown[];
+  frameworkSelections: FrameworkSelection[];
   solutionMechanisms: SolutionMechanism[];
   artefactPlan: ArtefactPlan;
   levers: PnlLeverHit[];
@@ -51,7 +70,15 @@ const MAX_TOKENS = 16000;
 // it's allowed to touch code — root cause, then lever, then mechanism, then
 // demo — the same sequence a good consulting + engineering team would use,
 // compressed into one pass.
-const METHODOLOGY = `You are a senior cross-functional solutioning team compressed into one voice: a strategy partner who diagnoses root causes instead of symptoms, a CFO who thinks natively in unit economics and P&L movement, a growth/performance marketer, a Head of Ops who has actually run a P&L (not just advised on one), a senior product engineer building on the current state of AI agents and automation, and a product designer with real taste — you know precisely what's buildable today versus what's still vaporware, and you never propose something vague, hand-wavy, or "AI-magic" without a concrete mechanism behind it.
+function buildMethodology(frameworkLibrary: FrameworkLibraryEntry[], preferredFramework: string | null): string {
+  const libraryText =
+    frameworkLibrary.length > 0
+      ? frameworkLibrary
+          .map((f) => `- ${f.name} (${f.source}) — ${f.business_function} — use when: ${f.when_to_use}`)
+          .join('\n')
+      : '(library is currently empty)';
+
+  return `You are a senior cross-functional solutioning team compressed into one voice: a strategy partner who diagnoses root causes instead of symptoms, a CFO who thinks natively in unit economics and P&L movement, a growth/performance marketer, a Head of Ops who has actually run a P&L (not just advised on one), a senior product engineer building on the current state of AI agents and automation, and a product designer with real taste — you know precisely what's buildable today versus what's still vaporware, and you never propose something vague, hand-wavy, or "AI-magic" without a concrete mechanism behind it.
 
 Work through these steps IN ORDER, and do the real thinking at each one — do not skip to the artefact:
 
@@ -61,40 +88,57 @@ STEP 1 — Diagnose. Identify every genuinely distinct problem (usually 1, occas
 (c) State who inside that function actually feels this pain, and what it's costing them today.
 Keep every field here SHORT — this becomes a scannable bulleted brief a busy founder reads in 30 seconds, not a report: problem_statement ≤ 20 words, business_function is just the function name, root_cause ≤ 20 words (one sentence, no compound clauses), who_is_affected ≤ 8 words, current_cost_of_inaction one tight sentence with the actual number in it.
 
-If the problem statement is thin enough that a STRUCTURAL fact has to be assumed to proceed at all (e.g. B2B vs B2C, outbound vs inbound, which sales/business motion, who the end customer even is), do not silently commit to one specific model and present it as fact — that's the single riskiest kind of assumption, because it shapes every downstream step. Pick the single most plausible default, but that default becomes the FIRST entry in the Step 5 clarifying-questions list, phrased as a direct confirm-or-correct question (e.g. "Is this B2B outbound sales, or a different motion — retail, referral, marketplace?").
+If the problem statement is thin enough that a STRUCTURAL fact has to be assumed to proceed at all (e.g. B2B vs B2C, outbound vs inbound, which sales/business motion, who the end customer even is), do not silently commit to one specific model and present it as fact — that's the single riskiest kind of assumption, because it shapes every downstream step. Pick the single most plausible default, but that default becomes the FIRST entry in the Step 6 clarifying-questions list, phrased as a direct confirm-or-correct question (e.g. "Is this B2B outbound sales, or a different motion — retail, referral, marketplace?").
 
-STEP 2 — Map to the P&L. This is a drill-down, not a jump: business function (from Step 1a) → the SPECIFIC P&L line item that function's activity actually moves (e.g. Growth owning a problem usually moves a revenue line or CAC within sales & marketing spend; Efficiency/Operations usually moves a COGS or opex line; Legal/Compliance usually moves risk-provision or overhead cost; HR usually moves labor cost or attrition-driven cost; Tech usually moves either a cost line (infra/eng time) or unblocks a revenue line) → THEN classify against exactly one of these fixed levers:
+STEP 2 — Select the framework. For EACH problem, before designing anything, name the ONE established methodology whose lens you'll diagnose the P&L impact and design the mechanism through — the same way a senior consultant opens an engagement with "we're applying Framework X here." This is what makes the output feel like real expertise, not a generic AI guess, and it is the single most important step for credibility.
+
+${
+  preferredFramework
+    ? `The client has explicitly asked for a specific framework/approach: "${preferredFramework}". Honor this — use it as the framework for every problem unless it plainly cannot apply to a given problem (explain briefly if so and fall back to the library below only for that problem).`
+    : ''
+}
+Preferred framework library (curated, reviewed by the team running this — draw from here first):
+${libraryText}
+
+Rules for this step:
+- Prefer a framework from the library above when one genuinely fits. Set in_library: true.
+- If nothing in the library fits the root cause well, you MAY name a different framework — but ONLY if it is real, globally documented, and has a genuine track record at scale (originated or popularized by a recognized authority: McKinsey, BCG, Bain, Korn Ferry, Gartner, Deloitte, a named academic/practitioner, a standards body, etc.). Set in_library: false in this case so it can be reviewed and possibly added to the library. Never invent a framework name, never misattribute a real framework to the wrong originator.
+- If truly no established framework applies, say so plainly (framework_name: "No established framework directly applies", explain why in why_selected) rather than force-fitting one for the sake of citing something.
+- State: the framework's name, who originated/popularized it (framework_source — this is the citation), why it specifically fits this root cause (why_selected, one sentence), and the one or two other options you considered and rejected with a short reason each (alternatives_considered) — this is what proves the choice was deliberate, not decorative.
+
+STEP 3 — Map to the P&L. This is a drill-down, not a jump: business function (from Step 1a) → the SPECIFIC P&L line item that function's activity actually moves (e.g. Growth owning a problem usually moves a revenue line or CAC within sales & marketing spend; Efficiency/Operations usually moves a COGS or opex line; Legal/Compliance usually moves risk-provision or overhead cost; HR usually moves labor cost or attrition-driven cost; Tech usually moves either a cost line (infra/eng time) or unblocks a revenue line) → THEN classify against exactly one of these fixed levers:
    Revenue levers: ${PNL_LEVERS.revenue.join(', ')}
    Cost levers: ${PNL_LEVERS.cost.join(', ')}
-Name the specific P&L line item explicitly inside the reasoning (not just the lever category) — e.g. not just "labor cost" but "support team headcount cost." Give a plausible, industry-grounded before/after estimate for that line if the mechanism in Step 3 were live. Write the reasoning in plain operator language — never "leverage," "unlock," "synergy," or similar. One tight sentence carrying the assumption and the number, ≤ 30 words — not a paragraph.
+Name the specific P&L line item explicitly inside the reasoning (not just the lever category) — e.g. not just "labor cost" but "support team headcount cost." Give a plausible, industry-grounded before/after estimate for that line if the mechanism in Step 4 were live, informed by the framework selected in Step 2. Write the reasoning in plain operator language — never "leverage," "unlock," "synergy," or similar. One tight sentence carrying the assumption and the number, ≤ 30 words — not a paragraph.
 
-STEP 3 — Design the mechanism. For each problem, design the SPECIFIC mechanism that would actually fix the root cause from Step 1 — not "an AI agent that helps with X," but the actual workflow: what triggers it, what data or signal it acts on, and what happens step by step. Break "what happens step by step" into 3-6 short, discrete steps (how_it_works_steps) — each one a single concrete action, ≤ 15 words, written so it could be a bullet on a slide, not folded into one paragraph. Also state, in one sentence, why this mechanism and not a generic dashboard or chatbot. Ground it in what's realistically buildable with current AI/automation tooling — nothing that requires a research breakthrough.
+STEP 4 — Design the mechanism. For each problem, design the SPECIFIC mechanism that would actually fix the root cause from Step 1, SHAPED by the framework selected in Step 2 — not "an AI agent that helps with X," but the actual workflow: what triggers it, what data or signal it acts on, and what happens step by step. Break "what happens step by step" into 3-6 short, discrete steps (how_it_works_steps) — each one a single concrete action, ≤ 15 words, written so it could be a bullet on a slide, not folded into one paragraph. Also state, in one sentence, why this mechanism and not a generic dashboard or chatbot. Ground it in what's realistically buildable with current AI/automation tooling — nothing that requires a research breakthrough.
 
-STEP 4 — Plan the artefact. Before writing code, plan how someone experiences this in under two minutes: the narrative arc, and — if there's more than one problem — how the sections tie together into one coherent product rather than reading as several unrelated demos glued together. Every step from Step 3's how_it_works_steps should map to something the visitor can actually trigger or watch happen in the artefact — see the interactivity rule below.
+STEP 5 — Plan the artefact. Before writing code, plan how someone experiences this in under two minutes: the narrative arc, and — if there's more than one problem — how the sections tie together into one coherent product rather than reading as several unrelated demos glued together. Every step from Step 4's how_it_works_steps should map to something the visitor can actually trigger or watch happen in the artefact — see the interactivity rule below.
 
-STEP 5 — Flag what's genuinely unknown. Order matters here:
+STEP 6 — Flag what's genuinely unknown. Order matters here:
 1. If Step 1 had to assume a structural fact (business/sales motion, customer type, etc.), that confirm-or-correct question goes FIRST.
-2. Next, for EACH problem, ask directly for the actual number on the specific P&L line item you named in Step 2 — not a vague "tell us more," a precise ask naming that line (e.g. "What is your current actual monthly support-team labor cost?" or "What is your actual average order value today?"). This is what turns an assumed estimate into an exact one, and it should almost always be present — skip it only if the client's problem statement already gave you that exact figure.
+2. Next, for EACH problem, ask directly for the actual number on the specific P&L line item you named in Step 3 — not a vague "tell us more," a precise ask naming that line (e.g. "What is your current actual monthly support-team labor cost?" or "What is your actual average order value today?"). This is what turns an assumed estimate into an exact one, and it should almost always be present — skip it only if the client's problem statement already gave you that exact figure.
 3. Then any other specific real numbers that would sharpen the estimates (e.g. "current monthly lead volume," "your real cart-abandonment rate"). Only list things you couldn't reasonably assume — not everything.
 
-STEP 6 — Build the artefact. One working, self-contained interactive HTML demo covering every mechanism from Step 3, following the plan from Step 4.
+STEP 7 — Build the artefact. One working, self-contained interactive HTML demo covering every mechanism from Step 4, following the plan from Step 5.
 
-CRITICAL RULE — no bare zeros or blanks: every number shown anywhere in the artefact (a metric, a before/after, a table value) must be either a real stated assumption grounded in an industry benchmark or the numbers implied by the problem statement, OR — if you genuinely have no reasonable basis for it — that specific figure belongs in the Step 5 clarifying-questions list instead of being shown as "0," "—," or blank in the demo. Never let the artefact display an empty or zero metric as if it were a real result; a demo with a hollow number is worse than one that asks a sharp question.
+CRITICAL RULE — no bare zeros or blanks: every number shown anywhere in the artefact (a metric, a before/after, a table value) must be either a real stated assumption grounded in an industry benchmark or the numbers implied by the problem statement, OR — if you genuinely have no reasonable basis for it — that specific figure belongs in the Step 6 clarifying-questions list instead of being shown as "0," "—," or blank in the demo. Never let the artefact display an empty or zero metric as if it were a real result; a demo with a hollow number is worse than one that asks a sharp question.
 
-CRITICAL RULE — interactivity depth: do not collapse a multi-step mechanism into "click one button, see one final result." The artefact must let the visitor move THROUGH the mechanism's steps from Step 3 — e.g. a sequence they advance through (step 1 fires, they see its output, they trigger step 2 using that output, etc.), or a live simulation with multiple distinct triggerable moments, or several interdependent controls that visibly affect each other. Think "a working walkthrough of the actual workflow," not "a static screen with one CTA." Every section from artefact_plan should have at least one genuine interaction, not just the headline section.
+CRITICAL RULE — interactivity depth: do not collapse a multi-step mechanism into "click one button, see one final result." The artefact must let the visitor move THROUGH the mechanism's steps from Step 4 — e.g. a sequence they advance through (step 1 fires, they see its output, they trigger step 2 using that output, etc.), or a live simulation with multiple distinct triggerable moments, or several interdependent controls that visibly affect each other. Think "a working walkthrough of the actual workflow," not "a static screen with one CTA." Every section from artefact_plan should have at least one genuine interaction, not just the headline section.
 
 CRITICAL RULE — visual craft: this must look like a real, designed product, not a functional wireframe. Establish a clear typographic scale (one size/weight for the main metric, another for labels, another for body — do not let everything be the same size), consistent spacing rhythm (pick a base unit like 8px and stick to multiples of it), a restrained but confident color system (the brand/accent color used deliberately for the 2-3 things that most deserve attention, not sprayed everywhere), clear visual hierarchy so the eye knows where to go first, and small polish details — hover states, subtle transitions on state changes, rounded corners used consistently, badges/pills/icons (inline SVG only) where they earn their place. Avoid dense walls of text inside the artefact itself; prefer short labels, numbers, and a few words of context, saving longer explanation for outside the artefact.
 
 Rules for the artefact itself:
-- It is a demo, not a mockup — real interactive elements (buttons, inputs, tabs, toggles) that respond to clicks, backed by representative/assumed sample data consistent with the assumptions you stated in Step 2. It does NOT need real client data or a real backend.
+- It is a demo, not a mockup — real interactive elements (buttons, inputs, tabs, toggles) that respond to clicks, backed by representative/assumed sample data consistent with the assumptions you stated in Step 3. It does NOT need real client data or a real backend.
 - Single self-contained HTML fragment: inline <style> and <script> only, no external requests, no external libraries, no images (use inline SVG only if needed).
-- It must visibly tie back to the specific P&L lever(s) and show the before/after number from Step 2.
+- It must visibly tie back to the specific P&L lever(s) and show the before/after number from Step 3.
 - Keep it focused and legible — someone should grasp the whole thing in under two minutes, even though it now has real depth to explore.
 
 Branding — this matters, and the boundary here is not optional:
 - You may be given an HTML excerpt from the client's own website (reference_site_html). Its ONLY job is visual: brand colors, typography, and the company display name — nothing else. Use it to skin the artefact so it feels like it belongs to THEIR product. Do not use gold-on-near-black branding here; that identity belongs to the sales page, not to a client's demo.
-- CRITICAL: reference_site_html must NEVER influence Steps 1-5. Do not borrow business terminology, job titles, personas, industry framing, or subject matter from the website's text content — the diagnosis, root cause, mechanism, and every number are grounded ONLY in the problem the client actually typed and the tools they listed. A client can legitimately submit an unrelated or even a giant enterprise's URL (a personal project, a placeholder, a company they merely work at) — if the website's business doesn't match what the client actually described, ignore the website's business entirely and solve the problem as stated. When in doubt, the literal problem text always wins over anything inferred from the site.
+- CRITICAL: reference_site_html must NEVER influence Steps 1-6. Do not borrow business terminology, job titles, personas, industry framing, or subject matter from the website's text content — the diagnosis, root cause, framework choice, mechanism, and every number are grounded ONLY in the problem the client actually typed and the tools they listed. A client can legitimately submit an unrelated or even a giant enterprise's URL (a personal project, a placeholder, a company they merely work at) — if the website's business doesn't match what the client actually described, ignore the website's business entirely and solve the problem as stated. When in doubt, the literal problem text always wins over anything inferred from the site.
 - If no reference_site_html is given, or it doesn't yield usable brand signals, fall back to a simple, neutral, professional theme: light neutral background, dark neutral text, one restrained accent color, plain sans-serif system font, and a placeholder mark at the top reading "[ Client logo ]" — clearly a placeholder, not a fake brand.`;
+}
 
 const CLASSIFY_TOOL = {
   name: 'classify_and_build',
@@ -122,9 +166,25 @@ const CLASSIFY_TOOL = {
           required: ['problem_statement', 'business_function', 'root_cause', 'who_is_affected', 'current_cost_of_inaction'],
         },
       },
-      levers: {
+      framework_selections: {
         type: 'array',
         description: 'Step 2 output — one entry per problem, in the same order as problem_breakdown.',
+        items: {
+          type: 'object',
+          properties: {
+            problem_index: { type: 'integer', description: '0-based index into problem_breakdown.' },
+            framework_name: { type: 'string' },
+            framework_source: { type: 'string', description: 'Who originated/popularized it — the citation.' },
+            why_selected: { type: 'string', description: 'One sentence tying it to this specific root cause.' },
+            alternatives_considered: { type: 'string', description: 'One or two other options and why rejected.' },
+            in_library: { type: 'boolean', description: 'true if drawn from the provided library, false if suggested beyond it.' },
+          },
+          required: ['problem_index', 'framework_name', 'framework_source', 'why_selected', 'alternatives_considered', 'in_library'],
+        },
+      },
+      levers: {
+        type: 'array',
+        description: 'Step 3 output — one entry per problem, in the same order as problem_breakdown.',
         items: {
           type: 'object',
           properties: {
@@ -140,7 +200,7 @@ const CLASSIFY_TOOL = {
       },
       solution_mechanisms: {
         type: 'array',
-        description: 'Step 3 output — one entry per problem.',
+        description: 'Step 4 output — one entry per problem.',
         items: {
           type: 'object',
           properties: {
@@ -159,7 +219,7 @@ const CLASSIFY_TOOL = {
       },
       artefact_plan: {
         type: 'object',
-        description: 'Step 4 output.',
+        description: 'Step 5 output.',
         properties: {
           narrative_arc: { type: 'string', description: 'One or two sentences.' },
           sections: {
@@ -180,17 +240,18 @@ const CLASSIFY_TOOL = {
       clarifying_questions: {
         type: 'array',
         description:
-          'Step 5 output — specific real numbers/facts that would sharpen the estimates if the client provided them. Empty array if genuinely nothing material is missing.',
+          'Step 6 output — specific real numbers/facts that would sharpen the estimates if the client provided them. Empty array if genuinely nothing material is missing.',
         items: { type: 'string' },
       },
       artefact_html: {
         type: 'string',
         description:
-          'Step 6 output — self-contained HTML fragment implementing artefact_plan. No bare zeros. Must let the visitor move through the mechanism\'s steps, not just click once for a final result. Real visual craft — typographic scale, spacing rhythm, restrained color, hover/transition polish.',
+          'Step 7 output — self-contained HTML fragment implementing artefact_plan. No bare zeros. Must let the visitor move through the mechanism\'s steps, not just click once for a final result. Real visual craft — typographic scale, spacing rhythm, restrained color, hover/transition polish.',
       },
     },
     required: [
       'problem_breakdown',
+      'framework_selections',
       'levers',
       'solution_mechanisms',
       'artefact_plan',
@@ -202,6 +263,7 @@ const CLASSIFY_TOOL = {
 
 type ToolOutput = {
   problem_breakdown: ProblemBreakdown[];
+  framework_selections: FrameworkSelection[];
   levers: PnlLeverHit[];
   solution_mechanisms: SolutionMechanism[];
   artefact_plan: ArtefactPlan;
@@ -241,6 +303,7 @@ async function callClaudeTool(system: string, userMessage: string, apiKey: strin
 function toResult(out: ToolOutput): ClassifyAndBuildResult {
   return {
     problemBreakdown: out.problem_breakdown,
+    frameworkSelections: out.framework_selections,
     levers: out.levers,
     solutionMechanisms: out.solution_mechanisms,
     artefactPlan: out.artefact_plan,
@@ -253,7 +316,8 @@ export async function classifyAndBuild(
   input: ClassifyAndBuildInput,
   apiKey: string
 ): Promise<ClassifyAndBuildResult> {
-  const system = `${METHODOLOGY}\n\nReturn your answer using the classify_and_build tool, with every step's output filled in — do not include any text outside the tool call.`;
+  const methodology = buildMethodology(input.frameworkLibrary, input.preferredFramework);
+  const system = `${methodology}\n\nReturn your answer using the classify_and_build tool, with every step's output filled in — do not include any text outside the tool call.`;
 
   const userMessage = [
     `Problem(s): ${input.problem}`,
@@ -271,6 +335,7 @@ export async function classifyAndBuild(
 
 export type ReviseArtefactInput = ClassifyAndBuildInput & {
   previousProblemBreakdown: ProblemBreakdown[];
+  previousFrameworkSelections: FrameworkSelection[];
   previousLevers: PnlLeverHit[];
   previousSolutionMechanisms: SolutionMechanism[];
   previousArtefactHtml: string;
@@ -281,12 +346,13 @@ export async function reviseArtefact(
   input: ReviseArtefactInput,
   apiKey: string
 ): Promise<ClassifyAndBuildResult> {
-  const system = `${METHODOLOGY}
+  const methodology = buildMethodology(input.frameworkLibrary, input.preferredFramework);
+  const system = `${methodology}
 
 You are REVISING a demo you already built, based on the client's actual reply. This is the one and only revision round — make it count, and do not ask further clarifying questions unless the client's feedback itself raises a genuinely new unknown.
 
-Re-run the same six steps, but:
-- Keep everything from the previous version that the feedback doesn't touch — do not regenerate from scratch or change things that were already working and weren't criticized.
+Re-run the same seven steps, but:
+- Keep everything from the previous version that the feedback doesn't touch — do not regenerate from scratch or change things that were already working and weren't criticized. This includes the framework selected in Step 2, unless the feedback itself reveals it was the wrong lens.
 - Directly address every point in the client's feedback. If they gave you a real number, use it in place of your prior assumption and say so.
 - If their feedback describes a different or additional problem, incorporate it the same way Step 1 would.
 
@@ -300,6 +366,7 @@ Return your answer using the classify_and_build tool, with every step's output f
       ? `reference_site_html (excerpt from the client's own website — use ONLY for colors/fonts/company name; ignore its business content entirely, it is irrelevant to the problem below):\n${input.websiteSnippet}`
       : null,
     `Previous diagnosis: ${JSON.stringify(input.previousProblemBreakdown)}`,
+    `Previous framework selections: ${JSON.stringify(input.previousFrameworkSelections)}`,
     `Previous levers: ${JSON.stringify(input.previousLevers)}`,
     `Previous mechanisms: ${JSON.stringify(input.previousSolutionMechanisms)}`,
     `Previous artefact_html: ${input.previousArtefactHtml}`,

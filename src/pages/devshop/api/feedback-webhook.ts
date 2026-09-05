@@ -81,6 +81,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     const websiteSnippet = row.website ? await fetchWebsiteSnippet(row.website) : null;
     const notes = row.solution_notes;
+    const frameworkLibrary = await db.listActiveFrameworks();
 
     const result = await reviseArtefact(
       {
@@ -88,7 +89,10 @@ export const POST: APIRoute = async ({ request }) => {
         company: row.company,
         tools: row.tools,
         websiteSnippet,
+        frameworkLibrary,
+        preferredFramework: null,
         previousProblemBreakdown: notes?.problemBreakdown ?? [],
+        previousFrameworkSelections: notes?.frameworkSelections ?? [],
         previousLevers: row.pnl_levers ?? [],
         previousSolutionMechanisms: notes?.solutionMechanisms ?? [],
         previousArtefactHtml: row.artefact_html ?? '',
@@ -102,6 +106,7 @@ export const POST: APIRoute = async ({ request }) => {
       result.levers,
       {
         problemBreakdown: result.problemBreakdown,
+        frameworkSelections: result.frameworkSelections,
         solutionMechanisms: result.solutionMechanisms,
         artefactPlan: result.artefactPlan,
         clarifyingQuestions: result.clarifyingQuestions,

@@ -6,6 +6,7 @@ export const prerender = false;
 import type { APIRoute } from 'astro';
 import { getDb, PIPELINE_STAGES, type PipelineStage, type WeeklyUpdate } from '../../../lib/db';
 import { getEnv } from '../../../lib/env';
+import { buildHandoffMarkdown } from '../../../lib/handoff';
 
 type Body =
   | { id: string; action: 'setStage'; status: PipelineStage }
@@ -33,9 +34,14 @@ export const POST: APIRoute = async ({ request }) => {
       case 'setComplexity':
         await db.setComplexity(body.id, body.tier, body.recommendation);
         break;
-      case 'markDepositPaid':
+      case 'markDepositPaid': {
         await db.markDepositPaid(body.id);
+        // Deposit clearing IS "approved for build" — generate the tech
+        // handoff doc right here, off the row as it stood at approval.
+        const updated = await db.getById(body.id);
+        if (updated) await db.saveHandoff(body.id, buildHandoffMarkdown(updated));
         break;
+      }
       case 'addWeeklyUpdate':
         await db.addWeeklyUpdate(body.id, {
           date: new Date().toISOString(),
