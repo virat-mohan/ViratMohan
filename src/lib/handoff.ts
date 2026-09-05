@@ -47,7 +47,9 @@ export function buildHandoffMarkdown(row: Submission): string {
     notes.frameworkSelections.forEach((f) => {
       lines.push(`- **${f.framework_name}** (${f.framework_source})${f.in_library ? '' : ' — _suggested beyond the curated library; review for addition_'}`);
       lines.push(`  Why: ${f.why_selected}`);
-      lines.push(`  Considered and rejected: ${f.alternatives_considered}`);
+      if (f.runner_ups.length > 0) {
+        lines.push(`  Also considered: ${f.runner_ups.map((r) => r.name).join(', ')}`);
+      }
       lines.push('');
     });
   }

@@ -16,7 +16,7 @@ import type { APIRoute } from 'astro';
 import { Webhook } from 'svix';
 import { getEnv } from '../../../lib/env';
 import { getDb } from '../../../lib/db';
-import { reviseArtefact, fetchWebsiteSnippet } from '../../../lib/llm';
+import { reviseArtefact, fetchWebsiteSnippet, resolveFrameworkSelections } from '../../../lib/llm';
 import { sendEmail } from '../../../lib/email';
 import { getOrigin } from '../../../lib/http';
 
@@ -106,7 +106,7 @@ export const POST: APIRoute = async ({ request }) => {
       result.levers,
       {
         problemBreakdown: result.problemBreakdown,
-        frameworkSelections: result.frameworkSelections,
+        frameworkSelections: resolveFrameworkSelections(result.frameworkSelections, frameworkLibrary),
         solutionMechanisms: result.solutionMechanisms,
         artefactPlan: result.artefactPlan,
         clarifyingQuestions: result.clarifyingQuestions,

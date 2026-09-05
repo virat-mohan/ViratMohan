@@ -81,11 +81,24 @@ const trackerVisible = ['interested', 'scoping_scheduled', 'scoping_complete', '
         <h2>Framework applied</h2>
         {notes.frameworkSelections.map((f) => (
           <div class="note-card">
-            <p class="note-title">{f.framework_name} <span class="fw-source">— {f.framework_source}</span>{!f.in_library && <span class="fw-flag">suggested — review for library</span>}</p>
+            <p class="note-title">
+              {f.framework_link ? <a href={f.framework_link} target="_blank" style="color:inherit;">{f.framework_name}</a> : f.framework_name}
+              <span class="fw-source">— {f.framework_source}</span>
+              {!f.in_library && <span class="fw-flag">suggested — review for library</span>}
+            </p>
             <ul class="bullets">
               <li><span class="note-label">Why this one</span>{f.why_selected}</li>
-              <li><span class="note-label">Considered &amp; rejected</span>{f.alternatives_considered}</li>
             </ul>
+            {f.runner_ups.length > 0 && (
+              <div class="runner-ups">
+                <span class="note-label">Also considered</span>
+                <ul class="bullets runner-up-list">
+                  {f.runner_ups.map((r) => (
+                    <li>{r.link ? <a href={r.link} target="_blank" style="color:#b7b5af;">{r.name}</a> : r.name} <span class="fw-source">({r.source})</span></li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -339,6 +352,8 @@ const trackerVisible = ['interested', 'scoping_scheduled', 'scoping_complete', '
   .note-title { font-size: 15px; margin-bottom: 6px !important; }
   .fw-source { font-size: 12.5px; color: #85837e; font-weight: 400; }
   .fw-flag { display: inline-block; margin-left: 10px; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; color: #a66a62; border: 1px solid rgba(166,106,98,0.4); padding: 2px 7px; border-radius: 10px; }
+  .runner-ups { margin-top: 10px; }
+  .runner-up-list { margin-top: 4px; }
   .note-label { display: inline-block; min-width: 160px; color: #625f59; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; vertical-align: top; }
   .sections-list { margin: 8px 0 0; padding-left: 18px; color: #b7b5af; }
   .bullets { margin: 0; padding-left: 18px; color: #b7b5af; }

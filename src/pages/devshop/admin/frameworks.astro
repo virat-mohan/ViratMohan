@@ -34,6 +34,7 @@ const frameworks = await getDb(env).listAllFrameworks();
         <select id="fwFunction">
           {BUSINESS_FUNCTIONS.map((f) => <option value={f}>{f}</option>)}
         </select>
+        <input id="fwLink" type="text" placeholder="Study link (optional, e.g. Wikipedia or a primary source)" />
       </div>
       <textarea id="fwWhen" rows="2" placeholder="When to use it — what kind of root cause this fits"></textarea>
       <button id="addBtn" class="btn-small">Add to library</button>
@@ -42,7 +43,7 @@ const frameworks = await getDb(env).listAllFrameworks();
 
     <table>
       <thead>
-        <tr><th>Name</th><th>Source</th><th>Function</th><th>When to use</th><th>Active</th><th></th></tr>
+        <tr><th>Name</th><th>Source</th><th>Function</th><th>When to use</th><th>Link</th><th>Active</th><th></th></tr>
       </thead>
       <tbody>
         {frameworks.map((f) => (
@@ -51,6 +52,7 @@ const frameworks = await getDb(env).listAllFrameworks();
             <td>{f.source}</td>
             <td>{f.business_function}</td>
             <td class="when">{f.when_to_use}</td>
+            <td>{f.link ? <a href={f.link} target="_blank" style="color:#d4af37;">study →</a> : '—'}</td>
             <td>{f.active ? 'Yes' : 'No'}</td>
             <td>
               <button class="toggle-btn" data-id={f.id} data-active={String(!f.active)}>
@@ -59,7 +61,7 @@ const frameworks = await getDb(env).listAllFrameworks();
             </td>
           </tr>
         ))}
-        {frameworks.length === 0 && <tr><td colspan="6">No frameworks yet — add one above, or run migrations/0005_frameworks.sql for the starter set.</td></tr>}
+        {frameworks.length === 0 && <tr><td colspan="7">No frameworks yet — add one above, or run migrations/0005_frameworks.sql for the starter set.</td></tr>}
       </tbody>
     </table>
   </main>
@@ -72,6 +74,7 @@ const frameworks = await getDb(env).listAllFrameworks();
       const source = document.getElementById('fwSource').value.trim();
       const business_function = document.getElementById('fwFunction').value;
       const when_to_use = document.getElementById('fwWhen').value.trim();
+      const link = document.getElementById('fwLink').value.trim();
       if (!name || !source || !when_to_use) {
         addHint.textContent = 'Fill in name, source, and when-to-use.';
         addHint.hidden = false;
@@ -82,7 +85,7 @@ const frameworks = await getDb(env).listAllFrameworks();
         const res = await fetch('/devshop/api/frameworks', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ action: 'add', name, source, business_function, when_to_use }),
+          body: JSON.stringify({ action: 'add', name, source, business_function, when_to_use, link }),
         });
         if (!res.ok) throw new Error(await res.text());
         location.reload();

@@ -6,7 +6,7 @@ import { getDb } from '../../../lib/db';
 import { getEnv } from '../../../lib/env';
 
 type Body =
-  | { action: 'add'; name: string; source: string; business_function: string; when_to_use: string }
+  | { action: 'add'; name: string; source: string; business_function: string; when_to_use: string; link?: string }
   | { action: 'setActive'; id: string; active: boolean };
 
 export const POST: APIRoute = async ({ request }) => {
@@ -25,6 +25,7 @@ export const POST: APIRoute = async ({ request }) => {
         source: body.source.trim(),
         business_function: body.business_function,
         when_to_use: body.when_to_use.trim(),
+        link: body.link?.trim() || null,
       });
     } else if (body.action === 'setActive') {
       await db.setFrameworkActive(body.id, body.active);

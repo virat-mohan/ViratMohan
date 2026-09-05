@@ -19,6 +19,7 @@ export type Framework = {
   source: string;
   business_function: string;
   when_to_use: string;
+  link: string | null;
   active: boolean;
   created_at: string;
 };
@@ -232,7 +233,7 @@ export function getDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: st
       return (data ?? []) as Framework[];
     },
 
-    async addFramework(fw: { name: string; source: string; business_function: string; when_to_use: string }) {
+    async addFramework(fw: { name: string; source: string; business_function: string; when_to_use: string; link?: string | null }) {
       const { error } = await supabase.from('frameworks').insert(fw);
       if (error) throw new Error(`supabase framework insert failed: ${error.message}`);
     },

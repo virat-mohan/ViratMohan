@@ -2,7 +2,7 @@ export const prerender = false;
 
 import type { APIRoute } from 'astro';
 import { waitUntil } from '@vercel/functions';
-import { classifyAndBuild, fetchWebsiteSnippet } from '../../../lib/llm';
+import { classifyAndBuild, fetchWebsiteSnippet, resolveFrameworkSelections } from '../../../lib/llm';
 import { sendEmail } from '../../../lib/email';
 import { getDb } from '../../../lib/db';
 import { getEnv } from '../../../lib/env';
@@ -72,7 +72,7 @@ export const POST: APIRoute = async ({ request }) => {
       result.levers,
       {
         problemBreakdown: result.problemBreakdown,
-        frameworkSelections: result.frameworkSelections,
+        frameworkSelections: resolveFrameworkSelections(result.frameworkSelections, frameworkLibrary),
         solutionMechanisms: result.solutionMechanisms,
         artefactPlan: result.artefactPlan,
         clarifyingQuestions: result.clarifyingQuestions,

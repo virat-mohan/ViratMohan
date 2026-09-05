@@ -5,6 +5,7 @@ export type FrameworkLibraryEntry = {
   source: string;
   business_function: string;
   when_to_use: string;
+  link?: string | null;
 };
 
 export type ClassifyAndBuildInput = {
@@ -24,13 +25,34 @@ export type ProblemBreakdown = {
   current_cost_of_inaction: string;
 };
 
+// The model only ever names frameworks (by exact library name) — every
+// factual detail (source, description, link) is resolved from OUR curated
+// data afterward (see resolveFrameworkSelections), never trusted from the
+// model's own citation text. This is what makes the links safe to show.
+export type RawFrameworkSelection = {
+  problem_index: number;
+  framework_name: string;
+  why_selected: string; // ties the choice to this specific root cause, incl. what makes it a proven/world-class fit
+  in_library: boolean; // false = model is suggesting something real but not yet in the curated set
+  suggested_source?: string; // only used when in_library is false — the model's own citation, unverified
+  runner_up_names: string[]; // 3-7 other library framework names genuinely considered for this problem
+};
+
+export type ResolvedFrameworkRef = {
+  name: string;
+  source: string;
+  when_to_use: string;
+  link: string | null;
+};
+
 export type FrameworkSelection = {
   problem_index: number;
   framework_name: string;
   framework_source: string;
+  framework_link: string | null;
   why_selected: string;
-  alternatives_considered: string;
-  in_library: boolean; // false = model suggested this beyond the curated set — flag for admin review
+  in_library: boolean;
+  runner_ups: ResolvedFrameworkRef[];
 };
 
 export type SolutionMechanism = {
@@ -48,7 +70,7 @@ export type ArtefactPlan = {
 
 export type ClassifyAndBuildResult = {
   problemBreakdown: ProblemBreakdown[];
-  frameworkSelections: FrameworkSelection[];
+  frameworkSelections: RawFrameworkSelection[]; // resolve with resolveFrameworkSelections() before persisting
   solutionMechanisms: SolutionMechanism[];
   artefactPlan: ArtefactPlan;
   levers: PnlLeverHit[];
@@ -101,10 +123,11 @@ Preferred framework library (curated, reviewed by the team running this — draw
 ${libraryText}
 
 Rules for this step:
-- Prefer a framework from the library above when one genuinely fits. Set in_library: true.
-- If nothing in the library fits the root cause well, you MAY name a different framework — but ONLY if it is real, globally documented, and has a genuine track record at scale (originated or popularized by a recognized authority: McKinsey, BCG, Bain, Korn Ferry, Gartner, Deloitte, a named academic/practitioner, a standards body, etc.). Set in_library: false in this case so it can be reviewed and possibly added to the library. Never invent a framework name, never misattribute a real framework to the wrong originator.
+- Name the framework EXACTLY as it appears in the library above — verbatim, no paraphrasing — so it can be looked up. Set in_library: true.
+- Also name 3-7 OTHER frameworks from the library (again, exact names) that were genuinely relevant candidates for this problem, in runner_up_names — this is what proves the choice was deliberate, not decorative, and it's what a client sees as "here's the space of proven approaches we weighed." If the library only has 1-2 relevant entries for this function, list what's genuinely relevant rather than padding to 7.
+- If nothing in the library fits the root cause well, you MAY name a different framework — but ONLY if it is real, globally documented, and has a genuine track record at scale (originated or popularized by a recognized authority: McKinsey, BCG, Bain, Korn Ferry, Gartner, Deloitte, a named academic/practitioner, a standards body, etc.). Set in_library: false and fill suggested_source with the citation. Never invent a framework name, never misattribute a real framework to the wrong originator.
 - If truly no established framework applies, say so plainly (framework_name: "No established framework directly applies", explain why in why_selected) rather than force-fitting one for the sake of citing something.
-- State: the framework's name, who originated/popularized it (framework_source — this is the citation), why it specifically fits this root cause (why_selected, one sentence), and the one or two other options you considered and rejected with a short reason each (alternatives_considered) — this is what proves the choice was deliberate, not decorative.
+- why_selected must explain both why this fits THIS root cause specifically, and briefly what makes it a proven, world-class choice (scale of adoption, who relies on it) — this is the credibility moment, make it substantive, not decorative.
 
 STEP 3 — Map to the P&L. This is a drill-down, not a jump: business function (from Step 1a) → the SPECIFIC P&L line item that function's activity actually moves (e.g. Growth owning a problem usually moves a revenue line or CAC within sales & marketing spend; Efficiency/Operations usually moves a COGS or opex line; Legal/Compliance usually moves risk-provision or overhead cost; HR usually moves labor cost or attrition-driven cost; Tech usually moves either a cost line (infra/eng time) or unblocks a revenue line) → THEN classify against exactly one of these fixed levers:
    Revenue levers: ${PNL_LEVERS.revenue.join(', ')}
@@ -125,6 +148,8 @@ STEP 7 — Build the artefact. One working, self-contained interactive HTML demo
 CRITICAL RULE — no bare zeros or blanks: every number shown anywhere in the artefact (a metric, a before/after, a table value) must be either a real stated assumption grounded in an industry benchmark or the numbers implied by the problem statement, OR — if you genuinely have no reasonable basis for it — that specific figure belongs in the Step 6 clarifying-questions list instead of being shown as "0," "—," or blank in the demo. Never let the artefact display an empty or zero metric as if it were a real result; a demo with a hollow number is worse than one that asks a sharp question.
 
 CRITICAL RULE — interactivity depth: do not collapse a multi-step mechanism into "click one button, see one final result." The artefact must let the visitor move THROUGH the mechanism's steps from Step 4 — e.g. a sequence they advance through (step 1 fires, they see its output, they trigger step 2 using that output, etc.), or a live simulation with multiple distinct triggerable moments, or several interdependent controls that visibly affect each other. Think "a working walkthrough of the actual workflow," not "a static screen with one CTA." Every section from artefact_plan should have at least one genuine interaction, not just the headline section.
+
+CRITICAL RULE — the artefact must visibly run on the selected framework: label sections, stages, or metrics using that framework's OWN vocabulary and structure wherever it has one — e.g. Korn Ferry's actual competency categories, DMAIC's Define/Measure/Analyze/Improve/Control phases, AARRR's actual funnel stage names, a Nine-Box's actual grid — not generic labels like "Step 1, Step 2" or "Phase A." If the client can tell which named framework produced this by reading the artefact itself, you've done this right. If the selected framework has no natural structural vocabulary to borrow, at minimum name-check it visibly in the artefact (e.g. a small "Built on [Framework]" mark) rather than leaving no trace of Step 2's work in the thing the client actually interacts with.
 
 CRITICAL RULE — visual craft: this must look like a real, designed product, not a functional wireframe. Establish a clear typographic scale (one size/weight for the main metric, another for labels, another for body — do not let everything be the same size), consistent spacing rhythm (pick a base unit like 8px and stick to multiples of it), a restrained but confident color system (the brand/accent color used deliberately for the 2-3 things that most deserve attention, not sprayed everywhere), clear visual hierarchy so the eye knows where to go first, and small polish details — hover states, subtle transitions on state changes, rounded corners used consistently, badges/pills/icons (inline SVG only) where they earn their place. Avoid dense walls of text inside the artefact itself; prefer short labels, numbers, and a few words of context, saving longer explanation for outside the artefact.
 
@@ -168,18 +193,29 @@ const CLASSIFY_TOOL = {
       },
       framework_selections: {
         type: 'array',
-        description: 'Step 2 output — one entry per problem, in the same order as problem_breakdown.',
+        description:
+          'Step 2 output — one entry per problem, in the same order as problem_breakdown. Name frameworks EXACTLY as given in the library — do not paraphrase names, they are looked up verbatim.',
         items: {
           type: 'object',
           properties: {
             problem_index: { type: 'integer', description: '0-based index into problem_breakdown.' },
-            framework_name: { type: 'string' },
-            framework_source: { type: 'string', description: 'Who originated/popularized it — the citation.' },
-            why_selected: { type: 'string', description: 'One sentence tying it to this specific root cause.' },
-            alternatives_considered: { type: 'string', description: 'One or two other options and why rejected.' },
-            in_library: { type: 'boolean', description: 'true if drawn from the provided library, false if suggested beyond it.' },
+            framework_name: { type: 'string', description: 'Exact name from the library, or a new real framework name if in_library is false.' },
+            why_selected: {
+              type: 'string',
+              description: 'One to two sentences: why this framework fits THIS root cause, and what makes it a proven, world-class choice rather than an arbitrary one.',
+            },
+            in_library: { type: 'boolean', description: 'true if the name matches the provided library exactly, false if suggesting something real but not yet in it.' },
+            suggested_source: {
+              type: 'string',
+              description: 'ONLY set when in_library is false — who originated/popularized this suggested framework.',
+            },
+            runner_up_names: {
+              type: 'array',
+              description: '3-7 OTHER framework names from the provided library that were genuinely considered for this problem — exact names, for lookup. Empty if the library has too few relevant entries.',
+              items: { type: 'string' },
+            },
           },
-          required: ['problem_index', 'framework_name', 'framework_source', 'why_selected', 'alternatives_considered', 'in_library'],
+          required: ['problem_index', 'framework_name', 'why_selected', 'in_library', 'runner_up_names'],
         },
       },
       levers: {
@@ -263,7 +299,7 @@ const CLASSIFY_TOOL = {
 
 type ToolOutput = {
   problem_breakdown: ProblemBreakdown[];
-  framework_selections: FrameworkSelection[];
+  framework_selections: RawFrameworkSelection[];
   levers: PnlLeverHit[];
   solution_mechanisms: SolutionMechanism[];
   artefact_plan: ArtefactPlan;
@@ -381,6 +417,36 @@ Return your answer using the classify_and_build tool, with every step's output f
 // Best-effort fetch of a client's homepage HTML, trimmed to a size that's
 // cheap to pass as context. Never throws — brand cues are a nice-to-have,
 // not a dependency the pipeline should fail on.
+// Turns the model's raw framework picks (names only) into fully-resolved
+// selections, pulling source/description/link from OUR curated library —
+// never from the model's own claims. A name that doesn't match the library
+// (in_library: false) keeps only what the model said, with no link, and is
+// flagged for admin review rather than trusted.
+export function resolveFrameworkSelections(
+  raw: RawFrameworkSelection[],
+  library: FrameworkLibraryEntry[]
+): FrameworkSelection[] {
+  const byName = new Map(library.map((f) => [f.name.toLowerCase().trim(), f]));
+
+  return raw.map((r) => {
+    const matched = byName.get(r.framework_name.toLowerCase().trim());
+    const runnerUps: ResolvedFrameworkRef[] = r.runner_up_names
+      .map((name) => byName.get(name.toLowerCase().trim()))
+      .filter((f): f is FrameworkLibraryEntry => !!f)
+      .map((f) => ({ name: f.name, source: f.source, when_to_use: f.when_to_use, link: f.link ?? null }));
+
+    return {
+      problem_index: r.problem_index,
+      framework_name: matched?.name ?? r.framework_name,
+      framework_source: matched?.source ?? r.suggested_source ?? 'Unverified — model-suggested',
+      framework_link: matched?.link ?? null,
+      why_selected: r.why_selected,
+      in_library: !!matched,
+      runner_ups: runnerUps,
+    };
+  });
+}
+
 export async function fetchWebsiteSnippet(url: string): Promise<string | null> {
   try {
     const normalized = /^https?:\/\//i.test(url) ? url : `https://${url}`;

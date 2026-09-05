@@ -63,12 +63,18 @@ const title = row.company ? `Your demo — ${row.company}` : 'Your demo';
         <h2>Grounded in a proven approach</h2>
         {notes.frameworkSelections.map((f) => (
           <div class="card">
-            <p class="card-title">{f.framework_name}</p>
+            <p class="card-title">{f.framework_link ? <a href={f.framework_link} target="_blank" style="color:inherit; text-decoration:underline;">{f.framework_name}</a> : f.framework_name}</p>
             <p class="card-function">{f.framework_source}</p>
             <ul class="bullets">
               <li><span class="bullet-label">Why this fits</span>{f.why_selected}</li>
-              <li><span class="bullet-label">Also considered</span>{f.alternatives_considered}</li>
             </ul>
+            {f.runner_ups.length > 0 && (
+              <p class="also-considered">
+                Also weighed: {f.runner_ups.map((r, i) => (
+                  <>{i > 0 ? ', ' : ''}{r.link ? <a href={r.link} target="_blank" style="color:inherit;">{r.name}</a> : r.name}</>
+                ))}
+              </p>
+            )}
           </div>
         ))}
       </section>
@@ -156,6 +162,7 @@ const title = row.company ? `Your demo — ${row.company}` : 'Your demo';
   .framework-block { background: #f5f8f6; border: 1px solid rgba(31,122,92,0.2); border-radius: 8px; padding: 20px 24px; }
   .framework-block .card { border-top-color: rgba(31,122,92,0.15); }
   .framework-block .card:first-of-type { border-top: none; }
+  .also-considered { font-size: 12.5px; color: #6b6459; margin: 10px 0 0; }
   .questions-intro { font-size: 13px; color: #6b5f4a; margin: 0 0 10px; }
   .feedback-note { font-size: 13px; color: #6b6459; border-top: 1px solid rgba(36,33,29,0.1); padding-top: 20px; }
 
