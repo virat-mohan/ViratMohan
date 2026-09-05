@@ -55,13 +55,13 @@ export const POST: APIRoute = async ({ request }) => {
         ? `
         <p>Here's the updated demo, incorporating your feedback${row.company ? ` for ${escapeHtml(row.company)}` : ''}:</p>
         <p><a href="${demoUrl}">View your demo here →</a></p>
-        <p>This is the version we build from — the 7-day build starts here. No further revision rounds at this stage; if anything material changes, just let us know directly.</p>
+        <p>This is the version we build from — the 30-day build starts here. No further revision rounds at this stage; if anything material changes, just let us know directly.</p>
       `
         : `
         <p>Here's the working demo — and the reasoning behind it — for the problem you sent us${row.company ? ` at ${escapeHtml(row.company)}` : ''}:</p>
         <p><a href="${demoUrl}">View your demo here →</a></p>
         ${questionsBlock}
-        <p>Reply directly to this email with one round of feedback — that's the scope for the 7-day build. No proposal, no scoping call.</p>
+        <p>Reply directly to this email with one round of feedback — that's the scope for the 30-day build. No proposal, no scoping call.</p>
       `,
     },
     env

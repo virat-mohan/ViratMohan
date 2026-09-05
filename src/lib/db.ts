@@ -167,12 +167,13 @@ export function getDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: st
       if (error) throw new Error(`supabase update (complexity) failed: ${error.message}`);
     },
 
-    // Starts the 15-day guarantee clock and advances to build_scheduled —
-    // this is the "approved for build" moment. handoff_markdown is set
-    // separately (see saveHandoff) right after, by the caller.
+    // Starts the 30-day delivery guarantee clock and advances to
+    // build_scheduled — this is the "approved for build" moment.
+    // handoff_markdown is set separately (see saveHandoff) right after, by
+    // the caller.
     async markDepositPaid(id: string) {
       const now = new Date();
-      const deadline = new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000);
+      const deadline = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
       const { error } = await supabase
         .from('submissions')
         .update({

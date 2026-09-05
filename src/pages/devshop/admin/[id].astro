@@ -196,7 +196,7 @@ const trackerVisible = ['interested', 'scoping_scheduled', 'scoping_complete', '
 
         {row.status === 'proposal_sent' && (
           <div class="panel-row">
-            <button id="depositBtn" class="btn-small">Mark deposit paid (₹19,999) — starts 15-day clock</button>
+            <button id="depositBtn" class="btn-small">Mark deposit paid (₹19,999) — starts 30-day clock</button>
           </div>
         )}
         {row.deposit_paid_at && (
@@ -299,7 +299,7 @@ const trackerVisible = ['interested', 'scoping_scheduled', 'scoping_complete', '
     const depositBtn = document.getElementById('depositBtn');
     if (depositBtn) {
       depositBtn.addEventListener('click', async () => {
-        if (!confirm('Confirm the ₹19,999 deposit has actually cleared? This starts the 15-day guarantee clock.')) return;
+        if (!confirm('Confirm the ₹19,999 deposit has actually cleared? This starts the 30-day guarantee clock.')) return;
         depositBtn.disabled = true;
         try {
           await trackUpdate({ action: 'markDepositPaid' });

@@ -13,7 +13,7 @@ export function buildHandoffMarkdown(row: Submission): string {
   lines.push(`**Submission ID:** ${row.id}`);
   lines.push(`**Client email:** ${row.email}`);
   lines.push(`**Complexity tier:** ${row.complexity_tier ?? 'not set'}${row.price_recommendation ? ` — ${row.price_recommendation}` : ''}`);
-  lines.push(`**Delivery deadline (15-day guarantee):** ${row.delivery_deadline ? new Date(row.delivery_deadline).toLocaleDateString() : 'not set'}`);
+  lines.push(`**Delivery deadline (30-day guarantee):** ${row.delivery_deadline ? new Date(row.delivery_deadline).toLocaleDateString() : 'not set'}`);
   lines.push(`**Tools/integrations named by client:** ${row.tools || 'none given — confirm at kickoff'}`);
   lines.push('');
   lines.push('## Original problem statement (verbatim)');

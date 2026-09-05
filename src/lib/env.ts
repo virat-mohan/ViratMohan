@@ -12,6 +12,7 @@ export type Env = {
   // Reply-to-email feedback loop
   INBOUND_EMAIL_DOMAIN: string; // e.g. "reply.viratmohan.com" — must be configured for Resend Inbound
   RESEND_WEBHOOK_SECRET: string; // Resend webhook signing secret (Svix-based)
+  ADMIN_PASSWORD: string; // gates /devshop/admin/* — see src/middleware.ts
 };
 
 export function getEnv(): Env {
@@ -24,5 +25,6 @@ export function getEnv(): Env {
     ADMIN_NOTIFY_EMAIL: process.env.ADMIN_NOTIFY_EMAIL ?? '',
     INBOUND_EMAIL_DOMAIN: process.env.INBOUND_EMAIL_DOMAIN ?? '',
     RESEND_WEBHOOK_SECRET: process.env.RESEND_WEBHOOK_SECRET ?? '',
+    ADMIN_PASSWORD: process.env.ADMIN_PASSWORD ?? '',
   };
 }

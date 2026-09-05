@@ -27,12 +27,12 @@ const STAGE_LABELS: Record<string, { label: string; blurb: string }> = {
   scoping_complete: { label: 'Scoping complete', blurb: 'Scope and price are confirmed — proposal is next.' },
   proposal_sent: { label: 'Proposal sent', blurb: 'Awaiting signature and deposit.' },
   deposit_paid: { label: 'Deposit received', blurb: 'Build slot confirmed.' },
-  build_scheduled: { label: 'Build scheduled', blurb: 'The 15-day clock starts now.' },
+  build_scheduled: { label: 'Build scheduled', blurb: 'The 30-day clock starts now.' },
   in_build: { label: 'In build', blurb: "We're building — see the weekly log below." },
   delivered: { label: 'Delivered', blurb: "It's live." },
   feedback_requested: { label: 'Delivered — feedback welcome', blurb: 'Let us know how it is running.' },
   amc_active: { label: 'Live, on retainer', blurb: 'Your account is on the monthly plan — same intake stays open for new problems.' },
-  refunded: { label: 'Refunded', blurb: "We didn't hit the 15-day guarantee, so the deposit was refunded in full." },
+  refunded: { label: 'Refunded', blurb: "We didn't hit the 30-day guarantee, so the deposit was refunded in full." },
 };
 
 const stageInfo = STAGE_LABELS[row.status] ?? { label: row.status, blurb: '' };
@@ -73,8 +73,8 @@ const title = row.company ? `Project tracker — ${row.company}` : 'Project trac
     {daysLeft !== null && (
       <div class={`deadline ${deadlinePassed ? 'deadline--over' : ''}`}>
         {deadlinePassed
-          ? <span>Past the 15-day delivery window — the money-back guarantee applies. We'll be in touch.</span>
-          : <span><strong>{daysLeft}</strong> day{daysLeft === 1 ? '' : 's'} left on the 15-day delivery guarantee.</span>}
+          ? <span>Past the 30-day delivery window — the money-back guarantee applies. We'll be in touch.</span>
+          : <span><strong>{daysLeft}</strong> day{daysLeft === 1 ? '' : 's'} left on the 30-day delivery guarantee.</span>}
       </div>
     )}
 
