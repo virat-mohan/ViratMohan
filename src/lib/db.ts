@@ -150,6 +150,16 @@ export function getDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: st
       if (error) throw new Error(`supabase update (revising) failed: ${error.message}`);
     },
 
+    // A failed revision must not hide the client's still-good original demo
+    // behind a generic "failed" status (which demo/[id].astro treats as
+    // not-found) — restore whatever status it had before the revision
+    // attempt so they keep seeing the working version, with the error
+    // logged for admin visibility.
+    async revertRevisionFailure(id: string, message: string, restoreStatus: PipelineStage) {
+      const { error } = await supabase.from('submissions').update({ status: restoreStatus, error: message }).eq('id', id);
+      if (error) console.error('supabase update (revert revision failure) also failed:', error.message);
+    },
+
     async markRevised(id: string, levers: PnlLeverHit[], notes: SolutionNotes, artefactHtml: string) {
       const { error } = await supabase
         .from('submissions')

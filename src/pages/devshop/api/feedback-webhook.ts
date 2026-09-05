@@ -16,10 +16,10 @@ import type { APIRoute } from 'astro';
 import { Webhook } from 'svix';
 import { getEnv } from '../../../lib/env';
 import { getDb } from '../../../lib/db';
-import { reviseArtefact, fetchWebsiteSnippet, resolveFrameworkSelections } from '../../../lib/llm';
 import { sendEmail } from '../../../lib/email';
 import { getOrigin } from '../../../lib/http';
 import { extractFeedback, escapeHtml, shouldProcessFeedback } from '../../../lib/feedback-parsing';
+import { runRevision } from '../../../lib/revision';
 
 export const POST: APIRoute = async ({ request }) => {
   const env = getEnv();
@@ -76,60 +76,17 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const origin = getOrigin(request);
+  const result = await runRevision(row, feedbackText, env);
 
-  try {
-    await db.startRevision(submissionId, feedbackText);
-
-    const websiteSnippet = row.website ? await fetchWebsiteSnippet(row.website) : null;
-    const notes = row.solution_notes;
-    const frameworkLibrary = await db.listActiveFrameworks();
-    const pastFrameworkUsage = row.industry ? await db.listPastFrameworkUsageByIndustry(row.industry) : [];
-
-    const result = await reviseArtefact(
-      {
-        problem: row.problem,
-        company: row.company,
-        industry: row.industry,
-        tools: row.tools,
-        websiteSnippet,
-        frameworkLibrary,
-        preferredFramework: null,
-        pastFrameworkUsage,
-        previousProblemBreakdown: notes?.problemBreakdown ?? [],
-        previousFrameworkSelections: notes?.frameworkSelections ?? [],
-        previousLevers: row.pnl_levers ?? [],
-        previousSolutionMechanisms: notes?.solutionMechanisms ?? [],
-        previousArtefactHtml: row.artefact_html ?? '',
-        feedbackText,
-      },
-      env.ANTHROPIC_API_KEY
-    );
-
-    await db.markRevised(
-      submissionId,
-      result.levers,
-      {
-        problemBreakdown: result.problemBreakdown,
-        frameworkSelections: resolveFrameworkSelections(result.frameworkSelections, frameworkLibrary),
-        solutionMechanisms: result.solutionMechanisms,
-        validations: result.validations,
-        artefactPlan: result.artefactPlan,
-        clarifyingQuestions: result.clarifyingQuestions,
-      },
-      result.artefactHtml
-    );
-
+  if (result.success) {
     await sendEmail(
       {
         to: env.ADMIN_NOTIFY_EMAIL,
         subject: `Revised demo ready for review — ${row.company || row.email}`,
-        html: `<p>Feedback came in and the demo has been revised.</p><p><a href="${origin}/devshop/admin/${submissionId}">Review and approve →</a></p>`,
+        html: `<p>Feedback came in by email and the demo has been revised.</p><p><a href="${origin}/devshop/admin/${submissionId}">Review and approve →</a></p>`,
       },
       env
     ).catch((err) => console.error('feedback-webhook: revised notify failed', err));
-  } catch (err) {
-    console.error('feedback-webhook: revision failed', err);
-    await db.markFailed(submissionId, err instanceof Error ? err.message : String(err)).catch(() => {});
   }
 
   return new Response('ok', { status: 200 });
