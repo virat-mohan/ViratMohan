@@ -9,6 +9,34 @@ export type SolutionNotes = {
   clarifyingQuestions: string[];
 };
 
+// The full pipeline, demo through AMC — see the Demo-to-Delivery Pipeline
+// design doc. `status` is a plain text column (no DB-level enum) so this
+// list is the actual source of truth for valid values and their order.
+export const PIPELINE_STAGES = [
+  'received',
+  'demo_ready',
+  'revising',
+  'sent',
+  'interested',
+  'scoping_scheduled',
+  'scoping_complete',
+  'proposal_sent',
+  'deposit_paid',
+  'build_scheduled',
+  'in_build',
+  'delivered',
+  'feedback_requested',
+  'amc_active',
+] as const;
+export type PipelineStage = (typeof PIPELINE_STAGES)[number] | 'failed' | 'refunded';
+
+export type WeeklyUpdate = {
+  date: string; // ISO
+  summary: string;
+  blocker: 'none' | 'client' | 'internal';
+  blocker_detail: string | null;
+};
+
 export type Submission = {
   id: string;
   problem: string;
@@ -16,12 +44,17 @@ export type Submission = {
   website: string | null;
   tools: string | null;
   email: string;
-  status: 'received' | 'demo_ready' | 'revising' | 'sent' | 'failed';
+  status: PipelineStage;
   pnl_levers: PnlLeverHit[] | null;
   solution_notes: SolutionNotes | null;
   artefact_html: string | null;
   feedback_text: string | null;
   feedback_round: number;
+  complexity_tier: 'standard' | 'complex' | null;
+  price_recommendation: string | null;
+  deposit_paid_at: string | null;
+  delivery_deadline: string | null;
+  weekly_updates: WeeklyUpdate[];
   error: string | null;
   created_at: string;
 };
@@ -97,6 +130,47 @@ export function getDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: st
         })
         .eq('id', id);
       if (error) throw new Error(`supabase update (revised) failed: ${error.message}`);
+    },
+
+    // Post-approval pipeline (see PIPELINE_STAGES). Generic stage advance —
+    // used for interested / scoping_scheduled / scoping_complete /
+    // proposal_sent / in_build / delivered / feedback_requested /
+    // amc_active / refunded. Deposit and complexity have their own setters
+    // below because they also write side-fields.
+    async setStage(id: string, status: PipelineStage) {
+      const { error } = await supabase.from('submissions').update({ status }).eq('id', id);
+      if (error) throw new Error(`supabase update (stage: ${status}) failed: ${error.message}`);
+    },
+
+    async setComplexity(id: string, tier: 'standard' | 'complex', recommendation: string) {
+      const { error } = await supabase
+        .from('submissions')
+        .update({ complexity_tier: tier, price_recommendation: recommendation })
+        .eq('id', id);
+      if (error) throw new Error(`supabase update (complexity) failed: ${error.message}`);
+    },
+
+    // Starts the 15-day guarantee clock and advances to build_scheduled.
+    async markDepositPaid(id: string) {
+      const now = new Date();
+      const deadline = new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000);
+      const { error } = await supabase
+        .from('submissions')
+        .update({
+          status: 'build_scheduled',
+          deposit_paid_at: now.toISOString(),
+          delivery_deadline: deadline.toISOString(),
+        })
+        .eq('id', id);
+      if (error) throw new Error(`supabase update (deposit_paid) failed: ${error.message}`);
+    },
+
+    async addWeeklyUpdate(id: string, update: WeeklyUpdate) {
+      const row = await this.getById(id);
+      if (!row) throw new Error('addWeeklyUpdate: submission not found');
+      const updates = [...row.weekly_updates, update];
+      const { error } = await supabase.from('submissions').update({ weekly_updates: updates }).eq('id', id);
+      if (error) throw new Error(`supabase update (weekly_updates) failed: ${error.message}`);
     },
 
     async getById(id: string): Promise<Submission | null> {

@@ -2,7 +2,7 @@
 export const prerender = false;
 // Same access protection as /devshop/admin — see index.astro.
 
-import { getDb } from '../../../lib/db';
+import { getDb, PIPELINE_STAGES } from '../../../lib/db';
 import { getEnv } from '../../../lib/env';
 
 const env = getEnv();
@@ -16,6 +16,12 @@ if (!row) {
 
 const levers = row.pnl_levers ?? [];
 const notes = row.solution_notes;
+
+// Pipeline management only makes sense once a demo has actually gone out —
+// received/demo_ready/revising/failed are all system-managed states.
+const inPipeline = ['sent', 'interested', 'scoping_scheduled', 'scoping_complete', 'proposal_sent', 'deposit_paid', 'build_scheduled', 'in_build', 'delivered', 'feedback_requested', 'amc_active', 'refunded'].includes(row.status);
+const stageOptions = PIPELINE_STAGES.filter((s) => !['received', 'demo_ready', 'revising'].includes(s)).concat(['refunded'] as any);
+const trackerVisible = ['interested', 'scoping_scheduled', 'scoping_complete', 'proposal_sent', 'deposit_paid', 'build_scheduled', 'in_build', 'delivered', 'feedback_requested', 'amc_active', 'refunded'].includes(row.status);
 ---
 
 <!doctype html>
@@ -132,6 +138,72 @@ const notes = row.solution_notes;
       <button id="approveBtn" data-id={row.id}>{row.feedback_round >= 1 ? 'Approve & send revised demo →' : 'Approve & send to client →'}</button>
     )}
     {row.status === 'sent' && <p class="hint sent">Sent to {row.email}{row.feedback_round >= 1 ? ' (final, revised version)' : ''}.</p>}
+
+    {inPipeline && (
+      <div class="reasoning-block pipeline-panel">
+        <h2>Pipeline</h2>
+
+        {trackerVisible && (
+          <p class="tracker-link"><a href={`/devshop/track/${row.id}`} target="_blank">Client tracker page →</a></p>
+        )}
+
+        <div class="panel-row">
+          <label>Stage</label>
+          <select id="stageSelect">
+            {stageOptions.map((s) => <option value={s} selected={s === row.status}>{s}</option>)}
+          </select>
+          <button id="stageBtn" class="btn-small">Update stage</button>
+        </div>
+
+        <div class="panel-row">
+          <label>Complexity</label>
+          <select id="complexitySelect">
+            <option value="standard" selected={row.complexity_tier === 'standard'}>Standard — fixed pricing</option>
+            <option value="complex" selected={row.complexity_tier === 'complex'}>Complex — custom quote</option>
+          </select>
+          <input id="complexityNote" type="text" placeholder="Recommendation note (optional)" value={row.price_recommendation || ''} />
+          <button id="complexityBtn" class="btn-small">Save</button>
+        </div>
+        {row.price_recommendation && <p class="panel-note">Current: {row.complexity_tier} — {row.price_recommendation}</p>}
+
+        {row.status === 'proposal_sent' && (
+          <div class="panel-row">
+            <button id="depositBtn" class="btn-small">Mark deposit paid (₹19,999) — starts 15-day clock</button>
+          </div>
+        )}
+        {row.deposit_paid_at && (
+          <p class="panel-note">Deposit paid {new Date(row.deposit_paid_at).toLocaleDateString()} — deadline {row.delivery_deadline ? new Date(row.delivery_deadline).toLocaleDateString() : '—'}</p>
+        )}
+
+        {(row.status === 'build_scheduled' || row.status === 'in_build') && (
+          <div class="weekly-form">
+            <label>Add weekly update</label>
+            <textarea id="weeklySummary" rows="2" placeholder="What shipped this week, what's next"></textarea>
+            <div class="panel-row">
+              <select id="weeklyBlocker">
+                <option value="none">No blocker</option>
+                <option value="client">Waiting on client</option>
+                <option value="internal">Blocked internally</option>
+              </select>
+              <input id="weeklyBlockerDetail" type="text" placeholder="Blocker detail (if any)" />
+              <button id="weeklyBtn" class="btn-small">Post update</button>
+            </div>
+          </div>
+        )}
+
+        {row.weekly_updates.length > 0 && (
+          <div class="weekly-log">
+            {[...row.weekly_updates].reverse().map((u) => (
+              <div class="weekly-entry">
+                <span class="weekly-date">{new Date(u.date).toLocaleDateString()}</span>
+                <span>{u.summary}</span>
+                {u.blocker !== 'none' && <span class="weekly-blocker">{u.blocker}: {u.blocker_detail}</span>}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    )}
   </main>
 
   <script type="module" define:vars={{ id: row.id }}>
@@ -152,6 +224,79 @@ const notes = row.solution_notes;
           btn.disabled = false;
           btn.textContent = 'Approve & send to client →';
           alert('Failed to send: ' + err.message);
+        }
+      });
+    }
+
+    async function trackUpdate(payload) {
+      const res = await fetch('/devshop/api/track-update', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ id, ...payload }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+    }
+
+    const stageBtn = document.getElementById('stageBtn');
+    if (stageBtn) {
+      stageBtn.addEventListener('click', async () => {
+        const status = document.getElementById('stageSelect').value;
+        stageBtn.disabled = true;
+        try {
+          await trackUpdate({ action: 'setStage', status });
+          location.reload();
+        } catch (err) {
+          stageBtn.disabled = false;
+          alert('Failed: ' + err.message);
+        }
+      });
+    }
+
+    const complexityBtn = document.getElementById('complexityBtn');
+    if (complexityBtn) {
+      complexityBtn.addEventListener('click', async () => {
+        const tier = document.getElementById('complexitySelect').value;
+        const recommendation = document.getElementById('complexityNote').value;
+        complexityBtn.disabled = true;
+        try {
+          await trackUpdate({ action: 'setComplexity', tier, recommendation });
+          location.reload();
+        } catch (err) {
+          complexityBtn.disabled = false;
+          alert('Failed: ' + err.message);
+        }
+      });
+    }
+
+    const depositBtn = document.getElementById('depositBtn');
+    if (depositBtn) {
+      depositBtn.addEventListener('click', async () => {
+        if (!confirm('Confirm the ₹19,999 deposit has actually cleared? This starts the 15-day guarantee clock.')) return;
+        depositBtn.disabled = true;
+        try {
+          await trackUpdate({ action: 'markDepositPaid' });
+          location.reload();
+        } catch (err) {
+          depositBtn.disabled = false;
+          alert('Failed: ' + err.message);
+        }
+      });
+    }
+
+    const weeklyBtn = document.getElementById('weeklyBtn');
+    if (weeklyBtn) {
+      weeklyBtn.addEventListener('click', async () => {
+        const summary = document.getElementById('weeklySummary').value.trim();
+        if (!summary) return alert('Add a summary first.');
+        const blocker = document.getElementById('weeklyBlocker').value;
+        const blockerDetail = document.getElementById('weeklyBlockerDetail').value.trim() || null;
+        weeklyBtn.disabled = true;
+        try {
+          await trackUpdate({ action: 'addWeeklyUpdate', summary, blocker, blockerDetail });
+          location.reload();
+        } catch (err) {
+          weeklyBtn.disabled = false;
+          alert('Failed: ' + err.message);
         }
       });
     }
@@ -186,4 +331,26 @@ const notes = row.solution_notes;
   .artefact iframe { width: 100%; height: 560px; border: 1px solid rgba(245,245,240,0.18); margin-top: 8px; background: #15130f; }
   button { margin-top: 32px; font-size: 14px; padding: 14px 24px; border: 1px solid #d4af37; color: #d4af37; background: none; cursor: pointer; border-radius: 2px; }
   button:disabled { opacity: 0.5; cursor: default; }
+
+  .pipeline-panel { margin-top: 24px; }
+  .tracker-link a { color: #d4af37; font-size: 13px; }
+  .panel-row { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+  .panel-row label { min-width: 90px; font-size: 12px; color: #85837e; text-transform: uppercase; letter-spacing: 0.04em; }
+  .panel-row select, .panel-row input, .weekly-form textarea {
+    background: #1c1a15; border: 1px solid rgba(245,245,240,0.18); color: #f5f5f0;
+    font-size: 13px; padding: 8px 10px; border-radius: 3px; font-family: inherit;
+  }
+  .panel-row input[type="text"] { flex: 1; min-width: 160px; }
+  .btn-small {
+    margin: 0; font-size: 12px; padding: 8px 14px; border: 1px solid #d4af37; color: #d4af37;
+    background: none; cursor: pointer; border-radius: 3px;
+  }
+  .panel-note { font-size: 12.5px; color: #85837e; margin: 0 0 16px; }
+  .weekly-form { margin: 16px 0; padding: 14px; border: 1px solid rgba(245,245,240,0.1); border-radius: 4px; }
+  .weekly-form label { display: block; font-size: 12px; color: #85837e; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
+  .weekly-form textarea { width: 100%; margin-bottom: 10px; resize: vertical; }
+  .weekly-log { margin-top: 12px; }
+  .weekly-entry { display: flex; gap: 12px; padding: 8px 0; border-top: 1px solid rgba(245,245,240,0.08); font-size: 13px; color: #b7b5af; flex-wrap: wrap; }
+  .weekly-date { font-family: monospace; color: #625f59; flex-shrink: 0; }
+  .weekly-blocker { color: #d4af37; }
 </style>

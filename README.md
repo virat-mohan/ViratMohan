@@ -35,11 +35,11 @@ Variables), used only by `/devshop/api/*` and `/devshop/admin/*`:
 | `INBOUND_EMAIL_DOMAIN` | e.g. `reply.viratmohan.com` — a subdomain with its MX pointed at Resend Inbound (Resend → Inbound). Powers the reply-to-email feedback loop; omit and that feature just no-ops (no Reply-To header gets set). |
 | `RESEND_WEBHOOK_SECRET` | Resend → Webhooks → the endpoint pointed at `/devshop/api/feedback-webhook` → signing secret (`whsec_...`). Without it the webhook accepts requests unverified — set this before relying on the feedback loop. |
 
-Before this is live, also run `migrations/0001_init.sql`, `0002_solution_notes.sql`
-and `0003_feedback_loop.sql` once against the Supabase project (SQL editor,
-in that order) and put some form of access control in front of
-`/devshop/admin/*` (Vercel Password Protection, or a similar gate) — it has
-no app-level auth of its own.
+Before this is live, also run `migrations/0001_init.sql` through
+`0004_tracker.sql` once against the Supabase project (SQL editor, in order),
+and put some form of access control in front of `/devshop/admin/*` and
+`/devshop/api/track-update` (Vercel Password Protection, or a similar gate)
+— they have no app-level auth of their own.
 
 ## Before launch — fill these in
 

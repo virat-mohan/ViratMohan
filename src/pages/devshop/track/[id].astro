@@ -1,0 +1,128 @@
+---
+export const prerender = false;
+
+import { getDb, type PipelineStage } from '../../../lib/db';
+import { getEnv } from '../../../lib/env';
+
+const env = getEnv();
+const { id } = Astro.params;
+
+const row = id ? await getDb(env).getById(id) : null;
+
+// Only visible once a deal is actually in motion — no point showing a
+// tracker before the client has even seen the demo.
+const visibleFrom: PipelineStage[] = [
+  'interested', 'scoping_scheduled', 'scoping_complete', 'proposal_sent',
+  'deposit_paid', 'build_scheduled', 'in_build', 'delivered',
+  'feedback_requested', 'amc_active', 'refunded',
+];
+
+if (!row || !visibleFrom.includes(row.status)) {
+  return new Response('Not found', { status: 404 });
+}
+
+const STAGE_LABELS: Record<string, { label: string; blurb: string }> = {
+  interested: { label: 'Reviewing your demo', blurb: "You've seen the demo — next is a short scoping call to lock the real scope and price." },
+  scoping_scheduled: { label: 'Scoping call booked', blurb: 'Call is on the calendar.' },
+  scoping_complete: { label: 'Scoping complete', blurb: 'Scope and price are confirmed — proposal is next.' },
+  proposal_sent: { label: 'Proposal sent', blurb: 'Awaiting signature and deposit.' },
+  deposit_paid: { label: 'Deposit received', blurb: 'Build slot confirmed.' },
+  build_scheduled: { label: 'Build scheduled', blurb: 'The 15-day clock starts now.' },
+  in_build: { label: 'In build', blurb: "We're building — see the weekly log below." },
+  delivered: { label: 'Delivered', blurb: "It's live." },
+  feedback_requested: { label: 'Delivered — feedback welcome', blurb: 'Let us know how it is running.' },
+  amc_active: { label: 'Live, on retainer', blurb: 'Your account is on the monthly plan — same intake stays open for new problems.' },
+  refunded: { label: 'Refunded', blurb: "We didn't hit the 15-day guarantee, so the deposit was refunded in full." },
+};
+
+const stageInfo = STAGE_LABELS[row.status] ?? { label: row.status, blurb: '' };
+
+let daysLeft: number | null = null;
+let deadlinePassed = false;
+if (row.delivery_deadline && (row.status === 'build_scheduled' || row.status === 'in_build')) {
+  const deadline = new Date(row.delivery_deadline).getTime();
+  const now = Date.now();
+  daysLeft = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
+  deadlinePassed = daysLeft < 0;
+}
+
+const updates = [...row.weekly_updates].reverse();
+const title = row.company ? `Project tracker — ${row.company}` : 'Project tracker';
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet"
+  />
+</head>
+<body>
+  <main class="wrap">
+    <div class="eyebrow">PROJECT TRACKER{row.company ? ` — ${row.company}` : ''}</div>
+    <h1>{stageInfo.label}</h1>
+    <p class="blurb">{stageInfo.blurb}</p>
+
+    {daysLeft !== null && (
+      <div class={`deadline ${deadlinePassed ? 'deadline--over' : ''}`}>
+        {deadlinePassed
+          ? <span>Past the 15-day delivery window — the money-back guarantee applies. We'll be in touch.</span>
+          : <span><strong>{daysLeft}</strong> day{daysLeft === 1 ? '' : 's'} left on the 15-day delivery guarantee.</span>}
+      </div>
+    )}
+
+    {updates.length > 0 && (
+      <section class="updates">
+        <h2>Weekly log</h2>
+        {updates.map((u) => (
+          <div class="update">
+            <div class="update-date">{new Date(u.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+            <p class="update-summary">{u.summary}</p>
+            {u.blocker !== 'none' && (
+              <p class={`update-blocker blocker-${u.blocker}`}>
+                {u.blocker === 'client' ? 'Waiting on you: ' : 'Blocked on our side: '}{u.blocker_detail}
+              </p>
+            )}
+          </div>
+        ))}
+      </section>
+    )}
+
+    {updates.length === 0 && (row.status === 'build_scheduled' || row.status === 'in_build') && (
+      <p class="empty-note">No weekly updates posted yet — check back soon.</p>
+    )}
+  </main>
+</body>
+</html>
+
+<style>
+  :root { color-scheme: light; }
+  html, body { margin: 0; background: #fafaf8; }
+  body { font-family: 'Inter', system-ui, sans-serif; color: #24211d; }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 56px 32px 64px; }
+  .eyebrow { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a8378; margin-bottom: 14px; }
+  h1 { font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: clamp(26px, 4vw, 34px); margin: 0 0 8px; }
+  .blurb { font-size: 15px; color: #6b6459; margin: 0 0 24px; }
+
+  .deadline { font-size: 14px; padding: 12px 16px; border-radius: 8px; background: #fff6ea; border: 1px solid rgba(196,141,46,0.3); margin-bottom: 32px; }
+  .deadline strong { font-family: 'JetBrains Mono', monospace; font-size: 16px; }
+  .deadline--over { background: #fdeeec; border-color: rgba(163,74,58,0.3); color: #7a3527; }
+
+  h2 { font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 18px; margin: 0 0 16px; }
+  .updates { margin-top: 8px; }
+  .update { padding: 16px 0; border-top: 1px solid rgba(36,33,29,0.1); }
+  .update:first-of-type { border-top: none; }
+  .update-date { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8a8378; margin-bottom: 4px; }
+  .update-summary { font-size: 14.5px; margin: 0 0 6px; }
+  .update-blocker { font-size: 13px; margin: 0; padding: 8px 12px; border-radius: 6px; }
+  .blocker-client { background: #fff6ea; color: #7a5416; }
+  .blocker-internal { background: #f7e9e5; color: #7a3527; }
+  .empty-note { font-size: 14px; color: #8a8378; }
+</style>
