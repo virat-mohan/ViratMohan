@@ -281,29 +281,28 @@ const frameworkEvaluations = (notes?.frameworkSelections ?? []).map((f) => ({
     // auto-size it rather than showing an internal scrollbar).
     const frame = document.getElementById('artefactFrame');
     if (frame) {
+      let observed = false;
       const resize = () => {
         try {
           const doc = frame.contentDocument;
           if (doc && doc.documentElement) frame.style.height = doc.documentElement.scrollHeight + 'px';
+          if (!observed && doc && doc.body && 'ResizeObserver' in window) {
+            observed = true;
+            new ResizeObserver(resize).observe(doc.body);
+          }
         } catch (e) {
           // Cross-origin or not yet ready — leave the current height alone.
         }
       };
-      frame.addEventListener('load', () => {
-        resize();
-        try {
-          const doc = frame.contentDocument;
-          if (doc && doc.body && 'ResizeObserver' in window) {
-            new ResizeObserver(resize).observe(doc.body);
-          }
-        } catch (e) {
-          // Fall through to polling below regardless.
-        }
-        // Belt-and-braces polling too — covers state changes ResizeObserver
-        // might miss (e.g. content that changes without a layout box resize
-        // until a transition finishes) — runs for the life of the page.
-        setInterval(resize, 600);
-      });
+      // This script tag runs as a deferred module, and a srcdoc iframe's
+      // content can finish loading before that — so the 'load' event may
+      // already have fired by the time we attach a listener for it. Call
+      // resize immediately (covers that case) AND listen for 'load' (covers
+      // the case where it hasn't fired yet), then keep polling regardless —
+      // covers any content change a ResizeObserver might miss.
+      resize();
+      frame.addEventListener('load', resize);
+      setInterval(resize, 600);
     }
   </script>
 
