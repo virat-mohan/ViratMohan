@@ -1,11 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 import type { PnlLeverHit } from './pnl-levers';
-import type { ProblemBreakdown, SolutionMechanism, ArtefactPlan, FrameworkSelection } from './llm';
+import type { ProblemBreakdown, SolutionMechanism, ArtefactPlan, FrameworkSelection, SolutionValidation } from './llm';
 
 export type SolutionNotes = {
   problemBreakdown: ProblemBreakdown[];
   frameworkSelections: FrameworkSelection[];
   solutionMechanisms: SolutionMechanism[];
+  validations: SolutionValidation[];
   artefactPlan: ArtefactPlan;
   clarifyingQuestions: string[];
 };

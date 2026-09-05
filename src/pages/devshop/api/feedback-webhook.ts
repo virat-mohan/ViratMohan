@@ -108,6 +108,7 @@ export const POST: APIRoute = async ({ request }) => {
         problemBreakdown: result.problemBreakdown,
         frameworkSelections: resolveFrameworkSelections(result.frameworkSelections, frameworkLibrary),
         solutionMechanisms: result.solutionMechanisms,
+        validations: result.validations,
         artefactPlan: result.artefactPlan,
         clarifyingQuestions: result.clarifyingQuestions,
       },

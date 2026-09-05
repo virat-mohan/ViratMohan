@@ -16,6 +16,9 @@ if (!row) {
 
 const levers = row.pnl_levers ?? [];
 const notes = row.solution_notes;
+const validations = notes?.validations ?? [];
+const blockCount = validations.filter((v) => v.status === 'block').length;
+const warningCount = validations.filter((v) => v.status === 'warning').length;
 
 // Pipeline management only makes sense once a demo has actually gone out —
 // received/demo_ready/revising/failed are all system-managed states.
@@ -36,6 +39,16 @@ const trackerVisible = ['interested', 'scoping_scheduled', 'scoping_complete', '
   <main class="wrap">
     <a class="back" href="/devshop/admin">← All queries</a>
     <p class="status">Status: <strong>{row.status}</strong></p>
+
+    {validations.length > 0 && (
+      <div class={`validation-banner ${blockCount > 0 ? 'banner-block' : warningCount > 0 ? 'banner-warning' : 'banner-pass'}`}>
+        {blockCount > 0 && <strong>{blockCount} blocking issue{blockCount > 1 ? 's' : ''}</strong>}
+        {blockCount > 0 && warningCount > 0 && ' · '}
+        {warningCount > 0 && <strong>{warningCount} warning{warningCount > 1 ? 's' : ''}</strong>}
+        {blockCount === 0 && warningCount === 0 && <strong>All validation checks passed</strong>}
+        {' '}— see Validation section below before approving.
+      </div>
+    )}
 
     <h1>Problem</h1>
     <p class="problem">{row.problem}</p>
@@ -64,12 +77,14 @@ const trackerVisible = ['interested', 'scoping_scheduled', 'scoping_complete', '
         <h2>Diagnosis ({notes.problemBreakdown.length} problem{notes.problemBreakdown.length > 1 ? 's' : ''} identified)</h2>
         {notes.problemBreakdown.map((p, i) => (
           <div class="note-card">
-            <p class="note-title">{i + 1}. {p.problem_statement}</p>
+            <p class="note-title">{i + 1}. {p.problem_statement} <span class={`confidence-badge confidence-${p.confidence_level}`}>{p.confidence_level?.replace(/_/g, ' ')}</span></p>
             <ul class="bullets">
               <li><span class="note-label">Function</span>{p.business_function}</li>
               <li><span class="note-label">Root cause</span>{p.root_cause}</li>
               <li><span class="note-label">Who's affected</span>{p.who_is_affected}</li>
               <li><span class="note-label">Cost of inaction</span>{p.current_cost_of_inaction}</li>
+              {p.supporting_evidence && <li><span class="note-label">Supporting evidence</span>{p.supporting_evidence}</li>}
+              {p.evidence_gaps && <li><span class="note-label">Evidence gaps</span>{p.evidence_gaps}</li>}
             </ul>
           </div>
         ))}
@@ -109,7 +124,7 @@ const trackerVisible = ['interested', 'scoping_scheduled', 'scoping_complete', '
         <h2>P&amp;L lever{levers.length > 1 ? 's' : ''}</h2>
         {levers.map((l) => (
           <div class="note-card">
-            <p class="note-title"><strong>{l.category}</strong> — {l.lever}</p>
+            <p class="note-title"><strong>{l.category}</strong> — {l.lever} <span class={`value-status value-status-${l.value_status}`}>{l.value_status?.replace(/_/g, ' ')}</span></p>
             <p class="reasoning">{l.reasoning}</p>
           </div>
         ))}
@@ -127,6 +142,23 @@ const trackerVisible = ['interested', 'scoping_scheduled', 'scoping_complete', '
             </ol>
             <p><span class="note-label">Trigger / data source</span>{m.trigger_or_data_source}</p>
             <p><span class="note-label">Why not generic</span>{m.why_not_generic}</p>
+          </div>
+        ))}
+      </div>
+    )}
+
+    {validations.length > 0 && (
+      <div class="reasoning-block">
+        <h2>Validation ({blockCount} block, {warningCount} warning, {validations.length - blockCount - warningCount} pass)</h2>
+        {validations.map((v) => (
+          <div class="note-card">
+            <p class="note-title">
+              <span class={`validation-status validation-${v.status}`}>{v.status}</span>
+              {' '}{v.validation_type.replace(/_/g, ' ')}
+              <span class="fw-source">— severity: {v.severity}</span>
+            </p>
+            <p class="reasoning">{v.explanation}</p>
+            {v.status !== 'pass' && <p class="reasoning"><span class="note-label">Recommended action</span>{v.recommended_action}</p>}
           </div>
         ))}
       </div>
@@ -163,7 +195,7 @@ const trackerVisible = ['interested', 'scoping_scheduled', 'scoping_complete', '
     )}
 
     {row.status === 'demo_ready' && (
-      <button id="approveBtn" data-id={row.id}>{row.feedback_round >= 1 ? 'Approve & send revised demo →' : 'Approve & send to client →'}</button>
+      <button id="approveBtn" data-id={row.id} data-block-count={blockCount}>{row.feedback_round >= 1 ? 'Approve & send revised demo →' : 'Approve & send to client →'}</button>
     )}
     {row.status === 'sent' && <p class="hint sent">Sent to {row.email}{row.feedback_round >= 1 ? ' (final, revised version)' : ''}.</p>}
 
@@ -238,6 +270,11 @@ const trackerVisible = ['interested', 'scoping_scheduled', 'scoping_complete', '
     const btn = document.getElementById('approveBtn');
     if (btn) {
       btn.addEventListener('click', async () => {
+        const blockCount = parseInt(btn.dataset.blockCount || '0', 10);
+        if (blockCount > 0) {
+          const proceed = confirm(`${blockCount} blocking validation issue${blockCount > 1 ? 's are' : ' is'} still unresolved. Send anyway?`);
+          if (!proceed) return;
+        }
         btn.disabled = true;
         btn.textContent = 'Sending…';
         try {
@@ -352,6 +389,20 @@ const trackerVisible = ['interested', 'scoping_scheduled', 'scoping_complete', '
   .note-title { font-size: 15px; margin-bottom: 6px !important; }
   .fw-source { font-size: 12.5px; color: #85837e; font-weight: 400; }
   .fw-flag { display: inline-block; margin-left: 10px; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; color: #a66a62; border: 1px solid rgba(166,106,98,0.4); padding: 2px 7px; border-radius: 10px; }
+
+  .validation-banner { margin: 14px 0 0; padding: 12px 16px; border-radius: 4px; font-size: 13px; }
+  .banner-pass { background: rgba(113,138,120,0.12); border: 1px solid rgba(113,138,120,0.35); color: #b7cbb9; }
+  .banner-warning { background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.35); color: #d4af37; }
+  .banner-block { background: rgba(166,106,98,0.14); border: 1px solid rgba(166,106,98,0.5); color: #d99a92; }
+
+  .confidence-badge, .value-status, .validation-status {
+    display: inline-block; margin-left: 8px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.03em;
+    padding: 2px 7px; border-radius: 10px; vertical-align: middle; font-weight: 500;
+  }
+  .confidence-strongly_supported, .value-status-known, .validation-pass { background: rgba(113,138,120,0.15); color: #8fae95; }
+  .confidence-reasonably_supported, .value-status-assumed { background: rgba(145,175,192,0.15); color: #91afc0; }
+  .confidence-preliminary_hypothesis, .value-status-needs_confirmation, .validation-warning { background: rgba(212,175,55,0.15); color: #d4af37; }
+  .confidence-insufficient_evidence, .validation-block { background: rgba(166,106,98,0.18); color: #d99a92; }
   .runner-ups { margin-top: 10px; }
   .runner-up-list { margin-top: 4px; }
   .note-label { display: inline-block; min-width: 160px; color: #625f59; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; vertical-align: top; }
