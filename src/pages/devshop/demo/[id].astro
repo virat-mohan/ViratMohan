@@ -48,6 +48,7 @@ const title = row.company ? `Your demo — ${row.company}` : 'Your demo';
         {notes.problemBreakdown.map((p) => (
           <div class="card">
             <p class="card-title">{p.problem_statement}</p>
+            <p class="card-function">{p.business_function}</p>
             <ul class="bullets">
               <li><span class="bullet-label">Root cause</span>{p.root_cause}</li>
               <li><span class="bullet-label">Cost of inaction</span>{p.current_cost_of_inaction}</li>
@@ -125,7 +126,8 @@ const title = row.company ? `Your demo — ${row.company}` : 'Your demo';
   .block { margin-bottom: 28px; }
   .card { padding: 14px 0; border-top: 1px solid rgba(36,33,29,0.1); }
   .card:first-of-type { border-top: none; }
-  .card-title { font-weight: 600; font-size: 15px; margin: 0 0 8px; }
+  .card-title { font-weight: 600; font-size: 15px; margin: 0 0 4px; }
+  .card-function { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #a67c2e; margin: 0 0 10px; }
 
   .bullets { margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.55; color: #3a3630; }
   .bullets li { margin-bottom: 4px; }

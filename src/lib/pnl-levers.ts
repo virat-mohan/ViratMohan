@@ -23,3 +23,17 @@ export type PnlLeverHit = {
   lever: string;
   reasoning: string;
 };
+
+// Business-function taxonomy used to walk from a raw problem statement down
+// to a specific P&L line before ever picking a lever — the same path a CFO
+// would use: which function owns this, which line on the P&L does that
+// function's activity actually move, then which lever category and lever.
+export const BUSINESS_FUNCTIONS = [
+  'Growth (sales & marketing)',
+  'Efficiency / Operations',
+  'Finance',
+  'Legal / Compliance',
+  'Admin',
+  'HR / People',
+  'Tech / Engineering',
+] as const;

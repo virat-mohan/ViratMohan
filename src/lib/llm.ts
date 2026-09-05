@@ -1,4 +1,4 @@
-import { PNL_LEVERS, type PnlLeverHit } from './pnl-levers';
+import { PNL_LEVERS, BUSINESS_FUNCTIONS, type PnlLeverHit } from './pnl-levers';
 
 export type ClassifyAndBuildInput = {
   problem: string; // may describe more than one distinct problem
@@ -9,6 +9,7 @@ export type ClassifyAndBuildInput = {
 
 export type ProblemBreakdown = {
   problem_statement: string;
+  business_function: string;
   root_cause: string;
   who_is_affected: string;
   current_cost_of_inaction: string;
@@ -54,21 +55,27 @@ const METHODOLOGY = `You are a senior cross-functional solutioning team compress
 
 Work through these steps IN ORDER, and do the real thinking at each one — do not skip to the artefact:
 
-STEP 1 — Diagnose. Identify every genuinely distinct problem (usually 1, occasionally 2-3; do not manufacture problems that aren't there, and do not split one problem into several). For each, find the ROOT CAUSE, not the symptom — e.g. "checkout abandons at 60%" is a symptom; the root cause might be surprise shipping costs, a broken mobile flow, or lack of trust signals at payment. State who inside the business actually feels this pain, and what it's costing them today.
-Keep every field here SHORT — this becomes a scannable bulleted brief a busy founder reads in 30 seconds, not a report: problem_statement ≤ 20 words, root_cause ≤ 20 words (one sentence, no compound clauses), who_is_affected ≤ 8 words, current_cost_of_inaction one tight sentence with the actual number in it.
+STEP 1 — Diagnose. Identify every genuinely distinct problem (usually 1, occasionally 2-3; do not manufacture problems that aren't there, and do not split one problem into several). For each:
+(a) First classify which BUSINESS FUNCTION actually owns this problem — exactly one of: ${BUSINESS_FUNCTIONS.join(', ')}. This is the CFO's first question, before anything else: whose budget and whose workflow is this.
+(b) Then find the ROOT CAUSE, not the symptom — e.g. "checkout abandons at 60%" is a symptom; the root cause might be surprise shipping costs, a broken mobile flow, or lack of trust signals at payment.
+(c) State who inside that function actually feels this pain, and what it's costing them today.
+Keep every field here SHORT — this becomes a scannable bulleted brief a busy founder reads in 30 seconds, not a report: problem_statement ≤ 20 words, business_function is just the function name, root_cause ≤ 20 words (one sentence, no compound clauses), who_is_affected ≤ 8 words, current_cost_of_inaction one tight sentence with the actual number in it.
 
 If the problem statement is thin enough that a STRUCTURAL fact has to be assumed to proceed at all (e.g. B2B vs B2C, outbound vs inbound, which sales/business motion, who the end customer even is), do not silently commit to one specific model and present it as fact — that's the single riskiest kind of assumption, because it shapes every downstream step. Pick the single most plausible default, but that default becomes the FIRST entry in the Step 5 clarifying-questions list, phrased as a direct confirm-or-correct question (e.g. "Is this B2B outbound sales, or a different motion — retail, referral, marketplace?").
 
-STEP 2 — Map to the P&L. For each problem, classify it against exactly one of these fixed levers:
+STEP 2 — Map to the P&L. This is a drill-down, not a jump: business function (from Step 1a) → the SPECIFIC P&L line item that function's activity actually moves (e.g. Growth owning a problem usually moves a revenue line or CAC within sales & marketing spend; Efficiency/Operations usually moves a COGS or opex line; Legal/Compliance usually moves risk-provision or overhead cost; HR usually moves labor cost or attrition-driven cost; Tech usually moves either a cost line (infra/eng time) or unblocks a revenue line) → THEN classify against exactly one of these fixed levers:
    Revenue levers: ${PNL_LEVERS.revenue.join(', ')}
    Cost levers: ${PNL_LEVERS.cost.join(', ')}
-Give a plausible, industry-grounded before/after estimate for that lever if the mechanism in Step 3 were live. Write the reasoning in plain operator language — never "leverage," "unlock," "synergy," or similar. One tight sentence carrying the assumption and the number, ≤ 30 words — not a paragraph.
+Name the specific P&L line item explicitly inside the reasoning (not just the lever category) — e.g. not just "labor cost" but "support team headcount cost." Give a plausible, industry-grounded before/after estimate for that line if the mechanism in Step 3 were live. Write the reasoning in plain operator language — never "leverage," "unlock," "synergy," or similar. One tight sentence carrying the assumption and the number, ≤ 30 words — not a paragraph.
 
 STEP 3 — Design the mechanism. For each problem, design the SPECIFIC mechanism that would actually fix the root cause from Step 1 — not "an AI agent that helps with X," but the actual workflow: what triggers it, what data or signal it acts on, and what happens step by step. Break "what happens step by step" into 3-6 short, discrete steps (how_it_works_steps) — each one a single concrete action, ≤ 15 words, written so it could be a bullet on a slide, not folded into one paragraph. Also state, in one sentence, why this mechanism and not a generic dashboard or chatbot. Ground it in what's realistically buildable with current AI/automation tooling — nothing that requires a research breakthrough.
 
 STEP 4 — Plan the artefact. Before writing code, plan how someone experiences this in under two minutes: the narrative arc, and — if there's more than one problem — how the sections tie together into one coherent product rather than reading as several unrelated demos glued together. Every step from Step 3's how_it_works_steps should map to something the visitor can actually trigger or watch happen in the artefact — see the interactivity rule below.
 
-STEP 5 — Flag what's genuinely unknown. If Step 1 had to assume a structural fact (business/sales motion, customer type, etc.), that confirm-or-correct question goes FIRST here. After that, list any specific real numbers that would sharpen the estimates in Step 2 if the client provided them (e.g. "your actual average order value," "current monthly lead volume," "your real cart-abandonment rate"). Only list things you couldn't reasonably assume — not everything.
+STEP 5 — Flag what's genuinely unknown. Order matters here:
+1. If Step 1 had to assume a structural fact (business/sales motion, customer type, etc.), that confirm-or-correct question goes FIRST.
+2. Next, for EACH problem, ask directly for the actual number on the specific P&L line item you named in Step 2 — not a vague "tell us more," a precise ask naming that line (e.g. "What is your current actual monthly support-team labor cost?" or "What is your actual average order value today?"). This is what turns an assumed estimate into an exact one, and it should almost always be present — skip it only if the client's problem statement already gave you that exact figure.
+3. Then any other specific real numbers that would sharpen the estimates (e.g. "current monthly lead volume," "your real cart-abandonment rate"). Only list things you couldn't reasonably assume — not everything.
 
 STEP 6 — Build the artefact. One working, self-contained interactive HTML demo covering every mechanism from Step 3, following the plan from Step 4.
 
@@ -103,11 +110,16 @@ const CLASSIFY_TOOL = {
           type: 'object',
           properties: {
             problem_statement: { type: 'string', description: '≤ 20 words.' },
+            business_function: {
+              type: 'string',
+              enum: BUSINESS_FUNCTIONS as unknown as string[],
+              description: 'Exactly one of the fixed business functions — which function owns this problem.',
+            },
             root_cause: { type: 'string', description: 'One sentence, ≤ 20 words.' },
             who_is_affected: { type: 'string', description: '≤ 8 words.' },
             current_cost_of_inaction: { type: 'string', description: 'One sentence with the actual number in it.' },
           },
-          required: ['problem_statement', 'root_cause', 'who_is_affected', 'current_cost_of_inaction'],
+          required: ['problem_statement', 'business_function', 'root_cause', 'who_is_affected', 'current_cost_of_inaction'],
         },
       },
       levers: {
