@@ -6,7 +6,12 @@ import { getDb } from '../../../lib/db';
 import { getEnv } from '../../../lib/env';
 
 const env = getEnv();
-const agents = await getDb(env).listAllAiAgents();
+const agents = await getDb(env)
+  .listAllAiAgents()
+  .catch((err) => {
+    console.error('listAllAiAgents failed (migration 0015 may not be applied yet)', err);
+    return [];
+  });
 ---
 
 <!doctype html>

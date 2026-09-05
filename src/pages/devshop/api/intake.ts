@@ -75,7 +75,10 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     const websiteSnippet = website ? await fetchWebsiteSnippet(website) : null;
     const frameworkLibrary = await db.listActiveFrameworks();
-    const agentLibrary = await db.listActiveAiAgents();
+    const agentLibrary = await db.listActiveAiAgents().catch((err) => {
+      console.error('listActiveAiAgents failed (migration 0015 may not be applied yet) — proceeding with an empty agent library', err);
+      return [];
+    });
     const pastFrameworkUsage = industry ? await db.listPastFrameworkUsageByIndustry(industry) : [];
     const result = await classifyAndBuild(
       { problem, company, industry, tools, websiteSnippet, frameworkLibrary, agentLibrary, preferredFramework, pastFrameworkUsage },

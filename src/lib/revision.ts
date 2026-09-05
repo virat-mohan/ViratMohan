@@ -20,7 +20,10 @@ export async function runRevision(
     const websiteSnippet = row.website ? await fetchWebsiteSnippet(row.website) : null;
     const notes = row.solution_notes;
     const frameworkLibrary = await db.listActiveFrameworks();
-    const agentLibrary = await db.listActiveAiAgents();
+    const agentLibrary = await db.listActiveAiAgents().catch((err) => {
+      console.error('listActiveAiAgents failed (migration 0015 may not be applied yet) — proceeding with an empty agent library', err);
+      return [];
+    });
     const pastFrameworkUsage = row.industry ? await db.listPastFrameworkUsageByIndustry(row.industry) : [];
 
     const result = await reviseArtefact(
