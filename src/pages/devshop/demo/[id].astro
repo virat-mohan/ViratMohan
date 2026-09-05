@@ -291,8 +291,18 @@ const frameworkEvaluations = (notes?.frameworkSelections ?? []).map((f) => ({
       };
       frame.addEventListener('load', () => {
         resize();
-        const interval = setInterval(resize, 400);
-        setTimeout(() => clearInterval(interval), 10000);
+        try {
+          const doc = frame.contentDocument;
+          if (doc && doc.body && 'ResizeObserver' in window) {
+            new ResizeObserver(resize).observe(doc.body);
+          }
+        } catch (e) {
+          // Fall through to polling below regardless.
+        }
+        // Belt-and-braces polling too — covers state changes ResizeObserver
+        // might miss (e.g. content that changes without a layout box resize
+        // until a transition finishes) — runs for the life of the page.
+        setInterval(resize, 600);
       });
     }
   </script>
