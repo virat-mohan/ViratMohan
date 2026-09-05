@@ -51,6 +51,13 @@ const frameworkEvaluations = (notes?.frameworkSelections ?? []).map((f) => ({
   problem_index: f.problem_index,
   candidates: [...(f.fitCandidates ?? [])].sort((a, b) => b.total_score - a.total_score),
 }));
+
+// A fake-but-plausible address-bar label so the artefact reads as "your
+// actual product running in a browser" rather than a bare embedded box.
+const companySlug = (row.company || 'yourcompany').toLowerCase().replace(/[^a-z0-9]+/g, '');
+const browserUrlLabel = row.website
+  ? row.website.replace(/^https?:\/\//i, '').replace(/\/$/, '')
+  : `app.${companySlug || 'yourcompany'}.com`;
 ---
 
 <!doctype html>
@@ -269,8 +276,21 @@ const frameworkEvaluations = (notes?.frameworkSelections ?? []).map((f) => ({
 
   <div class="divider"><span>Try it yourself</span></div>
 
-  <div class="artefact-embed">
-    <iframe id="artefactFrame" title="Interactive demo" srcdoc={row.artefact_html}></iframe>
+  <div class="browser-chrome">
+    <div class="browser-chrome-bar">
+      <span class="chrome-dot chrome-dot--red"></span>
+      <span class="chrome-dot chrome-dot--yellow"></span>
+      <span class="chrome-dot chrome-dot--green"></span>
+      <div class="chrome-address">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M6 10V8a6 6 0 1112 0v2M5 10h14a1 1 0 011 1v9a1 1 0 01-1 1H5a1 1 0 01-1-1v-9a1 1 0 011-1z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="chrome-address-text">{browserUrlLabel}</span>
+      </div>
+    </div>
+    <div class="artefact-embed">
+      <iframe id="artefactFrame" title="Interactive demo" srcdoc={row.artefact_html}></iframe>
+    </div>
   </div>
 
   <script>
@@ -389,11 +409,28 @@ const frameworkEvaluations = (notes?.frameworkSelections ?? []).map((f) => ({
   .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: rgba(36,33,29,0.15); }
   .divider span { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a8378; white-space: nowrap; }
 
-  .artefact-embed { max-width: 960px; margin: 0 auto 64px; padding: 0 32px; }
+  .browser-chrome {
+    max-width: 960px; margin: 0 auto 64px; margin-left: 32px; margin-right: 32px;
+    border-radius: 10px; overflow: hidden; background: #e8e6e0;
+    border: 1px solid rgba(36,33,29,0.12); box-shadow: 0 20px 48px -20px rgba(36,33,29,0.25);
+  }
+  .browser-chrome-bar { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #ecebe6; border-bottom: 1px solid rgba(36,33,29,0.1); }
+  .chrome-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
+  .chrome-dot--red { background: #ec6a5e; }
+  .chrome-dot--yellow { background: #f4bf4f; }
+  .chrome-dot--green { background: #61c454; }
+  .chrome-address {
+    flex: 1; margin-left: 10px; display: flex; align-items: center; gap: 6px;
+    background: #fbfaf8; border: 1px solid rgba(36,33,29,0.1); border-radius: 6px;
+    padding: 5px 12px; font-size: 12px; color: #6b6459; max-width: 360px;
+  }
+  .chrome-address svg { color: #8a8378; flex: none; }
+  .chrome-address-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .artefact-embed { background: #fff; }
   .artefact-embed iframe { width: 100%; border: 0; display: block; min-height: 400px; }
 
   @media (max-width: 640px) {
     .brief { padding: 36px 20px 24px; }
-    .artefact-embed { padding: 0 20px; }
+    .browser-chrome { margin-left: 20px; margin-right: 20px; }
   }
 </style>
