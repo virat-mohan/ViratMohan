@@ -292,9 +292,9 @@ const amcDecision = row.amc_pricing_decision;
           </div>
         )}
 
-        {row.weekly_updates.length > 0 && (
+        {(row.weekly_updates ?? []).length > 0 && (
           <div class="weekly-log">
-            {[...row.weekly_updates].reverse().map((u) => (
+            {[...(row.weekly_updates ?? [])].reverse().map((u) => (
               <div class="weekly-entry">
                 <span class="weekly-date">{new Date(u.date).toLocaleDateString()}</span>
                 <span>{u.summary}</span>
