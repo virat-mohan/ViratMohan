@@ -11,7 +11,7 @@ import { getOrigin } from '../../../lib/http';
 export const POST: APIRoute = async ({ request }) => {
   const env = getEnv();
 
-  let body: { problem?: string; company?: string; website?: string; tools?: string; email?: string; preferredFramework?: string };
+  let body: { problem?: string; company?: string; industry?: string; website?: string; tools?: string; email?: string; preferredFramework?: string };
   try {
     body = await request.json();
   } catch {
@@ -21,6 +21,7 @@ export const POST: APIRoute = async ({ request }) => {
   const problem = (body.problem || '').trim();
   const email = (body.email || '').trim();
   const company = (body.company || '').trim() || null;
+  const industry = (body.industry || '').trim() || null;
   const website = (body.website || '').trim() || null;
   const tools = (body.tools || '').trim() || null;
   const preferredFramework = (body.preferredFramework || '').trim() || null;
@@ -33,7 +34,7 @@ export const POST: APIRoute = async ({ request }) => {
   const origin = getOrigin(request);
   const db = getDb(env);
 
-  await db.insertSubmission({ id, problem, company, website, tools, email });
+  await db.insertSubmission({ id, problem, company, industry, website, tools, email });
 
   // Notify the desk immediately — don't block the client's response on this.
   const notify = sendEmail(
@@ -63,8 +64,9 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     const websiteSnippet = website ? await fetchWebsiteSnippet(website) : null;
     const frameworkLibrary = await db.listActiveFrameworks();
+    const pastFrameworkUsage = industry ? await db.listPastFrameworkUsageByIndustry(industry) : [];
     const result = await classifyAndBuild(
-      { problem, company, tools, websiteSnippet, frameworkLibrary, preferredFramework },
+      { problem, company, industry, tools, websiteSnippet, frameworkLibrary, preferredFramework, pastFrameworkUsage },
       env.ANTHROPIC_API_KEY
     );
     await db.markDemoReady(

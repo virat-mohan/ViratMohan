@@ -83,15 +83,18 @@ export const POST: APIRoute = async ({ request }) => {
     const websiteSnippet = row.website ? await fetchWebsiteSnippet(row.website) : null;
     const notes = row.solution_notes;
     const frameworkLibrary = await db.listActiveFrameworks();
+    const pastFrameworkUsage = row.industry ? await db.listPastFrameworkUsageByIndustry(row.industry) : [];
 
     const result = await reviseArtefact(
       {
         problem: row.problem,
         company: row.company,
+        industry: row.industry,
         tools: row.tools,
         websiteSnippet,
         frameworkLibrary,
         preferredFramework: null,
+        pastFrameworkUsage,
         previousProblemBreakdown: notes?.problemBreakdown ?? [],
         previousFrameworkSelections: notes?.frameworkSelections ?? [],
         previousLevers: row.pnl_levers ?? [],

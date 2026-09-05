@@ -182,6 +182,26 @@ const canonical = new URL('/devshop', site.domain).href;
           </div>
         </div>
 
+        <div class="wizard-step" data-field="industry" hidden>
+          <h1 class="serif wizard-q">What industry are you in?</h1>
+          <p class="wizard-sub">Helps us pick a framework with a real track record for businesses like yours.</p>
+          <div class="chip-row" id="industryChips">
+            <button type="button" class="chip" data-value="E-commerce / D2C">E-commerce / D2C</button>
+            <button type="button" class="chip" data-value="B2B SaaS">B2B SaaS</button>
+            <button type="button" class="chip" data-value="Professional services">Professional services</button>
+            <button type="button" class="chip" data-value="Hospitality / travel">Hospitality / travel</button>
+            <button type="button" class="chip" data-value="Manufacturing">Manufacturing</button>
+            <button type="button" class="chip" data-value="Healthcare">Healthcare</button>
+            <button type="button" class="chip" data-value="Financial services">Financial services</button>
+            <button type="button" class="chip" data-value="Retail (offline)">Retail (offline)</button>
+          </div>
+          <input type="text" name="industry" class="wizard-input wizard-input--secondary" placeholder="Other — name your industry" />
+          <div class="wizard-actions">
+            <button type="button" class="btn wizard-next">Next →</button>
+            <button type="button" class="btn-plain wizard-skip">Skip</button>
+          </div>
+        </div>
+
         <div class="wizard-step" data-field="website" hidden>
           <h1 class="serif wizard-q">Got a website?</h1>
           <p class="wizard-sub">Helps the demo match your brand instead of ours.</p>
@@ -694,6 +714,11 @@ const canonical = new URL('/devshop', site.domain).href;
   function wizardAdvance() {
     var step = wizardSteps[wizardIndex];
     if (step.dataset.field === 'tools') combineToolsChips(step);
+    if (step.dataset.field === 'industry') {
+      var industryInput = step.querySelector('input[name="industry"]');
+      var industrySelected = step.querySelector('#industryChips .chip.selected');
+      if (industrySelected && !industryInput.value.trim()) industryInput.value = industrySelected.dataset.value;
+    }
 
     var required = step.dataset.required === 'true';
     var input = step.querySelector('.wizard-input:not(.wizard-input--secondary)') || step.querySelector('.wizard-input');
@@ -711,7 +736,17 @@ const canonical = new URL('/devshop', site.domain).href;
   }
 
   document.querySelectorAll('.chip').forEach(function (chip) {
-    chip.addEventListener('click', function () { chip.classList.toggle('selected'); });
+    chip.addEventListener('click', function () {
+      if (chip.closest('#industryChips')) {
+        var siblings = chip.parentElement.querySelectorAll('.chip');
+        siblings.forEach(function (c) { if (c !== chip) c.classList.remove('selected'); });
+        chip.classList.toggle('selected');
+        var input = chip.closest('.wizard-step').querySelector('input[name="industry"]');
+        input.value = chip.classList.contains('selected') ? chip.dataset.value : '';
+      } else {
+        chip.classList.toggle('selected');
+      }
+    });
   });
 
   document.querySelectorAll('.wizard-next, .wizard-skip').forEach(function (btn) {
@@ -855,6 +890,7 @@ const canonical = new URL('/devshop', site.domain).href;
     var payload = {
       problem: form.problem.value.trim(),
       company: form.company.value.trim(),
+      industry: form.industry.value.trim(),
       website: form.website.value.trim(),
       tools: form.tools.value.trim(),
       preferredFramework: form.preferredFramework.value.trim(),

@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import type { PnlLeverHit } from './pnl-levers';
 import type { ProblemBreakdown, SolutionMechanism, ArtefactPlan, FrameworkSelection, SolutionValidation } from './llm';
 import type { AmcRateBenchmark, AmcSolutionProfile, AmcResourceEstimate, AmcPricingRecommendation, ResourceCategory } from './amc';
+import { summarizeFrameworkUsage, type PastFrameworkUsage } from './industry';
 
 export type AmcPricingDecision = {
   mode: 'approved' | 'adjusted' | 'custom';
@@ -66,6 +67,7 @@ export type Submission = {
   id: string;
   problem: string;
   company: string | null;
+  industry: string | null;
   website: string | null;
   tools: string | null;
   email: string;
@@ -102,6 +104,7 @@ export function getDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: st
       id: string;
       problem: string;
       company: string | null;
+      industry: string | null;
       website: string | null;
       tools: string | null;
       email: string;
@@ -236,6 +239,30 @@ export function getDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: st
         .order('business_function', { ascending: true });
       if (error) throw new Error(`supabase frameworks list failed: ${error.message}`);
       return (data ?? []) as Framework[];
+    },
+
+    // Item 2 (internal half) — how frameworks have actually been applied
+    // before for this industry within FTDS. A frequency + pipeline-
+    // progression signal (see src/lib/industry.ts), never treated as a
+    // proven success rate. Exact case-insensitive industry match only — no
+    // fuzzy matching yet, so this is strongest when industry values come
+    // from the intake wizard's chip set rather than free text.
+    async listPastFrameworkUsageByIndustry(industry: string): Promise<PastFrameworkUsage[]> {
+      const trimmed = industry.trim();
+      if (!trimmed) return [];
+      const { data, error } = await supabase
+        .from('submissions')
+        .select('status, solution_notes')
+        .ilike('industry', trimmed)
+        .limit(200);
+      if (error) throw new Error(`supabase past framework usage query failed: ${error.message}`);
+      const rows = (data ?? []).map((r: any) => ({
+        status: r.status as string,
+        framework_names: ((r.solution_notes?.frameworkSelections ?? []) as Array<{ framework_name?: string }>)
+          .map((f) => f.framework_name)
+          .filter((n): n is string => !!n),
+      }));
+      return summarizeFrameworkUsage(rows);
     },
 
     async listAllFrameworks(): Promise<Framework[]> {

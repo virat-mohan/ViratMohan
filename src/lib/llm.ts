@@ -9,6 +9,7 @@ import {
   type ValidationStatus,
 } from './pnl-levers';
 import { RESOURCE_CATEGORIES, type AmcSolutionProfile, type AmcResourceEstimate } from './amc';
+import type { PastFrameworkUsage } from './industry';
 
 export type FrameworkLibraryEntry = {
   name: string;
@@ -21,10 +22,12 @@ export type FrameworkLibraryEntry = {
 export type ClassifyAndBuildInput = {
   problem: string; // may describe more than one distinct problem
   company: string | null;
+  industry: string | null; // captured at intake — feeds framework selection and the industry_relevance fit dimension
   tools: string | null;
   websiteSnippet: string | null; // best-effort HTML excerpt from the client's site, for brand cues
   frameworkLibrary: FrameworkLibraryEntry[]; // admin-curated — preferred set the model should draw from
   preferredFramework: string | null; // client named a specific framework/approach themselves — overrides library selection
+  pastFrameworkUsage: PastFrameworkUsage[]; // internal: how frameworks have actually been applied before for this industry within FTDS — a frequency signal, not a success rate (see src/lib/industry.ts)
 };
 
 export type ProblemBreakdown = {
@@ -66,6 +69,7 @@ export const FIT_DIMENSIONS = [
   'pnl_relevance',
   'framework_specificity',
   'contraindication_risk', // 5 = no contraindication, 0 = actively risky/mismatched — same "higher is better" direction as every other dimension
+  'industry_relevance', // 5 = strong track record (internal FTDS history and/or documented external adoption) for THIS industry specifically, 0 = no evidence it transfers to this industry at all
 ] as const;
 export type FitDimension = (typeof FIT_DIMENSIONS)[number];
 
@@ -78,7 +82,7 @@ export type FrameworkFitCandidate = {
   framework_name: string;
   is_selected: boolean;
   dimension_scores: FrameworkFitScore[];
-  total_score: number; // sum of dimension_scores, 0-40
+  total_score: number; // sum of dimension_scores, 0-45
   positive_evidence: string; // concrete reasons this framework fits
   negative_evidence: string; // concrete reasons it doesn't, or "none material" — a candidate with no negative_evidence at all is suspect
 };
@@ -149,13 +153,25 @@ const MAX_TOKENS = 16000;
 // it's allowed to touch code — root cause, then lever, then mechanism, then
 // demo — the same sequence a good consulting + engineering team would use,
 // compressed into one pass.
-function buildMethodology(frameworkLibrary: FrameworkLibraryEntry[], preferredFramework: string | null): string {
+function buildMethodology(
+  frameworkLibrary: FrameworkLibraryEntry[],
+  preferredFramework: string | null,
+  industry: string | null,
+  pastFrameworkUsage: PastFrameworkUsage[]
+): string {
   const libraryText =
     frameworkLibrary.length > 0
       ? frameworkLibrary
           .map((f) => `- ${f.name} (${f.source}) — ${f.business_function} — use when: ${f.when_to_use}`)
           .join('\n')
       : '(library is currently empty)';
+
+  const pastUsageText =
+    industry && pastFrameworkUsage.length > 0
+      ? pastFrameworkUsage
+          .map((u) => `- ${u.framework_name}: applied ${u.times_applied}x before for this industry within FTDS, ${u.times_progressed}x reached a paid build (not a proven success rate — just a frequency/progression signal)`)
+          .join('\n')
+      : null;
 
   return `You are a senior cross-functional solutioning team compressed into one voice: a strategy partner who diagnoses root causes instead of symptoms, a CFO who thinks natively in unit economics and P&L movement, a growth/performance marketer, a Head of Ops who has actually run a P&L (not just advised on one), a senior product engineer building on the current state of AI agents and automation, and a product designer with real taste — you know precisely what's buildable today versus what's still vaporware, and you never propose something vague, hand-wavy, or "AI-magic" without a concrete mechanism behind it.
 
@@ -180,13 +196,23 @@ ${
 Preferred framework library (curated, reviewed by the team running this — draw from here first):
 ${libraryText}
 
+${
+  industry
+    ? `Client's industry: ${industry}.${
+        pastUsageText
+          ? ` Internal FTDS history of frameworks applied to this industry before (a frequency/progression signal, NOT a proven success rate — do not overstate it):\n${pastUsageText}`
+          : ' No internal FTDS history exists yet for this industry — score industry_relevance on external/documented track record alone, and say so plainly rather than implying internal data exists.'
+      }`
+    : 'No industry was provided — score industry_relevance based only on how industry-agnostic or industry-specific the framework itself typically is, and note the missing industry as a gap.'
+}
+
 Rules for this step:
 - Name the framework EXACTLY as it appears in the library above — verbatim, no paraphrasing — so it can be looked up. Set in_library: true.
 - Also name up to 3-7 OTHER frameworks from the library (exact names) that were GENUINELY plausible alternatives for THIS specific root cause, in runner_up_names — this is what proves the choice was deliberate, not decorative. Quality over count: a framework only belongs in this list if a real consultant would have actually weighed it for this problem, regardless of what function it's tagged under. Do not reach into unrelated functions or unrelated root-cause types just to pad the count — 1-2 honest runner-ups (or even zero) is far better than 7 that include something like a budgeting framework for a compliance-tracking problem. When in doubt, leave it out.
 - If nothing in the library fits the root cause well, you MAY name a different framework — but ONLY if it is real, globally documented, and has a genuine track record at scale (originated or popularized by a recognized authority: McKinsey, BCG, Bain, Korn Ferry, Gartner, Deloitte, a named academic/practitioner, a standards body, etc.). Set in_library: false and fill suggested_source with the citation. Never invent a framework name, never misattribute a real framework to the wrong originator.
 - If truly no established framework applies, say so plainly (framework_name: "No established framework directly applies", explain why in why_selected) rather than force-fitting one for the sake of citing something.
 - why_selected must explain both why this fits THIS root cause specifically, and briefly what makes it a proven, world-class choice (scale of adoption, who relies on it) — this is the credibility moment, make it substantive, not decorative.
-- Internally score EVERY candidate you named (the selected framework AND each runner-up) as a fit_candidates entry, across these 8 dimensions, each 0-5 where 5 is an excellent fit and 0 is a poor one: problem_pattern_fit (does the general shape of this problem match what the framework was designed for), root_cause_fit (does it address THIS specific root cause, not just the general topic), business_function_fit (does it fit the function from Step 1a), evidence_sufficiency (is there enough evidence in the diagnosis to apply this framework with confidence), intervention_compatibility (does the mechanism you're about to design in Step 4 actually fit how this framework is normally operationalized), pnl_relevance (does applying this framework plausibly move the P&L line you'll name in Step 3), framework_specificity (does the framework have real structural vocabulary/steps to apply here, vs. being generic enough to fit anything), contraindication_risk (5 = no reason this framework would mislead or mismatch here, 0 = there's a genuine reason it's the wrong lens). This is an honest internal audit, not a rubber stamp for whichever framework you already picked — a runner-up can legitimately score close to or above the selected framework on some dimensions; state that plainly in positive_evidence/negative_evidence rather than always making the winner look strictly best. For each candidate, give positive_evidence (concrete reasons it fits) and negative_evidence (concrete reasons it doesn't — write "none material" only if genuinely true, not as a default).
+- Internally score EVERY candidate you named (the selected framework AND each runner-up) as a fit_candidates entry, across these 9 dimensions, each 0-5 where 5 is an excellent fit and 0 is a poor one: problem_pattern_fit (does the general shape of this problem match what the framework was designed for), root_cause_fit (does it address THIS specific root cause, not just the general topic), business_function_fit (does it fit the function from Step 1a), evidence_sufficiency (is there enough evidence in the diagnosis to apply this framework with confidence), intervention_compatibility (does the mechanism you're about to design in Step 4 actually fit how this framework is normally operationalized), pnl_relevance (does applying this framework plausibly move the P&L line you'll name in Step 3), framework_specificity (does the framework have real structural vocabulary/steps to apply here, vs. being generic enough to fit anything), contraindication_risk (5 = no reason this framework would mislead or mismatch here, 0 = there's a genuine reason it's the wrong lens), industry_relevance (5 = strong evidence this framework works for THIS industry specifically, 0 = no evidence it transfers here at all). Score industry_relevance from TWO combined signals and say which drove the score in the evidence text: (1) the internal FTDS history given above, if any, and (2) your own knowledge of where this framework is actually documented as successfully implemented at scale versus where it's rarely or never applied — e.g. AARRR is heavily proven in e-commerce/SaaS/consumer-app funnels but has little track record in heavy manufacturing; Lean/TPS is proven at massive scale in manufacturing/logistics but is a stretch for a pure knowledge-work service business. Do not inflate this score just because a framework is generally famous — famous and industry-relevant are different things. This is an honest internal audit, not a rubber stamp for whichever framework you already picked — a runner-up can legitimately score close to or above the selected framework on some dimensions; state that plainly in positive_evidence/negative_evidence rather than always making the winner look strictly best. For each candidate, give positive_evidence (concrete reasons it fits) and negative_evidence (concrete reasons it doesn't — write "none material" only if genuinely true, not as a default).
 
 STEP 3 — Map to the P&L. This is a drill-down, not a jump: business function (from Step 1a) → the SPECIFIC P&L line item that function's activity actually moves (e.g. Growth owning a problem usually moves a revenue line or CAC within sales & marketing spend; Efficiency/Operations usually moves a COGS or opex line; Legal/Compliance usually moves risk-provision or overhead cost; HR usually moves labor cost or attrition-driven cost; Tech usually moves either a cost line (infra/eng time) or unblocks a revenue line) → THEN classify against exactly one of these fixed levers:
    Revenue levers: ${PNL_LEVERS.revenue.join(', ')}
@@ -307,29 +333,20 @@ const CLASSIFY_TOOL = {
                   is_selected: { type: 'boolean' },
                   dimension_scores: {
                     type: 'array',
-                    description: 'Exactly 8 entries, one per fixed dimension.',
+                    description: 'Exactly 9 entries, one per fixed dimension.',
                     items: {
                       type: 'object',
                       properties: {
                         dimension: {
                           type: 'string',
-                          enum: [
-                            'problem_pattern_fit',
-                            'root_cause_fit',
-                            'business_function_fit',
-                            'evidence_sufficiency',
-                            'intervention_compatibility',
-                            'pnl_relevance',
-                            'framework_specificity',
-                            'contraindication_risk',
-                          ],
+                          enum: FIT_DIMENSIONS as unknown as string[],
                         },
                         score: { type: 'integer', description: '0-5, 5 = excellent fit on this dimension.' },
                       },
                       required: ['dimension', 'score'],
                     },
                   },
-                  total_score: { type: 'integer', description: 'Sum of the 8 dimension scores, 0-40.' },
+                  total_score: { type: 'integer', description: 'Sum of the 9 dimension scores, 0-45.' },
                   positive_evidence: { type: 'string', description: 'Concrete reasons this framework fits. ≤ 30 words.' },
                   negative_evidence: { type: 'string', description: 'Concrete reasons it does not, or "none material" if genuinely true. ≤ 30 words.' },
                 },
@@ -502,12 +519,13 @@ export async function classifyAndBuild(
   input: ClassifyAndBuildInput,
   apiKey: string
 ): Promise<ClassifyAndBuildResult> {
-  const methodology = buildMethodology(input.frameworkLibrary, input.preferredFramework);
+  const methodology = buildMethodology(input.frameworkLibrary, input.preferredFramework, input.industry, input.pastFrameworkUsage);
   const system = `${methodology}\n\nReturn your answer using the classify_and_build tool, with every step's output filled in — do not include any text outside the tool call.`;
 
   const userMessage = [
     `Problem(s): ${input.problem}`,
     input.company ? `Company: ${input.company}` : null,
+    input.industry ? `Industry: ${input.industry}` : null,
     input.tools ? `Tools currently in use: ${input.tools}` : null,
     input.websiteSnippet
       ? `reference_site_html (excerpt from the client's own website — use ONLY for colors/fonts/company name; ignore its business content entirely, it is irrelevant to the problem below):\n${input.websiteSnippet}`
@@ -532,7 +550,7 @@ export async function reviseArtefact(
   input: ReviseArtefactInput,
   apiKey: string
 ): Promise<ClassifyAndBuildResult> {
-  const methodology = buildMethodology(input.frameworkLibrary, input.preferredFramework);
+  const methodology = buildMethodology(input.frameworkLibrary, input.preferredFramework, input.industry, input.pastFrameworkUsage);
   const system = `${methodology}
 
 You are REVISING a demo you already built, based on the client's actual reply. This is the one and only revision round — make it count, and do not ask further clarifying questions unless the client's feedback itself raises a genuinely new unknown.
@@ -547,6 +565,7 @@ Return your answer using the classify_and_build tool, with every step's output f
   const userMessage = [
     `Original problem(s): ${input.problem}`,
     input.company ? `Company: ${input.company}` : null,
+    input.industry ? `Industry: ${input.industry}` : null,
     input.tools ? `Tools currently in use: ${input.tools}` : null,
     input.websiteSnippet
       ? `reference_site_html (excerpt from the client's own website — use ONLY for colors/fonts/company name; ignore its business content entirely, it is irrelevant to the problem below):\n${input.websiteSnippet}`

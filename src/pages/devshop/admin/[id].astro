@@ -62,6 +62,7 @@ const amcDecision = row.amc_pricing_decision;
 
     <div class="meta">
       <div><span>Company</span>{row.company || '—'}</div>
+      <div><span>Industry</span>{row.industry || '—'}</div>
       <div><span>Website</span>{row.website || '—'}</div>
       <div><span>Tools in use</span>{row.tools || '—'}</div>
       <div><span>Reply-to</span>{row.email}</div>
@@ -310,7 +311,7 @@ const amcDecision = row.amc_pricing_decision;
 
             <div class="amc-form">
               <div class="panel-row">
-                <input id="amcDomain" type="text" placeholder='Domain (e.g. "e-commerce")' value={amcProfile?.domain || ''} />
+                <input id="amcDomain" type="text" placeholder='Domain (e.g. "e-commerce")' value={amcProfile?.domain || row.industry || ''} />
                 <select id="amcMechanism">
                   {MECHANISM_TYPES.map((m) => <option value={m} selected={amcProfile?.mechanism_type === m}>{m.replace(/_/g, ' ')}</option>)}
                 </select>
