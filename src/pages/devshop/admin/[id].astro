@@ -4,6 +4,7 @@ export const prerender = false;
 
 import { getDb, PIPELINE_STAGES } from '../../../lib/db';
 import { getEnv } from '../../../lib/env';
+import { FIT_DIMENSIONS } from '../../../lib/llm';
 
 const env = getEnv();
 const { id } = Astro.params;
@@ -113,6 +114,39 @@ const trackerVisible = ['interested', 'scoping_scheduled', 'scoping_complete', '
                   ))}
                 </ul>
               </div>
+            )}
+            {f.fitCandidates && f.fitCandidates.length > 0 && (
+              <details class="fit-scores">
+                <summary>Internal fit scoring ({f.fitCandidates.length} candidate{f.fitCandidates.length > 1 ? 's' : ''}, admin-only)</summary>
+                <table class="fit-table">
+                  <thead>
+                    <tr>
+                      <th>Candidate</th>
+                      {FIT_DIMENSIONS.map((d) => <th class="fit-dim-head">{d.replace(/_/g, ' ')}</th>)}
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {f.fitCandidates.map((c) => (
+                      <tr class={c.is_selected ? 'fit-row-selected' : ''}>
+                        <td>{c.framework_name}{c.is_selected && <span class="fw-flag" style="margin-left:6px;">selected</span>}</td>
+                        {FIT_DIMENSIONS.map((d) => {
+                          const entry = c.dimension_scores.find((s) => s.dimension === d);
+                          return <td class="fit-score-cell">{entry ? entry.score : '—'}</td>;
+                        })}
+                        <td><strong>{c.total_score}</strong></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {f.fitCandidates.map((c) => (
+                  <p class="fit-evidence">
+                    <strong>{c.framework_name}</strong> —
+                    <span class="note-label">For</span>{c.positive_evidence}
+                    <span class="note-label">Against</span>{c.negative_evidence}
+                  </p>
+                ))}
+              </details>
             )}
           </div>
         ))}
@@ -405,6 +439,16 @@ const trackerVisible = ['interested', 'scoping_scheduled', 'scoping_complete', '
   .confidence-insufficient_evidence, .validation-block { background: rgba(166,106,98,0.18); color: #d99a92; }
   .runner-ups { margin-top: 10px; }
   .runner-up-list { margin-top: 4px; }
+  .fit-scores { margin-top: 12px; }
+  .fit-scores summary { cursor: pointer; font-size: 12px; color: #85837e; text-transform: uppercase; letter-spacing: 0.04em; }
+  .fit-table { margin-top: 8px; border-collapse: collapse; font-size: 12px; width: 100%; }
+  .fit-table th, .fit-table td { padding: 4px 8px; border: 1px solid #33312b; text-align: center; }
+  .fit-table th:first-child, .fit-table td:first-child { text-align: left; }
+  .fit-dim-head { font-weight: 400; color: #85837e; font-size: 10.5px; }
+  .fit-row-selected { background: rgba(212,175,55,0.08); }
+  .fit-score-cell { color: #b7b5af; }
+  .fit-evidence { font-size: 12.5px; color: #b7b5af; margin: 8px 0 0; }
+  .fit-evidence .note-label { min-width: auto; margin: 0 6px 0 10px; }
   .note-label { display: inline-block; min-width: 160px; color: #625f59; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; vertical-align: top; }
   .sections-list { margin: 8px 0 0; padding-left: 18px; color: #b7b5af; }
   .bullets { margin: 0; padding-left: 18px; color: #b7b5af; }

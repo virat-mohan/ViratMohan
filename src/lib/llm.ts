@@ -52,6 +52,36 @@ export type SolutionValidation = {
 // factual detail (source, description, link) is resolved from OUR curated
 // data afterward (see resolveFrameworkSelections), never trusted from the
 // model's own citation text. This is what makes the links safe to show.
+// Internal, admin-only scoring — never shown to the customer. Lets the
+// system substantiate "why framework A over framework B" with more than a
+// prose sentence, and surfaces genuine mismatches (negative evidence) rather
+// than only ever justifying the pick that was already made.
+export const FIT_DIMENSIONS = [
+  'problem_pattern_fit',
+  'root_cause_fit',
+  'business_function_fit',
+  'evidence_sufficiency',
+  'intervention_compatibility',
+  'pnl_relevance',
+  'framework_specificity',
+  'contraindication_risk', // 5 = no contraindication, 0 = actively risky/mismatched — same "higher is better" direction as every other dimension
+] as const;
+export type FitDimension = (typeof FIT_DIMENSIONS)[number];
+
+export type FrameworkFitScore = {
+  dimension: FitDimension;
+  score: number; // 0-5, 5 = excellent fit on this dimension
+};
+
+export type FrameworkFitCandidate = {
+  framework_name: string;
+  is_selected: boolean;
+  dimension_scores: FrameworkFitScore[];
+  total_score: number; // sum of dimension_scores, 0-40
+  positive_evidence: string; // concrete reasons this framework fits
+  negative_evidence: string; // concrete reasons it doesn't, or "none material" — a candidate with no negative_evidence at all is suspect
+};
+
 export type RawFrameworkSelection = {
   problem_index: number;
   framework_name: string;
@@ -59,6 +89,7 @@ export type RawFrameworkSelection = {
   in_library: boolean; // false = model is suggesting something real but not yet in the curated set
   suggested_source?: string; // only used when in_library is false — the model's own citation, unverified
   runner_up_names: string[]; // 3-7 other library framework names genuinely considered for this problem
+  fit_candidates: FrameworkFitCandidate[]; // scored: the selected framework + each runner-up
 };
 
 export type ResolvedFrameworkRef = {
@@ -76,6 +107,7 @@ export type FrameworkSelection = {
   why_selected: string;
   in_library: boolean;
   runner_ups: ResolvedFrameworkRef[];
+  fitCandidates: FrameworkFitCandidate[];
 };
 
 export type SolutionMechanism = {
@@ -153,6 +185,7 @@ Rules for this step:
 - If nothing in the library fits the root cause well, you MAY name a different framework — but ONLY if it is real, globally documented, and has a genuine track record at scale (originated or popularized by a recognized authority: McKinsey, BCG, Bain, Korn Ferry, Gartner, Deloitte, a named academic/practitioner, a standards body, etc.). Set in_library: false and fill suggested_source with the citation. Never invent a framework name, never misattribute a real framework to the wrong originator.
 - If truly no established framework applies, say so plainly (framework_name: "No established framework directly applies", explain why in why_selected) rather than force-fitting one for the sake of citing something.
 - why_selected must explain both why this fits THIS root cause specifically, and briefly what makes it a proven, world-class choice (scale of adoption, who relies on it) — this is the credibility moment, make it substantive, not decorative.
+- Internally score EVERY candidate you named (the selected framework AND each runner-up) as a fit_candidates entry, across these 8 dimensions, each 0-5 where 5 is an excellent fit and 0 is a poor one: problem_pattern_fit (does the general shape of this problem match what the framework was designed for), root_cause_fit (does it address THIS specific root cause, not just the general topic), business_function_fit (does it fit the function from Step 1a), evidence_sufficiency (is there enough evidence in the diagnosis to apply this framework with confidence), intervention_compatibility (does the mechanism you're about to design in Step 4 actually fit how this framework is normally operationalized), pnl_relevance (does applying this framework plausibly move the P&L line you'll name in Step 3), framework_specificity (does the framework have real structural vocabulary/steps to apply here, vs. being generic enough to fit anything), contraindication_risk (5 = no reason this framework would mislead or mismatch here, 0 = there's a genuine reason it's the wrong lens). This is an honest internal audit, not a rubber stamp for whichever framework you already picked — a runner-up can legitimately score close to or above the selected framework on some dimensions; state that plainly in positive_evidence/negative_evidence rather than always making the winner look strictly best. For each candidate, give positive_evidence (concrete reasons it fits) and negative_evidence (concrete reasons it doesn't — write "none material" only if genuinely true, not as a default).
 
 STEP 3 — Map to the P&L. This is a drill-down, not a jump: business function (from Step 1a) → the SPECIFIC P&L line item that function's activity actually moves (e.g. Growth owning a problem usually moves a revenue line or CAC within sales & marketing spend; Efficiency/Operations usually moves a COGS or opex line; Legal/Compliance usually moves risk-provision or overhead cost; HR usually moves labor cost or attrition-driven cost; Tech usually moves either a cost line (infra/eng time) or unblocks a revenue line) → THEN classify against exactly one of these fixed levers:
    Revenue levers: ${PNL_LEVERS.revenue.join(', ')}
@@ -262,8 +295,48 @@ const CLASSIFY_TOOL = {
               description: '3-7 OTHER framework names from the provided library that were genuinely considered for this problem — exact names, for lookup. Empty if the library has too few relevant entries.',
               items: { type: 'string' },
             },
+            fit_candidates: {
+              type: 'array',
+              description:
+                'Internal scoring, never shown to the customer — one entry for the selected framework and one for each runner-up. An honest audit, not a justification for whichever one was picked.',
+              items: {
+                type: 'object',
+                properties: {
+                  framework_name: { type: 'string', description: 'Exact name, matching framework_name or one of runner_up_names.' },
+                  is_selected: { type: 'boolean' },
+                  dimension_scores: {
+                    type: 'array',
+                    description: 'Exactly 8 entries, one per fixed dimension.',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        dimension: {
+                          type: 'string',
+                          enum: [
+                            'problem_pattern_fit',
+                            'root_cause_fit',
+                            'business_function_fit',
+                            'evidence_sufficiency',
+                            'intervention_compatibility',
+                            'pnl_relevance',
+                            'framework_specificity',
+                            'contraindication_risk',
+                          ],
+                        },
+                        score: { type: 'integer', description: '0-5, 5 = excellent fit on this dimension.' },
+                      },
+                      required: ['dimension', 'score'],
+                    },
+                  },
+                  total_score: { type: 'integer', description: 'Sum of the 8 dimension scores, 0-40.' },
+                  positive_evidence: { type: 'string', description: 'Concrete reasons this framework fits. ≤ 30 words.' },
+                  negative_evidence: { type: 'string', description: 'Concrete reasons it does not, or "none material" if genuinely true. ≤ 30 words.' },
+                },
+                required: ['framework_name', 'is_selected', 'dimension_scores', 'total_score', 'positive_evidence', 'negative_evidence'],
+              },
+            },
           },
-          required: ['problem_index', 'framework_name', 'why_selected', 'in_library', 'runner_up_names'],
+          required: ['problem_index', 'framework_name', 'why_selected', 'in_library', 'runner_up_names', 'fit_candidates'],
         },
       },
       levers: {
@@ -519,6 +592,7 @@ export function resolveFrameworkSelections(
       why_selected: r.why_selected,
       in_library: !!matched,
       runner_ups: runnerUps,
+      fitCandidates: r.fit_candidates ?? [],
     };
   });
 }
