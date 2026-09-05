@@ -58,6 +58,18 @@ const companySlug = (row.company || 'yourcompany').toLowerCase().replace(/[^a-z0
 const browserUrlLabel = row.website
   ? row.website.replace(/^https?:\/\//i, '').replace(/\/$/, '')
   : `app.${companySlug || 'yourcompany'}.com`;
+
+const preparedDate = new Date(row.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
+
+// Numbered section eyebrows (01, 02, 03…), consulting-report style —
+// incremented in document order as each section actually renders, so a
+// skipped section (e.g. no clarifying questions) just isn't counted rather
+// than leaving a visible gap.
+let sectionCounter = 0;
+function nextSectionNum() {
+  sectionCounter += 1;
+  return String(sectionCounter).padStart(2, '0');
+}
 ---
 
 <!doctype html>
@@ -77,16 +89,24 @@ const browserUrlLabel = row.website
 <body>
 
   <main class="brief">
-    <div class="eyebrow">SOLUTION BRIEF{row.company ? ` — ${row.company}` : ''}</div>
+    <div class="doc-header">
+      <div class="eyebrow">SOLUTION BRIEF</div>
+      <h1>What we heard, and what we're proposing.</h1>
+      <div class="doc-meta">
+        <div class="doc-meta-row"><span class="doc-meta-label">Prepared for</span>{row.company || row.email}</div>
+        <div class="doc-meta-row"><span class="doc-meta-label">Date</span>{preparedDate}</div>
+        <div class="doc-meta-row"><span class="doc-meta-label">Status</span>Confidential — one revision round, then a 30-day build</div>
+      </div>
+    </div>
+
     <blockquote class="submitted-problem">
       <span class="submitted-label">What you told us</span>
       {row.problem}
     </blockquote>
-    <h1>What we heard, and what we're proposing.</h1>
 
     {notes && notes.problemBreakdown.length > 0 && (
       <section class="block">
-        <h2>The problem{notes.problemBreakdown.length > 1 ? 's' : ''}</h2>
+        <div class="section-head"><span class="section-num">{nextSectionNum()}</span><h2>The problem{notes.problemBreakdown.length > 1 ? 's' : ''}</h2></div>
         {notes.problemBreakdown.map((p) => (
           <div class="card">
             <p class="card-title">{p.plain_summary || p.problem_statement}</p>
@@ -98,7 +118,7 @@ const browserUrlLabel = row.website
 
     {notes && notes.frameworkSelections.length > 0 && (
       <section class="block framework-block">
-        <h2>Grounded in a proven approach</h2>
+        <div class="section-head"><span class="section-num">{nextSectionNum()}</span><h2>Grounded in a proven approach</h2></div>
         {notes.frameworkSelections.map((f) => (
           <div class="card">
             <p class="card-title">{f.framework_link ? <a href={f.framework_link} target="_blank" style="color:inherit; text-decoration:underline;">{f.framework_name}</a> : f.framework_name}</p>
@@ -111,7 +131,7 @@ const browserUrlLabel = row.website
 
     {frameworkEvaluations.some((e) => e.candidates.length > 1) && (
       <section class="block eval-block">
-        <h2>How we compared approaches</h2>
+        <div class="section-head"><span class="section-num">{nextSectionNum()}</span><h2>How we compared approaches</h2></div>
         <p class="eval-intro">We don't just pick the first framework that sounds relevant — every candidate below was scored on the same 9 points before we chose. Higher is better on every column; the approach we went with isn't always the highest scorer on every single point, but it's the best overall fit.</p>
         {frameworkEvaluations.map((evaln) => evaln.candidates.length > 1 && (
           <div class="eval-table-wrap">
@@ -155,7 +175,7 @@ const browserUrlLabel = row.website
 
     {notes && notes.solutionMechanisms.length > 0 && (
       <section class="block">
-        <h2>What we'd build</h2>
+        <div class="section-head"><span class="section-num">{nextSectionNum()}</span><h2>What we'd build</h2></div>
         {notes.solutionMechanisms.map((m) => (
           <div class="card">
             <p class="card-title">{m.mechanism_name}</p>
@@ -167,7 +187,7 @@ const browserUrlLabel = row.website
 
     {levers.length > 0 && (
       <section class="block">
-        <h2>Expected impact</h2>
+        <div class="section-head"><span class="section-num">{nextSectionNum()}</span><h2>Expected impact</h2></div>
         {levers.map((l) => (
           <div class="impact-card">
             <p class="plain-copy">{l.plain_explanation || l.reasoning}</p>
@@ -193,7 +213,7 @@ const browserUrlLabel = row.website
 
     {notes && notes.clarifyingQuestions.length > 0 && (
       <section class="block questions">
-        <h2>To sharpen these numbers, we'd ask</h2>
+        <div class="section-head"><span class="section-num">{nextSectionNum()}</span><h2>To sharpen these numbers, we'd ask</h2></div>
         <p class="questions-intro">(<em>Assumptions used industry benchmarks where we didn't have your real figures — answer any of these in your reply for the exact number.</em>)</p>
         <ul class="bullets">
           {notes.clarifyingQuestions.map((q) => <li>{q}</li>)}
@@ -274,7 +294,8 @@ const browserUrlLabel = row.website
     )}
   </main>
 
-  <div class="divider"><span>Try it yourself</span></div>
+  <div class="divider"><span>The interactive walkthrough</span></div>
+  <p class="artefact-caption">Press <strong>Run</strong> below to watch the mechanism work end to end, using your own tools.</p>
 
   <div class="browser-chrome">
     <div class="browser-chrome-bar">
@@ -330,84 +351,98 @@ const browserUrlLabel = row.website
 </html>
 
 <style>
-  :root { color-scheme: light; }
-  html, body { margin: 0; background: #fafaf8; }
-  body { font-family: 'Inter', system-ui, sans-serif; color: #24211d; }
+  :root {
+    color-scheme: light;
+    --ink: #1a2438; --ink-soft: #46536b; --muted: #6e7688; --hair: rgba(26,36,56,0.12);
+    --paper: #fbfaf7; --gold: #b8862e; --gold-soft: #fdf6e6;
+  }
+  html, body { margin: 0; background: var(--paper); }
+  body { font-family: 'Inter', system-ui, sans-serif; color: #2a2f3a; }
 
-  .brief { max-width: 720px; margin: 0 auto; padding: 56px 32px 32px; }
-  .eyebrow { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a8378; margin-bottom: 14px; }
-  h1 { font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: clamp(26px, 4vw, 36px); line-height: 1.15; margin: 0 0 32px; max-width: 20ch; }
+  .brief { max-width: 760px; margin: 0 auto; padding: 64px 40px 40px; }
+  .eyebrow { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); font-weight: 600; margin-bottom: 16px; }
+
+  .doc-header { padding-bottom: 28px; margin-bottom: 32px; border-bottom: 3px double var(--hair); }
+  h1 { font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: clamp(28px, 4vw, 38px); line-height: 1.2; margin: 0 0 24px; max-width: 22ch; color: var(--ink); }
+  .doc-meta { display: flex; flex-wrap: wrap; gap: 24px 32px; }
+  .doc-meta-row { font-size: 13px; color: var(--ink-soft); }
+  .doc-meta-label { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 3px; }
 
   .submitted-problem {
-    margin: 0 0 28px; padding: 14px 18px; border-left: 3px solid #c48d2e;
-    background: #fff6ea; font-style: italic; font-size: 15px; line-height: 1.6; color: #4a453e;
+    margin: 0 0 40px; padding: 16px 20px; border-left: 3px solid var(--gold);
+    background: var(--gold-soft); font-style: italic; font-size: 15px; line-height: 1.6; color: #4a453e;
   }
   .submitted-label {
     display: block; font-style: normal; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
-    color: #a67c2e; margin-bottom: 4px;
+    color: var(--gold); margin-bottom: 4px;
   }
-  h2 { font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 17px; margin: 0 0 12px; }
-  .block { margin-bottom: 28px; }
-  .card { padding: 14px 0; border-top: 1px solid rgba(36,33,29,0.1); }
-  .card:first-of-type { border-top: none; }
-  .card-title { font-weight: 600; font-size: 15px; margin: 0 0 4px; }
-  .card-function { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #a67c2e; margin: 0 0 10px; }
-  .card-tag { display: inline-block; color: #8a8378; margin-right: 8px; padding-right: 8px; border-right: 1px solid rgba(36,33,29,0.15); }
 
-  .bullets { margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.55; color: #3a3630; }
+  .section-head { display: flex; align-items: baseline; gap: 12px; margin: 0 0 16px; padding-bottom: 10px; border-bottom: 1px solid var(--hair); }
+  .section-num { font-family: 'Source Serif 4', Georgia, serif; font-size: 13px; font-weight: 600; color: var(--gold); letter-spacing: 0.04em; }
+  h2 { font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 19px; margin: 0; color: var(--ink); }
+  .block { margin-bottom: 36px; }
+  .card { padding: 14px 0; border-top: 1px solid var(--hair); }
+  .card:first-of-type { border-top: none; }
+  .card-title { font-weight: 600; font-size: 15px; margin: 0 0 4px; color: var(--ink); }
+  .card-function { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 0 0 10px; }
+  .card-tag { display: inline-block; color: var(--muted); margin-right: 8px; padding-right: 8px; border-right: 1px solid var(--hair); }
+
+  .bullets { margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.55; color: #3a3f4a; }
   .bullets li { margin-bottom: 4px; }
-  .bullets.flat > li { padding: 10px 0; border-top: 1px solid rgba(36,33,29,0.08); list-style: none; padding-left: 0; margin-left: -18px; }
+  .bullets.flat > li { padding: 10px 0; border-top: 1px solid var(--hair); list-style: none; padding-left: 0; margin-left: -18px; }
   .bullets.flat > li:first-child { border-top: none; }
   .bullets.numbered { padding-left: 20px; }
-  .bullet-label { display: block; font-weight: 600; color: #24211d; font-size: 12px; text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 2px; }
+  .bullet-label { display: block; font-weight: 600; color: var(--ink); font-size: 12px; text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 2px; }
 
-  .questions { background: #fff6ea; border: 1px solid rgba(196,141,46,0.3); border-radius: 8px; padding: 20px 24px; }
-  .framework-block { background: #f5f8f6; border: 1px solid rgba(31,122,92,0.2); border-radius: 8px; padding: 20px 24px; }
-  .framework-block .card { border-top-color: rgba(31,122,92,0.15); }
+  .questions { background: var(--gold-soft); border: 1px solid rgba(184,134,46,0.3); border-radius: 4px; padding: 22px 26px; }
+  .framework-block { background: #f6f7f9; border: 1px solid var(--hair); border-radius: 4px; padding: 22px 26px; }
+  .framework-block .card { border-top-color: var(--hair); }
   .framework-block .card:first-of-type { border-top: none; }
-  .also-considered { font-size: 12.5px; color: #6b6459; margin: 10px 0 0; }
+  .also-considered { font-size: 12.5px; color: var(--muted); margin: 10px 0 0; }
 
-  .eval-block { background: #f5f8f6; border: 1px solid rgba(31,122,92,0.2); border-radius: 8px; padding: 20px 24px; }
-  .eval-intro { font-size: 13.5px; color: #4a453e; line-height: 1.55; margin: 0 0 16px; }
+  .eval-block { background: #f6f7f9; border: 1px solid var(--hair); border-radius: 4px; padding: 22px 26px; }
+  .eval-intro { font-size: 13.5px; color: var(--ink-soft); line-height: 1.55; margin: 0 0 16px; }
   .eval-table-wrap { overflow-x: auto; margin-bottom: 18px; -webkit-overflow-scrolling: touch; }
   .eval-table { border-collapse: collapse; font-size: 12px; width: 100%; min-width: 640px; }
-  .eval-table th, .eval-table td { padding: 8px 10px; border: 1px solid rgba(31,122,92,0.15); text-align: center; }
-  .eval-table th { font-weight: 600; color: #2c5a44; font-size: 11px; cursor: help; background: #f5f8f6; }
+  .eval-table th, .eval-table td { padding: 8px 10px; border: 1px solid var(--hair); text-align: center; }
+  .eval-table th { font-weight: 600; color: var(--ink); font-size: 11px; cursor: help; background: #f6f7f9; }
   .eval-table th:first-child, .eval-table td:first-child { text-align: left; font-weight: 500; }
-  .eval-row-selected { background: rgba(31,122,92,0.08); }
-  .eval-arrow { color: #1f7a5c; font-weight: 700; margin-right: 4px; }
-  .eval-score-cell { color: #4a453e; }
-  .eval-total-cell { font-weight: 600; color: #24211d; }
-  .eval-table th:last-child, .eval-table td:last-child { position: sticky; right: 0; background: #f5f8f6; box-shadow: -6px 0 6px -6px rgba(36,33,29,0.15); }
-  .eval-row-selected td:last-child { background: #eef5f0; }
-  .eval-recommendation { font-size: 13px; color: #1f7a5c; margin: 10px 0 0; padding-left: 2px; }
+  .eval-row-selected { background: var(--gold-soft); }
+  .eval-arrow { color: var(--gold); font-weight: 700; margin-right: 4px; }
+  .eval-score-cell { color: var(--ink-soft); }
+  .eval-total-cell { font-weight: 600; color: var(--ink); }
+  .eval-table th:last-child, .eval-table td:last-child { position: sticky; right: 0; background: #f6f7f9; box-shadow: -6px 0 6px -6px rgba(26,36,56,0.15); }
+  .eval-row-selected td:last-child { background: #f7ecd2; }
+  .eval-recommendation { font-size: 13px; color: var(--gold); margin: 10px 0 0; padding-left: 2px; }
   .eval-recommendation strong { font-weight: 600; }
-  .eval-legend-title { font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 14px; color: #2c5a44; margin: 4px 0 8px; }
-  .eval-legend { margin: 0; padding: 0; list-style: none; font-size: 12px; color: #6b6459; line-height: 1.7; }
-  .eval-legend strong { color: #4a453e; }
-  .questions-intro { font-size: 13px; color: #6b5f4a; margin: 0 0 10px; font-style: italic; }
-  .impact-card { padding: 14px 0; border-top: 1px solid rgba(36,33,29,0.1); }
+  .eval-legend-title { font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 14px; color: var(--ink); margin: 4px 0 8px; }
+  .eval-legend { margin: 0; padding: 0; list-style: none; font-size: 12px; color: var(--muted); line-height: 1.7; }
+  .eval-legend strong { color: var(--ink-soft); }
+  .questions-intro { font-size: 13px; color: #7a6a3e; margin: 0 0 10px; font-style: italic; }
+  .impact-card { padding: 14px 0; border-top: 1px solid var(--hair); }
   .impact-card:first-of-type { border-top: none; }
   .calc-table { border-collapse: collapse; font-size: 13px; margin: 10px 0 0; }
   .calc-table td { padding: 5px 12px 5px 0; }
-  .calc-label { color: #6b6459; }
-  .calc-value { color: #24211d; font-weight: 500; font-family: 'JetBrains Mono', 'SF Mono', monospace; }
-  .calc-result-row td { border-top: 1px solid rgba(36,33,29,0.15); padding-top: 8px; font-weight: 600; }
-  .calc-note { font-size: 12px; color: #8a8378; margin: 8px 0 0; font-style: italic; }
-  .feedback-note { font-size: 13px; color: #6b6459; border-top: 1px solid rgba(36,33,29,0.1); padding-top: 20px; }
-  .plain-copy { font-size: 15px; line-height: 1.6; color: #3a3630; margin: 0; }
+  .calc-label { color: var(--muted); }
+  .calc-value { color: var(--ink); font-weight: 500; font-family: 'JetBrains Mono', 'SF Mono', monospace; }
+  .calc-result-row td { border-top: 1px solid var(--hair); padding-top: 8px; font-weight: 600; }
+  .calc-note { font-size: 12px; color: var(--muted); margin: 8px 0 0; font-style: italic; }
+  .feedback-note { font-size: 13px; color: var(--muted); border-top: 1px solid var(--hair); padding-top: 20px; }
+  .plain-copy { font-size: 15px; line-height: 1.6; color: #3a3f4a; margin: 0; }
 
   .appendix { margin-top: 12px; }
-  .appendix summary { cursor: pointer; font-size: 12.5px; color: #8a8378; text-transform: uppercase; letter-spacing: 0.08em; padding: 16px 0; border-top: 1px solid rgba(36,33,29,0.1); }
+  .appendix summary { cursor: pointer; font-size: 12.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; padding: 16px 0; border-top: 1px solid var(--hair); }
   .appendix-section { margin: 20px 0; }
-  .appendix h3 { font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 14.5px; margin: 0 0 10px; color: #4a453e; }
-  .appendix-card { padding: 10px 0; border-top: 1px solid rgba(36,33,29,0.08); }
+  .appendix h3 { font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 14.5px; margin: 0 0 10px; color: var(--ink-soft); }
+  .appendix-card { padding: 10px 0; border-top: 1px solid var(--hair); }
   .appendix-card:first-of-type { border-top: none; }
-  .appendix-title { font-weight: 600; font-size: 13.5px; margin: 0 0 6px; color: #4a453e; }
+  .appendix-title { font-weight: 600; font-size: 13.5px; margin: 0 0 6px; color: var(--ink-soft); }
 
-  .divider { display: flex; align-items: center; gap: 16px; max-width: 720px; margin: 8px auto 28px; padding: 0 32px; }
-  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: rgba(36,33,29,0.15); }
-  .divider span { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a8378; white-space: nowrap; }
+  .divider { display: flex; align-items: center; gap: 16px; max-width: 760px; margin: 8px auto 28px; padding: 0 40px; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--hair); }
+  .divider span { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+  .artefact-caption { max-width: 760px; margin: 0 auto 20px; padding: 0 40px; font-size: 13px; color: var(--muted); text-align: center; }
+  .artefact-caption strong { color: var(--ink); }
 
   .browser-chrome {
     max-width: 960px; margin: 0 auto 64px; margin-left: 32px; margin-right: 32px;
