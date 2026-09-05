@@ -19,6 +19,7 @@ import { getDb } from '../../../lib/db';
 import { reviseArtefact, fetchWebsiteSnippet, resolveFrameworkSelections } from '../../../lib/llm';
 import { sendEmail } from '../../../lib/email';
 import { getOrigin } from '../../../lib/http';
+import { extractFeedback, escapeHtml, shouldProcessFeedback } from '../../../lib/feedback-parsing';
 
 export const POST: APIRoute = async ({ request }) => {
   const env = getEnv();
@@ -60,7 +61,7 @@ export const POST: APIRoute = async ({ request }) => {
   const row = await db.getById(submissionId);
   if (!row) return new Response('ok (unknown submission)', { status: 200 });
 
-  if (row.status !== 'sent' || row.feedback_round >= 1) {
+  if (!shouldProcessFeedback(row)) {
     // One round of feedback only — per product rule. Let the desk know a
     // second reply came in rather than silently dropping it.
     await sendEmail(
@@ -130,37 +131,3 @@ export const POST: APIRoute = async ({ request }) => {
 
   return new Response('ok', { status: 200 });
 };
-
-function extractFeedback(payload: any): { submissionId: string | null; feedbackText: string | null } {
-  const data = payload?.data ?? payload;
-  const toRaw = data?.to;
-  const toList: string[] = Array.isArray(toRaw) ? toRaw : typeof toRaw === 'string' ? [toRaw] : [];
-
-  let submissionId: string | null = null;
-  for (const addr of toList) {
-    const match = /feedback\+([0-9a-f-]{36})@/i.exec(String(addr));
-    if (match) {
-      submissionId = match[1];
-      break;
-    }
-  }
-
-  const feedbackText: string | null =
-    (typeof data?.text === 'string' && data.text.trim()) ||
-    (typeof data?.html === 'string' && stripHtml(data.html).trim()) ||
-    null;
-
-  return { submissionId, feedbackText };
-}
-
-function stripHtml(html: string): string {
-  return html
-    .replace(/<style[\s\S]*?<\/style>/gi, '')
-    .replace(/<script[\s\S]*?<\/script>/gi, '')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/\s+/g, ' ');
-}
-
-function escapeHtml(s: string) {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
