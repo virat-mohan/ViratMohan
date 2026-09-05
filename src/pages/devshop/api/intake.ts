@@ -7,6 +7,7 @@ import { sendEmail } from '../../../lib/email';
 import { getDb } from '../../../lib/db';
 import { getEnv } from '../../../lib/env';
 import { getOrigin } from '../../../lib/http';
+import { sendDemoDoneEmail } from '../../../lib/demo-email';
 
 export const POST: APIRoute = async ({ request }) => {
   const env = getEnv();
@@ -61,6 +62,7 @@ export const POST: APIRoute = async ({ request }) => {
   // — awaiting here is what makes this reliable regardless of that setting.
   // maxDuration is raised in astro.config.mjs to give this room to run.
   let status: 'demo_ready' | 'failed' = 'demo_ready';
+  let demoUrl: string | null = null;
   try {
     const websiteSnippet = website ? await fetchWebsiteSnippet(website) : null;
     const frameworkLibrary = await db.listActiveFrameworks();
@@ -83,17 +85,36 @@ export const POST: APIRoute = async ({ request }) => {
       result.artefactHtml
     );
 
+    // The demo now sends to the client immediately, no admin approval gate
+    // in between — the client's own browser also redirects straight to it
+    // (see devshop.astro), so both need the same URL at the same moment.
+    // Kept in its own try/catch: a Resend hiccup here must not overwrite a
+    // perfectly good demo_ready row with "failed" — if this fails, the row
+    // simply stays at demo_ready and /devshop/api/approve remains a manual
+    // retry path (its own gate is `status === 'demo_ready'`).
+    try {
+      const row = await db.getById(id);
+      if (row) {
+        const sent = await sendDemoDoneEmail(row, origin, env);
+        await db.markSent(id);
+        demoUrl = sent.demoUrl;
+      }
+    } catch (err) {
+      console.error('intake: auto-send failed, leaving row at demo_ready for manual retry', err);
+      demoUrl = `${origin}/devshop/demo/${id}`;
+    }
+
     waitUntil(
       sendEmail(
         {
           to: env.ADMIN_NOTIFY_EMAIL,
-          subject: `Demo ready for review${company ? ` — ${company}` : ''}`,
+          subject: `Demo sent to client${company ? ` — ${company}` : ''}`,
           html: `<p>The demo for <strong>${escapeHtml(
             company || email
-          )}</strong> is ready.</p><p><a href="${origin}/devshop/admin/${id}">Review and approve →</a></p>`,
+          )}</strong> was generated and sent automatically.</p><p><a href="${origin}/devshop/admin/${id}">View in admin →</a></p>`,
         },
         env
-      ).catch((err) => console.error('intake: demo-ready notify failed', err))
+      ).catch((err) => console.error('intake: demo-sent notify failed', err))
     );
   } catch (err) {
     console.error('intake: classification failed', err);
@@ -101,7 +122,7 @@ export const POST: APIRoute = async ({ request }) => {
     await db.markFailed(id, err instanceof Error ? err.message : String(err)).catch(() => {});
   }
 
-  return json({ id, status }, 201);
+  return json({ id, status, demoUrl }, 201);
 };
 
 function json(data: unknown, status: number) {
