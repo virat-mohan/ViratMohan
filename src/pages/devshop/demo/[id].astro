@@ -357,7 +357,7 @@ function nextSectionNum() {
     {canGiveFeedback && (
       <section class="block feedback-block" id="feedbackSection">
         <div class="section-head"><span class="section-num">{nextSectionNum()}</span><h2>Your feedback</h2></div>
-        <p class="eval-intro">One round, and we build from it — answer what you can below, add anything else that needs to change, then submit. No email needed.</p>
+        <p class="eval-intro">Answer what you can below, add anything else that needs to change, then submit. No email needed.</p>
 
         {notes && notes.clarifyingQuestions.length > 0 && (
           <div class="qa-list">
@@ -672,7 +672,7 @@ function nextSectionNum() {
   .artefact-caption strong { color: var(--gold); }
 
   .browser-chrome {
-    max-width: 1180px; margin: 0 auto 72px; margin-left: 24px; margin-right: 24px;
+    width: min(1180px, calc(100% - 48px)); margin: 0 auto 72px;
     border-radius: 14px; overflow: hidden; background: #e8e6e0;
     border: 2px solid var(--gold); box-shadow: 0 32px 72px -24px rgba(26,36,56,0.35), 0 0 0 6px var(--gold-soft);
   }
@@ -690,10 +690,6 @@ function nextSectionNum() {
   .chrome-address-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .artefact-embed { background: #fff; }
   .artefact-embed iframe { width: 100%; border: 0; display: block; min-height: 560px; }
-
-  @media (max-width: 1240px) {
-    .browser-chrome { margin-left: 24px; margin-right: 24px; }
-  }
 
   .next-steps { padding-top: 48px; }
 
@@ -753,7 +749,7 @@ function nextSectionNum() {
 
   @media (max-width: 640px) {
     .brief { padding: 36px 20px 24px; }
-    .browser-chrome { margin-left: 20px; margin-right: 20px; }
+    .browser-chrome { width: min(1180px, calc(100% - 40px)); }
     .pricing-grid { grid-template-columns: 1fr; }
     .timeline { flex-direction: column; gap: 14px; align-items: flex-start; }
     .timeline-step { padding-left: 22px; padding-top: 0; text-align: left; min-width: 0; }
