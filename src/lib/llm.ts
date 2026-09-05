@@ -26,6 +26,7 @@ export type AgentLibraryEntry = {
   description: string;
   typical_trigger: string;
   typical_output: string;
+  applicable_business_functions: string[];
 };
 
 export type ClassifyAndBuildInput = {
@@ -260,7 +261,12 @@ function buildMethodology(
   const agentLibraryText =
     agentLibrary.length > 0
       ? agentLibrary
-          .map((a) => `- ${a.name} [${a.capability_category}] — ${a.description} Triggers on: ${a.typical_trigger} Outputs: ${a.typical_output}`)
+          .map(
+            (a) =>
+              `- ${a.name} [${a.capability_category}] (typically used in: ${
+                a.applicable_business_functions.length > 0 ? a.applicable_business_functions.join(', ') : 'any function'
+              }) — ${a.description} Triggers on: ${a.typical_trigger} Outputs: ${a.typical_output}`
+          )
           .join('\n')
       : '(agent library is currently empty)';
 

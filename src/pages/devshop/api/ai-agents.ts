@@ -13,6 +13,7 @@ type Body =
       description: string;
       typical_trigger: string;
       typical_output: string;
+      applicable_business_functions?: string[];
     }
   | { action: 'setActive'; id: string; active: boolean };
 
@@ -33,6 +34,7 @@ export const POST: APIRoute = async ({ request }) => {
         description: body.description.trim(),
         typical_trigger: body.typical_trigger.trim(),
         typical_output: body.typical_output.trim(),
+        applicable_business_functions: body.applicable_business_functions ?? [],
       });
     } else if (body.action === 'setActive') {
       await db.setAiAgentActive(body.id, body.active);

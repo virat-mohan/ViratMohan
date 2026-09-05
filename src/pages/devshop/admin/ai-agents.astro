@@ -39,6 +39,7 @@ const agents = await getDb(env)
         <input id="agTrigger" type="text" placeholder="Typical trigger — what kicks it off" />
         <input id="agOutput" type="text" placeholder="Typical output — what it hands to the next step" />
       </div>
+      <input id="agFunctions" type="text" placeholder="Business functions, comma-separated (e.g. Finance, Efficiency / Operations)" />
       <button id="addBtn" class="btn-small">Add to library</button>
       <p class="hint" id="addHint" hidden></p>
     </div>
@@ -51,6 +52,7 @@ const agents = await getDb(env)
           <th data-sort-type="text" data-no-sort="true">Description</th>
           <th data-sort-type="text" data-no-sort="true">Trigger</th>
           <th data-sort-type="text" data-no-sort="true">Output</th>
+          <th data-sort-type="text" data-no-sort="true">Business functions</th>
           <th data-sort-type="text">Active</th>
           <th data-no-sort="true"></th>
         </tr>
@@ -63,6 +65,9 @@ const agents = await getDb(env)
             <td class="when">{a.description}</td>
             <td class="when">{a.typical_trigger}</td>
             <td class="when">{a.typical_output}</td>
+            <td class="when">
+              {(a.applicable_business_functions ?? []).map((f) => <span class="fn-pill">{f}</span>)}
+            </td>
             <td>{a.active ? 'Yes' : 'No'}</td>
             <td>
               <button class="toggle-btn" data-id={a.id} data-active={String(!a.active)}>
@@ -71,7 +76,7 @@ const agents = await getDb(env)
             </td>
           </tr>
         ))}
-        {agents.length === 0 && <tr><td colspan="7">No agents yet — run migrations/0015_ai_agents.sql for the seed set of 10.</td></tr>}
+        {agents.length === 0 && <tr><td colspan="8">No agents yet — run migrations/0015_ai_agents.sql for the seed set of 10.</td></tr>}
       </tbody>
     </table>
   </main>
@@ -85,6 +90,11 @@ const agents = await getDb(env)
       const description = document.getElementById('agDescription').value.trim();
       const typical_trigger = document.getElementById('agTrigger').value.trim();
       const typical_output = document.getElementById('agOutput').value.trim();
+      const applicable_business_functions = document
+        .getElementById('agFunctions')
+        .value.split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
       if (!name || !description) {
         addHint.textContent = 'Fill in name and description.';
         addHint.hidden = false;
@@ -95,7 +105,7 @@ const agents = await getDb(env)
         const res = await fetch('/devshop/api/ai-agents', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ action: 'add', name, capability_category, description, typical_trigger, typical_output }),
+          body: JSON.stringify({ action: 'add', name, capability_category, description, typical_trigger, typical_output, applicable_business_functions }),
         });
         if (!res.ok) throw new Error(await res.text());
         location.reload();
@@ -175,4 +185,5 @@ const agents = await getDb(env)
   td.when { color: #b7b5af; max-width: 220px; }
   tr.inactive { opacity: 0.45; }
   .toggle-btn { font-size: 11.5px; padding: 6px 10px; border: 1px solid rgba(245,245,240,0.25); color: #b7b5af; background: none; cursor: pointer; border-radius: 3px; }
+  .fn-pill { display: inline-block; font-size: 10.5px; padding: 3px 8px; margin: 0 4px 4px 0; border: 1px solid rgba(212,175,55,0.35); color: #d4af37; border-radius: 20px; white-space: nowrap; }
 </style>

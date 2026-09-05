@@ -36,6 +36,7 @@ export type AiAgent = {
   description: string;
   typical_trigger: string;
   typical_output: string;
+  applicable_business_functions: string[];
   active: boolean;
   created_at: string;
 };
@@ -387,13 +388,13 @@ export function getDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: st
     async listActiveAiAgents(): Promise<AiAgent[]> {
       const { data, error } = await supabase.from('ai_agents').select('*').eq('active', true).order('capability_category');
       if (error) throw new Error(`supabase ai_agents list failed: ${error.message}`);
-      return (data ?? []) as AiAgent[];
+      return ((data ?? []) as AiAgent[]).map((a) => ({ ...a, applicable_business_functions: a.applicable_business_functions ?? [] }));
     },
 
     async listAllAiAgents(): Promise<AiAgent[]> {
       const { data, error } = await supabase.from('ai_agents').select('*').order('created_at', { ascending: false });
       if (error) throw new Error(`supabase ai_agents list-all failed: ${error.message}`);
-      return (data ?? []) as AiAgent[];
+      return ((data ?? []) as AiAgent[]).map((a) => ({ ...a, applicable_business_functions: a.applicable_business_functions ?? [] }));
     },
 
     async addAiAgent(agent: {
@@ -402,6 +403,7 @@ export function getDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: st
       description: string;
       typical_trigger: string;
       typical_output: string;
+      applicable_business_functions: string[];
     }) {
       const { error } = await supabase.from('ai_agents').insert(agent);
       if (error) throw new Error(`supabase ai_agents insert failed: ${error.message}`);
