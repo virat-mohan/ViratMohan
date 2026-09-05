@@ -195,7 +195,19 @@ const implementationEstimate = row.implementation_estimate;
           <div class="note-card">
             <p class="note-title">{m.mechanism_name}</p>
             <ol class="bullets numbered">
-              {m.how_it_works_steps.map((step) => <li>{step}</li>)}
+              {m.how_it_works_steps.map((step, i) => {
+                const agent = m.agentSequence?.find((a) => a.step_index === i);
+                return (
+                  <li>
+                    {step}
+                    {agent && (
+                      <span class={`fw-flag agent-tag ${agent.in_library ? '' : 'agent-tag--unverified'}`} title={agent.description || ''}>
+                        {agent.agent_name}{!agent.in_library && ' (suggested — review)'}
+                      </span>
+                    )}
+                  </li>
+                );
+              })}
             </ol>
             <p><span class="note-label">Trigger / data source</span>{m.trigger_or_data_source}</p>
             <p><span class="note-label">Why not generic</span>{m.why_not_generic}</p>
@@ -742,6 +754,8 @@ const implementationEstimate = row.implementation_estimate;
   .note-title { font-size: 15px; margin-bottom: 6px !important; }
   .fw-source { font-size: 12.5px; color: #85837e; font-weight: 400; }
   .fw-flag { display: inline-block; margin-left: 10px; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; color: #a66a62; border: 1px solid rgba(166,106,98,0.4); padding: 2px 7px; border-radius: 10px; }
+  .agent-tag { color: #85837e; border-color: rgba(133,131,126,0.4); text-transform: none; letter-spacing: 0; cursor: help; }
+  .agent-tag--unverified { color: #a66a62; border-color: rgba(166,106,98,0.4); }
 
   .validation-banner { margin: 14px 0 0; padding: 12px 16px; border-radius: 4px; font-size: 13px; }
   .banner-pass { background: rgba(113,138,120,0.12); border: 1px solid rgba(113,138,120,0.35); color: #b7cbb9; }

@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import type { PnlLeverHit } from './pnl-levers';
-import type { ProblemBreakdown, SolutionMechanism, ArtefactPlan, FrameworkSelection, SolutionValidation, ArtefactValidation, ClarifyingQuestion } from './llm';
+import type { ProblemBreakdown, ResolvedSolutionMechanism, ArtefactPlan, FrameworkSelection, SolutionValidation, ArtefactValidation, ClarifyingQuestion } from './llm';
 import type { AmcRateBenchmark, AmcSolutionProfile, AmcResourceEstimate, AmcPricingRecommendation, ResourceCategory } from './amc';
 import type { ImplementationEstimate } from './implementation';
 import { summarizeFrameworkUsage, type PastFrameworkUsage } from './industry';
@@ -15,7 +15,7 @@ export type AmcPricingDecision = {
 export type SolutionNotes = {
   problemBreakdown: ProblemBreakdown[];
   frameworkSelections: FrameworkSelection[];
-  solutionMechanisms: SolutionMechanism[];
+  solutionMechanisms: ResolvedSolutionMechanism[];
   validations: SolutionValidation[];
   artefactValidations: ArtefactValidation[];
   artefactPlan: ArtefactPlan;
@@ -24,6 +24,22 @@ export type SolutionNotes = {
 
 // Admin-curated framework library — the solutioning engine may only cite
 // frameworks that are `active` here. Reviewed/expanded at
+// Curated AI agent library — same anti-hallucination pattern as
+// Framework: the mechanism (Step 4) may only cite an agent that's active
+// here, resolved from curated data afterward, so the vocabulary stays
+// consistent across every different app build rather than a fresh ad hoc
+// agent name every time.
+export type AiAgent = {
+  id: string;
+  name: string;
+  capability_category: string;
+  description: string;
+  typical_trigger: string;
+  typical_output: string;
+  active: boolean;
+  created_at: string;
+};
+
 // /devshop/admin/frameworks, never invented by the model itself.
 export type Framework = {
   id: string;
@@ -365,6 +381,35 @@ export function getDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: st
     async setFrameworkActive(id: string, active: boolean) {
       const { error } = await supabase.from('frameworks').update({ active }).eq('id', id);
       if (error) throw new Error(`supabase framework update failed: ${error.message}`);
+    },
+
+    // Curated AI agent library — mirrors the framework library's methods.
+    async listActiveAiAgents(): Promise<AiAgent[]> {
+      const { data, error } = await supabase.from('ai_agents').select('*').eq('active', true).order('capability_category');
+      if (error) throw new Error(`supabase ai_agents list failed: ${error.message}`);
+      return (data ?? []) as AiAgent[];
+    },
+
+    async listAllAiAgents(): Promise<AiAgent[]> {
+      const { data, error } = await supabase.from('ai_agents').select('*').order('created_at', { ascending: false });
+      if (error) throw new Error(`supabase ai_agents list-all failed: ${error.message}`);
+      return (data ?? []) as AiAgent[];
+    },
+
+    async addAiAgent(agent: {
+      name: string;
+      capability_category: string;
+      description: string;
+      typical_trigger: string;
+      typical_output: string;
+    }) {
+      const { error } = await supabase.from('ai_agents').insert(agent);
+      if (error) throw new Error(`supabase ai_agents insert failed: ${error.message}`);
+    },
+
+    async setAiAgentActive(id: string, active: boolean) {
+      const { error } = await supabase.from('ai_agents').update({ active }).eq('id', id);
+      if (error) throw new Error(`supabase ai_agents update failed: ${error.message}`);
     },
 
     // AMC rate benchmarks (4b) — admin-curated, source-cited market rates.

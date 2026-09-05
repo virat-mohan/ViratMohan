@@ -2,7 +2,7 @@ export const prerender = false;
 
 import type { APIRoute } from 'astro';
 import { waitUntil } from '@vercel/functions';
-import { classifyAndBuild, fetchWebsiteSnippet, resolveFrameworkSelections } from '../../../lib/llm';
+import { classifyAndBuild, fetchWebsiteSnippet, resolveFrameworkSelections, resolveAgentSequence } from '../../../lib/llm';
 import { sendEmail } from '../../../lib/email';
 import { getDb } from '../../../lib/db';
 import { getEnv } from '../../../lib/env';
@@ -75,9 +75,10 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     const websiteSnippet = website ? await fetchWebsiteSnippet(website) : null;
     const frameworkLibrary = await db.listActiveFrameworks();
+    const agentLibrary = await db.listActiveAiAgents();
     const pastFrameworkUsage = industry ? await db.listPastFrameworkUsageByIndustry(industry) : [];
     const result = await classifyAndBuild(
-      { problem, company, industry, tools, websiteSnippet, frameworkLibrary, preferredFramework, pastFrameworkUsage },
+      { problem, company, industry, tools, websiteSnippet, frameworkLibrary, agentLibrary, preferredFramework, pastFrameworkUsage },
       env.ANTHROPIC_API_KEY
     );
     await db.recordGeneration({
@@ -97,7 +98,10 @@ export const POST: APIRoute = async ({ request }) => {
       {
         problemBreakdown: result.problemBreakdown,
         frameworkSelections: resolveFrameworkSelections(result.frameworkSelections, frameworkLibrary),
-        solutionMechanisms: result.solutionMechanisms,
+        solutionMechanisms: result.solutionMechanisms.map(({ agent_sequence, ...m }) => ({
+          ...m,
+          agentSequence: resolveAgentSequence(agent_sequence, agentLibrary),
+        })),
         validations: result.validations,
         artefactValidations: result.artefactValidations,
         artefactPlan: result.artefactPlan,

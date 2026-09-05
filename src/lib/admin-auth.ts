@@ -8,6 +8,7 @@ export const PROTECTED_PREFIXES = [
   '/devshop/api/amc-proposal',
   '/devshop/api/amc-decision',
   '/devshop/api/review-action',
+  '/devshop/api/ai-agents',
 ];
 
 export function isProtectedPath(pathname: string): boolean {

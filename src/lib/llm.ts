@@ -20,6 +20,14 @@ export type FrameworkLibraryEntry = {
   link?: string | null;
 };
 
+export type AgentLibraryEntry = {
+  name: string;
+  capability_category: string;
+  description: string;
+  typical_trigger: string;
+  typical_output: string;
+};
+
 export type ClassifyAndBuildInput = {
   problem: string; // may describe more than one distinct problem
   company: string | null;
@@ -27,6 +35,7 @@ export type ClassifyAndBuildInput = {
   tools: string | null;
   websiteSnippet: string | null; // best-effort HTML excerpt from the client's site, for brand cues
   frameworkLibrary: FrameworkLibraryEntry[]; // admin-curated — preferred set the model should draw from
+  agentLibrary: AgentLibraryEntry[]; // admin-curated, fixed vocabulary of reusable agent roles — same anti-hallucination pattern as frameworkLibrary
   preferredFramework: string | null; // client named a specific framework/approach themselves — overrides library selection
   pastFrameworkUsage: PastFrameworkUsage[]; // internal: how frameworks have actually been applied before for this industry within FTDS — a frequency signal, not a success rate (see src/lib/industry.ts)
 };
@@ -141,10 +150,29 @@ export type FrameworkSelection = {
   fitCandidates: FrameworkFitCandidate[];
 };
 
+// One entry per how_it_works_steps index — which curated agent powers that
+// step. Same anti-hallucination pattern as framework citation: the model
+// only ever names an agent, resolved from curated data afterward.
+export type RawAgentStep = {
+  step_index: number; // matches the index into how_it_works_steps
+  agent_name: string;
+  in_library: boolean;
+  suggested_description?: string; // only when in_library is false — model's own claim, unverified
+};
+
+export type ResolvedAgentStep = {
+  step_index: number;
+  agent_name: string;
+  capability_category: string | null;
+  description: string | null;
+  in_library: boolean;
+};
+
 export type SolutionMechanism = {
   problem_index: number;
   mechanism_name: string;
   how_it_works_steps: string[];
+  agent_sequence: RawAgentStep[]; // resolve with resolveAgentSequence() before persisting — one entry per how_it_works_steps index
   plain_explanation: string; // one or two everyday sentences: what the tool actually does for the customer, no jargon
   trigger_or_data_source: string;
   why_not_generic: string;
@@ -217,6 +245,7 @@ export type GenerationMeta = {
 // compressed into one pass.
 function buildMethodology(
   frameworkLibrary: FrameworkLibraryEntry[],
+  agentLibrary: AgentLibraryEntry[],
   preferredFramework: string | null,
   industry: string | null,
   pastFrameworkUsage: PastFrameworkUsage[]
@@ -227,6 +256,13 @@ function buildMethodology(
           .map((f) => `- ${f.name} (${f.source}) — ${f.business_function} — use when: ${f.when_to_use}`)
           .join('\n')
       : '(library is currently empty)';
+
+  const agentLibraryText =
+    agentLibrary.length > 0
+      ? agentLibrary
+          .map((a) => `- ${a.name} [${a.capability_category}] — ${a.description} Triggers on: ${a.typical_trigger} Outputs: ${a.typical_output}`)
+          .join('\n')
+      : '(agent library is currently empty)';
 
   const pastUsageText =
     industry && pastFrameworkUsage.length > 0
@@ -289,6 +325,17 @@ Then build the "calculation" field — a simple 2-4 row hypothesis table making 
 
 STEP 4 — Design the mechanism. For each problem, design the SPECIFIC mechanism that would actually fix the root cause from Step 1, SHAPED by the framework selected in Step 2 — not "an AI agent that helps with X," but the actual workflow: what triggers it, what data or signal it acts on, and what happens step by step. Break "what happens step by step" into 3-6 short, discrete steps (how_it_works_steps) — each one a single concrete action, ≤ 15 words, written so it could be a bullet on a slide, not folded into one paragraph. Also state, in one sentence, why this mechanism and not a generic dashboard or chatbot. Ground it in what's realistically buildable with current AI/automation tooling — nothing that requires a research breakthrough. Then write plain_explanation, per the PLAIN-LANGUAGE RULE — one or two everyday sentences on what the tool actually does for the customer day to day, e.g. "When someone starts checking out and stalls, it waits a few minutes, then sends a short reminder with their exact cart — no manual follow-up needed," not a restatement of how_it_works_steps in engineering language.
 
+Then build agent_sequence — for EACH entry in how_it_works_steps, name exactly ONE agent from the fixed agent library below that actually performs that step. This is what keeps the backend vocabulary consistent across every different client build instead of a fresh made-up "agent" name each time.
+
+Curated agent library (draw from here first — name EXACTLY as it appears, verbatim):
+${agentLibraryText}
+
+Rules for this step:
+- One agent_sequence entry per how_it_works_steps index, same order, same length — step_index must match.
+- Name the agent EXACTLY as it appears in the library above. Set in_library: true.
+- If truly nothing in the library fits a step's actual function, you MAY name a new agent role — but only a genuinely distinct functional role (not a rename of an existing one), and only if it's the kind of thing that would recur across other builds too, not a one-off. Set in_library: false and fill suggested_description with what it would do. This is flagged for admin review, the same way an out-of-library framework is — never silently treated as part of the standard catalog.
+- It's completely normal for the same agent to appear more than once across different steps, or across different mechanisms — that repetition is the point; it's what "consistent vocabulary" means.
+
 STEP 5 — Validate the solution so far. A valid schema is NOT evidence the solution is correct — this step is where you check your own work before it goes any further, the same way a second reviewer would. For each problem, produce validation entries covering AT LEAST:
 - root_cause_evidence: does Step 1's confidence_level genuinely match the evidence quality, or did you overstate it? status "block" if a root cause with insufficient_evidence is being treated downstream as if it were solid; "warning" if there's a real but non-fatal gap; "pass" if the confidence level is honest and the mechanism doesn't overreach beyond what's supported.
 - pnl_causal_chain: does the mechanism in Step 4 actually plausibly move the P&L line named in Step 3, or is the causal link hand-wavy? status "block" if the mechanism doesn't clearly connect to the claimed line item; "warning" if the connection is plausible but stretched; "pass" if the causal chain is direct and clear.
@@ -311,6 +358,8 @@ CRITICAL RULE — no bare zeros or blanks: every number shown anywhere in the ar
 CRITICAL RULE — the before/after numbers in the artefact must be the SAME numbers as Step 3's calculation, not independently re-authored: copy the exact before value, after value, and resulting delta from the levers/calculation you already computed in Step 3 directly into the artefact's HTML/JS — never invent a second, different set of numbers when writing the demo, and never let BEFORE and AFTER render as the identical value (a demo where running the mechanism changes nothing is a bug, not a feature). If the artefact uses a live counter/animation that updates the AFTER value when the "Run" sequence completes, that update code must actually assign the real computed after-value at that point — test the logic in your head before finalizing: does the number on screen actually change once the animation finishes? If you can't make it change correctly, show the before/after as a static comparison instead of a broken live counter.
 
 CRITICAL RULE — interactivity depth: do not collapse a multi-step mechanism into "click one button, see one final result," and do NOT make the visitor manually click "next" through each step either — that reads as a slideshow, not a working system. Instead, build a single "▶ Run the mechanism" (or similarly named) play control that, once pressed, AUTOPLAYS through Step 4's how_it_works_steps on its own timer (roughly 900ms-1.8s per step) with no further clicks needed, visually dramatizing what's actually happening at each one: show the specific tool/system from trigger_or_data_source "connecting" (e.g. a small node/badge for the actual tool named — HubSpot, Shopify, Zendesk, whatever the client's own tools were — lighting up or getting a checkmark), an "agent" or process indicator actively "thinking"/"working" (a pulsing dot, a short animated status line like "Checking order status…" → "Matched: Order #4471" → "Reply sent"), and the step's real output appearing as it completes — not a static diagram, an animated sequence that looks like something is genuinely executing. Let the visitor replay it (a "Run again" control after it finishes) rather than only manual step-by-step navigation. A manual click-through control is acceptable ONLY as a secondary/inspect affordance (e.g. pausing to look closer at one step) — the primary, default way to experience the mechanism must be pressing play and watching it run. Every section from artefact_plan should have at least one genuine interaction, not just the headline section.
+
+CRITICAL RULE — agent status bar: the "agent" or process indicator required above must name the ACTUAL agent from Step 4's agent_sequence for whichever step is currently firing — not a generic "AI is thinking" line. Render it as a small, persistent status bar/strip (not just inline text buried in one card) that updates as the run progresses, e.g. "Agent: Data Extraction Agent — reading invoice fields…" then "Agent: Reconciliation/Matching Agent — checking against PO #4471…". Use the agent's exact curated name every time — this is what makes the vocabulary consistent for a reader who sees more than one FTDS build.
 
 CRITICAL RULE — the artefact must visibly run on the selected framework: label sections, stages, or metrics using that framework's OWN vocabulary and structure wherever it has one — e.g. Korn Ferry's actual competency categories, DMAIC's Define/Measure/Analyze/Improve/Control phases, AARRR's actual funnel stage names, a Nine-Box's actual grid — not generic labels like "Step 1, Step 2" or "Phase A." If the client can tell which named framework produced this by reading the artefact itself, you've done this right. If the selected framework has no natural structural vocabulary to borrow, at minimum name-check it visibly in the artefact (e.g. a small "Built on [Framework]" mark) rather than leaving no trace of Step 2's work in the thing the client actually interacts with.
 
@@ -490,11 +539,25 @@ const CLASSIFY_TOOL = {
               description: '3-6 short discrete steps, each ≤ 15 words, each a single concrete action.',
               items: { type: 'string' },
             },
+            agent_sequence: {
+              type: 'array',
+              description: 'One entry per how_it_works_steps index, same order/length — which curated agent performs that step.',
+              items: {
+                type: 'object',
+                properties: {
+                  step_index: { type: 'integer', description: 'Matches the index into how_it_works_steps.' },
+                  agent_name: { type: 'string', description: 'Exact name from the agent library, or a new genuinely-distinct role if in_library is false.' },
+                  in_library: { type: 'boolean' },
+                  suggested_description: { type: 'string', description: 'ONLY set when in_library is false — what this new agent role would do.' },
+                },
+                required: ['step_index', 'agent_name', 'in_library'],
+              },
+            },
             plain_explanation: { type: 'string', description: '≤ 35 words, one or two sentences — what the tool actually does day to day, no engineering language. See the PLAIN-LANGUAGE RULE.' },
             trigger_or_data_source: { type: 'string', description: 'Short phrase.' },
             why_not_generic: { type: 'string', description: 'One sentence, ≤ 25 words.' },
           },
-          required: ['problem_index', 'mechanism_name', 'how_it_works_steps', 'plain_explanation', 'trigger_or_data_source', 'why_not_generic'],
+          required: ['problem_index', 'mechanism_name', 'how_it_works_steps', 'agent_sequence', 'plain_explanation', 'trigger_or_data_source', 'why_not_generic'],
         },
       },
       validations: {
@@ -713,7 +776,7 @@ export async function classifyAndBuild(
   input: ClassifyAndBuildInput,
   apiKey: string
 ): Promise<ClassifyAndBuildResult> {
-  const methodology = buildMethodology(input.frameworkLibrary, input.preferredFramework, input.industry, input.pastFrameworkUsage);
+  const methodology = buildMethodology(input.frameworkLibrary, input.agentLibrary, input.preferredFramework, input.industry, input.pastFrameworkUsage);
   const system = `${methodology}\n\nReturn your answer using the classify_and_build tool, with every step's output filled in — do not include any text outside the tool call.`;
 
   const userMessage = [
@@ -736,7 +799,7 @@ export type ReviseArtefactInput = ClassifyAndBuildInput & {
   previousProblemBreakdown: ProblemBreakdown[];
   previousFrameworkSelections: FrameworkSelection[];
   previousLevers: PnlLeverHit[];
-  previousSolutionMechanisms: SolutionMechanism[];
+  previousSolutionMechanisms: ResolvedSolutionMechanism[];
   previousArtefactHtml: string;
   feedbackText: string;
 };
@@ -745,7 +808,7 @@ export async function reviseArtefact(
   input: ReviseArtefactInput,
   apiKey: string
 ): Promise<ClassifyAndBuildResult> {
-  const methodology = buildMethodology(input.frameworkLibrary, input.preferredFramework, input.industry, input.pastFrameworkUsage);
+  const methodology = buildMethodology(input.frameworkLibrary, input.agentLibrary, input.preferredFramework, input.industry, input.pastFrameworkUsage);
   const system = `${methodology}
 
 You are REVISING a demo you already built, based on the client's actual reply. This is the one and only revision round — make it count, and do not ask further clarifying questions unless the client's feedback itself raises a genuinely new unknown.
@@ -810,6 +873,29 @@ export function resolveFrameworkSelections(
       in_library: !!matched,
       runner_ups: runnerUps,
       fitCandidates: r.fit_candidates ?? [],
+    };
+  });
+}
+
+export type ResolvedSolutionMechanism = Omit<SolutionMechanism, 'agent_sequence'> & {
+  agentSequence: ResolvedAgentStep[];
+};
+
+// Resolves the model's per-step agent names against the curated ai_agents
+// library — same anti-hallucination pattern as resolveFrameworkSelections:
+// the model only ever names an agent, every factual detail (category,
+// description) comes from OUR curated data, never trusted from the
+// model's own claim.
+export function resolveAgentSequence(raw: RawAgentStep[], library: AgentLibraryEntry[]): ResolvedAgentStep[] {
+  const byName = new Map(library.map((a) => [a.name.toLowerCase().trim(), a]));
+  return raw.map((r) => {
+    const matched = byName.get(r.agent_name.toLowerCase().trim());
+    return {
+      step_index: r.step_index,
+      agent_name: matched?.name ?? r.agent_name,
+      capability_category: matched?.capability_category ?? null,
+      description: matched?.description ?? r.suggested_description ?? null,
+      in_library: !!matched,
     };
   });
 }

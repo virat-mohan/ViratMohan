@@ -1,5 +1,5 @@
 import { getDb, type Submission } from './db';
-import { reviseArtefact, fetchWebsiteSnippet, resolveFrameworkSelections } from './llm';
+import { reviseArtefact, fetchWebsiteSnippet, resolveFrameworkSelections, resolveAgentSequence } from './llm';
 import type { Env } from './env';
 
 // Shared revision core — runs the one free feedback round through the same
@@ -20,6 +20,7 @@ export async function runRevision(
     const websiteSnippet = row.website ? await fetchWebsiteSnippet(row.website) : null;
     const notes = row.solution_notes;
     const frameworkLibrary = await db.listActiveFrameworks();
+    const agentLibrary = await db.listActiveAiAgents();
     const pastFrameworkUsage = row.industry ? await db.listPastFrameworkUsageByIndustry(row.industry) : [];
 
     const result = await reviseArtefact(
@@ -30,6 +31,7 @@ export async function runRevision(
         tools: row.tools,
         websiteSnippet,
         frameworkLibrary,
+        agentLibrary,
         preferredFramework: null,
         pastFrameworkUsage,
         previousProblemBreakdown: notes?.problemBreakdown ?? [],
@@ -48,7 +50,10 @@ export async function runRevision(
       {
         problemBreakdown: result.problemBreakdown,
         frameworkSelections: resolveFrameworkSelections(result.frameworkSelections, frameworkLibrary),
-        solutionMechanisms: result.solutionMechanisms,
+        solutionMechanisms: result.solutionMechanisms.map(({ agent_sequence, ...m }) => ({
+          ...m,
+          agentSequence: resolveAgentSequence(agent_sequence, agentLibrary),
+        })),
         validations: result.validations,
         artefactValidations: result.artefactValidations,
         artefactPlan: result.artefactPlan,

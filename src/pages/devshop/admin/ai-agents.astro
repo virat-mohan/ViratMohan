@@ -1,0 +1,173 @@
+---
+export const prerender = false;
+// Same access protection as /devshop/admin — see index.astro.
+
+import { getDb } from '../../../lib/db';
+import { getEnv } from '../../../lib/env';
+
+const env = getEnv();
+const agents = await getDb(env).listAllAiAgents();
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI agent library — Fast Tech Dev Shop admin</title>
+  <meta name="robots" content="noindex, nofollow" />
+</head>
+<body>
+  <main class="wrap">
+    <a class="back" href="/devshop/admin">← All queries</a>
+    <h1>AI agent library</h1>
+    <p class="sub">The fixed vocabulary of reusable agent roles the mechanism (Step 4) draws from — same anti-hallucination pattern as the framework library. Keeps the backend naming consistent across every different app build instead of a fresh ad hoc "agent" name each time. Any agent a submission's diagnosis suggests but doesn't find here shows up flagged for your review — add it if it's a genuinely distinct, recurring role.</p>
+
+    <div class="add-card">
+      <h2>Add an agent</h2>
+      <div class="form-row">
+        <input id="agName" type="text" placeholder="Agent name (e.g. Data Extraction Agent)" />
+        <input id="agCategory" type="text" placeholder="Capability category slug (e.g. data_extraction)" />
+      </div>
+      <textarea id="agDescription" rows="2" placeholder="What it actually does, one or two sentences"></textarea>
+      <div class="form-row">
+        <input id="agTrigger" type="text" placeholder="Typical trigger — what kicks it off" />
+        <input id="agOutput" type="text" placeholder="Typical output — what it hands to the next step" />
+      </div>
+      <button id="addBtn" class="btn-small">Add to library</button>
+      <p class="hint" id="addHint" hidden></p>
+    </div>
+
+    <table class="sortable">
+      <thead>
+        <tr>
+          <th data-sort-type="text">Name</th>
+          <th data-sort-type="text">Category</th>
+          <th data-sort-type="text" data-no-sort="true">Description</th>
+          <th data-sort-type="text" data-no-sort="true">Trigger</th>
+          <th data-sort-type="text" data-no-sort="true">Output</th>
+          <th data-sort-type="text">Active</th>
+          <th data-no-sort="true"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {agents.map((a) => (
+          <tr class={a.active ? '' : 'inactive'}>
+            <td>{a.name}</td>
+            <td>{a.capability_category}</td>
+            <td class="when">{a.description}</td>
+            <td class="when">{a.typical_trigger}</td>
+            <td class="when">{a.typical_output}</td>
+            <td>{a.active ? 'Yes' : 'No'}</td>
+            <td>
+              <button class="toggle-btn" data-id={a.id} data-active={String(!a.active)}>
+                {a.active ? 'Deactivate' : 'Reactivate'}
+              </button>
+            </td>
+          </tr>
+        ))}
+        {agents.length === 0 && <tr><td colspan="7">No agents yet — run migrations/0015_ai_agents.sql for the seed set of 10.</td></tr>}
+      </tbody>
+    </table>
+  </main>
+
+  <script type="module">
+    const addBtn = document.getElementById('addBtn');
+    const addHint = document.getElementById('addHint');
+    addBtn.addEventListener('click', async () => {
+      const name = document.getElementById('agName').value.trim();
+      const capability_category = document.getElementById('agCategory').value.trim();
+      const description = document.getElementById('agDescription').value.trim();
+      const typical_trigger = document.getElementById('agTrigger').value.trim();
+      const typical_output = document.getElementById('agOutput').value.trim();
+      if (!name || !description) {
+        addHint.textContent = 'Fill in name and description.';
+        addHint.hidden = false;
+        return;
+      }
+      addBtn.disabled = true;
+      try {
+        const res = await fetch('/devshop/api/ai-agents', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ action: 'add', name, capability_category, description, typical_trigger, typical_output }),
+        });
+        if (!res.ok) throw new Error(await res.text());
+        location.reload();
+      } catch (err) {
+        addBtn.disabled = false;
+        addHint.textContent = 'Failed: ' + err.message;
+        addHint.hidden = false;
+      }
+    });
+
+    document.querySelectorAll('.toggle-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        try {
+          const res = await fetch('/devshop/api/ai-agents', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ action: 'setActive', id: btn.dataset.id, active: btn.dataset.active === 'true' }),
+          });
+          if (!res.ok) throw new Error(await res.text());
+          location.reload();
+        } catch (err) {
+          btn.disabled = false;
+          alert('Failed: ' + err.message);
+        }
+      });
+    });
+
+    document.querySelectorAll('table.sortable').forEach((table) => {
+      const headers = Array.from(table.querySelectorAll('thead th'));
+      headers.forEach((th, colIndex) => {
+        if (th.dataset.noSort === 'true') return;
+        th.style.cursor = 'pointer';
+        let ascending = true;
+        th.addEventListener('click', () => {
+          const tbody = table.querySelector('tbody');
+          const rows = Array.from(tbody.querySelectorAll('tr')).filter((r) => !r.querySelector('td[colspan]'));
+          rows.sort((a, b) => {
+            const rawA = a.children[colIndex].textContent.trim();
+            const rawB = b.children[colIndex].textContent.trim();
+            const cmp = rawA.localeCompare(rawB, undefined, { numeric: true, sensitivity: 'base' });
+            return ascending ? cmp : -cmp;
+          });
+          rows.forEach((r) => tbody.appendChild(r));
+          headers.forEach((h) => h.classList.remove('sort-asc', 'sort-desc'));
+          th.classList.add(ascending ? 'sort-asc' : 'sort-desc');
+          ascending = !ascending;
+        });
+      });
+    });
+  </script>
+</body>
+</html>
+
+<style>
+  :root { color-scheme: dark; }
+  body { background: #15130f; color: #f5f5f0; font-family: system-ui, sans-serif; margin: 0; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 48px 32px; }
+  .back { color: #85837e; font-size: 13px; text-decoration: none; }
+  h1 { font-size: 22px; font-weight: 500; margin: 24px 0 8px; }
+  h2 { font-size: 14px; font-weight: 500; color: #85837e; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 14px; }
+  .sub { font-size: 14px; color: #b7b5af; max-width: 70ch; margin-bottom: 32px; }
+  .add-card { border: 1px solid rgba(245,245,240,0.15); border-radius: 6px; padding: 20px; margin-bottom: 32px; }
+  .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
+  input, textarea {
+    background: #1c1a15; border: 1px solid rgba(245,245,240,0.18); color: #f5f5f0;
+    font-size: 13px; padding: 9px 11px; border-radius: 3px; font-family: inherit; flex: 1;
+  }
+  textarea { width: 100%; margin-bottom: 12px; resize: vertical; }
+  .btn-small { font-size: 12px; padding: 9px 16px; border: 1px solid #d4af37; color: #d4af37; background: none; cursor: pointer; border-radius: 3px; }
+  .hint { font-size: 12.5px; color: #a66a62; margin-top: 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; color: #85837e; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; padding: 0 10px 10px; border-bottom: 1px solid rgba(245,245,240,0.18); user-select: none; }
+  th.sort-asc::after { content: ' \25B2'; }
+  th.sort-desc::after { content: ' \25BC'; }
+  td { padding: 12px 10px; border-bottom: 1px solid rgba(245,245,240,0.08); vertical-align: top; }
+  td.when { color: #b7b5af; max-width: 220px; }
+  tr.inactive { opacity: 0.45; }
+  .toggle-btn { font-size: 11.5px; padding: 6px 10px; border: 1px solid rgba(245,245,240,0.25); color: #b7b5af; background: none; cursor: pointer; border-radius: 3px; }
+</style>
