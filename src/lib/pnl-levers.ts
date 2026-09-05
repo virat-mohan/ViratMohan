@@ -32,6 +32,10 @@ export type PnlCalculationRow = {
 export type PnlLeverHit = {
   category: PnlLeverCategory;
   lever: string;
+  pnl_line_item: string; // the specific line, e.g. "support team headcount cost" — not just the lever category
+  baseline_value: string; // the line item's value today, e.g. "60% abandonment" — decomposed out of `reasoning` (brief §13)
+  target_value: string; // the projected value if the mechanism runs, e.g. "~55% abandonment"
+  causal_mechanism: string; // one short phrase: how the Step 4 mechanism actually moves baseline -> target
   reasoning: string;
   plain_explanation: string; // one everyday sentence restating `reasoning` with no finance jargon — for the customer-facing document
   // A simple, visible hypothesis table showing exactly how the headline

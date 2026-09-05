@@ -79,7 +79,7 @@ export function buildHandoffMarkdown(row: Submission): string {
   if (notes && notes.clarifyingQuestions.length > 0) {
     lines.push('## Open questions sent to client (confirm answers before/at kickoff)');
     lines.push('');
-    notes.clarifyingQuestions.forEach((q) => lines.push(`- ${q}`));
+    notes.clarifyingQuestions.forEach((q) => lines.push(`- ${q.question}${q.blocking ? ' (blocking)' : ''}`));
     lines.push('');
   }
 

@@ -5,6 +5,8 @@ import { getDb, type PipelineStage } from '../../../lib/db';
 import { getEnv } from '../../../lib/env';
 import { FIT_DIMENSIONS } from '../../../lib/llm';
 import { shouldProcessFeedback } from '../../../lib/feedback-parsing';
+import { RESOURCE_CATEGORY_LABELS } from '../../../lib/amc';
+import { IMPLEMENTATION_ROLE_LABELS } from '../../../lib/implementation';
 
 const env = getEnv();
 const { id } = Astro.params;
@@ -241,7 +243,9 @@ function nextSectionNum() {
         <div class="section-head"><span class="section-num">{nextSectionNum()}</span><h2>To sharpen these numbers, we'd ask</h2></div>
         <p class="questions-intro">(<em>Assumptions used industry benchmarks where we didn't have your real figures — answer any of these in your reply for the exact number.</em>)</p>
         <ul class="bullets">
-          {notes.clarifyingQuestions.map((q) => <li>{q}</li>)}
+          {notes.clarifyingQuestions.map((q) => (
+            <li>{q.blocking && <span class="q-blocking">Please confirm</span>}{q.question}</li>
+          ))}
         </ul>
       </section>
     )}
@@ -349,8 +353,22 @@ function nextSectionNum() {
           <div class="qa-list">
             {notes.clarifyingQuestions.map((q, i) => (
               <div class="qa-row">
-                <label class="qa-question" for={`qa-answer-${i}`}>{q}</label>
-                <input type="text" id={`qa-answer-${i}`} class="qa-answer" data-question={q} placeholder="Your answer (optional)" />
+                <label class="qa-question" for={`qa-answer-${i}`}>{q.blocking && <span class="q-blocking">Please confirm</span>}{q.question}</label>
+                {q.expected_answer_type === 'yes_no' ? (
+                  <select id={`qa-answer-${i}`} class="qa-answer" data-question={q.question}>
+                    <option value="">Your answer (optional)</option>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                  </select>
+                ) : (
+                  <input
+                    type={q.expected_answer_type === 'number' ? 'number' : 'text'}
+                    id={`qa-answer-${i}`}
+                    class="qa-answer"
+                    data-question={q.question}
+                    placeholder="Your answer (optional)"
+                  />
+                )}
               </div>
             ))}
           </div>
@@ -404,6 +422,36 @@ function nextSectionNum() {
         </div>
       </div>
       <p class="pricing-note">A genuinely complex build is custom-quoted after a short scoping call, not fit into the standard price. The 30-day delivery guarantee applies to standard builds, and the clock starts the moment your deposit clears — not at the demo, not at scoping.</p>
+
+      {row.implementation_estimate && (
+        <div class="team-block">
+          <h3 class="team-title">Who works on your build</h3>
+          <p class="team-intro">Transparently — the actual team and hours behind the price, not a black box.</p>
+          <div class="team-rows">
+            {row.implementation_estimate.estimates.filter((e) => e.hours > 0).map((e) => (
+              <div class="team-row">
+                <span class="team-role">{IMPLEMENTATION_ROLE_LABELS[e.role]}</span>
+                <span class="team-hours">{e.people} {e.people === 1 ? 'person' : 'people'} · {e.hours} hrs</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {row.amc_resource_estimate && row.amc_pricing_decision && (
+        <div class="team-block">
+          <h3 class="team-title">Who supports you afterward</h3>
+          <p class="team-intro">Ongoing FTDS team included in your AMC, ₹{row.amc_pricing_decision.monthly_amount_inr.toLocaleString('en-IN')}/month.</p>
+          <div class="team-rows">
+            {row.amc_resource_estimate.estimates.map((e) => (
+              <div class="team-row">
+                <span class="team-role">{RESOURCE_CATEGORY_LABELS[e.category]}</span>
+                <span class="team-hours">{e.monthly_hours} hrs/mo</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </section>
 
     <section class="block move-forward-block">
@@ -585,6 +633,7 @@ function nextSectionNum() {
   .eval-legend { margin: 0; padding: 0; list-style: none; font-size: 12px; color: var(--muted); line-height: 1.7; }
   .eval-legend strong { color: var(--ink-soft); }
   .questions-intro { font-size: 13px; color: #7a6a3e; margin: 0 0 10px; font-style: italic; }
+  .q-blocking { display: inline-block; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.04em; color: #a34a3a; border: 1px solid rgba(163,74,58,0.35); padding: 1px 6px; border-radius: 10px; margin-right: 8px; vertical-align: middle; }
   .impact-card { padding: 14px 0; border-top: 1px solid var(--hair); }
   .impact-card:first-of-type { border-top: none; }
   .calc-table { border-collapse: collapse; font-size: 13px; margin: 10px 0 0; }
@@ -675,6 +724,14 @@ function nextSectionNum() {
   .pricing-per { font-size: 13px; font-weight: 400; color: var(--muted); }
   .pricing-label { font-size: 12px; color: var(--muted); line-height: 1.4; margin: 0; }
   .pricing-note { font-size: 12.5px; color: var(--muted); line-height: 1.6; margin: 0; }
+  .team-block { margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--hair); }
+  .team-title { font-family: 'Source Serif 4', Georgia, serif; font-size: 15px; font-weight: 600; color: var(--ink); margin: 0 0 4px; }
+  .team-intro { font-size: 12.5px; color: var(--muted); margin: 0 0 10px; }
+  .team-rows { display: flex; flex-direction: column; gap: 6px; }
+  .team-row { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-top: 1px solid var(--hair); }
+  .team-row:first-child { border-top: none; }
+  .team-role { color: var(--ink-soft); text-transform: capitalize; }
+  .team-hours { font-family: 'JetBrains Mono', 'SF Mono', monospace; font-size: 12px; color: var(--muted); }
 
   .move-forward-block { text-align: center; padding: 8px 0 0; }
 

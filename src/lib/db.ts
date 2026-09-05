@@ -1,7 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import type { PnlLeverHit } from './pnl-levers';
-import type { ProblemBreakdown, SolutionMechanism, ArtefactPlan, FrameworkSelection, SolutionValidation, ArtefactValidation } from './llm';
+import type { ProblemBreakdown, SolutionMechanism, ArtefactPlan, FrameworkSelection, SolutionValidation, ArtefactValidation, ClarifyingQuestion } from './llm';
 import type { AmcRateBenchmark, AmcSolutionProfile, AmcResourceEstimate, AmcPricingRecommendation, ResourceCategory } from './amc';
+import type { ImplementationEstimate } from './implementation';
 import { summarizeFrameworkUsage, type PastFrameworkUsage } from './industry';
 
 export type AmcPricingDecision = {
@@ -18,7 +19,7 @@ export type SolutionNotes = {
   validations: SolutionValidation[];
   artefactValidations: ArtefactValidation[];
   artefactPlan: ArtefactPlan;
-  clarifyingQuestions: string[];
+  clarifyingQuestions: ClarifyingQuestion[];
 };
 
 // Admin-curated framework library — the solutioning engine may only cite
@@ -37,6 +38,14 @@ export type Framework = {
   source_verified_at: string | null;
   reviewed_by: string | null;
   problem_archetypes: string[];
+  ideal_use_cases: string[];
+  required_conditions: string[];
+  required_evidence: string[];
+  contraindications: string[];
+  expected_intervention_types: string[];
+  applicable_business_functions: string[];
+  applicable_pnl_levers: string[];
+  expert_notes: string | null;
 };
 
 export type StageTransition = {
@@ -46,6 +55,31 @@ export type StageTransition = {
   new_status: string;
   actor: 'admin' | 'client' | 'system';
   reason: string | null;
+  created_at: string;
+};
+
+export type GenerationKind = 'classify' | 'revise' | 'amc_estimate' | 'implementation_estimate' | 'framework_suggest';
+
+export type Generation = {
+  id: string;
+  submission_id: string | null;
+  kind: GenerationKind;
+  model: string;
+  prompt_version: string;
+  status: 'success' | 'error' | 'timeout';
+  attempts: number;
+  duration_ms: number;
+  error_message: string | null;
+  artefact_blocked: boolean;
+  created_at: string;
+};
+
+export type ReviewAction = {
+  id: string;
+  submission_id: string;
+  reviewer_name: string;
+  action: 'approved' | 'approved_with_edits' | 'diagnosis_changed' | 'framework_changed' | 'pnl_changed' | 'mechanism_changed' | 'blocked';
+  note: string | null;
   created_at: string;
 };
 
@@ -102,6 +136,7 @@ export type Submission = {
   amc_resource_estimate: AmcResourceEstimate | null;
   amc_pricing_recommendation: AmcPricingRecommendation | null;
   amc_pricing_decision: AmcPricingDecision | null;
+  implementation_estimate: ImplementationEstimate | null;
   error: string | null;
   created_at: string;
 };
@@ -306,6 +341,14 @@ export function getDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: st
       when_to_use: string;
       link?: string | null;
       problem_archetypes?: string[];
+      ideal_use_cases?: string[];
+      required_conditions?: string[];
+      required_evidence?: string[];
+      contraindications?: string[];
+      expected_intervention_types?: string[];
+      applicable_business_functions?: string[];
+      applicable_pnl_levers?: string[];
+      expert_notes?: string | null;
     }) {
       const { error } = await supabase.from('frameworks').insert(fw);
       if (error) throw new Error(`supabase framework insert failed: ${error.message}`);
@@ -410,6 +453,88 @@ export function getDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: st
         .order('created_at', { ascending: false });
       if (error) throw new Error(`supabase stage_transitions list failed: ${error.message}`);
       return (data ?? []) as StageTransition[];
+    },
+
+    // Request-level observability (brief §23-24) — best-effort, logging
+    // only: never let a failure here block the generation it's recording.
+    async recordGeneration(entry: {
+      submissionId: string | null;
+      kind: GenerationKind;
+      model: string;
+      promptVersion: string;
+      status: 'success' | 'error' | 'timeout';
+      attempts: number;
+      durationMs: number;
+      errorMessage: string | null;
+      artefactBlocked?: boolean;
+    }) {
+      const { error } = await supabase.from('generations').insert({
+        submission_id: entry.submissionId,
+        kind: entry.kind,
+        model: entry.model,
+        prompt_version: entry.promptVersion,
+        status: entry.status,
+        attempts: entry.attempts,
+        duration_ms: entry.durationMs,
+        error_message: entry.errorMessage,
+        artefact_blocked: entry.artefactBlocked ?? false,
+      });
+      if (error) console.error('supabase generations insert failed:', error.message);
+    },
+
+    async listGenerations(submissionId: string): Promise<Generation[]> {
+      const { data, error } = await supabase
+        .from('generations')
+        .select('*')
+        .eq('submission_id', submissionId)
+        .order('created_at', { ascending: false });
+      if (error) throw new Error(`supabase generations list failed: ${error.message}`);
+      return (data ?? []) as Generation[];
+    },
+
+    // Structured human-reviewer actions (brief §18-19).
+    async addReviewAction(entry: { submissionId: string; reviewerName: string; action: ReviewAction['action']; note: string | null }) {
+      const { error } = await supabase.from('review_actions').insert({
+        submission_id: entry.submissionId,
+        reviewer_name: entry.reviewerName,
+        action: entry.action,
+        note: entry.note,
+      });
+      if (error) throw new Error(`supabase review_actions insert failed: ${error.message}`);
+    },
+
+    async listReviewActions(submissionId: string): Promise<ReviewAction[]> {
+      const { data, error } = await supabase
+        .from('review_actions')
+        .select('*')
+        .eq('submission_id', submissionId)
+        .order('created_at', { ascending: false });
+      if (error) throw new Error(`supabase review_actions list failed: ${error.message}`);
+      return (data ?? []) as ReviewAction[];
+    },
+
+    // One-time implementation human-service model (brief §33-37).
+    async saveImplementationEstimate(id: string, estimate: ImplementationEstimate) {
+      const { error } = await supabase.from('submissions').update({ implementation_estimate: estimate }).eq('id', id);
+      if (error) throw new Error(`supabase update (implementation estimate) failed: ${error.message}`);
+    },
+
+    // Duplicate-submission guard (brief §25) — catches the common
+    // double-click/resubmit case: same email + same problem text within a
+    // short window. Returns the existing row instead of creating a new one.
+    async findRecentDuplicateSubmission(email: string, problem: string, windowSeconds: number): Promise<Submission | null> {
+      const since = new Date(Date.now() - windowSeconds * 1000).toISOString();
+      const { data, error } = await supabase
+        .from('submissions')
+        .select('*')
+        .eq('email', email)
+        .eq('problem', problem)
+        .gte('created_at', since)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw new Error(`supabase duplicate-check query failed: ${error.message}`);
+      return (data as Submission | null) ?? null;
     },
   };
 }

@@ -31,10 +31,19 @@ export const POST: APIRoute = async ({ request }) => {
     return json({ error: 'problem and email are required' }, 400);
   }
 
-  const id = crypto.randomUUID();
   const origin = getOrigin(request);
   const db = getDb(env);
 
+  // Duplicate-submission guard (brief §25) — catches the common double-
+  // click/resubmit case: same email + same problem text within 60s. Return
+  // the existing submission instead of paying for a second full generation.
+  const duplicate = await db.findRecentDuplicateSubmission(email, problem, 60);
+  if (duplicate) {
+    const demoUrl = duplicate.artefact_html ? `${origin}/devshop/demo/${duplicate.id}` : null;
+    return json({ id: duplicate.id, status: duplicate.status === 'failed' ? 'failed' : 'demo_ready', demoUrl }, 200);
+  }
+
+  const id = crypto.randomUUID();
   await db.insertSubmission({ id, problem, company, industry, website, tools, email });
 
   // Notify the desk immediately — don't block the client's response on this.
@@ -71,6 +80,17 @@ export const POST: APIRoute = async ({ request }) => {
       { problem, company, industry, tools, websiteSnippet, frameworkLibrary, preferredFramework, pastFrameworkUsage },
       env.ANTHROPIC_API_KEY
     );
+    await db.recordGeneration({
+      submissionId: id,
+      kind: 'classify',
+      model: result.generationMeta.model,
+      promptVersion: result.generationMeta.promptVersion,
+      status: result.generationMeta.status,
+      attempts: result.generationMeta.attempts,
+      durationMs: result.generationMeta.durationMs,
+      errorMessage: result.generationMeta.errorMessage,
+      artefactBlocked: result.artefactValidations.some((v) => v.status === 'block'),
+    });
     await db.markDemoReady(
       id,
       result.levers,
@@ -147,6 +167,21 @@ export const POST: APIRoute = async ({ request }) => {
   } catch (err) {
     console.error('intake: classification failed', err);
     status = 'failed';
+    const meta = (err as { generationMeta?: import('../../../lib/llm').GenerationMeta })?.generationMeta;
+    if (meta) {
+      await db
+        .recordGeneration({
+          submissionId: id,
+          kind: 'classify',
+          model: meta.model,
+          promptVersion: meta.promptVersion,
+          status: meta.status,
+          attempts: meta.attempts,
+          durationMs: meta.durationMs,
+          errorMessage: meta.errorMessage,
+        })
+        .catch(() => {});
+    }
     await db.markFailed(id, err instanceof Error ? err.message : String(err)).catch(() => {});
   }
 

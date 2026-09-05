@@ -7,6 +7,7 @@ import { formatTimestamp } from '../../../lib/format';
 import { getEnv } from '../../../lib/env';
 import { FIT_DIMENSIONS } from '../../../lib/llm';
 import { MECHANISM_TYPES, AUTOMATION_LEVELS, DECISION_CRITICALITY, RESOURCE_CATEGORY_LABELS } from '../../../lib/amc';
+import { IMPLEMENTATION_ROLE_LABELS } from '../../../lib/implementation';
 
 const env = getEnv();
 const { id } = Astro.params;
@@ -33,10 +34,13 @@ const stageOptions = PIPELINE_STAGES.filter((s) => !['received', 'demo_ready', '
 const trackerVisible = ['interested', 'scoping_scheduled', 'scoping_complete', 'proposal_sent', 'deposit_paid', 'build_scheduled', 'in_build', 'delivered', 'feedback_requested', 'amc_active', 'refunded'].includes(row.status);
 const amcRelevant = ['build_scheduled', 'in_build', 'delivered', 'feedback_requested', 'amc_active'].includes(row.status);
 const transitions = await getDb(env).listTransitions(row.id);
+const reviewActions = await getDb(env).listReviewActions(row.id);
+const generations = await getDb(env).listGenerations(row.id);
 const amcProfile = row.amc_solution_profile;
 const amcEstimate = row.amc_resource_estimate;
 const amcRecommendation = row.amc_pricing_recommendation;
 const amcDecision = row.amc_pricing_decision;
+const implementationEstimate = row.implementation_estimate;
 ---
 
 <!doctype html>
@@ -171,6 +175,9 @@ const amcDecision = row.amc_pricing_decision;
         {levers.map((l) => (
           <div class="note-card">
             <p class="note-title"><strong>{l.category}</strong> — {l.lever} <span class={`value-status value-status-${l.value_status}`}>{l.value_status?.replace(/_/g, ' ')}</span></p>
+            {l.pnl_line_item && <p><span class="note-label">Line item</span>{l.pnl_line_item}</p>}
+            {l.baseline_value && <p><span class="note-label">Baseline → target</span>{l.baseline_value} → {l.target_value}</p>}
+            {l.causal_mechanism && <p><span class="note-label">Causal mechanism</span>{l.causal_mechanism}</p>}
             <p class="reasoning">{l.reasoning}</p>
           </div>
         ))}
@@ -245,7 +252,13 @@ const amcDecision = row.amc_pricing_decision;
         <h2>Clarifying questions (sent to client)</h2>
         <div class="note-card">
           <ul class="sections-list">
-            {notes.clarifyingQuestions.map((q) => <li>{q}</li>)}
+            {notes.clarifyingQuestions.map((q) => (
+              <li>
+                <span class={`validation-status ${q.blocking ? 'validation-block' : 'validation-pass'}`}>{q.blocking ? 'blocking' : 'non-blocking'}</span>
+                {' '}{q.question}
+                <span class="fw-source"> — {q.affected_step} · {q.expected_answer_type} · {q.why_it_matters}</span>
+              </li>
+            ))}
           </ul>
         </div>
       </div>
@@ -262,6 +275,38 @@ const amcDecision = row.amc_pricing_decision;
       <button id="approveBtn" data-id={row.id} data-block-count={blockCount}>{row.feedback_round >= 1 ? 'Approve & send revised demo →' : 'Approve & send to client →'}</button>
     )}
     {row.status === 'sent' && <p class="hint sent">Sent to {row.email}{row.feedback_round >= 1 ? ' (final, revised version)' : ''}.</p>}
+
+    <div class="reasoning-block review-action-block">
+      <h2>Reviewer action</h2>
+      <p class="panel-note">Structured disagreement capture — logs what a human reviewer actually did with this submission, not just whether it went out.</p>
+      <div class="panel-row">
+        <input id="reviewerName" type="text" placeholder="Your name" />
+        <select id="reviewAction">
+          <option value="approved">Approved (as-is)</option>
+          <option value="approved_with_edits">Approved with edits</option>
+          <option value="diagnosis_changed">Diagnosis changed</option>
+          <option value="framework_changed">Framework changed</option>
+          <option value="pnl_changed">P&amp;L mapping changed</option>
+          <option value="mechanism_changed">Mechanism changed</option>
+          <option value="blocked">Blocked</option>
+        </select>
+      </div>
+      <textarea id="reviewNote" rows="2" placeholder="What was wrong / what you changed (required unless plain approval)"></textarea>
+      <button id="reviewActionBtn" class="btn-small">Log review action</button>
+      <p class="hint" id="reviewActionHint" hidden></p>
+
+      {reviewActions.length > 0 && (
+        <div class="transition-log">
+          {reviewActions.map((r) => (
+            <div class="transition-row">
+              <span class="transition-date">{formatTimestamp(r.created_at)}</span>
+              <span class="transition-change"><strong>{r.action.replace(/_/g, ' ')}</strong> — {r.reviewer_name}</span>
+              {r.note && <span class="transition-reason">{r.note}</span>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
 
     {inPipeline && (
       <div class="reasoning-block pipeline-panel">
@@ -375,6 +420,7 @@ const amcDecision = row.amc_pricing_decision;
 
             {amcRecommendation && (
               <div class="amc-recommendation">
+                <p><span class="note-label">Direct technology cost</span>₹{amcRecommendation.direct_tech_cost_low_inr.toLocaleString('en-IN')}–₹{amcRecommendation.direct_tech_cost_high_inr.toLocaleString('en-IN')}/month <span class="fw-source">({amcRecommendation.direct_tech_cost_basis})</span></p>
                 <p><span class="note-label">Market-equivalent value</span>₹{amcRecommendation.market_equivalent_value_low_inr.toLocaleString('en-IN')}–₹{amcRecommendation.market_equivalent_value_high_inr.toLocaleString('en-IN')}/month</p>
                 <p><span class="note-label">FTDS cost to serve</span>₹{amcRecommendation.cost_to_serve_inr.toLocaleString('en-IN')}/month</p>
                 <p><span class="note-label">Recommended range</span><strong>₹{amcRecommendation.recommended_range_low_inr.toLocaleString('en-IN')}–₹{amcRecommendation.recommended_range_high_inr.toLocaleString('en-IN')}/month</strong>{amcRecommendation.used_minimum_floor && <span class="fw-flag">minimum floor applied</span>}</p>
@@ -383,6 +429,26 @@ const amcDecision = row.amc_pricing_decision;
                   <p class="hint">Unverified rate for: {amcRecommendation.unverified_rate_categories.map((c) => RESOURCE_CATEGORY_LABELS[c]).join(', ')} — review before quoting.</p>
                 )}
               </div>
+            )}
+
+            {implementationEstimate && (
+              <>
+                <h2>Implementation team (one-time build)</h2>
+                <table class="amc-table">
+                  <thead><tr><th>Role</th><th>People</th><th>Hours</th><th>Rationale</th></tr></thead>
+                  <tbody>
+                    {implementationEstimate.estimates.map((e) => (
+                      <tr>
+                        <td>{IMPLEMENTATION_ROLE_LABELS[e.role]}</td>
+                        <td>{e.people}</td>
+                        <td>{e.hours}</td>
+                        <td class="when">{e.rationale}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <p class="panel-note">{implementationEstimate.overall_confidence_note} Total: {implementationEstimate.estimates.reduce((s, e) => s + e.hours, 0)} hours across {implementationEstimate.estimates.filter((e) => e.hours > 0).length} roles.</p>
+              </>
             )}
 
             {amcRecommendation && (
@@ -407,6 +473,24 @@ const amcDecision = row.amc_pricing_decision;
       </div>
     )}
 
+    {generations.length > 0 && (
+      <div class="reasoning-block">
+        <h2>Generations</h2>
+        <p class="panel-note">Every Claude call for this submission, traceable to a model/prompt version, for debugging a bad output (brief §23-24).</p>
+        <div class="transition-log">
+          {generations.map((g) => (
+            <div class="transition-row">
+              <span class="transition-date">{formatTimestamp(g.created_at)}</span>
+              <span class="transition-change"><strong>{g.kind}</strong> — {g.model} @ {g.prompt_version}</span>
+              <span class={`validation-status ${g.status === 'success' ? 'validation-pass' : g.status === 'timeout' ? 'validation-warning' : 'validation-block'}`}>{g.status}</span>
+              <span class="transition-reason">{g.attempts} attempt{g.attempts > 1 ? 's' : ''} · {(g.duration_ms / 1000).toFixed(1)}s{g.artefact_blocked ? ' · artefact blocked' : ''}</span>
+              {g.error_message && <span class="transition-reason">{g.error_message}</span>}
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
     {transitions.length > 0 && (
       <div class="reasoning-block">
         <h2>History</h2>
@@ -425,6 +509,40 @@ const amcDecision = row.amc_pricing_decision;
   </main>
 
   <script type="module" define:vars={{ id: row.id }}>
+    const reviewActionBtn = document.getElementById('reviewActionBtn');
+    if (reviewActionBtn) {
+      reviewActionBtn.addEventListener('click', async () => {
+        const hint = document.getElementById('reviewActionHint');
+        const reviewerName = document.getElementById('reviewerName').value.trim();
+        const action = document.getElementById('reviewAction').value;
+        const note = document.getElementById('reviewNote').value.trim();
+        if (!reviewerName) {
+          hint.textContent = 'Enter your name first.';
+          hint.hidden = false;
+          return;
+        }
+        if (action !== 'approved' && !note) {
+          hint.textContent = 'A note is required unless this is a plain approval.';
+          hint.hidden = false;
+          return;
+        }
+        reviewActionBtn.disabled = true;
+        try {
+          const res = await fetch('/devshop/api/review-action', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ id, reviewerName, action, note }),
+          });
+          if (!res.ok) throw new Error(await res.text());
+          location.reload();
+        } catch (err) {
+          reviewActionBtn.disabled = false;
+          hint.textContent = 'Failed: ' + err.message;
+          hint.hidden = false;
+        }
+      });
+    }
+
     const btn = document.getElementById('approveBtn');
     if (btn) {
       btn.addEventListener('click', async () => {
@@ -687,6 +805,7 @@ const amcDecision = row.amc_pricing_decision;
   .transition-actor--client { color: #718a78; border-color: rgba(113,138,120,0.4); }
   .transition-actor--system { color: #85837e; }
   .transition-reason { color: #85837e; font-style: italic; }
+  .review-action-block textarea { width: 100%; margin: 10px 0; resize: vertical; }
   .amc-panel { margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(245,245,240,0.1); }
   .amc-form { margin-bottom: 16px; }
   .amc-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-bottom: 12px; }

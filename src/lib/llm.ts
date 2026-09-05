@@ -9,6 +9,7 @@ import {
   type ValidationStatus,
 } from './pnl-levers';
 import { RESOURCE_CATEGORIES, type AmcSolutionProfile, type AmcResourceEstimate } from './amc';
+import { IMPLEMENTATION_ROLES, type ImplementationEstimate } from './implementation';
 import type { PastFrameworkUsage } from './industry';
 
 export type FrameworkLibraryEntry = {
@@ -154,6 +155,20 @@ export type ArtefactPlan = {
   sections: { name: string; ties_to_problem_index: number; purpose: string }[];
 };
 
+// Step 7 output, structured (brief §11) — each question carries enough for
+// the reader (admin or customer) to judge whether it's worth answering,
+// rather than a bare string with no context.
+export const EXPECTED_ANSWER_TYPES = ['number', 'yes_no', 'text', 'choice'] as const;
+export type ExpectedAnswerType = (typeof EXPECTED_ANSWER_TYPES)[number];
+
+export type ClarifyingQuestion = {
+  question: string;
+  why_it_matters: string; // one short phrase — what changes if answered differently
+  affected_step: string; // e.g. "Step 1 diagnosis", "Step 3 P&L mapping"
+  blocking: boolean; // true = materially changes the diagnosis/mechanism if unanswered, not just sharpens a number
+  expected_answer_type: ExpectedAnswerType;
+};
+
 export type ClassifyAndBuildResult = {
   problemBreakdown: ProblemBreakdown[];
   frameworkSelections: RawFrameworkSelection[]; // resolve with resolveFrameworkSelections() before persisting
@@ -162,8 +177,9 @@ export type ClassifyAndBuildResult = {
   levers: PnlLeverHit[];
   validations: SolutionValidation[];
   artefactValidations: ArtefactValidation[];
-  clarifyingQuestions: string[];
+  clarifyingQuestions: ClarifyingQuestion[];
   artefactHtml: string;
+  generationMeta: GenerationMeta;
 };
 
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
@@ -171,6 +187,25 @@ const ANTHROPIC_VERSION = '2023-06-01';
 // Model id per current Claude lineup — update here if the account's default changes.
 const MODEL = 'claude-sonnet-5';
 const MAX_TOKENS = 16000;
+// Bump this string whenever buildMethodology's prompt or CLASSIFY_TOOL's
+// schema changes meaningfully — it's stamped on every generation row so a
+// bad output can be traced back to the exact prompt version that produced
+// it (brief §23-24). Plain "YYYY-MM-DD.N" is enough; no need for real semver.
+const PROMPT_VERSION = '2026-09-05.1';
+// Just under astro.config.mjs's maxDuration (300s) so a hung request fails
+// with a clear timeout status instead of the platform silently killing the
+// function with no diagnostic.
+const CLAUDE_TIMEOUT_MS = 280_000;
+
+export type GenerationMeta = {
+  generationId: string;
+  model: string;
+  promptVersion: string;
+  status: 'success' | 'error' | 'timeout';
+  attempts: number;
+  durationMs: number;
+  errorMessage: string | null;
+};
 
 // The methodology below is the actual product. A bad prompt here produces a
 // generic "AI wrapper" demo that looks like every other AI-slop pitch; a
@@ -248,7 +283,7 @@ Rules for this step:
 STEP 3 — Map to the P&L. This is a drill-down, not a jump: business function (from Step 1a) → the SPECIFIC P&L line item that function's activity actually moves (e.g. Growth owning a problem usually moves a revenue line or CAC within sales & marketing spend; Efficiency/Operations usually moves a COGS or opex line; Legal/Compliance usually moves risk-provision or overhead cost; HR usually moves labor cost or attrition-driven cost; Tech usually moves either a cost line (infra/eng time) or unblocks a revenue line) → THEN classify against exactly one of these fixed levers:
    Revenue levers: ${PNL_LEVERS.revenue.join(', ')}
    Cost levers: ${PNL_LEVERS.cost.join(', ')}
-Name the specific P&L line item explicitly inside the reasoning (not just the lever category) — e.g. not just "labor cost" but "support team headcount cost." Give a plausible, industry-grounded before/after estimate for that line if the mechanism in Step 4 were live, informed by the framework selected in Step 2. Write the reasoning in plain operator language — never "leverage," "unlock," "synergy," or similar. One tight sentence carrying the assumption and the number, ≤ 30 words — not a paragraph. Tag value_status: "known" only if the client's own text gave you this number; "assumed" if you're using an industry-grounded placeholder; "needs_confirmation" if you're not confident even the assumption is a reasonable placeholder for this specific business. Do not mark a number "known" unless the client actually stated it. Then write plain_explanation, per the PLAIN-LANGUAGE RULE — the same number, in everyday terms a founder feels immediately, e.g. "That's roughly 40 more completed orders a month, without spending more on ads," not "a projected uplift in the conversion-rate lever."
+Name the specific P&L line item explicitly — not just the lever category — in its own field, pnl_line_item (e.g. not just "labor cost" but "support team headcount cost"). Then fill baseline_value (that line's value TODAY, e.g. "60% checkout abandonment" or "24hr average first-contact time") and target_value (the projected value if the mechanism in Step 4 were live, e.g. "~55% abandonment" or "under 5min first-contact time") — these are the decomposed before/after, not folded into prose. Fill causal_mechanism with one short phrase naming HOW the Step 4 mechanism actually moves baseline to target (e.g. "automated recovery nudge triggers before the customer fully disengages") — this is what Step 5's pnl_causal_chain check will hold you to. Then write reasoning as before: one tight sentence carrying the assumption and the number, ≤ 30 words, in plain operator language — never "leverage," "unlock," "synergy," or similar — informed by the framework selected in Step 2. Tag value_status: "known" only if the client's own text gave you this number; "assumed" if you're using an industry-grounded placeholder; "needs_confirmation" if you're not confident even the assumption is a reasonable placeholder for this specific business. Do not mark a number "known" unless the client actually stated it. Then write plain_explanation, per the PLAIN-LANGUAGE RULE — the same number, in everyday terms a founder feels immediately, e.g. "That's roughly 40 more completed orders a month, without spending more on ads," not "a projected uplift in the conversion-rate lever."
 
 Then build the "calculation" field — a simple 2-4 row hypothesis table making the arithmetic behind plain_explanation's headline number visible, not just asserted. Every row must use ONLY numbers already implied by "reasoning" above — this is the same math shown as a table, never a new figure invented for the table. Typical shape: one row per input (each figure tagged inline as "known" if the client stated it or "assumed" if it's an industry placeholder), then a final row with the resulting number. E.g. for "cutting first-contact time lifts close rate from 15% to 21% on 500 leads/month": row 1 "Inbound leads / month" → "~500 (assumed)"; row 2 "Close rate today" → "15% (assumed)"; row 3 "Close rate after the fix" → "21% (assumed)"; row 4 "Extra sales / month" → "≈30". Keep every label and value short — this is a simple math table a founder can check in their head, not a financial model.
 
@@ -267,6 +302,7 @@ STEP 7 — Flag what's genuinely unknown. Order matters here:
 1. If Step 1 had to assume a structural fact (business/sales motion, customer type, etc.), that confirm-or-correct question goes FIRST.
 2. Next, for EACH problem, ask directly for the actual number on the specific P&L line item you named in Step 3 — not a vague "tell us more," a precise ask naming that line (e.g. "What is your current actual monthly support-team labor cost?" or "What is your actual average order value today?"). This is what turns an assumed estimate into an exact one, and it should almost always be present — skip it only if the client's problem statement already gave you that exact figure.
 3. Then any other specific real numbers that would sharpen the estimates (e.g. "current monthly lead volume," "your real cart-abandonment rate"). Only list things you couldn't reasonably assume — not everything.
+For each question, also fill in: why_it_matters (one short phrase — what changes if this is answered differently, e.g. "changes whether the mechanism needs a self-serve path"), affected_step (which step's output would change — e.g. "Step 1 diagnosis", "Step 3 P&L mapping"), blocking (true only for the structural-assumption question from point 1, or anything else that would materially change the diagnosis/mechanism itself, not just sharpen a number — most P&L-number questions are non-blocking, since you already gave a reasonable placeholder), and expected_answer_type (one of: number, yes_no, text, choice).
 
 STEP 8 — Build the artefact. One working, self-contained interactive HTML demo covering every mechanism from Step 4, following the plan from Step 6.
 
@@ -411,6 +447,10 @@ const CLASSIFY_TOOL = {
           properties: {
             category: { type: 'string', enum: ['revenue', 'cost'] },
             lever: { type: 'string', description: 'One of the fixed lever names, verbatim.' },
+            pnl_line_item: { type: 'string', description: 'The specific line, not just the lever category — e.g. "support team headcount cost".' },
+            baseline_value: { type: 'string', description: 'That line\'s value today, e.g. "60% checkout abandonment".' },
+            target_value: { type: 'string', description: 'The projected value if the Step 4 mechanism were live, e.g. "~55% abandonment".' },
+            causal_mechanism: { type: 'string', description: 'One short phrase: how the Step 4 mechanism actually moves baseline to target.' },
             reasoning: {
               type: 'string',
               description: 'One tight sentence with the stated assumption and the before/after estimate, ≤ 30 words.',
@@ -434,7 +474,7 @@ const CLASSIFY_TOOL = {
               description: '"known" only if the client stated this number themselves; "assumed" for an industry-grounded placeholder; "needs_confirmation" if even the assumption is shaky.',
             },
           },
-          required: ['category', 'lever', 'reasoning', 'plain_explanation', 'calculation', 'value_status'],
+          required: ['category', 'lever', 'pnl_line_item', 'baseline_value', 'target_value', 'causal_mechanism', 'reasoning', 'plain_explanation', 'calculation', 'value_status'],
         },
       },
       solution_mechanisms: {
@@ -501,7 +541,17 @@ const CLASSIFY_TOOL = {
         type: 'array',
         description:
           'Step 7 output — specific real numbers/facts that would sharpen the estimates if the client provided them. Empty array if genuinely nothing material is missing.',
-        items: { type: 'string' },
+        items: {
+          type: 'object',
+          properties: {
+            question: { type: 'string' },
+            why_it_matters: { type: 'string', description: 'One short phrase — what changes if this is answered differently.' },
+            affected_step: { type: 'string', description: 'e.g. "Step 1 diagnosis", "Step 3 P&L mapping".' },
+            blocking: { type: 'boolean', description: 'true only if unanswered, it materially changes the diagnosis/mechanism — not just sharpens a number.' },
+            expected_answer_type: { type: 'string', enum: EXPECTED_ANSWER_TYPES as unknown as string[] },
+          },
+          required: ['question', 'why_it_matters', 'affected_step', 'blocking', 'expected_answer_type'],
+        },
       },
       artefact_html: {
         type: 'string',
@@ -547,40 +597,104 @@ type ToolOutput = {
   validations: SolutionValidation[];
   artefact_validations: ArtefactValidation[];
   artefact_plan: ArtefactPlan;
-  clarifying_questions: string[];
+  clarifying_questions: ClarifyingQuestion[];
   artefact_html: string;
 };
 
-async function callClaudeTool(system: string, userMessage: string, apiKey: string): Promise<ToolOutput> {
-  const res = await fetch(ANTHROPIC_API_URL, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': ANTHROPIC_VERSION,
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: MAX_TOKENS,
-      system,
-      messages: [{ role: 'user', content: userMessage }],
-      tools: [CLASSIFY_TOOL],
-      tool_choice: { type: 'tool', name: CLASSIFY_TOOL.name },
-    }),
-  });
+// One attempt at the actual HTTP call, with a hard timeout so a hung
+// request fails cleanly rather than riding out the platform's own limit.
+async function attemptClaudeCall(system: string, userMessage: string, apiKey: string): Promise<ToolOutput> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS);
+  try {
+    const res = await fetch(ANTHROPIC_API_URL, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': ANTHROPIC_VERSION,
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: MAX_TOKENS,
+        system,
+        messages: [{ role: 'user', content: userMessage }],
+        tools: [CLASSIFY_TOOL],
+        tool_choice: { type: 'tool', name: CLASSIFY_TOOL.name },
+      }),
+      signal: controller.signal,
+    });
 
-  if (!res.ok) {
-    const body = await res.text().catch(() => '');
-    throw new Error(`Anthropic API error ${res.status}: ${body.slice(0, 500)}`);
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      throw new Error(`Anthropic API error ${res.status}: ${body.slice(0, 500)}`);
+    }
+
+    const data = (await res.json()) as { content: Array<{ type: string; input?: Record<string, unknown> }> };
+    const toolUse = data.content.find((b) => b.type === 'tool_use');
+    if (!toolUse?.input) throw new Error('Anthropic response did not include a tool_use block');
+    return toolUse.input as ToolOutput;
+  } finally {
+    clearTimeout(timeout);
   }
-
-  const data = (await res.json()) as { content: Array<{ type: string; input?: Record<string, unknown> }> };
-  const toolUse = data.content.find((b) => b.type === 'tool_use');
-  if (!toolUse?.input) throw new Error('Anthropic response did not include a tool_use block');
-  return toolUse.input as ToolOutput;
 }
 
-function toResult(out: ToolOutput): ClassifyAndBuildResult {
+// One safe retry on a transient failure (network error, 5xx, or our own
+// timeout) — never retries on a 4xx (bad request/auth), since that will
+// just fail the same way again. Every call is traceable via GenerationMeta:
+// a generation_id, the prompt version, how many attempts it took, and how
+// long it took (brief §23-24).
+async function callClaudeTool(
+  system: string,
+  userMessage: string,
+  apiKey: string
+): Promise<{ output: ToolOutput; meta: GenerationMeta }> {
+  const generationId = crypto.randomUUID();
+  const startedAt = Date.now();
+  let attempts = 0;
+  let lastError: unknown = null;
+
+  for (attempts = 1; attempts <= 2; attempts++) {
+    try {
+      const output = await attemptClaudeCall(system, userMessage, apiKey);
+      return {
+        output,
+        meta: {
+          generationId,
+          model: MODEL,
+          promptVersion: PROMPT_VERSION,
+          status: 'success',
+          attempts,
+          durationMs: Date.now() - startedAt,
+          errorMessage: null,
+        },
+      };
+    } catch (err) {
+      lastError = err;
+      const isAbort = err instanceof Error && err.name === 'AbortError';
+      const is4xx = err instanceof Error && /Anthropic API error 4\d\d/.test(err.message);
+      if (is4xx || attempts === 2) break;
+      // Transient — brief pause before the one retry.
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+  }
+
+  const isAbort = lastError instanceof Error && lastError.name === 'AbortError';
+  const meta: GenerationMeta = {
+    generationId,
+    model: MODEL,
+    promptVersion: PROMPT_VERSION,
+    status: isAbort ? 'timeout' : 'error',
+    attempts,
+    durationMs: Date.now() - startedAt,
+    errorMessage: lastError instanceof Error ? lastError.message : String(lastError),
+  };
+  const err = new Error(meta.errorMessage ?? 'Anthropic call failed') as Error & { generationMeta?: GenerationMeta };
+  err.generationMeta = meta;
+  throw err;
+}
+
+function toResult(out: ToolOutput, meta: GenerationMeta): ClassifyAndBuildResult {
   return {
     problemBreakdown: out.problem_breakdown,
     frameworkSelections: out.framework_selections,
@@ -591,6 +705,7 @@ function toResult(out: ToolOutput): ClassifyAndBuildResult {
     artefactPlan: out.artefact_plan,
     clarifyingQuestions: out.clarifying_questions,
     artefactHtml: out.artefact_html,
+    generationMeta: meta,
   };
 }
 
@@ -613,7 +728,8 @@ export async function classifyAndBuild(
     .filter(Boolean)
     .join('\n\n');
 
-  return toResult(await callClaudeTool(system, userMessage, apiKey));
+  const { output, meta } = await callClaudeTool(system, userMessage, apiKey);
+  return toResult(output, meta);
 }
 
 export type ReviseArtefactInput = ClassifyAndBuildInput & {
@@ -659,7 +775,8 @@ Return your answer using the classify_and_build tool, with every step's output f
     .filter(Boolean)
     .join('\n\n');
 
-  return toResult(await callClaudeTool(system, userMessage, apiKey));
+  const { output, meta } = await callClaudeTool(system, userMessage, apiKey);
+  return toResult(output, meta);
 }
 
 // Best-effort fetch of a client's homepage HTML, trimmed to a size that's
@@ -788,6 +905,72 @@ Rules:
   };
 }
 
+// Shared helper for the smaller, single-purpose tool calls below (AMC
+// hours, implementation hours, framework suggestions) — same generation
+// tracking (id, prompt version, duration, status) as the main
+// classify_and_build call, just without the timeout/retry wrapper since
+// these are quick, low-token calls where a bare failure is fine to surface
+// directly to the admin action that triggered it.
+async function callNamedTool<T>(
+  system: string,
+  userMessage: string,
+  tool: { name: string; description: string; input_schema: unknown },
+  apiKey: string,
+  maxTokens: number
+): Promise<{ output: T; meta: GenerationMeta }> {
+  const generationId = crypto.randomUUID();
+  const startedAt = Date.now();
+  try {
+    const res = await fetch(ANTHROPIC_API_URL, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': ANTHROPIC_VERSION },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: maxTokens,
+        system,
+        messages: [{ role: 'user', content: userMessage }],
+        tools: [tool],
+        tool_choice: { type: 'tool', name: tool.name },
+      }),
+    });
+
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      throw new Error(`Anthropic API error ${res.status}: ${body.slice(0, 500)}`);
+    }
+
+    const data = (await res.json()) as { content: Array<{ type: string; input?: Record<string, unknown> }> };
+    const toolUse = data.content.find((b) => b.type === 'tool_use');
+    if (!toolUse?.input) throw new Error('Anthropic response did not include a tool_use block');
+
+    return {
+      output: toolUse.input as T,
+      meta: {
+        generationId,
+        model: MODEL,
+        promptVersion: PROMPT_VERSION,
+        status: 'success',
+        attempts: 1,
+        durationMs: Date.now() - startedAt,
+        errorMessage: null,
+      },
+    };
+  } catch (err) {
+    const meta: GenerationMeta = {
+      generationId,
+      model: MODEL,
+      promptVersion: PROMPT_VERSION,
+      status: 'error',
+      attempts: 1,
+      durationMs: Date.now() - startedAt,
+      errorMessage: err instanceof Error ? err.message : String(err),
+    };
+    const wrapped = new Error(meta.errorMessage ?? 'Anthropic call failed') as Error & { generationMeta?: GenerationMeta };
+    wrapped.generationMeta = meta;
+    throw wrapped;
+  }
+}
+
 // 4c — AMC resource-hours estimation. Given a delivered solution's profile,
 // estimate monthly ongoing-service hours per resource category. This is the
 // highest-uncertainty piece of the AMC model — kept as its own isolated call
@@ -797,7 +980,7 @@ Rules:
 export async function estimateAmcResourceHours(
   profile: AmcSolutionProfile,
   apiKey: string
-): Promise<AmcResourceEstimate> {
+): Promise<{ estimate: AmcResourceEstimate; meta: GenerationMeta }> {
   const system = `You estimate ongoing monthly service hours (AMC — Annual Maintenance Contract) for a delivered AI-orchestration solution, across exactly these 4 resource categories: fde_client_engagement (dedicated account management, satisfaction support, domain-expert calls), technical (model/infra updates, monitoring, integration maintenance), sme (domain subject-matter-expert oversight specific to this problem/framework), ai_optimisation (prompt/framework advancement, ongoing data study against the original P&L target).
 
 For each category, estimate realistic monthly hours given the solution's profile (mechanism type, workflow/integration count, automation level, decision criticality — higher automation and higher decision criticality generally mean MORE technical/SME hours, not fewer, because more is riding on it staying correct). Tag each estimate's status: "known" only if the profile itself effectively dictates this number, "assumed" for an industry-grounded default given the profile, "needs_confirmation" if you genuinely don't have enough in the profile to estimate confidently. Give a one-sentence rationale per category tied to the actual profile fields, not generic filler. Never inflate hours to justify a higher price, and never estimate zero hours for a category without saying so plainly in the rationale.
@@ -844,29 +1027,64 @@ End with one sentence (overall_confidence_note) on how solid this whole estimate
     },
   } as const;
 
-  const res = await fetch(ANTHROPIC_API_URL, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': ANTHROPIC_VERSION },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 1500,
-      system,
-      messages: [{ role: 'user', content: userMessage }],
-      tools: [tool],
-      tool_choice: { type: 'tool', name: tool.name },
-    }),
-  });
+  const { output, meta } = await callNamedTool<AmcResourceEstimate>(system, userMessage, tool, apiKey, 1500);
+  return { estimate: output, meta };
+}
 
-  if (!res.ok) {
-    const body = await res.text().catch(() => '');
-    throw new Error(`Anthropic API error ${res.status}: ${body.slice(0, 500)}`);
-  }
+// One-time implementation human-service model (brief §33-37) — parallel to
+// the AMC estimate above, but for the 30-day build itself: which roles,
+// how many people, and how many hours. Shown to the customer alongside the
+// AMC breakdown so the build price is backed by a visible team, not a bare
+// number (brief §57-58).
+export async function estimateImplementationHours(
+  profile: AmcSolutionProfile,
+  apiKey: string
+): Promise<{ estimate: ImplementationEstimate; meta: GenerationMeta }> {
+  const system = `You estimate one-time implementation hours for building a delivered AI-orchestration solution, across exactly these 6 roles: fde_client_lead (client coordination, delivery ownership, UAT coordination), solution_architect (architecture/design decisions), software_engineer (application build), ai_automation_engineer (the AI/automation mechanism itself), sme (domain/framework review during the build), qa_uat (testing before delivery).
 
-  const data = (await res.json()) as { content: Array<{ type: string; input?: Record<string, unknown> }> };
-  const toolUse = data.content.find((b) => b.type === 'tool_use');
-  if (!toolUse?.input) throw new Error('Anthropic response did not include a tool_use block');
+For each role, estimate realistic one-time hours AND people count (almost always 1 person per role for a standard build — only use more than 1 if the workflow/integration count genuinely demands parallel work) given the solution's profile. Do not include a role that genuinely isn't needed for this build — set its hours to 0 and say why in the rationale rather than inventing work to fill a role. Ground hours in actual work implied by the profile (workflow_count, integration_count, mechanism_type, automation_level) — not a generic complexity score. Never inflate hours to justify the standard price; if a role genuinely needs very little time, say so.
 
-  return toolUse.input as unknown as AmcResourceEstimate;
+End with one sentence (overall_confidence_note) on how solid this estimate is.`;
+
+  const userMessage = `Solution profile:
+- Business function: ${profile.business_function}
+- Domain: ${profile.domain}
+- Problem type: ${profile.problem_type}
+- Framework applied: ${profile.framework_name}
+- Mechanism type: ${profile.mechanism_type}
+- Distinct workflows: ${profile.workflow_count}
+- Distinct integrations: ${profile.integration_count}
+- Automation level: ${profile.automation_level}
+- Decision criticality: ${profile.decision_criticality}`;
+
+  const tool = {
+    name: 'estimate_implementation_hours',
+    description: 'Estimate one-time implementation hours and people count per role.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        estimates: {
+          type: 'array',
+          description: 'Exactly 6 entries, one per fixed role.',
+          items: {
+            type: 'object',
+            properties: {
+              role: { type: 'string', enum: IMPLEMENTATION_ROLES as unknown as string[] },
+              people: { type: 'integer', description: 'Almost always 1.' },
+              hours: { type: 'number' },
+              rationale: { type: 'string', description: 'One sentence tied to the actual profile fields, or why this role needs 0 hours.' },
+            },
+            required: ['role', 'people', 'hours', 'rationale'],
+          },
+        },
+        overall_confidence_note: { type: 'string' },
+      },
+      required: ['estimates', 'overall_confidence_note'],
+    },
+  } as const;
+
+  const { output, meta } = await callNamedTool<ImplementationEstimate>(system, userMessage, tool, apiKey, 1500);
+  return { estimate: output, meta };
 }
 
 export async function fetchWebsiteSnippet(url: string): Promise<string | null> {

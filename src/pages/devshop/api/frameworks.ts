@@ -7,10 +7,33 @@ import { getEnv } from '../../../lib/env';
 import { suggestFrameworkDetails } from '../../../lib/llm';
 
 type Body =
-  | { action: 'add'; name: string; source: string; business_function: string; when_to_use: string; link?: string; problem_archetypes?: string }
+  | {
+      action: 'add';
+      name: string;
+      source: string;
+      business_function: string;
+      when_to_use: string;
+      link?: string;
+      problem_archetypes?: string;
+      ideal_use_cases?: string;
+      required_conditions?: string;
+      required_evidence?: string;
+      contraindications?: string;
+      expected_intervention_types?: string;
+      applicable_business_functions?: string;
+      applicable_pnl_levers?: string;
+      expert_notes?: string;
+    }
   | { action: 'setActive'; id: string; active: boolean }
   | { action: 'suggest'; name: string; hint?: string }
   | { action: 'markReviewed'; id: string; reviewedBy: string };
+
+function toList(s: string | undefined): string[] {
+  return (s || '')
+    .split(',')
+    .map((v) => v.trim())
+    .filter(Boolean);
+}
 
 export const POST: APIRoute = async ({ request }) => {
   const env = getEnv();
@@ -29,10 +52,15 @@ export const POST: APIRoute = async ({ request }) => {
         business_function: body.business_function,
         when_to_use: body.when_to_use.trim(),
         link: body.link?.trim() || null,
-        problem_archetypes: (body.problem_archetypes || '')
-          .split(',')
-          .map((s) => s.trim())
-          .filter(Boolean),
+        problem_archetypes: toList(body.problem_archetypes),
+        ideal_use_cases: toList(body.ideal_use_cases),
+        required_conditions: toList(body.required_conditions),
+        required_evidence: toList(body.required_evidence),
+        contraindications: toList(body.contraindications),
+        expected_intervention_types: toList(body.expected_intervention_types),
+        applicable_business_functions: toList(body.applicable_business_functions),
+        applicable_pnl_levers: toList(body.applicable_pnl_levers),
+        expert_notes: body.expert_notes?.trim() || null,
       });
     } else if (body.action === 'setActive') {
       await db.setFrameworkActive(body.id, body.active);

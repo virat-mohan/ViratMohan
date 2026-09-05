@@ -56,11 +56,37 @@ export async function runRevision(
       },
       result.artefactHtml
     );
+    await db.recordGeneration({
+      submissionId: row.id,
+      kind: 'revise',
+      model: result.generationMeta.model,
+      promptVersion: result.generationMeta.promptVersion,
+      status: result.generationMeta.status,
+      attempts: result.generationMeta.attempts,
+      durationMs: result.generationMeta.durationMs,
+      errorMessage: result.generationMeta.errorMessage,
+      artefactBlocked: result.artefactValidations.some((v) => v.status === 'block'),
+    });
 
     return { success: true };
   } catch (err) {
     console.error('runRevision failed', err);
     const message = err instanceof Error ? err.message : String(err);
+    const meta = (err as { generationMeta?: import('./llm').GenerationMeta })?.generationMeta;
+    if (meta) {
+      await db
+        .recordGeneration({
+          submissionId: row.id,
+          kind: 'revise',
+          model: meta.model,
+          promptVersion: meta.promptVersion,
+          status: meta.status,
+          attempts: meta.attempts,
+          durationMs: meta.durationMs,
+          errorMessage: meta.errorMessage,
+        })
+        .catch(() => {});
+    }
     // Restore the pre-revision status (never "failed") — the original
     // artefact/solution_notes were never touched by a failed attempt, so
     // the client should keep seeing their still-good original demo rather

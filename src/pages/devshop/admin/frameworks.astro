@@ -44,6 +44,31 @@ const frameworks = await getDb(env).listAllFrameworks();
       <div class="form-row">
         <input id="fwArchetypes" type="text" placeholder="Problem archetypes, comma-separated (e.g. funnel-drop-off, repeat-cost-leakage)" />
       </div>
+      <details class="advanced-metadata">
+        <summary>Advanced metadata (optional)</summary>
+        <div class="form-row">
+          <input id="fwIdealUseCases" type="text" placeholder="Ideal use cases, comma-separated" />
+        </div>
+        <div class="form-row">
+          <input id="fwRequiredConditions" type="text" placeholder="Required conditions, comma-separated" />
+        </div>
+        <div class="form-row">
+          <input id="fwRequiredEvidence" type="text" placeholder="Required evidence, comma-separated" />
+        </div>
+        <div class="form-row">
+          <input id="fwContraindications" type="text" placeholder="Contraindications, comma-separated" />
+        </div>
+        <div class="form-row">
+          <input id="fwInterventionTypes" type="text" placeholder="Expected intervention types, comma-separated" />
+        </div>
+        <div class="form-row">
+          <input id="fwApplicableFunctions" type="text" placeholder="Applicable business functions, comma-separated" />
+        </div>
+        <div class="form-row">
+          <input id="fwApplicableLevers" type="text" placeholder="Applicable P&L levers, comma-separated" />
+        </div>
+        <textarea id="fwExpertNotes" rows="2" placeholder="Expert notes (free text)"></textarea>
+      </details>
       <button id="addBtn" class="btn-small">Add to library</button>
       <p class="hint" id="addHint" hidden></p>
     </div>
@@ -60,6 +85,7 @@ const frameworks = await getDb(env).listAllFrameworks();
           <th data-sort-type="text">Version</th>
           <th data-sort-type="text">Reviewed</th>
           <th data-sort-type="text">Active</th>
+          <th data-no-sort="true">Metadata</th>
           <th data-no-sort="true"></th>
         </tr>
       </thead>
@@ -83,6 +109,21 @@ const frameworks = await getDb(env).listAllFrameworks();
                 : <span class="unreviewed">Not yet</span>}
             </td>
             <td>{f.active ? 'Yes' : 'No'}</td>
+            <td>
+              {(f.ideal_use_cases.length + f.required_conditions.length + f.required_evidence.length + f.contraindications.length + f.expected_intervention_types.length + f.applicable_business_functions.length + f.applicable_pnl_levers.length > 0 || f.expert_notes) ? (
+                <details class="metadata-details">
+                  <summary>View</summary>
+                  {f.ideal_use_cases.length > 0 && <p><strong>Ideal use cases:</strong> {f.ideal_use_cases.join(', ')}</p>}
+                  {f.required_conditions.length > 0 && <p><strong>Required conditions:</strong> {f.required_conditions.join(', ')}</p>}
+                  {f.required_evidence.length > 0 && <p><strong>Required evidence:</strong> {f.required_evidence.join(', ')}</p>}
+                  {f.contraindications.length > 0 && <p><strong>Contraindications:</strong> {f.contraindications.join(', ')}</p>}
+                  {f.expected_intervention_types.length > 0 && <p><strong>Intervention types:</strong> {f.expected_intervention_types.join(', ')}</p>}
+                  {f.applicable_business_functions.length > 0 && <p><strong>Applicable functions:</strong> {f.applicable_business_functions.join(', ')}</p>}
+                  {f.applicable_pnl_levers.length > 0 && <p><strong>Applicable P&amp;L levers:</strong> {f.applicable_pnl_levers.join(', ')}</p>}
+                  {f.expert_notes && <p><strong>Expert notes:</strong> {f.expert_notes}</p>}
+                </details>
+              ) : '—'}
+            </td>
             <td class="actions-cell">
               <button class="toggle-btn" data-id={f.id} data-active={String(!f.active)}>
                 {f.active ? 'Deactivate' : 'Reactivate'}
@@ -91,7 +132,7 @@ const frameworks = await getDb(env).listAllFrameworks();
             </td>
           </tr>
         ))}
-        {frameworks.length === 0 && <tr><td colspan="10">No frameworks yet — add one above, or run migrations/0005_frameworks.sql for the starter set.</td></tr>}
+        {frameworks.length === 0 && <tr><td colspan="11">No frameworks yet — add one above, or run migrations/0005_frameworks.sql for the starter set.</td></tr>}
       </tbody>
     </table>
   </main>
@@ -144,6 +185,14 @@ const frameworks = await getDb(env).listAllFrameworks();
       const when_to_use = document.getElementById('fwWhen').value.trim();
       const link = document.getElementById('fwLink').value.trim();
       const problem_archetypes = document.getElementById('fwArchetypes').value.trim();
+      const ideal_use_cases = document.getElementById('fwIdealUseCases').value.trim();
+      const required_conditions = document.getElementById('fwRequiredConditions').value.trim();
+      const required_evidence = document.getElementById('fwRequiredEvidence').value.trim();
+      const contraindications = document.getElementById('fwContraindications').value.trim();
+      const expected_intervention_types = document.getElementById('fwInterventionTypes').value.trim();
+      const applicable_business_functions = document.getElementById('fwApplicableFunctions').value.trim();
+      const applicable_pnl_levers = document.getElementById('fwApplicableLevers').value.trim();
+      const expert_notes = document.getElementById('fwExpertNotes').value.trim();
       if (!name || !source || !when_to_use) {
         addHint.textContent = 'Fill in name, source, and when-to-use.';
         addHint.hidden = false;
@@ -154,7 +203,11 @@ const frameworks = await getDb(env).listAllFrameworks();
         const res = await fetch('/devshop/api/frameworks', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ action: 'add', name, source, business_function, when_to_use, link, problem_archetypes }),
+          body: JSON.stringify({
+            action: 'add', name, source, business_function, when_to_use, link, problem_archetypes,
+            ideal_use_cases, required_conditions, required_evidence, contraindications,
+            expected_intervention_types, applicable_business_functions, applicable_pnl_levers, expert_notes,
+          }),
         });
         if (!res.ok) throw new Error(await res.text());
         location.reload();
@@ -258,4 +311,10 @@ const frameworks = await getDb(env).listAllFrameworks();
   .archetypes { max-width: 200px; }
   .archetype-pill { display: inline-block; font-size: 10.5px; color: #d4af37; border: 1px solid rgba(212,175,55,0.35); padding: 1px 6px; border-radius: 10px; margin: 2px 4px 2px 0; }
   .unreviewed { color: #a66a62; font-size: 12.5px; }
+  .advanced-metadata { margin: 6px 0 12px; border: 1px solid rgba(245,245,240,0.1); border-radius: 4px; padding: 4px 12px; }
+  .advanced-metadata summary { cursor: pointer; font-size: 12px; color: #85837e; padding: 8px 0; }
+  .metadata-details { max-width: 220px; }
+  .metadata-details summary { cursor: pointer; color: #d4af37; font-size: 12px; }
+  .metadata-details p { font-size: 11.5px; color: #b7b5af; margin: 6px 0; }
+  .metadata-details strong { color: #85837e; font-weight: 500; }
 </style>

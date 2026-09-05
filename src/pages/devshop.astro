@@ -945,8 +945,11 @@ const canonical = new URL('/devshop', site.domain).href;
     if (logEl) logEl.innerHTML = '';
   }
 
+  var intakeSubmitting = false; // guards against a double-click/double-fire firing two full generations
   document.getElementById('intakeForm').addEventListener('submit', function (e) {
     e.preventDefault();
+    if (intakeSubmitting) return;
+    intakeSubmitting = true;
     var form = e.target;
     var errorEl = document.getElementById('intakeError');
     errorEl.hidden = true;
@@ -987,6 +990,7 @@ const canonical = new URL('/devshop', site.domain).href;
         }
       })
       .catch(function (err) {
+        intakeSubmitting = false;
         stopBuildingUi(false);
         showScreen('intake');
         errorEl.textContent = err.message || 'Something went wrong — try again.';

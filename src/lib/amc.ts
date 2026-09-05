@@ -111,12 +111,47 @@ export type AmcPricingRecommendation = {
   market_equivalent_value_low_inr: number;
   market_equivalent_value_high_inr: number;
   cost_to_serve_inr: number;
+  direct_tech_cost_low_inr: number;
+  direct_tech_cost_high_inr: number;
+  direct_tech_cost_basis: string;
   recommended_range_low_inr: number;
   recommended_range_high_inr: number;
   rationale: string;
   used_minimum_floor: boolean;
   unverified_rate_categories: ResourceCategory[]; // categories priced off a non-curated/unverified rate — flag for human review
 };
+
+// Direct technology costs (brief §52) — LLM/API, hosting, monitoring —
+// tracked as their own line, separate from labor-hour costs. No live usage
+// metering exists yet, so this is a benchmarked baseline with an explicit
+// ±10% variance band, never presented as an exact metered figure.
+const DIRECT_TECH_BASE_INR_PER_MONTH: Record<MechanismType, number> = {
+  agent_workflow: 4500, // most LLM calls — multi-step, some autonomy
+  automation_pipeline: 2000,
+  decision_support: 2500,
+  analytics_dashboard: 1500,
+  data_integration: 2000,
+};
+const DIRECT_TECH_PER_INTEGRATION_INR = 400; // incremental API surface/monitoring per integration
+const DIRECT_TECH_VARIANCE = 0.1; // ±10%
+
+export type DirectTechCostEstimate = {
+  low_inr: number;
+  high_inr: number;
+  basis: string;
+};
+
+export function estimateDirectTechCost(
+  profile: Pick<AmcSolutionProfile, 'mechanism_type' | 'integration_count'>
+): DirectTechCostEstimate {
+  const base =
+    DIRECT_TECH_BASE_INR_PER_MONTH[profile.mechanism_type] + profile.integration_count * DIRECT_TECH_PER_INTEGRATION_INR;
+  return {
+    low_inr: Math.round(base * (1 - DIRECT_TECH_VARIANCE)),
+    high_inr: Math.round(base * (1 + DIRECT_TECH_VARIANCE)),
+    basis: `Benchmarked estimate (±10%), not metered actual usage — based on a ${profile.mechanism_type.replace(/_/g, ' ')} mechanism with ${profile.integration_count} integration${profile.integration_count === 1 ? '' : 's'}.`,
+  };
+}
 
 // Internal FTDS cost-to-serve, per resource category, per hour — what it
 // actually costs the business to deliver an hour of this category. This is
@@ -143,13 +178,14 @@ function findRate(
 }
 
 export function calculateAmcPricing(
-  profile: Pick<AmcSolutionProfile, 'domain'>,
+  profile: Pick<AmcSolutionProfile, 'domain' | 'mechanism_type' | 'integration_count'>,
   estimate: AmcResourceEstimate,
   benchmarks: AmcRateBenchmark[]
 ): AmcPricingRecommendation {
-  let marketLow = 0;
-  let marketHigh = 0;
-  let costToServe = 0;
+  const directTech = estimateDirectTechCost(profile);
+  let marketLow = directTech.low_inr;
+  let marketHigh = directTech.high_inr;
+  let costToServe = (directTech.low_inr + directTech.high_inr) / 2; // pass-through cost to FTDS too
   const unverified: ResourceCategory[] = [];
 
   for (const hourEstimate of estimate.estimates) {
@@ -177,13 +213,16 @@ export function calculateAmcPricing(
   const usedFloor = marketLow < AMC_MONTHLY_MINIMUM_INR;
 
   const rationale = usedFloor
-    ? `Market-equivalent value (₹${Math.round(marketLow).toLocaleString('en-IN')}–₹${Math.round(marketHigh).toLocaleString('en-IN')}/month) fell below the ₹${AMC_MONTHLY_MINIMUM_INR.toLocaleString('en-IN')} per-module minimum, so the minimum applies.`
-    : `Based on estimated monthly hours per resource category priced at benchmarked market rates for this domain, against an internal cost-to-serve of ₹${Math.round(costToServe).toLocaleString('en-IN')}/month.`;
+    ? `Market-equivalent value (₹${Math.round(marketLow).toLocaleString('en-IN')}–₹${Math.round(marketHigh).toLocaleString('en-IN')}/month, including direct technology costs) fell below the ₹${AMC_MONTHLY_MINIMUM_INR.toLocaleString('en-IN')} per-module minimum, so the minimum applies.`
+    : `Based on estimated monthly hours per resource category priced at benchmarked market rates for this domain, plus a benchmarked direct-technology cost, against an internal cost-to-serve of ₹${Math.round(costToServe).toLocaleString('en-IN')}/month.`;
 
   return {
     market_equivalent_value_low_inr: Math.round(marketLow),
     market_equivalent_value_high_inr: Math.round(marketHigh),
     cost_to_serve_inr: Math.round(costToServe),
+    direct_tech_cost_low_inr: directTech.low_inr,
+    direct_tech_cost_high_inr: directTech.high_inr,
+    direct_tech_cost_basis: directTech.basis,
     recommended_range_low_inr: Math.round(flooredLow),
     recommended_range_high_inr: Math.round(flooredHigh),
     rationale,

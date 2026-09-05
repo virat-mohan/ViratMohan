@@ -22,7 +22,7 @@ export async function sendDemoDoneEmail(
   const questionsBlock =
     questions.length > 0
       ? `<p><strong>A few questions that would sharpen the numbers</strong> (the demo currently uses industry-typical assumptions where we didn't have your real figures — answer any of these in your reply and we'll use the real number):</p>
-         <ul>${questions.map((q) => `<li>${escapeHtml(q)}</li>`).join('')}</ul>`
+         <ul>${questions.map((q) => `<li>${escapeHtml(q.question)}</li>`).join('')}</ul>`
       : '';
 
   const recipient = (opts?.overrideEmail || '').trim() || row.email;

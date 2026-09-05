@@ -4,7 +4,7 @@ export const prerender = false;
 import type { APIRoute } from 'astro';
 import { getDb } from '../../../lib/db';
 import { getEnv } from '../../../lib/env';
-import { estimateAmcResourceHours } from '../../../lib/llm';
+import { estimateAmcResourceHours, estimateImplementationHours } from '../../../lib/llm';
 import { calculateAmcPricing, type AmcSolutionProfile, type MechanismType, type AutomationLevel, type DecisionCriticality } from '../../../lib/amc';
 
 type Body = {
@@ -45,13 +45,46 @@ export const POST: APIRoute = async ({ request }) => {
       decision_criticality: body.decision_criticality,
     };
 
-    const estimate = await estimateAmcResourceHours(profile, env.ANTHROPIC_API_KEY);
+    const { estimate, meta: amcMeta } = await estimateAmcResourceHours(profile, env.ANTHROPIC_API_KEY);
     const rateBenchmarks = await db.listActiveAmcRates();
     const recommendation = calculateAmcPricing(profile, estimate, rateBenchmarks);
 
     await db.saveAmcProposal(body.id, profile, estimate, recommendation);
+    await db.recordGeneration({
+      submissionId: body.id,
+      kind: 'amc_estimate',
+      model: amcMeta.model,
+      promptVersion: amcMeta.promptVersion,
+      status: amcMeta.status,
+      attempts: amcMeta.attempts,
+      durationMs: amcMeta.durationMs,
+      errorMessage: amcMeta.errorMessage,
+    });
 
-    return json({ ok: true, profile, estimate, recommendation }, 200);
+    // One source of truth (brief §56): the implementation (one-time build)
+    // estimate is generated from the same solution profile, at the same
+    // moment, so the internal pricing and the customer-facing capacity
+    // disclosure can never silently drift apart.
+    let implementationEstimate = null;
+    try {
+      const { estimate: implEstimate, meta: implMeta } = await estimateImplementationHours(profile, env.ANTHROPIC_API_KEY);
+      await db.saveImplementationEstimate(body.id, implEstimate);
+      await db.recordGeneration({
+        submissionId: body.id,
+        kind: 'implementation_estimate',
+        model: implMeta.model,
+        promptVersion: implMeta.promptVersion,
+        status: implMeta.status,
+        attempts: implMeta.attempts,
+        durationMs: implMeta.durationMs,
+        errorMessage: implMeta.errorMessage,
+      });
+      implementationEstimate = implEstimate;
+    } catch (err) {
+      console.error('amc-proposal: implementation estimate failed, AMC estimate still saved', err);
+    }
+
+    return json({ ok: true, profile, estimate, recommendation, implementationEstimate }, 200);
   } catch (err) {
     return json({ error: err instanceof Error ? err.message : String(err) }, 500);
   }
