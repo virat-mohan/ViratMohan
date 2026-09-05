@@ -34,6 +34,7 @@ export type ProblemBreakdown = {
   problem_statement: string;
   business_function: string;
   root_cause: string;
+  plain_summary: string; // one everyday sentence: what's wrong and why, no jargon — the customer-facing headline for this problem
   who_is_affected: string;
   current_cost_of_inaction: string;
   // Epistemic status of the diagnosis itself — a root cause is a
@@ -91,6 +92,7 @@ export type RawFrameworkSelection = {
   problem_index: number;
   framework_name: string;
   why_selected: string; // ties the choice to this specific root cause, incl. what makes it a proven/world-class fit
+  plain_explanation: string; // one everyday sentence: what this approach actually does for the customer, no jargon
   in_library: boolean; // false = model is suggesting something real but not yet in the curated set
   suggested_source?: string; // only used when in_library is false — the model's own citation, unverified
   runner_up_names: string[]; // 3-7 other library framework names genuinely considered for this problem
@@ -110,6 +112,7 @@ export type FrameworkSelection = {
   framework_source: string;
   framework_link: string | null;
   why_selected: string;
+  plain_explanation: string;
   in_library: boolean;
   runner_ups: ResolvedFrameworkRef[];
   fitCandidates: FrameworkFitCandidate[];
@@ -119,6 +122,7 @@ export type SolutionMechanism = {
   problem_index: number;
   mechanism_name: string;
   how_it_works_steps: string[];
+  plain_explanation: string; // one or two everyday sentences: what the tool actually does for the customer, no jargon
   trigger_or_data_source: string;
   why_not_generic: string;
 };
@@ -177,12 +181,15 @@ function buildMethodology(
 
 Work through these steps IN ORDER, and do the real thinking at each one — do not skip to the artefact:
 
+PLAIN-LANGUAGE RULE — applies to every plain_summary/plain_explanation field below: write it the way you'd explain this out loud to a smart small-business owner who has never read a consulting deck — everyday words, no jargon (no "leverage," "synergy," "funnel," "unlock," framework-internal terminology, or finance terms like "COGS"/"opex" unless you also say what that means in the same breath), one or two short sentences, active voice. It must be a PLAIN RESTATEMENT of what you already established in the corresponding technical field (root_cause, why_selected, how_it_works_steps, reasoning) — never a new claim, a new number, or added flavor text that isn't already grounded there. If you can't restate it plainly without adding something new, the technical version was probably too vague to begin with — fix that instead of padding the plain version.
+
 STEP 1 — Diagnose. Identify every genuinely distinct problem (usually 1, occasionally 2-3; do not manufacture problems that aren't there, and do not split one problem into several). For each:
 (a) First classify which BUSINESS FUNCTION actually owns this problem — exactly one of: ${BUSINESS_FUNCTIONS.join(', ')}. This is the CFO's first question, before anything else: whose budget and whose workflow is this.
 (b) Then find the ROOT CAUSE, not the symptom — e.g. "checkout abandons at 60%" is a symptom; the root cause might be surprise shipping costs, a broken mobile flow, or lack of trust signals at payment.
 (c) State who inside that function actually feels this pain, and what it's costing them today.
 (d) Rate your own confidence in this root cause — confidence_level, one of: strongly_supported (the problem statement directly states or clearly implies this cause), reasonably_supported (a reasonable inference, some gap), preliminary_hypothesis (plausible but thin evidence), insufficient_evidence (you're largely guessing). Never inflate this to sound more certain than the evidence justifies — a root cause is a hypothesis until evidence says otherwise, not a proven fact. State supporting_evidence (what in the problem statement actually supports this) and evidence_gaps (what's missing or assumed that, if wrong, would change the diagnosis).
-Keep every field here SHORT — this becomes a scannable bulleted brief a busy founder reads in 30 seconds, not a report: problem_statement ≤ 20 words, business_function is just the function name, root_cause ≤ 20 words (one sentence, no compound clauses), who_is_affected ≤ 8 words, current_cost_of_inaction one tight sentence with the actual number in it, supporting_evidence and evidence_gaps ≤ 25 words each.
+(e) Write plain_summary — per the PLAIN-LANGUAGE RULE above, one everyday sentence covering what's actually wrong and, in the same breath, roughly what it's costing (in the customer's own terms, not a finance term). This is the sentence a non-technical founder reads first; root_cause stays as the precise technical version underneath it, for the appendix.
+Keep every field here SHORT — this becomes a scannable bulleted brief a busy founder reads in 30 seconds, not a report: problem_statement ≤ 20 words, business_function is just the function name, root_cause ≤ 20 words (one sentence, no compound clauses), plain_summary ≤ 25 words, who_is_affected ≤ 8 words, current_cost_of_inaction one tight sentence with the actual number in it, supporting_evidence and evidence_gaps ≤ 25 words each.
 
 If the problem statement is thin enough that a STRUCTURAL fact has to be assumed to proceed at all (e.g. B2B vs B2C, outbound vs inbound, which sales/business motion, who the end customer even is), do not silently commit to one specific model and present it as fact — that's the single riskiest kind of assumption, because it shapes every downstream step. Pick the single most plausible default, but that default becomes the FIRST entry in the Step 7 clarifying-questions list, phrased as a direct confirm-or-correct question (e.g. "Is this B2B outbound sales, or a different motion — retail, referral, marketplace?"). This kind of gap should also pull confidence_level down to preliminary_hypothesis or insufficient_evidence — do not mark something strongly_supported while simultaneously flagging that you had to guess the business model.
 
@@ -212,14 +219,15 @@ Rules for this step:
 - If nothing in the library fits the root cause well, you MAY name a different framework — but ONLY if it is real, globally documented, and has a genuine track record at scale (originated or popularized by a recognized authority: McKinsey, BCG, Bain, Korn Ferry, Gartner, Deloitte, a named academic/practitioner, a standards body, etc.). Set in_library: false and fill suggested_source with the citation. Never invent a framework name, never misattribute a real framework to the wrong originator.
 - If truly no established framework applies, say so plainly (framework_name: "No established framework directly applies", explain why in why_selected) rather than force-fitting one for the sake of citing something.
 - why_selected must explain both why this fits THIS root cause specifically, and briefly what makes it a proven, world-class choice (scale of adoption, who relies on it) — this is the credibility moment, make it substantive, not decorative.
+- plain_explanation: per the PLAIN-LANGUAGE RULE, one everyday sentence on what this approach actually does for the customer — you may still NAME the framework (that's part of the credibility, not jargon), but explain what it does, not what it's called or who invented it, e.g. "We're using a method built for exactly this kind of drop-off — it looks at each step a customer takes and fixes the one losing the most people," not a sentence about the framework's pedigree.
 - Internally score EVERY candidate you named (the selected framework AND each runner-up) as a fit_candidates entry, across these 9 dimensions, each 0-5 where 5 is an excellent fit and 0 is a poor one: problem_pattern_fit (does the general shape of this problem match what the framework was designed for), root_cause_fit (does it address THIS specific root cause, not just the general topic), business_function_fit (does it fit the function from Step 1a), evidence_sufficiency (is there enough evidence in the diagnosis to apply this framework with confidence), intervention_compatibility (does the mechanism you're about to design in Step 4 actually fit how this framework is normally operationalized), pnl_relevance (does applying this framework plausibly move the P&L line you'll name in Step 3), framework_specificity (does the framework have real structural vocabulary/steps to apply here, vs. being generic enough to fit anything), contraindication_risk (5 = no reason this framework would mislead or mismatch here, 0 = there's a genuine reason it's the wrong lens), industry_relevance (5 = strong evidence this framework works for THIS industry specifically, 0 = no evidence it transfers here at all). Score industry_relevance from TWO combined signals and say which drove the score in the evidence text: (1) the internal FTDS history given above, if any, and (2) your own knowledge of where this framework is actually documented as successfully implemented at scale versus where it's rarely or never applied — e.g. AARRR is heavily proven in e-commerce/SaaS/consumer-app funnels but has little track record in heavy manufacturing; Lean/TPS is proven at massive scale in manufacturing/logistics but is a stretch for a pure knowledge-work service business. Do not inflate this score just because a framework is generally famous — famous and industry-relevant are different things. This is an honest internal audit, not a rubber stamp for whichever framework you already picked — a runner-up can legitimately score close to or above the selected framework on some dimensions; state that plainly in positive_evidence/negative_evidence rather than always making the winner look strictly best. For each candidate, give positive_evidence (concrete reasons it fits) and negative_evidence (concrete reasons it doesn't — write "none material" only if genuinely true, not as a default).
 
 STEP 3 — Map to the P&L. This is a drill-down, not a jump: business function (from Step 1a) → the SPECIFIC P&L line item that function's activity actually moves (e.g. Growth owning a problem usually moves a revenue line or CAC within sales & marketing spend; Efficiency/Operations usually moves a COGS or opex line; Legal/Compliance usually moves risk-provision or overhead cost; HR usually moves labor cost or attrition-driven cost; Tech usually moves either a cost line (infra/eng time) or unblocks a revenue line) → THEN classify against exactly one of these fixed levers:
    Revenue levers: ${PNL_LEVERS.revenue.join(', ')}
    Cost levers: ${PNL_LEVERS.cost.join(', ')}
-Name the specific P&L line item explicitly inside the reasoning (not just the lever category) — e.g. not just "labor cost" but "support team headcount cost." Give a plausible, industry-grounded before/after estimate for that line if the mechanism in Step 4 were live, informed by the framework selected in Step 2. Write the reasoning in plain operator language — never "leverage," "unlock," "synergy," or similar. One tight sentence carrying the assumption and the number, ≤ 30 words — not a paragraph. Tag value_status: "known" only if the client's own text gave you this number; "assumed" if you're using an industry-grounded placeholder; "needs_confirmation" if you're not confident even the assumption is a reasonable placeholder for this specific business. Do not mark a number "known" unless the client actually stated it.
+Name the specific P&L line item explicitly inside the reasoning (not just the lever category) — e.g. not just "labor cost" but "support team headcount cost." Give a plausible, industry-grounded before/after estimate for that line if the mechanism in Step 4 were live, informed by the framework selected in Step 2. Write the reasoning in plain operator language — never "leverage," "unlock," "synergy," or similar. One tight sentence carrying the assumption and the number, ≤ 30 words — not a paragraph. Tag value_status: "known" only if the client's own text gave you this number; "assumed" if you're using an industry-grounded placeholder; "needs_confirmation" if you're not confident even the assumption is a reasonable placeholder for this specific business. Do not mark a number "known" unless the client actually stated it. Then write plain_explanation, per the PLAIN-LANGUAGE RULE — the same number, in everyday terms a founder feels immediately, e.g. "That's roughly 40 more completed orders a month, without spending more on ads," not "a projected uplift in the conversion-rate lever."
 
-STEP 4 — Design the mechanism. For each problem, design the SPECIFIC mechanism that would actually fix the root cause from Step 1, SHAPED by the framework selected in Step 2 — not "an AI agent that helps with X," but the actual workflow: what triggers it, what data or signal it acts on, and what happens step by step. Break "what happens step by step" into 3-6 short, discrete steps (how_it_works_steps) — each one a single concrete action, ≤ 15 words, written so it could be a bullet on a slide, not folded into one paragraph. Also state, in one sentence, why this mechanism and not a generic dashboard or chatbot. Ground it in what's realistically buildable with current AI/automation tooling — nothing that requires a research breakthrough.
+STEP 4 — Design the mechanism. For each problem, design the SPECIFIC mechanism that would actually fix the root cause from Step 1, SHAPED by the framework selected in Step 2 — not "an AI agent that helps with X," but the actual workflow: what triggers it, what data or signal it acts on, and what happens step by step. Break "what happens step by step" into 3-6 short, discrete steps (how_it_works_steps) — each one a single concrete action, ≤ 15 words, written so it could be a bullet on a slide, not folded into one paragraph. Also state, in one sentence, why this mechanism and not a generic dashboard or chatbot. Ground it in what's realistically buildable with current AI/automation tooling — nothing that requires a research breakthrough. Then write plain_explanation, per the PLAIN-LANGUAGE RULE — one or two everyday sentences on what the tool actually does for the customer day to day, e.g. "When someone starts checking out and stalls, it waits a few minutes, then sends a short reminder with their exact cart — no manual follow-up needed," not a restatement of how_it_works_steps in engineering language.
 
 STEP 5 — Validate the solution so far. A valid schema is NOT evidence the solution is correct — this step is where you check your own work before it goes any further, the same way a second reviewer would. For each problem, produce validation entries covering AT LEAST:
 - root_cause_evidence: does Step 1's confidence_level genuinely match the evidence quality, or did you overstate it? status "block" if a root cause with insufficient_evidence is being treated downstream as if it were solid; "warning" if there's a real but non-fatal gap; "pass" if the confidence level is honest and the mechanism doesn't overreach beyond what's supported.
@@ -243,7 +251,7 @@ CRITICAL RULE — interactivity depth: do not collapse a multi-step mechanism in
 
 CRITICAL RULE — the artefact must visibly run on the selected framework: label sections, stages, or metrics using that framework's OWN vocabulary and structure wherever it has one — e.g. Korn Ferry's actual competency categories, DMAIC's Define/Measure/Analyze/Improve/Control phases, AARRR's actual funnel stage names, a Nine-Box's actual grid — not generic labels like "Step 1, Step 2" or "Phase A." If the client can tell which named framework produced this by reading the artefact itself, you've done this right. If the selected framework has no natural structural vocabulary to borrow, at minimum name-check it visibly in the artefact (e.g. a small "Built on [Framework]" mark) rather than leaving no trace of Step 2's work in the thing the client actually interacts with.
 
-CRITICAL RULE — visual craft: this must look like a real, designed product, not a functional wireframe. Establish a clear typographic scale (one size/weight for the main metric, another for labels, another for body — do not let everything be the same size), consistent spacing rhythm (pick a base unit like 8px and stick to multiples of it), a restrained but confident color system (the brand/accent color used deliberately for the 2-3 things that most deserve attention, not sprayed everywhere), clear visual hierarchy so the eye knows where to go first, and small polish details — hover states, subtle transitions on state changes, rounded corners used consistently, badges/pills/icons (inline SVG only) where they earn their place. Avoid dense walls of text inside the artefact itself; prefer short labels, numbers, and a few words of context, saving longer explanation for outside the artefact.
+CRITICAL RULE — visual craft: this must look like a real, designed product, not a functional wireframe. Establish a clear typographic scale (one size/weight for the main metric, another for labels, another for body — do not let everything be the same size), consistent spacing rhythm (pick a base unit like 8px and stick to multiples of it), a restrained but confident color system (the brand/accent color used deliberately for the 2-3 things that most deserve attention, not sprayed everywhere), clear visual hierarchy so the eye knows where to go first, and small polish details — hover states, subtle transitions on state changes, rounded corners used consistently, badges/pills/icons (inline SVG only) where they earn their place. Avoid dense walls of text inside the artefact itself; prefer short labels, numbers, and a few words of context, saving longer explanation for outside the artefact. Any copy inside the artefact (labels, microcopy, tooltips) follows the same PLAIN-LANGUAGE RULE as everything else — a framework's own stage/phase names (Step 2's vocabulary rule) are the one exception, since naming those is deliberate; everything else should read like something you'd say out loud, not a slide from a strategy deck.
 
 Rules for the artefact itself:
 - It is a demo, not a mockup — real interactive elements (buttons, inputs, tabs, toggles) that respond to clicks, backed by representative/assumed sample data consistent with the assumptions you stated in Step 3. It does NOT need real client data or a real backend.
@@ -277,6 +285,7 @@ const CLASSIFY_TOOL = {
               description: 'Exactly one of the fixed business functions — which function owns this problem.',
             },
             root_cause: { type: 'string', description: 'One sentence, ≤ 20 words.' },
+            plain_summary: { type: 'string', description: '≤ 25 words — everyday restatement of root_cause + cost, no jargon. This is the customer-facing headline; see the PLAIN-LANGUAGE RULE.' },
             who_is_affected: { type: 'string', description: '≤ 8 words.' },
             current_cost_of_inaction: { type: 'string', description: 'One sentence with the actual number in it.' },
             confidence_level: {
@@ -291,6 +300,7 @@ const CLASSIFY_TOOL = {
             'problem_statement',
             'business_function',
             'root_cause',
+            'plain_summary',
             'who_is_affected',
             'current_cost_of_inaction',
             'confidence_level',
@@ -312,6 +322,7 @@ const CLASSIFY_TOOL = {
               type: 'string',
               description: 'One to two sentences: why this framework fits THIS root cause, and what makes it a proven, world-class choice rather than an arbitrary one.',
             },
+            plain_explanation: { type: 'string', description: '≤ 25 words — everyday restatement of what this approach actually does for the customer, no jargon. See the PLAIN-LANGUAGE RULE.' },
             in_library: { type: 'boolean', description: 'true if the name matches the provided library exactly, false if suggesting something real but not yet in it.' },
             suggested_source: {
               type: 'string',
@@ -354,7 +365,7 @@ const CLASSIFY_TOOL = {
               },
             },
           },
-          required: ['problem_index', 'framework_name', 'why_selected', 'in_library', 'runner_up_names', 'fit_candidates'],
+          required: ['problem_index', 'framework_name', 'why_selected', 'plain_explanation', 'in_library', 'runner_up_names', 'fit_candidates'],
         },
       },
       levers: {
@@ -369,13 +380,14 @@ const CLASSIFY_TOOL = {
               type: 'string',
               description: 'One tight sentence with the stated assumption and the before/after estimate, ≤ 30 words.',
             },
+            plain_explanation: { type: 'string', description: '≤ 20 words — the same number in everyday terms, no finance jargon. See the PLAIN-LANGUAGE RULE.' },
             value_status: {
               type: 'string',
               enum: EPISTEMIC_STATUSES as unknown as string[],
               description: '"known" only if the client stated this number themselves; "assumed" for an industry-grounded placeholder; "needs_confirmation" if even the assumption is shaky.',
             },
           },
-          required: ['category', 'lever', 'reasoning', 'value_status'],
+          required: ['category', 'lever', 'reasoning', 'plain_explanation', 'value_status'],
         },
       },
       solution_mechanisms: {
@@ -391,10 +403,11 @@ const CLASSIFY_TOOL = {
               description: '3-6 short discrete steps, each ≤ 15 words, each a single concrete action.',
               items: { type: 'string' },
             },
+            plain_explanation: { type: 'string', description: '≤ 35 words, one or two sentences — what the tool actually does day to day, no engineering language. See the PLAIN-LANGUAGE RULE.' },
             trigger_or_data_source: { type: 'string', description: 'Short phrase.' },
             why_not_generic: { type: 'string', description: 'One sentence, ≤ 25 words.' },
           },
-          required: ['problem_index', 'mechanism_name', 'how_it_works_steps', 'trigger_or_data_source', 'why_not_generic'],
+          required: ['problem_index', 'mechanism_name', 'how_it_works_steps', 'plain_explanation', 'trigger_or_data_source', 'why_not_generic'],
         },
       },
       validations: {
@@ -610,6 +623,7 @@ export function resolveFrameworkSelections(
       framework_source: matched?.source ?? r.suggested_source ?? 'Unverified — model-suggested',
       framework_link: matched?.link ?? null,
       why_selected: r.why_selected,
+      plain_explanation: r.plain_explanation,
       in_library: !!matched,
       runner_ups: runnerUps,
       fitCandidates: r.fit_candidates ?? [],

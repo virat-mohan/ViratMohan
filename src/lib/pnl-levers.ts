@@ -28,6 +28,7 @@ export type PnlLeverHit = {
   category: PnlLeverCategory;
   lever: string;
   reasoning: string;
+  plain_explanation: string; // one everyday sentence restating `reasoning` with no finance jargon — for the customer-facing document
   value_status: EpistemicStatus; // is the core number in `reasoning` known, assumed, or unconfirmed?
 };
 

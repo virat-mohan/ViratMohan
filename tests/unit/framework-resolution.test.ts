@@ -16,6 +16,7 @@ function rawSelection(overrides: Partial<RawFrameworkSelection>): RawFrameworkSe
     problem_index: 0,
     framework_name: 'AARRR (Pirate Metrics)',
     why_selected: 'Fits the funnel drop-off.',
+    plain_explanation: 'It looks at each step a customer takes and fixes the one losing the most people.',
     in_library: true,
     runner_up_names: [],
     fit_candidates: [],
@@ -33,6 +34,11 @@ describe('resolveFrameworkSelections', () => {
     expect(resolved.framework_source).toBe('Dave McClure / 500 Startups');
     expect(resolved.framework_link).toBe('https://en.wikipedia.org/wiki/Pirate_funnel');
     expect(resolved.in_library).toBe(true);
+  });
+
+  it('carries the plain-language explanation through unchanged (customer-facing copy, not a factual citation to verify)', () => {
+    const [resolved] = resolveFrameworkSelections([rawSelection({})], library);
+    expect(resolved.plain_explanation).toBe('It looks at each step a customer takes and fixes the one losing the most people.');
   });
 
   it('matches case-insensitively and trims whitespace, without trusting the model for anything but the name', () => {

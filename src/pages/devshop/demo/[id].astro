@@ -47,12 +47,8 @@ const title = row.company ? `Your demo — ${row.company}` : 'Your demo';
         <h2>The problem{notes.problemBreakdown.length > 1 ? 's' : ''}</h2>
         {notes.problemBreakdown.map((p) => (
           <div class="card">
-            <p class="card-title">{p.problem_statement}</p>
+            <p class="card-title">{p.plain_summary || p.problem_statement}</p>
             <p class="card-function">{p.business_function}</p>
-            <ul class="bullets">
-              <li><span class="bullet-label">Root cause</span>{p.root_cause}</li>
-              <li><span class="bullet-label">Cost of inaction</span>{p.current_cost_of_inaction}</li>
-            </ul>
           </div>
         ))}
       </section>
@@ -65,16 +61,7 @@ const title = row.company ? `Your demo — ${row.company}` : 'Your demo';
           <div class="card">
             <p class="card-title">{f.framework_link ? <a href={f.framework_link} target="_blank" style="color:inherit; text-decoration:underline;">{f.framework_name}</a> : f.framework_name}</p>
             <p class="card-function">{f.framework_source}</p>
-            <ul class="bullets">
-              <li><span class="bullet-label">Why this fits</span>{f.why_selected}</li>
-            </ul>
-            {f.runner_ups.length > 0 && (
-              <p class="also-considered">
-                Also weighed: {f.runner_ups.map((r, i) => (
-                  <>{i > 0 ? ', ' : ''}{r.link ? <a href={r.link} target="_blank" style="color:inherit;">{r.name}</a> : r.name}</>
-                ))}
-              </p>
-            )}
+            <p class="plain-copy">{f.plain_explanation || f.why_selected}</p>
           </div>
         ))}
       </section>
@@ -86,9 +73,7 @@ const title = row.company ? `Your demo — ${row.company}` : 'Your demo';
         {notes.solutionMechanisms.map((m) => (
           <div class="card">
             <p class="card-title">{m.mechanism_name}</p>
-            <ol class="bullets numbered">
-              {m.how_it_works_steps.map((step) => <li>{step}</li>)}
-            </ol>
+            <p class="plain-copy">{m.plain_explanation}</p>
           </div>
         ))}
       </section>
@@ -99,7 +84,7 @@ const title = row.company ? `Your demo — ${row.company}` : 'Your demo';
         <h2>Expected impact</h2>
         <ul class="bullets flat">
           {levers.map((l) => (
-            <li><span class="bullet-label">{l.lever}</span>{l.reasoning}</li>
+            <li>{l.plain_explanation || l.reasoning}</li>
           ))}
         </ul>
       </section>
@@ -116,8 +101,76 @@ const title = row.company ? `Your demo — ${row.company}` : 'Your demo';
     )}
 
     <p class="feedback-note">
-      Reply to the email this came from with one round of feedback — that's the scope for the 7-day build. No proposal, no scoping call.
+      Reply to the email this came from with one round of feedback — that's the scope for the 30-day build. No proposal, no scoping call.
     </p>
+
+    {notes && (
+      <details class="appendix">
+        <summary>Appendix — the detailed reasoning behind this</summary>
+
+        {notes.problemBreakdown.length > 0 && (
+          <div class="appendix-section">
+            <h3>Diagnosis, in full</h3>
+            {notes.problemBreakdown.map((p) => (
+              <div class="appendix-card">
+                <p class="appendix-title">{p.problem_statement}</p>
+                <ul class="bullets">
+                  <li><span class="bullet-label">Root cause</span>{p.root_cause}</li>
+                  <li><span class="bullet-label">Who's affected</span>{p.who_is_affected}</li>
+                  <li><span class="bullet-label">Cost of inaction</span>{p.current_cost_of_inaction}</li>
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {notes.frameworkSelections.length > 0 && (
+          <div class="appendix-section">
+            <h3>Why this framework, specifically</h3>
+            {notes.frameworkSelections.map((f) => (
+              <div class="appendix-card">
+                <p class="appendix-title">{f.framework_name}</p>
+                <ul class="bullets">
+                  <li><span class="bullet-label">Why this fits</span>{f.why_selected}</li>
+                </ul>
+                {f.runner_ups.length > 0 && (
+                  <p class="also-considered">
+                    Also weighed: {f.runner_ups.map((r, i) => (
+                      <>{i > 0 ? ', ' : ''}{r.link ? <a href={r.link} target="_blank" style="color:inherit;">{r.name}</a> : r.name}</>
+                    ))}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {notes.solutionMechanisms.length > 0 && (
+          <div class="appendix-section">
+            <h3>How the mechanism actually works</h3>
+            {notes.solutionMechanisms.map((m) => (
+              <div class="appendix-card">
+                <p class="appendix-title">{m.mechanism_name}</p>
+                <ol class="bullets numbered">
+                  {m.how_it_works_steps.map((step) => <li>{step}</li>)}
+                </ol>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {levers.length > 0 && (
+          <div class="appendix-section">
+            <h3>The P&amp;L reasoning</h3>
+            <ul class="bullets flat">
+              {levers.map((l) => (
+                <li><span class="bullet-label">{l.lever}</span>{l.reasoning}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </details>
+    )}
   </main>
 
   <div class="divider"><span>Try it yourself</span></div>
@@ -165,6 +218,15 @@ const title = row.company ? `Your demo — ${row.company}` : 'Your demo';
   .also-considered { font-size: 12.5px; color: #6b6459; margin: 10px 0 0; }
   .questions-intro { font-size: 13px; color: #6b5f4a; margin: 0 0 10px; }
   .feedback-note { font-size: 13px; color: #6b6459; border-top: 1px solid rgba(36,33,29,0.1); padding-top: 20px; }
+  .plain-copy { font-size: 15px; line-height: 1.6; color: #3a3630; margin: 0; }
+
+  .appendix { margin-top: 12px; }
+  .appendix summary { cursor: pointer; font-size: 12.5px; color: #8a8378; text-transform: uppercase; letter-spacing: 0.08em; padding: 16px 0; border-top: 1px solid rgba(36,33,29,0.1); }
+  .appendix-section { margin: 20px 0; }
+  .appendix h3 { font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 14.5px; margin: 0 0 10px; color: #4a453e; }
+  .appendix-card { padding: 10px 0; border-top: 1px solid rgba(36,33,29,0.08); }
+  .appendix-card:first-of-type { border-top: none; }
+  .appendix-title { font-weight: 600; font-size: 13.5px; margin: 0 0 6px; color: #4a453e; }
 
   .divider { display: flex; align-items: center; gap: 16px; max-width: 720px; margin: 8px auto 28px; padding: 0 32px; }
   .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: rgba(36,33,29,0.15); }

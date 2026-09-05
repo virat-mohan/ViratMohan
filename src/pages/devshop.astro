@@ -820,6 +820,21 @@ const canonical = new URL('/devshop', site.domain).href;
       ] },
   ];
 
+  // The actual 8-step methodology, narrated in order — this is what's
+  // genuinely happening server-side right now, not filler copy. Framework
+  // fit scores themselves stay internal (see the fit-scoring writeup), but
+  // the fact that scoring is happening, and roughly how, builds real trust.
+  var PROCESS_STEPS = [
+    'Reading your problem and identifying the actual root cause — not just the symptom you described.',
+    'Shortlisting a handful of proven frameworks that could apply here.',
+    'Scoring each candidate on problem fit, evidence strength, and how it\'s worked for businesses in your industry before.',
+    'Selecting the strongest-fit framework and setting the runners-up aside, with reasons.',
+    'Mapping the fix to the exact line on your P&L it should move — revenue or cost, specifically.',
+    'Designing the actual mechanism: what triggers it, what it uses, what happens step by step.',
+    'Double-checking the diagnosis, the framework choice, and the numbers before any of it goes further.',
+    'Building a real interactive demo of it — not a mockup — in your brand colors.',
+  ];
+
   var GENERIC_LINES = [
     'Fast Tech Dev Shop builds a working demo, not a mockup — every number you\'ll see is either a real assumption or a question we\'ll ask you.',
     'The orchestrator is mapping your problem against a fixed set of P&L levers — revenue or cost, not a vague "AI opportunity."',
@@ -834,8 +849,9 @@ const canonical = new URL('/devshop', site.domain).href;
       var hit = entry.keywords.some(function (k) { return haystack.indexOf(k) !== -1; });
       if (hit) matched = matched.concat(entry.lines);
     });
-    // Matched, industry-specific lines first, generic lines as filler/fallback.
-    return matched.concat(GENERIC_LINES);
+    // The real methodology narrative plays first, in order; industry-matched
+    // benchmark lines and generic lines fill the rest of the wait.
+    return PROCESS_STEPS.concat(matched).concat(GENERIC_LINES);
   }
 
   var buildTimers = [];
