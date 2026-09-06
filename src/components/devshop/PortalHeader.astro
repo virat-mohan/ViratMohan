@@ -97,7 +97,33 @@ const navItems = [
   if (trigger && menu) {
     trigger.addEventListener('click', (e) => {
       e.stopPropagation();
+      const opening = !menu.classList.contains('open');
       menu.classList.toggle('open');
+      if (!opening) return;
+      // The CSS centers/left-aligns the menu on the trigger, which is a
+      // reasonable default but can still push it past the viewport edge on
+      // narrow screens depending on where "Industries" happens to land in
+      // that page's nav (varies per vertical page's own item set/widths).
+      // Clamp it back on-screen after layout, without disturbing the CSS
+      // default (centered under the trigger via left:50%+translateX) when
+      // it already fits. getBoundingClientRect() is viewport-relative but
+      // CSS `left` is relative to the offsetParent (.ds-dropdown), so
+      // convert between the two coordinate spaces rather than assigning
+      // the viewport value directly.
+      const margin = 12;
+      const rect = menu.getBoundingClientRect();
+      let targetViewportLeft = rect.left;
+      const overflowRight = rect.right - (document.documentElement.clientWidth - margin);
+      if (overflowRight > 0) targetViewportLeft -= overflowRight;
+      if (targetViewportLeft < margin) targetViewportLeft = margin;
+      if (targetViewportLeft !== rect.left) {
+        const parentLeft = (menu.offsetParent || document.body).getBoundingClientRect().left;
+        menu.style.transform = 'none';
+        menu.style.left = `${targetViewportLeft - parentLeft}px`;
+      } else {
+        menu.style.left = '';
+        menu.style.transform = '';
+      }
     });
     document.addEventListener('click', () => menu.classList.remove('open'));
     document.addEventListener('keydown', (e) => {
