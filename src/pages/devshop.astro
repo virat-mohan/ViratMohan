@@ -65,6 +65,31 @@ const SLACK_LOGO = `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
 
 const EMAIL_LOGO = `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="40" rx="6" fill="#F5F5F0"/><path d="M7 12h26v18a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V12z" fill="#EA4335"/><path d="M7 12l13 10 13-10" fill="none" stroke="#F5F5F0" stroke-width="2"/><path d="M7 12l13 10 13-10" fill="#FBBC05"/><path d="M7 12a2 2 0 0 1 2-2h22a2 2 0 0 1 2 2l-13 10L7 12z" fill="#EA4335"/></svg>`;
 
+// Compact landing-page teaser of the same 8-stage pipeline explained in
+// full on /devshop/methodology — same icon marks, same gold-to-blue
+// progression, just numbers + labels here (no sublines/prose) since this
+// is a glance, not a read.
+const PROCESS_STEPS = [
+  { n: '01', key: 'diagnose', label: 'Diagnose' },
+  { n: '02', key: 'framework', label: 'Framework' },
+  { n: '03', key: 'pnl', label: 'P&L Map' },
+  { n: '04', key: 'mechanism', label: 'Mechanism' },
+  { n: '05', key: 'validate', label: 'Validate' },
+  { n: '06', key: 'demo', label: 'Demo' },
+  { n: '07', key: 'feedback', label: 'Feedback' },
+  { n: '08', key: 'build', label: 'Build' },
+];
+const PROCESS_ICONS: Record<string, string> = {
+  diagnose: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="4" cy="24" r="2" fill="currentColor"/><path d="M4 24C10 24 12 12 18 12C24 12 24 24 32 24H36" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`,
+  framework: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="18" cy="20" r="11" stroke="currentColor" stroke-width="1.6"/><path d="M18 20L23 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M32 14L37 10M33 20H38M32 26L37 30" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.6"/></svg>`,
+  pnl: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 8L34 16L20 24L6 16L20 8Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M6 23L20 31L34 23" stroke="currentColor" stroke-width="1.4" opacity="0.6"/><path d="M6 30L20 38L34 30" stroke="currentColor" stroke-width="1.2" opacity="0.35"/></svg>`,
+  mechanism: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5" cy="20" r="3" stroke="currentColor" stroke-width="1.6"/><circle cx="15" cy="20" r="3" stroke="currentColor" stroke-width="1.6"/><circle cx="25" cy="20" r="3" stroke="currentColor" stroke-width="1.6"/><circle cx="35" cy="20" r="4" fill="currentColor" class="mech-tip"/><path d="M8 20H12M18 20H22M28 20H31" stroke="currentColor" stroke-width="1.6"/></svg>`,
+  validate: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="11" width="9" height="18" stroke="currentColor" stroke-width="1.6"/><rect x="28" y="11" width="9" height="18" stroke="currentColor" stroke-width="1.6"/><path d="M13 20H27" stroke="currentColor" stroke-width="1.4" stroke-dasharray="3 3"/></svg>`,
+  demo: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="8" width="34" height="24" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M3 14H37" stroke="currentColor" stroke-width="1.6"/><circle cx="7.5" cy="11" r="0.9" fill="currentColor"/><circle cx="11" cy="11" r="0.9" fill="currentColor"/><path d="M15 20L23 26L15 28V20Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>`,
+  feedback: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M32 14C29 9 23 7 17 9C11 11 7 17 8 23" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M8 8V15H15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 26C11 31 17 33 23 31C29 29 33 23 32 17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M32 32V25H25" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  build: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L34 13V27L20 34L6 27V13L20 6Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M6 13L20 20L34 13M20 20V34" stroke="currentColor" stroke-width="1.4" opacity="0.6"/></svg>`,
+};
+
 const title = 'Fast Tech Dev Shop — problem in, working demo on the spot';
 const description =
   "Tell us the P&L, marketing, or ops problem. Get a working demo right there. Build delivered in 30 days from deposit. Priced monthly, not by project.";
@@ -99,12 +124,26 @@ const canonical = new URL('/devshop', site.domain).href;
   <!-- 01 LANDING -->
   <section class="screen active" id="landing" data-marketing-index="1">
     <div class="eyebrow">AI ORCHESTRATION STUDIO</div>
-    <h1 class="hero serif">Tell us the <span class="tint-blue">problem.</span><br />Get a working <span class="tint-gold">demo on the spot.</span></h1>
+    <h1 class="hero serif">Tell us the <span class="tint-blue">business problem.</span><br />Get a working <span class="tint-gold">demo on the spot.</span></h1>
     <form class="input-row" id="landingForm">
-      <input type="text" id="landingProblem" placeholder="What's the problem?" />
+      <input type="text" id="landingProblem" placeholder="What's the business problem?" />
       <button class="btn" type="submit">Submit</button>
     </form>
     <p class="sub">No proposal. No scoping call. Just show us what's broken.</p>
+
+    <div class="process-teaser">
+      <p class="process-teaser-label">Our process</p>
+      <div class="process-strip">
+        {PROCESS_STEPS.map((s, i) => (
+          <div class={`process-item ${i === 4 ? 'is-transition' : i >= 5 ? 'is-blue' : 'is-gold'}`}>
+            <span class="process-icon" set:html={PROCESS_ICONS[s.key]} />
+            <span class="process-label mono">{s.n} {s.label}</span>
+          </div>
+        ))}
+      </div>
+      <a class="process-more" href="/devshop/methodology">See the full methodology &rarr;</a>
+    </div>
+
     <div class="footer-bar"><span>Built fast, for real businesses</span><span class="page-count"></span></div>
   </section>
 
@@ -531,6 +570,25 @@ const canonical = new URL('/devshop', site.domain).href;
   .input-row { display: flex; gap: 16px; max-width: 820px; margin-top: 44px; }
   .input-row input { flex: 1; }
 
+  .process-teaser { margin-top: 64px; max-width: 1200px; }
+  .process-teaser-label { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dev-muted2); margin: 0 0 22px; }
+  .process-strip { display: flex; overflow-x: auto; padding-bottom: 4px; }
+  .process-item { flex: 1; min-width: 108px; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; padding: 0 6px; }
+  .process-item::before {
+    content: ''; position: absolute; top: 19px; left: -50%; width: 100%; height: 1.5px;
+    background: var(--rail-color, var(--dev-gold)); z-index: 0;
+  }
+  .process-item:first-child::before { display: none; }
+  .process-item.is-transition::before { background: linear-gradient(90deg, var(--dev-gold), var(--dev-blue)); }
+  .process-item.is-gold { --rail-color: var(--dev-gold); }
+  .process-item.is-blue { --rail-color: var(--dev-blue); }
+  .process-icon { width: 38px; height: 38px; color: var(--rail-color, var(--dev-gold)); position: relative; z-index: 1; background: var(--dev-bg); }
+  .process-icon :global(svg) { width: 100%; height: 100%; }
+  .process-icon :global(.mech-tip) { color: var(--dev-blue); }
+  .process-label { display: block; margin-top: 10px; font-size: 10.5px; letter-spacing: 0.04em; color: var(--dev-muted1); white-space: nowrap; }
+  .process-more { display: inline-block; margin-top: 24px; font-size: 13px; color: var(--dev-blue); }
+  .process-more:hover { text-decoration: underline; }
+
   .steps { display: flex; gap: 56px; margin-top: 70px; flex-wrap: wrap; }
   .step { flex: 1; min-width: 220px; }
   .step .rule { height: 1px; margin: 10px 0 22px; }
@@ -717,6 +775,11 @@ const canonical = new URL('/devshop', site.domain).href;
     .wizard-hint { display: none; }
     .wizard-actions { justify-content: center; }
     textarea.wizard-input { font-size: 17px; }
+    .process-strip { justify-content: flex-start; }
+    .process-item { min-width: 84px; }
+    .process-icon { width: 30px; height: 30px; }
+    .process-item::before { top: 15px; }
+    .process-label { font-size: 9.5px; }
   }
 </style>
 
