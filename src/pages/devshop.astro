@@ -26,6 +26,8 @@ import travaholicStaysShot from '../assets/screenshots/travaholic-stays.png';
 import feelingCoShot from '../assets/screenshots/thefeelingco.png';
 import indiaContemporaryShot from '../assets/screenshots/india-contemporary.png';
 import clarityhqShot from '../assets/screenshots/Clarityhq.png';
+import contentmentShot from '../assets/screenshots/Contentment.png';
+import coachYourPsycheShot from '../assets/screenshots/Coachyourpsyche.png';
 
 // ---- Easily-editable config, per prompt instructions ----
 const CURRENCY = '₹'; // INR is the standard currency for this product.
@@ -45,6 +47,8 @@ const proof = [
   { name: 'The Feeling Co.', result: 'Full digital operation — 9 releases, zero external subscriptions', href: 'https://thefeelingco.online', logo: feelingCoLogo, screenshot: feelingCoShot },
   { name: 'India Contemporary', result: 'Two-sided marketplace connecting artists to collectors', href: 'https://indiacontemporary.net', screenshot: indiaContemporaryShot },
   { name: 'ClarityHQ', result: 'AI-native growth practice — a brand intelligence layer paired with a distributed human network', href: site.clarityhq, screenshot: clarityhqShot },
+  { name: 'Content-ment', result: 'AI content operating system — drafting, approval, and export, entirely in-browser with zero backend', screenshot: contentmentShot },
+  { name: 'Coach Your Psyche', result: 'AI mental wellness coaching — 4 personality-styled therapists, pay-per-message via Stripe', screenshot: coachYourPsycheShot },
 ];
 
 // Full-colour icon marks for the Integrations screen only (per instruction —
@@ -138,7 +142,10 @@ const canonical = new URL('/devshop', site.domain).href;
     <h1 class="hero serif">Built fast. <span class="tint-blue">Shipped</span> for real.</h1>
     <div class="proof-grid">
       {proof.map((p) => (
-        <a class="proof-card" href={p.href} target="_blank" rel="noopener noreferrer">
+        <a
+          class="proof-card"
+          {...(p.href ? { href: p.href, target: '_blank', rel: 'noopener noreferrer' } : {})}
+        >
           {p.screenshot && (
             <div class="proof-shot">
               <Image src={p.screenshot} alt={`${p.name} screenshot`} width={480} height={300} />
