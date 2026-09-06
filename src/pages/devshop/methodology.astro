@@ -176,7 +176,7 @@ const ICONS: Record<string, string> = {
       <a class="btn" href="/devshop">Start &rarr;</a>
     </div>
 
-    <div class="footer-bar"><span>Built fast, for real businesses</span></div>
+    <div class="footer-bar"><span class="footer-bar-text">Built fast, <em>for real businesses</em><sup>TM</sup></span></div>
   </main>
 </body>
 </html>
@@ -293,9 +293,15 @@ const ICONS: Record<string, string> = {
   .btn:hover { background: rgba(212, 175, 55, 0.08); }
 
   .footer-bar {
-    padding: 28px 0; border-top: 1px solid var(--dev-hair);
-    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dev-muted3);
+    padding: 48px 0 24px; border-top: 1px solid var(--dev-hair);
+    display: flex; justify-content: center;
   }
+  .footer-bar-text {
+    font-family: 'Instrument Serif', Georgia, serif; font-size: 34px; font-weight: 400;
+    letter-spacing: 0.01em; color: var(--dev-muted1);
+  }
+  .footer-bar-text em { font-style: italic; color: var(--dev-gold); }
+  .footer-bar-text sup { font-size: 12px; letter-spacing: 0; margin-left: 2px; color: var(--dev-muted2); }
 
   @media (max-width: 900px) {
     .methodology-grid { grid-template-columns: 1fr; gap: 40px; }

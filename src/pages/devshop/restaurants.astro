@@ -246,7 +246,7 @@ const canonical = new URL('/devshop/restaurants', site.domain).href;
       <button type="button" class="btn-plain" id="usecaseClearBtn">Clear</button>
       <button type="button" class="btn" id="usecaseContinueBtn">Continue →</button>
     </div>
-    <div class="footer-bar"><span>Built fast, for restaurants, bars &amp; hotels</span><span class="page-count"></span></div>
+    <div class="footer-bar"><span class="footer-bar-text">Built fast, for restaurants, bars &amp; hotels<sup>TM</sup></span></div>
   </section>
 
   <!-- 02 HOW IT WORKS -->
@@ -258,7 +258,7 @@ const canonical = new URL('/devshop/restaurants', site.domain).href;
       <div class="step"><div class="num">02</div><div class="rule"></div><h3><span class="tint-gold">Instant</span> demo</h3><p>We diagnose and show you<br />a working demo right there.</p></div>
       <div class="step"><div class="num">03</div><div class="rule"></div><h3>30-day build</h3><p>You give feedback, then pay the deposit.<br />We ship within 30 days of that.</p></div>
     </div>
-    <div class="footer-bar"><span>Built fast, for restaurants, bars &amp; hotels</span><span class="page-count"></span></div>
+    <div class="footer-bar"><span class="footer-bar-text">Built fast, for restaurants, bars &amp; hotels<sup>TM</sup></span></div>
   </section>
 
   <!-- 03 PRICING -->
@@ -281,7 +281,7 @@ const canonical = new URL('/devshop/restaurants', site.domain).href;
       <p class="sub" style="margin-top:36px;">Variable / custom pricing available outside this range. No proposals. No scoping calls.</p>
       <div style="margin-top:40px;"><button class="btn" data-go="intake">Start →</button></div>
     </div>
-    <div class="footer-bar"><span>Built fast, for restaurants, bars &amp; hotels</span><span class="page-count"></span></div>
+    <div class="footer-bar"><span class="footer-bar-text">Built fast, for restaurants, bars &amp; hotels<sup>TM</sup></span></div>
   </section>
 
   <!-- 05 INTAKE — one question at a time, centered, keyboard-driven -->
@@ -411,7 +411,7 @@ const canonical = new URL('/devshop/restaurants', site.domain).href;
     <h1 class="hero serif" style="max-width:760px;">Got it. <span class="tint-gold">Check your email.</span></h1>
     <p class="sub" style="max-width:560px;">We've emailed you the link to your demo — one round of feedback, then a 30-day build once the deposit's in.</p>
     <div style="margin-top:40px;"><a href="#" data-go="landing" class="btn-plain">← Back to start</a></div>
-    <div class="footer-bar"><span>Built fast, for restaurants, bars &amp; hotels</span><span class="page-count"></span></div>
+    <div class="footer-bar"><span class="footer-bar-text">Built fast, for restaurants, bars &amp; hotels<sup>TM</sup></span></div>
   </section>
 
   <!-- 06 LOGIN (UI-only — no real auth, see script comments) -->
@@ -594,11 +594,14 @@ const canonical = new URL('/devshop/restaurants', site.domain).href;
 
   .footer-bar {
     margin-top: auto;
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 22px 28px; border-radius: 6px;
-    background: #15130f;
-    font-size: 14px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #f5f5f0;
+    display: flex; justify-content: center; align-items: center;
+    padding: 48px 28px 24px;
   }
+  .footer-bar-text {
+    font-family: 'Instrument Serif', Georgia, serif; font-size: 34px; font-weight: 400;
+    letter-spacing: 0.01em; color: var(--dev-muted1, #b7b5af);
+  }
+  .footer-bar-text sup { font-size: 12px; letter-spacing: 0; margin-left: 2px; color: var(--dev-muted2, #85837e); }
 
   .btn {
     font-size: 14px; letter-spacing: 0.03em; padding: 16px 28px;
