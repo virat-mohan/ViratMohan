@@ -6,9 +6,11 @@
 // devshop.astro but without the wizard/SPA machinery — just a scroll.
 
 import PortalHeader from '../../components/devshop/PortalHeader.astro';
+import { site } from '../../data/site';
 
 const title = 'Our methodology — Fast Tech Dev Shop';
 const description = 'How every demo gets built: diagnosis, a proven framework scored against alternatives, a P&L-mapped mechanism, and two rounds of validation before you ever see it.';
+const canonical = new URL('/devshop/methodology', site.domain).href;
 
 const steps = [
   {
@@ -99,6 +101,23 @@ const ICONS: Record<string, string> = {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{title}</title>
   <meta name="description" content={description} />
+  <link rel="canonical" href={canonical} />
+  <meta name="robots" content="noindex, follow" />
+  <link rel="icon" href="/devshop-favicon.svg" type="image/svg+xml" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="DevShop" />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:image" content={new URL('/devshop-og.png', site.domain).href} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={new URL('/devshop-og.png', site.domain).href} />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
