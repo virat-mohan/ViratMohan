@@ -25,6 +25,7 @@
 // endpoint that runs the actual classify+build pipeline.
 
 import { site } from '../../data/site';
+import PortalHeader from '../../components/devshop/PortalHeader.astro';
 
 // ---- Easily-editable config, per prompt instructions ----
 const CURRENCY = '₹'; // INR is the standard currency for this product.
@@ -46,6 +47,21 @@ const PRICING = {
 // classifier at the right framework immediately.
 const VERTICAL = 'restaurants'; // matches this route, used as usecase_templates.vertical
 
+// Business-type taxonomy within this industry (industry → business function →
+// business type → use case). A use case with no `types` field applies broadly
+// across formats; one with `types` is specific to those formats only — see
+// the filter bar wired to this in the landing section below.
+const TYPES = [
+  { slug: 'all', label: 'All types' },
+  { slug: 'casual-dining', label: 'Casual dining' },
+  { slug: 'fast-casual', label: 'Fast casual' },
+  { slug: 'qsr', label: 'QSR' },
+  { slug: 'bar-nightlife', label: 'Bars & nightlife' },
+  { slug: 'cloud-kitchen', label: 'Cloud kitchens' },
+  { slug: 'hotel', label: 'Hotels & banquets' },
+  { slug: 'multi-outlet', label: 'Multi-outlet chains' },
+] as const;
+
 const useCases = [
   {
     fn: 'Inventory & Supply Chain',
@@ -54,6 +70,9 @@ const useCases = [
       { id: 'stock-count-mismatch', label: 'Stock count never matches', problem: 'Every month our physical stock count is off from what the system says we should have used, and we never find out why before the next count.' },
       { id: 'par-level-stockouts', label: 'Par-level stockouts', problem: 'Our best-selling dish keeps selling out on Friday and Saturday nights right when demand peaks, and we only find out from a frustrated server.' },
       { id: 'vendor-invoice-mismatch', label: 'Vendor invoice mismatches', problem: 'We get billed for quantities that don’t match what actually got delivered, and right now someone just eyeballs the invoice against a paper delivery slip.' },
+      { id: 'fifo-shelf-life-violations', label: 'FIFO / shelf-life violations', problem: 'Older stock isn’t always used first, so we lose perishables to expiry even when total inventory looks fine on paper.' },
+      { id: 'procurement-price-leakage', label: 'No multi-vendor price comparison', problem: 'We reorder from the same vendor out of habit and have never systematically compared prices across suppliers for our top ingredients.' },
+      { id: 'commissary-outlet-allocation', label: 'Central kitchen ↔ outlet allocation gaps', types: ['cloud-kitchen', 'multi-outlet'], problem: 'Our central commissary sends stock to outlets on a rough estimate, and outlets either run short or sit on excess with no real allocation logic.' },
     ],
   },
   {
@@ -62,7 +81,10 @@ const useCases = [
       { id: 'aggregator-payout-mismatch', label: 'Delivery-platform payouts don’t match POS', problem: "Our Swiggy and Zomato payouts never match what the POS says we sold, and we just accept whatever lands in the bank account." },
       { id: 'cash-register-shrinkage', label: 'Cash register shrinkage', problem: 'We suspect void and discount abuse at the register but have no way to flag which staff member or which shift it’s actually coming from.' },
       { id: 'prime-cost-drift', label: 'Prime cost drifting', problem: 'Our combined food and labor cost has been creeping up as a percentage of sales and we only notice a full quarter after it happened.' },
-      { id: 'multi-outlet-pnl-rollup', label: 'Multi-outlet P&L rollup', problem: 'Every one of our outlets closes their books on a different day in a different format, so we can never get one clean consolidated P&L.' },
+      { id: 'multi-outlet-pnl-rollup', label: 'Multi-outlet P&L rollup', types: ['multi-outlet'], problem: 'Every one of our outlets closes their books on a different day in a different format, so we can never get one clean consolidated P&L.' },
+      { id: 'void-discount-audit-trail', label: 'No audit trail on voids & discounts', problem: 'Any staff member can void a line or apply a discount at the POS with no manager approval step or after-the-fact audit trail.' },
+      { id: 'petty-cash-reconciliation', label: 'Petty cash never reconciles cleanly', problem: 'Our outlet petty cash for small supplier top-ups and repairs rarely reconciles at month-end, and receipts go missing.' },
+      { id: 'input-tax-credit-mismatch', label: 'GST input credit mismatches', problem: 'The GST input credit we claim on purchases doesn’t always match what our vendors have actually filed, and we find out months later.' },
     ],
   },
   {
@@ -70,16 +92,21 @@ const useCases = [
     items: [
       { id: 'ticket-time-blowouts', label: 'Ticket times blow out at peak', problem: 'Ticket times fall apart the moment we hit a Friday-night rush and we can’t tell which station is actually the bottleneck.' },
       { id: 'order-accuracy-remakes', label: 'Order accuracy & remakes', problem: 'We’re remaking too many orders and nobody’s tracking whether it’s a kitchen error, a POS entry error, or a recipe that’s inconsistent by shift.' },
-      { id: 'recipe-drift-outlets', label: 'Recipe drift across outlets', problem: 'The same dish tastes noticeably different depending on which of our outlets you order it from, and there’s no real SOP compliance check.' },
-      { id: 'table-turnover-wait-times', label: 'Table turnover & wait times', problem: 'We don’t know which part of the dine-in journey — seating, ordering, kitchen, or payment — is actually slowing down our table turns.' },
+      { id: 'recipe-drift-outlets', label: 'Recipe drift across outlets', types: ['multi-outlet'], problem: 'The same dish tastes noticeably different depending on which of our outlets you order it from, and there’s no real SOP compliance check.' },
+      { id: 'table-turnover-wait-times', label: 'Table turnover & wait times', types: ['casual-dining', 'fast-casual'], problem: 'We don’t know which part of the dine-in journey — seating, ordering, kitchen, or payment — is actually slowing down our table turns.' },
+      { id: 'modifier-allergen-errors', label: 'Modifier & allergen substitution errors', problem: 'Custom order modifiers and allergen substitutions don’t always make it from the POS to the kitchen display cleanly, and we’ve had near-misses.' },
+      { id: 'seating-kitchen-capacity-mismatch', label: 'Seating capacity outruns kitchen throughput', types: ['casual-dining', 'fast-casual', 'qsr'], problem: 'We can seat more covers than our kitchen can actually turn around at peak, and nobody’s modeled what our real bottleneck capacity is.' },
+      { id: 'equipment-downtime', label: 'Equipment breakdowns with no preventive schedule', problem: 'Our fryers, ovens, and refrigeration units go down unpredictably because maintenance happens reactively, not on a preventive schedule.' },
     ],
   },
   {
     fn: 'Guest Experience & Reputation',
     items: [
       { id: 'reviews-unmanaged', label: 'Reviews nobody’s reading', problem: 'We get a steady stream of Google and Zomato reviews but nobody owns responding to them or feeding the complaints back into operations.' },
-      { id: 'reservation-no-shows', label: 'Reservation no-shows', problem: 'We hold tables for reservations that no-show with no deposit or overbooking logic, and it costs us covers every weekend.' },
+      { id: 'reservation-no-shows', label: 'Reservation no-shows', types: ['casual-dining'], problem: 'We hold tables for reservations that no-show with no deposit or overbooking logic, and it costs us covers every weekend.' },
       { id: 'loyalty-declining-repeat', label: 'Loyalty program, declining repeat visits', problem: 'We have a loyalty points program but redemption and repeat visits have been sliding and we don’t have a re-engagement flow for lapsed regulars.' },
+      { id: 'complaint-resolution-no-sla', label: 'Complaints have no resolution SLA', problem: 'A guest complaint gets handled however the shift manager on duty feels like handling it, with no consistent process or time-to-resolution target.' },
+      { id: 'social-ugc-monitoring-gap', label: 'Social media & UGC go unmonitored', problem: 'Guests tag us and post about us on Instagram constantly but nobody’s tracking sentiment or responding, so we miss both praise and warning signs.' },
     ],
   },
   {
@@ -88,6 +115,9 @@ const useCases = [
       { id: 'menu-bloat', label: 'Menu bloat', problem: 'Our menu has grown to the point where we suspect several dishes aren’t earning their shelf space, but we’ve never actually run the numbers.' },
       { id: 'demand-forecasting-gaps', label: 'Demand forecasting gaps', problem: 'We staff and prep off gut feel, not off the actual weekday, weather, or local-event demand pattern, and it shows in both waste and stockouts.' },
       { id: 'channel-cannibalization', label: 'Aggregator channel cannibalizing dine-in', problem: 'Our delivery orders have grown but we suspect it’s just pulling dine-in covers onto a lower-margin channel, and we can’t prove it either way.' },
+      { id: 'new-dish-no-tracking', label: 'New dish launches aren’t tracked', problem: 'We launch new dishes on gut feel and never systematically check whether they’re actually selling or profitable a month in.' },
+      { id: 'upsell-attach-rate-untracked', label: 'Upsell & combo attach rate untracked', problem: 'We have no idea what percentage of orders actually take the upsell or combo our staff are supposed to be pitching.' },
+      { id: 'no-dynamic-peak-pricing', label: 'No peak-hour or surge pricing', problem: 'We charge the same price at 1pm on a Tuesday as we do at 8pm on a Saturday, and have never tested whether peak-hour pricing would work for us.' },
     ],
   },
   {
@@ -95,6 +125,8 @@ const useCases = [
     items: [
       { id: 'foh-boh-turnover', label: 'High front/back-of-house turnover', problem: 'We’re constantly rehiring and retraining front-of-house staff and have never actually costed what that churn is doing to us.' },
       { id: 'labor-demand-misalignment', label: 'Labor cost misaligned to demand', problem: 'We’re fully staffed on slow weeknights and understaffed on our busiest weekend shifts, and the schedule is still built by habit, not by demand.' },
+      { id: 'tip-pool-disputes', label: 'Tip-pool & shift-swap disputes', problem: 'Tip-pool splits and shift swaps get argued over almost every week because there’s no consistent, transparent policy anyone can point to.' },
+      { id: 'onboarding-productivity-lag', label: 'New hires take too long to become productive', problem: 'A new server or line cook takes weeks longer than they should to hit a normal productivity level, and our onboarding is whatever the shift lead has time for.' },
     ],
   },
   {
@@ -102,20 +134,34 @@ const useCases = [
     items: [
       { id: 'license-audit-gaps', label: 'License & audit-trail gaps', problem: 'Our FSSAI and local health department renewals live in someone’s inbox and we’ve had at least one close call with a lapsed license.' },
       { id: 'cold-chain-logs', label: 'Cold-chain temperature logs', problem: 'Our fridge and freezer temperature logs are paper-based and exist to be filled in, not to actually catch a breach before it becomes a food-safety incident.' },
+      { id: 'allergen-labeling-drift', label: 'Allergen labeling falls out of date', problem: 'Every time we change a recipe or supplier, the allergen information on our menu doesn’t automatically get re-checked, and it’s fallen out of date before.' },
+      { id: 'fire-safety-cert-renewals', label: 'Fire safety & equipment certifications lapse', problem: 'Fire safety and kitchen equipment certifications get renewed reactively, usually right after someone notices they’ve already expired.' },
     ],
   },
   {
     fn: 'Bar & Beverage Program',
     items: [
-      { id: 'pour-cost-drift', label: 'Pour-cost drift', problem: 'Our bar’s pour cost keeps drifting and we suspect over-pouring and uncomfortable comps, but nothing ties a poured drink back to a POS line.' },
-      { id: 'liquor-inventory-shrinkage', label: 'Liquor inventory shrinkage', problem: 'We reconcile our liquor inventory by weight and estimate instead of by actual measure, and the shrinkage number never quite adds up.' },
+      { id: 'pour-cost-drift', label: 'Pour-cost drift', types: ['bar-nightlife'], problem: 'Our bar’s pour cost keeps drifting and we suspect over-pouring and uncomfortable comps, but nothing ties a poured drink back to a POS line.' },
+      { id: 'liquor-inventory-shrinkage', label: 'Liquor inventory shrinkage', types: ['bar-nightlife'], problem: 'We reconcile our liquor inventory by weight and estimate instead of by actual measure, and the shrinkage number never quite adds up.' },
+      { id: 'happy-hour-pricing-inconsistency', label: 'Happy-hour pricing isn’t enforced consistently', types: ['bar-nightlife'], problem: 'Happy-hour and promo pricing at the bar depends on which bartender is on shift and whether they remember to apply it correctly at the POS.' },
+      { id: 'draft-beer-yield-untracked', label: 'Draft beer yield isn’t tracked', types: ['bar-nightlife'], problem: 'We don’t track actual pours per keg against theoretical yield, so we can’t tell how much draft beer we’re losing to foam, waste, or over-pour.' },
     ],
   },
   {
     fn: 'Hotel F&B',
     items: [
-      { id: 'banquet-costing-drift', label: 'Banquet costing drift', problem: 'Our banquet event orders are quoted one way and the actual consumption almost always comes in different, and we’ve never closed that gap.' },
-      { id: 'room-service-pms-gaps', label: 'Room-service ↔ PMS gaps', problem: 'Room-service and minibar charges post late, post wrong, or don’t post at all against the guest folio in our PMS.' },
+      { id: 'banquet-costing-drift', label: 'Banquet costing drift', types: ['hotel'], problem: 'Our banquet event orders are quoted one way and the actual consumption almost always comes in different, and we’ve never closed that gap.' },
+      { id: 'room-service-pms-gaps', label: 'Room-service ↔ PMS gaps', types: ['hotel'], problem: 'Room-service and minibar charges post late, post wrong, or don’t post at all against the guest folio in our PMS.' },
+      { id: 'group-fnb-forecasting', label: 'Group/conference F&B attach-rate forecasting', types: ['hotel'], problem: 'We consistently over- or under-prep for conference and group F&B packages because we’re not forecasting off actual historical attach rates.' },
+      { id: 'multi-outlet-hotel-inventory', label: 'Restaurant, bar & room-service inventory not unified', types: ['hotel'], problem: 'Our in-house restaurant, bar, and room-service kitchen each track inventory separately, so we can’t see a single true stock position for shared ingredients.' },
+    ],
+  },
+  {
+    fn: 'Marketing & Local Visibility',
+    items: [
+      { id: 'local-seo-neglected', label: 'Google Business Profile & local SEO neglected', problem: 'Our Google Business listing has outdated hours, old photos, and unanswered questions, and nobody owns keeping it current.' },
+      { id: 'promotions-no-roi-tracking', label: 'Promotions run with no ROI tracking', problem: 'We run discounts and promotions fairly often but never actually measure whether a given promotion made us money or just gave away margin.' },
+      { id: 'ugc-influencer-adhoc', label: 'Influencer & UGC outreach is ad hoc', problem: 'We occasionally host an influencer or repost user content, but it’s whoever remembers to do it that week, not a real repeatable process.' },
     ],
   },
 ];
@@ -155,48 +201,46 @@ const canonical = new URL('/devshop/restaurants', site.domain).href;
 </head>
 <body>
 
-<header>
-  <div class="header-inner">
-    <div class="logo"><span class="logo-vertical">F&amp;B</span>DevShop<span class="logo-sub">Restaurants, bars &amp; hotels</span></div>
-    <nav id="marketingNav">
-      <a href="#" data-go="how-it-works">How it works</a>
-      <a href="/devshop/methodology">Methodology</a>
-      <a href="#" data-go="proof">Common use cases</a>
-      <a href="#" data-go="pricing">Pricing</a>
-      <a href="#" data-go="intake" class="start-link">Start →</a>
-    </nav>
-    <nav id="appNav" style="display:none;">
-      <a href="#" data-go="dashboard">Dashboard</a>
-      <a href="#" data-go="orchestrator">Orchestrator</a>
-      <a href="#" data-go="integrations">Integrations</a>
-      <a href="#" data-go="activity">Activity</a>
-      <a href="#" data-go="billing">Billing</a>
-      <a href="#" data-go="landing" class="btn-plain" style="margin-left:8px;">Log out</a>
-    </nav>
-  </div>
-  <div class="header-hair"></div>
-</header>
+<PortalHeader homeHref="/devshop/restaurants" spa={true} currentSlug="restaurants" industryLabel="Food & Beverage" verticalTag="F&B">
+  <a href="#" data-go="landing" slot="extra-nav">Common use cases</a>
+</PortalHeader>
 
 <main class="wrap">
 
-  <!-- 01 LANDING -->
+  <!-- 01 LANDING — leads with the common-use-case picker (per instruction:
+       "should start with the common use cases that can be selected or a
+       custom one can be put in"). The old separate "Common use cases" screen
+       (id="proof") is merged in here; a custom free-text problem is still
+       available below the grid for anything not on the list. -->
   <section class="screen active" id="landing" data-marketing-index="1">
     <div class="eyebrow">AI ORCHESTRATION FOR FOOD &amp; BEVERAGE</div>
-    <h1 class="hero serif">Tell us what's <span class="tint-rose">bleeding margin.</span><br />Get a working <span class="tint-gold">demo on the spot.</span></h1>
-    <form class="input-row" id="landingForm">
-      <input type="text" id="landingProblem" placeholder="e.g. our stock count never matches the system" />
-      <button class="btn" type="submit">Submit</button>
-    </form>
-    <p class="sub">No proposal. No scoping call. Just show us what's broken in your kitchen, bar, or delivery ops.</p>
-    <div class="segment-row">
-      <span class="segment-chip">Casual dining</span>
-      <span class="segment-chip">Fast casual</span>
-      <span class="segment-chip">QSR</span>
-      <span class="segment-chip">Bars &amp; nightlife</span>
-      <span class="segment-chip">Cloud kitchens</span>
-      <span class="segment-chip">Hotels &amp; banquets</span>
-      <span class="segment-chip">Multi-outlet chains</span>
+    <h1 class="hero serif" style="font-size:clamp(32px,4.6vw,64px);">Every F&amp;B problem has an <span class="tint-blue">owner.</span><br />Pick yours, get a <span class="tint-gold">demo on the spot.</span></h1>
+    <p class="sub" style="max-width:640px;">Ten business functions, mapped to the failure modes that actually show up on a restaurant P&amp;L. Filter by what you run, or leave it on "All types" — then tap one to start.</p>
+    <div class="segment-row" id="typeFilterRow">
+      {TYPES.map((t, i) => (
+        <button type="button" class={`segment-chip${i === 0 ? ' active' : ''}`} data-type-filter={t.slug}>{t.label}</button>
+      ))}
     </div>
+    <div class="usecase-grid" id="usecaseGrid">
+      {useCases.map((fn) => (
+        <div class="usecase-card">
+          <div class="usecase-fn">{fn.fn}</div>
+          <div class="usecase-list">
+            {fn.items.map((item) => (
+              <button type="button" class="usecase-btn" data-usecase-id={`${VERTICAL}:${item.id}`} data-fn={fn.fn} data-label={item.label} data-problem={item.problem} data-types={(item.types ?? ['all']).join(' ')}>{item.label}</button>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+    <div class="custom-problem">
+      <div class="custom-problem-label">Don't see yours?</div>
+      <form class="input-row" id="landingForm">
+        <input type="text" id="landingProblem" placeholder="Describe what's actually broken, in your own words" />
+        <button class="btn" type="submit">Submit</button>
+      </form>
+    </div>
+    <p class="sub">No proposal. No scoping call. Just show us what's broken in your kitchen, bar, or delivery ops.</p>
     <div class="footer-bar"><span>Built fast, for restaurants, bars &amp; hotels</span><span class="page-count"></span></div>
   </section>
 
@@ -212,30 +256,8 @@ const canonical = new URL('/devshop/restaurants', site.domain).href;
     <div class="footer-bar"><span>Built fast, for restaurants, bars &amp; hotels</span><span class="page-count"></span></div>
   </section>
 
-  <!-- 03 COMMON USE CASES (replaces the generic Proof section for this vertical —
-       no F&B case study yet; a browsable, clickable problem map is more useful
-       here. Click any one-liner to drop it straight into the intake wizard. -->
-  <section class="screen" id="proof" data-marketing-index="3">
-    <div class="eyebrow">COMMON USE CASES</div>
-    <h1 class="hero serif" style="font-size:clamp(34px,4.6vw,64px);">Every F&amp;B problem has an <span class="tint-blue">owner.</span></h1>
-    <p class="sub" style="max-width:640px;">Nine business functions, mapped to the failure modes that actually show up on a restaurant P&amp;L. Tap one to start — it drops straight into the intake below, ready to expand on.</p>
-    <div class="usecase-grid">
-      {useCases.map((fn) => (
-        <div class="usecase-card">
-          <div class="usecase-fn">{fn.fn}</div>
-          <div class="usecase-list">
-            {fn.items.map((item) => (
-              <button type="button" class="usecase-btn" data-usecase-id={`${VERTICAL}:${item.id}`} data-fn={fn.fn} data-label={item.label} data-problem={item.problem}>{item.label}</button>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-    <div class="footer-bar"><span>Built fast, for restaurants, bars &amp; hotels</span><span class="page-count"></span></div>
-  </section>
-
-  <!-- 04 PRICING -->
-  <section class="screen" id="pricing" data-marketing-index="4">
+  <!-- 03 PRICING -->
+  <section class="screen" id="pricing" data-marketing-index="3">
     <div class="eyebrow">PRICING</div>
     <div class="pricing-block">
       <h1 class="hero serif" style="font-size:clamp(36px,5vw,72px);">Build once.<br />Run on a <span class="tint-gold">retainer.</span></h1>
@@ -258,7 +280,7 @@ const canonical = new URL('/devshop/restaurants', site.domain).href;
   </section>
 
   <!-- 05 INTAKE — one question at a time, centered, keyboard-driven -->
-  <section class="screen wizard-screen" id="intake" data-marketing-index="5">
+  <section class="screen wizard-screen" id="intake" data-marketing-index="4">
     <div class="wizard" id="intakeWizard">
       <div class="wizard-progress" id="wizardProgress" aria-hidden="true"></div>
       <form id="intakeForm" novalidate>
@@ -547,34 +569,9 @@ const canonical = new URL('/devshop/restaurants', site.domain).href;
   a { color: inherit; text-decoration: none; }
   button { font-family: inherit; cursor: pointer; background: none; border: none; color: inherit; }
 
-  header { position: sticky; top: 0; z-index: 50; background: var(--dev-bg); }
-  .header-inner { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 22px 64px; }
-  .logo {
-    text-align: center;
-    font-family: 'Instrument Serif', Georgia, serif; font-style: italic;
-    font-size: 40px; letter-spacing: 0.01em; color: var(--dev-gold); font-weight: 400; line-height: 1;
-  }
-  .logo-vertical {
-    display: block; font-family: 'JetBrains Mono', monospace; font-style: normal;
-    font-size: 11px; letter-spacing: 0.28em; color: var(--dev-rose); margin-bottom: 6px;
-  }
-  .logo-sub {
-    display: block; font-family: 'Inter', sans-serif; font-style: italic;
-    font-size: 10.5px; letter-spacing: 0.03em; color: var(--dev-muted2); margin-top: 4px;
-  }
-  nav { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 28px 40px; }
-  nav a, nav button.navlink {
-    font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--dev-muted1); transition: color 0.2s;
-  }
-  nav a:hover, nav button.navlink:hover { color: var(--dev-text); }
-  nav a.active, nav button.navlink.active { color: var(--dev-gold); }
-  .start-link { display: flex; align-items: center; gap: 6px; color: var(--dev-gold) !important; }
-  .header-hair {
-    height: 1px;
-    background: linear-gradient(90deg, var(--dev-blue), var(--dev-muted1), var(--dev-gold), var(--dev-rose));
-    opacity: 0.55;
-  }
+  /* Header is now the shared <PortalHeader> component (always black,
+     independent of this page's --dev-* tokens) — see
+     src/components/devshop/PortalHeader.astro. */
 
   .wrap { max-width: 1360px; margin: 0 auto; padding: 0 64px; position: relative; z-index: 1; }
   .screen { display: none; min-height: calc(100vh - 78px); flex-direction: column; padding-top: 64px; }
@@ -626,11 +623,14 @@ const canonical = new URL('/devshop/restaurants', site.domain).href;
   .step:nth-child(2) .rule { background: var(--dev-muted1); }
   .step:nth-child(3) .rule { background: var(--dev-rose); }
 
-  .segment-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 32px; }
+  .segment-row { display: flex; flex-wrap: wrap; gap: 10px; margin: 32px 0 36px; }
   .segment-chip {
     font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.03em;
     color: var(--dev-muted1); border: 1px solid var(--dev-hair); border-radius: 999px; padding: 6px 14px;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
   }
+  .segment-chip:hover { color: var(--dev-text); border-color: var(--dev-muted1); }
+  .segment-chip.active { color: var(--dev-gold); border-color: var(--dev-gold); background: rgba(138, 106, 30, 0.08); }
 
   .usecase-grid {
     margin-top: 44px; max-width: 1180px; display: grid;
@@ -645,6 +645,10 @@ const canonical = new URL('/devshop/restaurants', site.domain).href;
     padding: 10px 13px; transition: border-color 0.2s, color 0.2s, background 0.2s;
   }
   .usecase-btn:hover { color: var(--dev-text); border-color: var(--dev-gold); background: rgba(138, 106, 30, 0.06); }
+
+  .custom-problem { margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--dev-hair); max-width: 820px; }
+  .custom-problem-label { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dev-muted2); margin-bottom: 14px; }
+  .custom-problem .input-row { margin-top: 0; }
 
   .pricing-block { margin-top: auto; margin-bottom: auto; }
 
@@ -812,7 +816,7 @@ const canonical = new URL('/devshop/restaurants', site.domain).href;
   // execution layer for the orchestrator, real auth, and a database.
   // ============================================================
 
-  var marketingScreens = ['landing', 'how-it-works', 'proof', 'pricing', 'intake'];
+  var marketingScreens = ['landing', 'how-it-works', 'pricing', 'intake'];
   var appScreens = ['login', 'dashboard', 'orchestrator', 'integrations', 'activity', 'billing'];
 
   function showScreen(id) {
@@ -972,6 +976,31 @@ const canonical = new URL('/devshop/restaurants', site.domain).href;
       // wizard step instead, pre-filled, to be expanded on.
       wizardStartIndex = landingValue.length >= 30 ? 1 : 0;
       showScreen('intake');
+    });
+  }
+
+  /* ---- business-type filter: a use case with no explicit `types` applies to
+     every format ("all"); one tagged with specific types only shows under
+     "All types" or one of its own tags. Hides a function card entirely when
+     none of its items match the active filter. ---- */
+  var typeFilterRow = document.getElementById('typeFilterRow');
+  if (typeFilterRow) {
+    typeFilterRow.addEventListener('click', function (e) {
+      var chip = e.target.closest('[data-type-filter]');
+      if (!chip) return;
+      typeFilterRow.querySelectorAll('.segment-chip').forEach(function (c) { c.classList.remove('active'); });
+      chip.classList.add('active');
+      var filter = chip.dataset.typeFilter;
+      document.querySelectorAll('#usecaseGrid .usecase-card').forEach(function (card) {
+        var visibleCount = 0;
+        card.querySelectorAll('.usecase-btn').forEach(function (btn) {
+          var types = (btn.dataset.types || 'all').split(' ');
+          var match = filter === 'all' || types.indexOf('all') !== -1 || types.indexOf(filter) !== -1;
+          btn.hidden = !match;
+          if (match) visibleCount++;
+        });
+        card.hidden = visibleCount === 0;
+      });
     });
   }
 
@@ -1291,7 +1320,9 @@ const canonical = new URL('/devshop/restaurants', site.domain).href;
     });
   });
 
-  showScreen('landing');
+  // Deep-link support — see the matching comment in devshop.astro.
+  var initialScreen = location.hash.replace('#', '');
+  showScreen(marketingScreens.indexOf(initialScreen) !== -1 ? initialScreen : 'landing');
 </script>
 
 </body>

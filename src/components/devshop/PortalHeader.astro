@@ -1,0 +1,176 @@
+---
+// Shared header for every /devshop* page — main portal, every industry
+// vertical, and the static methodology page. Always black, regardless of
+// the host page's own colour tokens (this file hardcodes its palette
+// instead of reading --dev-* variables), so the chrome reads as one
+// consistent portal no matter which vertical's body content sits below it.
+//
+// `spa` pages (devshop.astro, devshop/restaurants.astro, and any future
+// vertical) run their own client-side screen-switcher keyed by `data-go` —
+// for those, nav items that name a screen ("How it works", "Pricing",
+// "Start") render as `data-go` links intercepted by that page's own script.
+// `spa={false}` pages (methodology.astro) have no screens of their own, so
+// the same nav items render as real links back to `homeHref`'s screens.
+import { devshopVerticals } from '../../data/devshop-verticals';
+
+export interface Props {
+  homeHref: string; // the SPA page these nav items' screens belong to, e.g. "/devshop" or "/devshop/restaurants"
+  spa: boolean; // true if THIS page is that SPA (renders data-go); false if it's a static page linking back to homeHref
+  currentSlug?: string | null; // vertical slug this page belongs to, e.g. "restaurants" — highlights it in the Industries dropdown
+  industryLabel?: string | null; // e.g. "Food & Beverage" — renders "AI-Enabled Solutions for {industryLabel}"; omit on the main portal page
+  verticalTag?: string | null; // e.g. "F&B" — short badge next to the wordmark
+}
+
+const { homeHref, spa, currentSlug = null, industryLabel = null, verticalTag = null } = Astro.props;
+
+const navItems = [
+  { label: 'How it works', screenId: 'how-it-works' },
+  { label: 'Pricing', screenId: 'pricing' },
+];
+---
+
+<header class="ds-portal-header">
+  <div class="ds-header-inner">
+    <a class="ds-logo" href="/devshop">
+      {verticalTag && <span class="ds-logo-tag">{verticalTag}</span>}
+      DevShop
+    </a>
+    {industryLabel && <div class="ds-industry-badge">AI-Enabled Solutions for {industryLabel}</div>}
+
+    <nav class="ds-nav" id="marketingNav">
+      {spa ? (
+        <a href="#" data-go={navItems[0].screenId}>{navItems[0].label}</a>
+      ) : (
+        <a href={`${homeHref}#${navItems[0].screenId}`}>{navItems[0].label}</a>
+      )}
+
+      <slot name="extra-nav" />
+
+      <a href="/devshop/methodology" class:list={{ active: !spa && homeHref === '/devshop' && currentSlug === null }}>Methodology</a>
+
+      {spa ? (
+        <a href="#" data-go={navItems[1].screenId}>{navItems[1].label}</a>
+      ) : (
+        <a href={`${homeHref}#${navItems[1].screenId}`}>{navItems[1].label}</a>
+      )}
+
+      <div class="ds-dropdown">
+        <button type="button" class="ds-dropdown-trigger" id="dsIndustriesTrigger">Industries ▾</button>
+        <div class="ds-dropdown-menu" id="dsIndustriesMenu">
+          <a href="/devshop" class:list={{ active: currentSlug === null }}>DevShop — overview</a>
+          {devshopVerticals.map((v) => (
+            v.status === 'live' ? (
+              <a href={`/devshop/${v.slug}`} class:list={{ active: currentSlug === v.slug }}>{v.tag} — {v.name}</a>
+            ) : (
+              <span class="ds-dropdown-soon">{v.tag} — {v.name} <em>(coming soon)</em></span>
+            )
+          ))}
+        </div>
+      </div>
+
+      {spa ? (
+        <a href="#" data-go="intake" class="ds-start">Start →</a>
+      ) : (
+        <a href={`${homeHref}#intake`} class="ds-start">Start →</a>
+      )}
+    </nav>
+
+    <nav class="ds-nav ds-app-nav" id="appNav" style="display:none;">
+      <a href="#" data-go="dashboard">Dashboard</a>
+      <a href="#" data-go="orchestrator">Orchestrator</a>
+      <a href="#" data-go="integrations">Integrations</a>
+      <a href="#" data-go="activity">Activity</a>
+      <a href="#" data-go="billing">Billing</a>
+      <a href="#" data-go="landing" class="ds-plain" style="margin-left:8px;">Log out</a>
+    </nav>
+  </div>
+  <div class="ds-header-hair"></div>
+</header>
+
+<script>
+  // Industries dropdown — click-to-toggle, closes on outside click or Escape.
+  // Scoped to this component's own ids so it can't collide with any host
+  // page's own script (each host page's `data-go` handlers still see these
+  // anchors via a plain document-wide querySelectorAll, unaffected by this).
+  const trigger = document.getElementById('dsIndustriesTrigger');
+  const menu = document.getElementById('dsIndustriesMenu');
+  if (trigger && menu) {
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      menu.classList.toggle('open');
+    });
+    document.addEventListener('click', () => menu.classList.remove('open'));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') menu.classList.remove('open');
+    });
+  }
+</script>
+
+<style>
+  :root { color-scheme: dark; }
+  .ds-portal-header {
+    position: sticky; top: 0; z-index: 50;
+    background: #15130f;
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+  .ds-header-inner { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 20px 64px; }
+  .ds-logo {
+    display: flex; align-items: baseline; gap: 10px;
+    font-family: 'Instrument Serif', Georgia, serif; font-style: italic;
+    font-size: 34px; letter-spacing: 0.01em; color: #d4af37; font-weight: 400; line-height: 1;
+    text-decoration: none;
+  }
+  .ds-logo-tag {
+    font-family: 'JetBrains Mono', monospace; font-style: normal;
+    font-size: 11px; letter-spacing: 0.22em; color: #a66a62;
+  }
+  .ds-industry-badge {
+    font-family: 'Inter', sans-serif; font-size: 10.5px; letter-spacing: 0.05em;
+    color: #85837e; text-transform: uppercase;
+  }
+  .ds-nav { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 24px 34px; }
+  /* :global — the extra-nav slot's <a> is defined in the HOST page's file,
+     not this component's, so a normally-scoped rule here would never match
+     it (Astro scopes don't cross a slot boundary). Unscope just the nav
+     link look so every page's slotted item inherits it too. */
+  .ds-nav :global(a), .ds-dropdown-trigger, .ds-plain {
+    font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: #b7b5af; text-decoration: none; background: none; border: none; cursor: pointer;
+    font-family: inherit; padding: 0;
+  }
+  .ds-nav :global(a:hover), .ds-dropdown-trigger:hover { color: #f5f5f0; }
+  .ds-nav :global(a.active) { color: #d4af37; }
+  .ds-start { color: #d4af37 !important; }
+
+  .ds-dropdown { position: relative; }
+  .ds-dropdown-menu {
+    display: none; position: absolute; top: calc(100% + 14px); left: 50%; transform: translateX(-50%);
+    background: #1c1a15; border: 1px solid rgba(245,245,240,0.15); border-radius: 6px;
+    padding: 8px; min-width: 260px; flex-direction: column; gap: 2px; z-index: 60;
+  }
+  .ds-dropdown-menu.open { display: flex; }
+  .ds-dropdown-menu a, .ds-dropdown-menu .ds-dropdown-soon {
+    display: block; font-size: 12.5px; letter-spacing: 0.02em; text-transform: none;
+    color: #b7b5af; text-decoration: none; padding: 9px 12px; border-radius: 4px; white-space: nowrap;
+  }
+  .ds-dropdown-menu a:hover { background: rgba(245,245,240,0.06); color: #f5f5f0; }
+  .ds-dropdown-menu a.active { color: #d4af37; }
+  .ds-dropdown-soon { color: #625f59; cursor: default; }
+  .ds-dropdown-soon em { font-style: normal; }
+
+  .ds-header-hair {
+    height: 1px;
+    background: linear-gradient(90deg, #91afc0, #b7b5af, #d4af37, #a66a62);
+    opacity: 0.55;
+  }
+
+  @media (max-width: 860px) {
+    .ds-header-inner { padding: 18px 24px; }
+    .ds-nav { gap: 16px 20px; }
+    .ds-nav a, .ds-dropdown-trigger, .ds-plain { font-size: 11px; letter-spacing: 0.08em; }
+  }
+  @media (max-width: 560px) {
+    .ds-header-inner { padding: 14px 20px; gap: 8px; }
+    .ds-logo { font-size: 24px; }
+  }
+</style>

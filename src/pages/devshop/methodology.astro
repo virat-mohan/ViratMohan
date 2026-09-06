@@ -5,6 +5,8 @@
 // they were just shown. Static content page, same dark design system as
 // devshop.astro but without the wizard/SPA machinery — just a scroll.
 
+import PortalHeader from '../../components/devshop/PortalHeader.astro';
+
 const title = 'Our methodology — Fast Tech Dev Shop';
 const description = 'How every demo gets built: diagnosis, a proven framework scored against alternatives, a P&L-mapped mechanism, and two rounds of validation before you ever see it.';
 
@@ -102,13 +104,7 @@ const ICONS: Record<string, string> = {
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
 </head>
 <body>
-  <header>
-    <div class="header-inner">
-      <a class="logo" href="/devshop">DevShop<span class="logo-sub">Effective Fast Tech using Ai</span></a>
-      <a class="back-link" href="/devshop">&larr; Back to start</a>
-    </div>
-    <div class="header-hair"></div>
-  </header>
+  <PortalHeader homeHref="/devshop" spa={false} currentSlug={null} />
 
   <main class="wrap">
     <div class="eyebrow">METHODOLOGY</div>
@@ -209,23 +205,8 @@ const ICONS: Record<string, string> = {
   .mono { font-family: 'JetBrains Mono', SFMono-Regular, Consolas, monospace; }
   .tint-blue { color: var(--dev-blue); }
 
-  header { position: sticky; top: 0; z-index: 50; background: var(--dev-bg); }
-  .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 22px 64px; gap: 20px; }
-  .logo {
-    font-family: 'Instrument Serif', Georgia, serif; font-style: italic;
-    font-size: 32px; letter-spacing: 0.01em; color: var(--dev-gold); font-weight: 400; line-height: 1;
-  }
-  .logo-sub {
-    display: block; font-family: 'Inter', sans-serif; font-style: italic;
-    font-size: 10px; letter-spacing: 0.03em; color: var(--dev-muted2); margin-top: 4px;
-  }
-  .back-link { font-size: 13px; letter-spacing: 0.06em; color: var(--dev-muted1); white-space: nowrap; }
-  .back-link:hover { color: var(--dev-text); }
-  .header-hair {
-    height: 1px;
-    background: linear-gradient(90deg, var(--dev-blue), var(--dev-muted1), var(--dev-gold));
-    opacity: 0.55;
-  }
+  /* Header is now the shared <PortalHeader> component — see
+     src/components/devshop/PortalHeader.astro. */
 
   .wrap { max-width: 1080px; margin: 0 auto; padding: 64px 64px 40px; }
   .eyebrow { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dev-muted2); margin-bottom: 24px; }
@@ -321,10 +302,6 @@ const ICONS: Record<string, string> = {
   }
 
   @media (max-width: 560px) {
-    .header-inner { padding: 16px 20px; }
-    .logo { font-size: 24px; }
-    .logo-sub { font-size: 9px; }
-    .back-link { font-size: 12px; }
     .wrap { padding: 40px 20px 24px; }
     h1.hero { font-size: clamp(28px, 9vw, 40px); }
     .step-row { gap: 16px; padding: 24px 0; }

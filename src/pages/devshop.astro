@@ -16,6 +16,8 @@
 
 import { Image } from 'astro:assets';
 import { site } from '../data/site';
+import { devshopVerticals } from '../data/devshop-verticals';
+import PortalHeader from '../components/devshop/PortalHeader.astro';
 
 import travaholicLogo from '../assets/logos/travaholic.png';
 import travaholicStaysLogo from '../assets/logos/travaholic-stays.png';
@@ -88,27 +90,9 @@ const canonical = new URL('/devshop', site.domain).href;
 </head>
 <body>
 
-<header>
-  <div class="header-inner">
-    <div class="logo">DevShop<span class="logo-sub">Effective Fast Tech using Ai</span></div>
-    <nav id="marketingNav">
-      <a href="#" data-go="how-it-works">How it works</a>
-      <a href="/devshop/methodology">Methodology</a>
-      <a href="#" data-go="proof">Proof</a>
-      <a href="#" data-go="pricing">Pricing</a>
-      <a href="#" data-go="intake" class="start-link">Start →</a>
-    </nav>
-    <nav id="appNav" style="display:none;">
-      <a href="#" data-go="dashboard">Dashboard</a>
-      <a href="#" data-go="orchestrator">Orchestrator</a>
-      <a href="#" data-go="integrations">Integrations</a>
-      <a href="#" data-go="activity">Activity</a>
-      <a href="#" data-go="billing">Billing</a>
-      <a href="#" data-go="landing" class="btn-plain" style="margin-left:8px;">Log out</a>
-    </nav>
-  </div>
-  <div class="header-hair"></div>
-</header>
+<PortalHeader homeHref="/devshop" spa={true} currentSlug={null}>
+  <a href="#" data-go="proof" slot="extra-nav">Proof</a>
+</PortalHeader>
 
 <main class="wrap">
 
@@ -168,8 +152,36 @@ const canonical = new URL('/devshop', site.domain).href;
     <div class="footer-bar"><span>Built fast, for real businesses</span><span class="page-count"></span></div>
   </section>
 
-  <!-- 04 PRICING -->
-  <section class="screen" id="pricing" data-marketing-index="4">
+  <!-- 04 INDUSTRIES — one page per vertical, same architecture, re-skinned
+       and re-populated per industry (see verticals config above). -->
+  <section class="screen" id="verticals" data-marketing-index="4">
+    <div class="eyebrow">INDUSTRIES</div>
+    <h1 class="hero serif" style="font-size:clamp(32px,4.4vw,52px);">Same engine. <span class="tint-blue">Every</span> <span class="tint-gold">industry.</span></h1>
+    <p class="sub" style="max-width:600px;">Each vertical gets its own problem library and its own entry point — same orchestrator underneath.</p>
+    <div class="vertical-grid">
+      {devshopVerticals.map((v) => (
+        v.status === 'live' ? (
+          <a class="vertical-card" href={`/devshop/${v.slug}`}>
+            <div class="vertical-tag">{v.tag}</div>
+            <div class="vertical-name">{v.name}</div>
+            <div class="vertical-blurb">{v.blurb}</div>
+            <div class="vertical-cta">Enter →</div>
+          </a>
+        ) : (
+          <div class="vertical-card vertical-card--soon">
+            <div class="vertical-tag">{v.tag}</div>
+            <div class="vertical-name">{v.name}</div>
+            <div class="vertical-blurb">{v.blurb}</div>
+            <div class="vertical-cta">Coming soon</div>
+          </div>
+        )
+      ))}
+    </div>
+    <div class="footer-bar"><span>Built fast, for real businesses</span><span class="page-count"></span></div>
+  </section>
+
+  <!-- 05 PRICING -->
+  <section class="screen" id="pricing" data-marketing-index="5">
     <div class="eyebrow">PRICING</div>
     <div class="pricing-block">
       <h1 class="hero serif" style="font-size:clamp(36px,5vw,72px);">Build once.<br />Run on a <span class="tint-gold">retainer.</span></h1>
@@ -192,7 +204,7 @@ const canonical = new URL('/devshop', site.domain).href;
   </section>
 
   <!-- 05 INTAKE — one question at a time, centered, keyboard-driven -->
-  <section class="screen wizard-screen" id="intake" data-marketing-index="5">
+  <section class="screen wizard-screen" id="intake" data-marketing-index="6">
     <div class="wizard" id="intakeWizard">
       <div class="wizard-progress" id="wizardProgress" aria-hidden="true"></div>
       <form id="intakeForm" novalidate>
@@ -474,30 +486,9 @@ const canonical = new URL('/devshop', site.domain).href;
   a { color: inherit; text-decoration: none; }
   button { font-family: inherit; cursor: pointer; background: none; border: none; color: inherit; }
 
-  header { position: sticky; top: 0; z-index: 50; background: var(--dev-bg); }
-  .header-inner { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 22px 64px; }
-  .logo {
-    text-align: center;
-    font-family: 'Instrument Serif', Georgia, serif; font-style: italic;
-    font-size: 40px; letter-spacing: 0.01em; color: var(--dev-gold); font-weight: 400; line-height: 1;
-  }
-  .logo-sub {
-    display: block; font-family: 'Inter', sans-serif; font-style: italic;
-    font-size: 10.5px; letter-spacing: 0.03em; color: var(--dev-muted2); margin-top: 4px;
-  }
-  nav { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 28px 40px; }
-  nav a, nav button.navlink {
-    font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--dev-muted1); transition: color 0.2s;
-  }
-  nav a:hover, nav button.navlink:hover { color: var(--dev-text); }
-  nav a.active, nav button.navlink.active { color: var(--dev-gold); }
-  .start-link { display: flex; align-items: center; gap: 6px; color: var(--dev-gold) !important; }
-  .header-hair {
-    height: 1px;
-    background: linear-gradient(90deg, var(--dev-blue), var(--dev-muted1), var(--dev-gold), var(--dev-rose));
-    opacity: 0.55;
-  }
+  /* Header is now the shared <PortalHeader> component (always black,
+     independent of this page's --dev-* tokens) — see
+     src/components/devshop/PortalHeader.astro. */
 
   .wrap { max-width: 1360px; margin: 0 auto; padding: 0 64px; position: relative; z-index: 1; }
   .screen { display: none; min-height: calc(100vh - 78px); flex-direction: column; padding-top: 64px; }
@@ -569,6 +560,22 @@ const canonical = new URL('/devshop', site.domain).href;
   .proof-card-text .result { font-size: 13.5px; color: var(--dev-muted1); line-height: 1.4; }
 
   .pricing-block { margin-top: auto; margin-bottom: auto; }
+
+  .vertical-grid {
+    margin-top: 48px; max-width: 900px; display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;
+  }
+  .vertical-card {
+    display: block; border: 1px solid var(--dev-hair); border-radius: 6px; padding: 24px 26px;
+    transition: border-color 0.2s;
+  }
+  a.vertical-card:hover { border-color: var(--dev-gold); }
+  .vertical-card--soon { opacity: 0.55; }
+  .vertical-tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.12em; color: var(--dev-gold); margin-bottom: 10px; }
+  .vertical-name { font-family: 'Instrument Serif', Georgia, serif; font-size: 24px; margin-bottom: 10px; }
+  .vertical-blurb { font-size: 13.5px; color: var(--dev-muted1); line-height: 1.55; margin-bottom: 18px; }
+  .vertical-cta { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dev-text); }
+  .vertical-card--soon .vertical-cta { color: var(--dev-muted3); }
 
   .field label { display: block; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dev-muted2); margin-bottom: 10px; }
 
@@ -734,7 +741,7 @@ const canonical = new URL('/devshop', site.domain).href;
   // execution layer for the orchestrator, real auth, and a database.
   // ============================================================
 
-  var marketingScreens = ['landing', 'how-it-works', 'proof', 'pricing', 'intake'];
+  var marketingScreens = ['landing', 'how-it-works', 'proof', 'verticals', 'pricing', 'intake'];
   var appScreens = ['login', 'dashboard', 'orchestrator', 'integrations', 'activity', 'billing'];
 
   function showScreen(id) {
@@ -1176,7 +1183,12 @@ const canonical = new URL('/devshop', site.domain).href;
     });
   });
 
-  showScreen('landing');
+  // Deep-link support: PortalHeader's cross-page nav (e.g. methodology.astro's
+  // "Pricing" link, or the Industries dropdown's "DevShop — overview") lands
+  // here as /devshop#pricing — honor that instead of always defaulting to
+  // the landing screen.
+  var initialScreen = location.hash.replace('#', '');
+  showScreen(marketingScreens.indexOf(initialScreen) !== -1 ? initialScreen : 'landing');
 </script>
 
 </body>
