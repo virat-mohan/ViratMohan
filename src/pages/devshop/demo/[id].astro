@@ -245,6 +245,37 @@ function nextSectionNum() {
       </section>
     )}
 
+    {notes && notes.problemBreakdown.length > 0 && (
+      <section class="block">
+        <div class="section-head"><span class="section-num">{nextSectionNum()}</span><h2>Bringing your team along</h2></div>
+        <div class="card">
+          <p class="plain-copy">This isn't a system your team has to learn from scratch — it's built to sit inside the workflow whoever currently owns {[...new Set(notes.problemBreakdown.map((p) => p.business_function))].join(' and ')} already runs, not replace it. They get one new step to check, not a new job.</p>
+          <p class="plain-copy" style="margin-top:10px;">At handoff, we walk your team through it directly — not a manual to read on their own. Anything that doesn't fit how they actually work day to day gets folded into the one revision round, before the 30-day clock starts.</p>
+        </div>
+      </section>
+    )}
+
+    {row.tools && (
+      <section class="block">
+        <div class="section-head"><span class="section-num">{nextSectionNum()}</span><h2>Connecting to what you already run</h2></div>
+        <div class="card">
+          <p class="plain-copy">No rip-and-replace — this connects directly to what you told us you're already running:</p>
+          <p class="plain-copy" style="margin-top:8px; font-weight:600;">{row.tools}</p>
+          <p class="plain-copy" style="margin-top:10px;">We read what's already there (sales, purchase, and usage records) and write back only where the mechanism needs to — a flag, an alert, a report — nothing that changes how your existing systems work for anyone else on the team.</p>
+        </div>
+      </section>
+    )}
+
+    <section class="block">
+      <div class="section-head"><span class="section-num">{nextSectionNum()}</span><h2>Implementation roadmap</h2></div>
+      <div class="roadmap">
+        <div class="roadmap-step"><span class="roadmap-phase">Days 1–2 · Kickoff</span><p>Confirm the scope this demo represents, get access to the systems named above, and lock the exact numbers your team gave us in place of the assumptions.</p></div>
+        <div class="roadmap-step"><span class="roadmap-phase">Days 3–25 · Build</span><p>Build the mechanism against your real data, wire up the integrations, and run it internally before your team ever sees it.</p></div>
+        <div class="roadmap-step"><span class="roadmap-phase">Days 26–28 · UAT</span><p>Your team runs it alongside their normal work for a few days — we're watching and fixing in real time, not waiting for a bug report.</p></div>
+        <div class="roadmap-step"><span class="roadmap-phase">Days 29–30 · Launch</span><p>Go live, walk your team through it directly, and the AMC support clock starts.</p></div>
+      </div>
+    </section>
+
     {notes && notes.clarifyingQuestions.length > 0 && (
       <section class="block questions">
         <div class="section-head"><span class="section-num">{nextSectionNum()}</span><h2>To sharpen these numbers, we'd ask</h2></div>
@@ -655,6 +686,12 @@ function nextSectionNum() {
   .calc-result-row td { border-top: 1px solid var(--hair); padding-top: 8px; font-weight: 600; }
   .calc-note { font-size: 12px; color: var(--muted); margin: 8px 0 0; font-style: italic; }
   .feedback-note { font-size: 13px; color: var(--muted); border-top: 1px solid var(--hair); padding-top: 20px; }
+
+  .roadmap { display: flex; flex-direction: column; }
+  .roadmap-step { padding: 14px 0; border-top: 1px solid var(--hair); }
+  .roadmap-step:first-child { border-top: none; }
+  .roadmap-phase { display: block; font-weight: 600; font-size: 13.5px; color: var(--ink); margin-bottom: 4px; }
+  .roadmap-step p { margin: 0; font-size: 14px; line-height: 1.55; color: #3a3f4a; }
   .plain-copy { font-size: 15px; line-height: 1.6; color: #3a3f4a; margin: 0; }
   .agent-list { font-size: 12px; color: var(--muted); margin: 8px 0 0; text-transform: uppercase; letter-spacing: 0.03em; }
 

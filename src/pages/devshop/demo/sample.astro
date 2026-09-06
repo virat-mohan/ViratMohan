@@ -251,8 +251,35 @@ const artefactHtml = `<!doctype html><html><head><meta charset="utf-8">
       </div>
     </section>
 
+    <section class="block">
+      <div class="section-head"><span class="section-num">06</span><h2>Bringing your team along</h2></div>
+      <div class="card">
+        <p class="plain-copy">This isn't a system your kitchen team has to learn from scratch — it sits inside the prep and ordering workflow your head chef and kitchen manager already run, not replace it. They get one new step to check each morning: a short flagged-ingredient list, not a new job.</p>
+        <p class="plain-copy" style="margin-top:10px;">At handoff, we walk them through it directly — not a manual to read on their own. Anything that doesn't fit how they actually work gets folded into the one revision round, before the 30-day clock starts.</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head"><span class="section-num">07</span><h2>Connecting to what you already run</h2></div>
+      <div class="card">
+        <p class="plain-copy">No rip-and-replace — this connects directly to what you told us you're already running:</p>
+        <p class="plain-copy" style="margin-top:8px; font-weight:600;">POS (Petpooja), spreadsheets for supplier invoices</p>
+        <p class="plain-copy" style="margin-top:10px;">We read what's already there — dish-level sales from the POS, purchase quantities from your supplier invoices — and write back only where the mechanism needs to: a daily flagged-ingredient report. Nothing changes about how your POS or invoicing works for anyone else on the team.</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head"><span class="section-num">08</span><h2>Implementation roadmap</h2></div>
+      <div class="roadmap">
+        <div class="roadmap-step"><span class="roadmap-phase">Days 1–2 · Kickoff</span><p>Confirm the scope this demo represents, get read access to your POS and invoice records, and lock in your real food-cost % and stock-count cadence in place of the industry assumptions above.</p></div>
+        <div class="roadmap-step"><span class="roadmap-phase">Days 3–25 · Build</span><p>Build the diagnostic against your real sales and purchase data, wire up the POS connection, and run it internally before your kitchen team ever sees it.</p></div>
+        <div class="roadmap-step"><span class="roadmap-phase">Days 26–28 · UAT</span><p>Your kitchen manager runs it alongside a normal prep week — we're watching and fixing in real time, not waiting for a bug report.</p></div>
+        <div class="roadmap-step"><span class="roadmap-phase">Days 29–30 · Launch</span><p>Go live, walk your team through it directly, and the AMC support clock starts.</p></div>
+      </div>
+    </section>
+
     <section class="block questions">
-      <div class="section-head"><span class="section-num">06</span><h2>To sharpen these numbers, we'd ask</h2></div>
+      <div class="section-head"><span class="section-num">09</span><h2>To sharpen these numbers, we'd ask</h2></div>
       <p class="questions-intro">(<em>Assumptions used industry benchmarks where we didn't have your real figures — answer any of these in your reply for the exact number.</em>)</p>
       <ul class="bullets">
         <li><span class="q-blocking">Please confirm</span>What's your average weekly food cost as a % of sales right now?</li>
@@ -334,7 +361,7 @@ const artefactHtml = `<!doctype html><html><head><meta charset="utf-8">
 
   <main class="brief next-steps">
     <section class="block feedback-block" id="feedbackSection">
-      <div class="section-head"><span class="section-num">07</span><h2>Your feedback</h2></div>
+      <div class="section-head"><span class="section-num">10</span><h2>Your feedback</h2></div>
       <p class="eval-intro">Answer what you can below, add anything else that needs to change, then submit. No email needed.</p>
       <div class="qa-list">
         <div class="qa-row">
@@ -353,7 +380,7 @@ const artefactHtml = `<!doctype html><html><head><meta charset="utf-8">
     </section>
 
     <section class="block timeline-block">
-      <div class="section-head"><span class="section-num">08</span><h2>Where this stands</h2></div>
+      <div class="section-head"><span class="section-num">11</span><h2>Where this stands</h2></div>
       <div class="timeline">
         <div class="timeline-step current"><span class="timeline-dot"></span><span class="timeline-label">Demo delivered</span></div>
         <div class="timeline-step"><span class="timeline-dot"></span><span class="timeline-label">You confirmed</span></div>
@@ -367,7 +394,7 @@ const artefactHtml = `<!doctype html><html><head><meta charset="utf-8">
     </section>
 
     <section class="block pricing-block">
-      <div class="section-head"><span class="section-num">09</span><h2>Investment</h2></div>
+      <div class="section-head"><span class="section-num">12</span><h2>Investment</h2></div>
       <div class="pricing-grid">
         <div class="pricing-card">
           <p class="pricing-amount">₹1,50,000</p>
@@ -511,6 +538,12 @@ const artefactHtml = `<!doctype html><html><head><meta charset="utf-8">
   .calc-result-row td { border-top: 1px solid var(--hair); padding-top: 8px; font-weight: 600; }
   .calc-note { font-size: 12px; color: var(--muted); margin: 8px 0 0; font-style: italic; }
   .feedback-note { font-size: 13px; color: var(--muted); border-top: 1px solid var(--hair); padding-top: 20px; }
+
+  .roadmap { display: flex; flex-direction: column; }
+  .roadmap-step { padding: 14px 0; border-top: 1px solid var(--hair); }
+  .roadmap-step:first-child { border-top: none; }
+  .roadmap-phase { display: block; font-weight: 600; font-size: 13.5px; color: var(--ink); margin-bottom: 4px; }
+  .roadmap-step p { margin: 0; font-size: 14px; line-height: 1.55; color: #3a3f4a; }
   .plain-copy { font-size: 15px; line-height: 1.6; color: #3a3f4a; margin: 0; }
   .agent-list { font-size: 12px; color: var(--muted); margin: 8px 0 0; text-transform: uppercase; letter-spacing: 0.03em; }
 
