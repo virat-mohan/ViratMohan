@@ -177,5 +177,14 @@ const navItems = [
   @media (max-width: 560px) {
     .ds-header-inner { padding: 14px 20px; gap: 8px; }
     .ds-logo { font-size: 24px; }
+    /* Centering the menu on the trigger's own position (the default,
+       desktop-safe behavior) pushes it off-screen on mobile whenever the
+       trigger itself sits near an edge — "Industries" is usually the
+       leftmost nav item once the row wraps. Anchor to the dropdown
+       container's left edge instead and cap the width to the viewport. */
+    .ds-dropdown-menu {
+      left: 0; right: auto; transform: none;
+      min-width: 0; width: max-content; max-width: calc(100vw - 40px);
+    }
   }
 </style>
