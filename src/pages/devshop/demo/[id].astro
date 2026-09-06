@@ -580,7 +580,8 @@ function nextSectionNum() {
     --ink: #1c1f22; --ink-soft: #4a4f54; --muted: #767c82; --hair: rgba(28,31,34,0.13);
     --paper: #f4f2ec; --gold: #7d6435; --gold-soft: #eee7d6;
   }
-  html, body { margin: 0; background: var(--paper); }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--paper); width: 100%; overflow-x: hidden; }
   body { font-family: 'Archivo', system-ui, sans-serif; color: #2a2f3a; }
 
   .brief { max-width: 760px; margin: 0 auto; padding: 64px 40px 40px; }
