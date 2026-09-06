@@ -4,7 +4,7 @@ import type { APIRoute } from 'astro';
 import { waitUntil } from '@vercel/functions';
 import { classifyAndBuild, fetchWebsiteSnippet, resolveFrameworkSelections, resolveAgentSequence } from '../../../lib/llm';
 import { sendEmail } from '../../../lib/email';
-import { getDb } from '../../../lib/db';
+import { getDb, type SolutionNotes } from '../../../lib/db';
 import { getEnv } from '../../../lib/env';
 import { getOrigin } from '../../../lib/http';
 import { sendDemoDoneEmail } from '../../../lib/demo-email';
@@ -12,7 +12,14 @@ import { sendDemoDoneEmail } from '../../../lib/demo-email';
 export const POST: APIRoute = async ({ request }) => {
   const env = getEnv();
 
-  let body: { problem?: string; company?: string; industry?: string; website?: string; tools?: string; email?: string; preferredFramework?: string };
+  let body: {
+    problem?: string; company?: string; industry?: string; website?: string; tools?: string; email?: string; preferredFramework?: string;
+    // Set only when the client came in through a vertical page's clickable
+    // "common use cases" list (e.g. /devshop/restaurants) rather than free
+    // text. usecaseId is stable per button; label/businessFunction are only
+    // used to register the row the very first time this use case is ever hit.
+    usecaseId?: string; usecaseVertical?: string; usecaseLabel?: string; usecaseBusinessFunction?: string;
+  };
   try {
     body = await request.json();
   } catch {
@@ -26,6 +33,7 @@ export const POST: APIRoute = async ({ request }) => {
   const website = (body.website || '').trim() || null;
   const tools = (body.tools || '').trim() || null;
   const preferredFramework = (body.preferredFramework || '').trim() || null;
+  const usecaseId = (body.usecaseId || '').trim() || null;
 
   if (!problem || !email) {
     return json({ error: 'problem and email are required' }, 400);
@@ -52,6 +60,24 @@ export const POST: APIRoute = async ({ request }) => {
 
   const id = crypto.randomUUID();
   await db.insertSubmission({ id, problem, company, industry, website, tools, email });
+
+  // Use-case template hit — count it regardless of whether this run ends up
+  // cached or freshly generated (that's the admin-visible "how often has
+  // this specific use case been picked" number). Best-effort: a counting
+  // failure must never block the actual demo generation.
+  if (usecaseId) {
+    await db
+      .recordUsecaseHit({
+        id: usecaseId,
+        vertical: (body.usecaseVertical || '').trim() || 'unknown',
+        businessFunction: (body.usecaseBusinessFunction || '').trim() || 'Unspecified',
+        label: (body.usecaseLabel || '').trim() || problem.slice(0, 80),
+        problemText: problem,
+      })
+      .catch((err) => console.error('intake: recordUsecaseHit failed', err));
+  }
+  const cachedUsecase = usecaseId ? await db.getUsecaseTemplate(usecaseId).catch(() => null) : null;
+  const usecaseCacheHit = !!(cachedUsecase && cachedUsecase.cached_artefact_html);
 
   // Notify the desk immediately — don't block the client's response on this.
   const notify = sendEmail(
@@ -80,32 +106,52 @@ export const POST: APIRoute = async ({ request }) => {
   let status: 'demo_ready' | 'failed' = 'demo_ready';
   let demoUrl: string | null = null;
   try {
-    const websiteSnippet = website ? await fetchWebsiteSnippet(website) : null;
-    const frameworkLibrary = await db.listActiveFrameworks();
-    const agentLibrary = await db.listActiveAiAgents().catch((err) => {
-      console.error('listActiveAiAgents failed (migration 0015 may not be applied yet) — proceeding with an empty agent library', err);
-      return [];
-    });
-    const pastFrameworkUsage = industry ? await db.listPastFrameworkUsageByIndustry(industry) : [];
-    const result = await classifyAndBuild(
-      { problem, company, industry, tools, websiteSnippet, frameworkLibrary, agentLibrary, preferredFramework, pastFrameworkUsage },
-      env.ANTHROPIC_API_KEY
-    );
-    await db.recordGeneration({
-      submissionId: id,
-      kind: 'classify',
-      model: result.generationMeta.model,
-      promptVersion: result.generationMeta.promptVersion,
-      status: result.generationMeta.status,
-      attempts: result.generationMeta.attempts,
-      durationMs: result.generationMeta.durationMs,
-      errorMessage: result.generationMeta.errorMessage,
-      artefactBlocked: result.artefactValidations.some((v) => v.status === 'block'),
-    });
-    await db.markDemoReady(
-      id,
-      result.levers,
-      {
+    let artefactBlocked: boolean;
+
+    if (usecaseCacheHit && cachedUsecase) {
+      // Fast path: a previous click on this exact use case already produced
+      // a validated result — reuse it verbatim instead of paying for another
+      // Claude classify+build call. This is the whole point of caching by
+      // use case: repeat visitors to a vertical page's common-problems list
+      // get an instant, free demo instead of a fresh ~60-90s generation.
+      artefactBlocked = false;
+      await db.markDemoReady(id, cachedUsecase.cached_pnl_levers ?? [], cachedUsecase.cached_solution_notes as SolutionNotes, cachedUsecase.cached_artefact_html!);
+      await db.logTransition(id, 'received', 'demo_ready', 'system', `Reused cached result for use case "${usecaseId}"`);
+      await db.recordGeneration({
+        submissionId: id,
+        kind: 'classify',
+        model: 'cached',
+        promptVersion: 'usecase-cache',
+        status: 'success',
+        attempts: 0,
+        durationMs: 0,
+        errorMessage: null,
+        artefactBlocked: false,
+      });
+    } else {
+      const websiteSnippet = website ? await fetchWebsiteSnippet(website) : null;
+      const frameworkLibrary = await db.listActiveFrameworks();
+      const agentLibrary = await db.listActiveAiAgents().catch((err) => {
+        console.error('listActiveAiAgents failed (migration 0015 may not be applied yet) — proceeding with an empty agent library', err);
+        return [];
+      });
+      const pastFrameworkUsage = industry ? await db.listPastFrameworkUsageByIndustry(industry) : [];
+      const result = await classifyAndBuild(
+        { problem, company, industry, tools, websiteSnippet, frameworkLibrary, agentLibrary, preferredFramework, pastFrameworkUsage },
+        env.ANTHROPIC_API_KEY
+      );
+      await db.recordGeneration({
+        submissionId: id,
+        kind: 'classify',
+        model: result.generationMeta.model,
+        promptVersion: result.generationMeta.promptVersion,
+        status: result.generationMeta.status,
+        attempts: result.generationMeta.attempts,
+        durationMs: result.generationMeta.durationMs,
+        errorMessage: result.generationMeta.errorMessage,
+        artefactBlocked: result.artefactValidations.some((v) => v.status === 'block'),
+      });
+      const notes: SolutionNotes = {
         problemBreakdown: result.problemBreakdown,
         frameworkSelections: resolveFrameworkSelections(result.frameworkSelections, frameworkLibrary),
         solutionMechanisms: result.solutionMechanisms.map(({ agent_sequence, ...m }) => ({
@@ -116,12 +162,20 @@ export const POST: APIRoute = async ({ request }) => {
         artefactValidations: result.artefactValidations,
         artefactPlan: result.artefactPlan,
         clarifyingQuestions: result.clarifyingQuestions,
-      },
-      result.artefactHtml
-    );
-    await db.logTransition(id, 'received', 'demo_ready', 'system', 'Classification complete');
+      };
+      await db.markDemoReady(id, result.levers, notes, result.artefactHtml);
+      await db.logTransition(id, 'received', 'demo_ready', 'system', 'Classification complete');
+      artefactBlocked = result.artefactValidations.some((v) => v.status === 'block');
 
-    const artefactBlocked = result.artefactValidations.some((v) => v.status === 'block');
+      // First real run for this use case — cache it so every future click
+      // reuses this result instead of generating again. Never cache a
+      // blocked artefact (it failed its own self-audit — see Step 9).
+      if (usecaseId && !artefactBlocked) {
+        await db
+          .cacheUsecaseResult(usecaseId, id, result.levers, notes, result.artefactHtml)
+          .catch((err) => console.error('intake: cacheUsecaseResult failed', err));
+      }
+    }
 
     if (artefactBlocked) {
       // The artefact self-audit (Step 9) flagged a real defect — e.g. the

@@ -1,0 +1,123 @@
+---
+export const prerender = false;
+// Same access protection as /devshop/admin — see index.astro.
+//
+// Answers: which pre-written use cases (on vertical pages like
+// /devshop/restaurants) are actually getting clicked, and how many of those
+// clicks were served from cache (cheap, instant) versus a fresh Claude
+// classify+build call (slow, costs money). hit_count is cumulative across
+// both — it's the count the "click a use case" feature exists to produce.
+
+import { getDb } from '../../../lib/db';
+import { getEnv } from '../../../lib/env';
+import { formatTimestamp } from '../../../lib/format';
+
+const env = getEnv();
+const templates = await getDb(env).listUsecaseTemplates();
+
+const totalHits = templates.reduce((sum, t) => sum + t.hit_count, 0);
+const cachedCount = templates.filter((t) => t.cached_artefact_html).length;
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vertical use cases — Fast Tech Dev Shop admin</title>
+  <meta name="robots" content="noindex, nofollow" />
+</head>
+<body>
+  <main class="wrap">
+    <a class="back" href="/devshop/admin">← All queries</a>
+    <h1>Vertical use cases</h1>
+    <p class="sub">Every pre-written problem statement on an industry-vertical page (e.g. <code>/devshop/restaurants</code>'s "Common use cases" list), and how often each one has actually been clicked. The first click for a use case runs the real classify+build pipeline; every click after that reuses the cached result — free and instant — until an admin invalidates it below.</p>
+
+    <div class="stat-row">
+      <div class="stat"><div class="v">{templates.length}</div><div class="l">Use cases registered</div></div>
+      <div class="stat"><div class="v">{totalHits}</div><div class="l">Total clicks</div></div>
+      <div class="stat"><div class="v">{cachedCount}</div><div class="l">Currently cached</div></div>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>Vertical</th><th>Function</th><th>Use case</th><th>Hits</th><th>Cache</th><th>Last used</th><th></th></tr>
+      </thead>
+      <tbody>
+        {templates.map((t) => (
+          <tr>
+            <td>{t.vertical}</td>
+            <td class="when">{t.business_function}</td>
+            <td>
+              <div class="label">{t.label}</div>
+              <div class="problem">{t.problem_text}</div>
+            </td>
+            <td class="num">{t.hit_count}</td>
+            <td>
+              {t.cached_artefact_html ? (
+                <span class="cached-yes">Cached{t.cached_submission_id && <a href={`/devshop/admin/${t.cached_submission_id}`}> · view →</a>}</span>
+              ) : (
+                <span class="cached-no">Not cached yet</span>
+              )}
+            </td>
+            <td class="when">{t.last_used_at ? formatTimestamp(t.last_used_at) : '—'}</td>
+            <td>
+              {t.cached_artefact_html && (
+                <button class="invalidate-btn" data-id={t.id}>Invalidate</button>
+              )}
+            </td>
+          </tr>
+        ))}
+        {templates.length === 0 && <tr><td colspan="7">No use case has been clicked yet. Run migrations/0017_usecase_templates.sql if this is unexpected.</td></tr>}
+      </tbody>
+    </table>
+  </main>
+
+  <script type="module">
+    document.querySelectorAll('.invalidate-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Force this use case to regenerate for real on its next click?')) return;
+        btn.disabled = true;
+        try {
+          const res = await fetch('/devshop/api/usecase-templates', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ action: 'invalidate', id: btn.dataset.id }),
+          });
+          if (!res.ok) throw new Error(await res.text());
+          location.reload();
+        } catch (err) {
+          btn.disabled = false;
+          alert('Failed: ' + err.message);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+
+<style>
+  :root { color-scheme: dark; }
+  body { background: #15130f; color: #f5f5f0; font-family: system-ui, sans-serif; margin: 0; }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 48px 32px; }
+  .back { color: #85837e; font-size: 13px; text-decoration: none; }
+  h1 { font-size: 22px; font-weight: 500; margin: 24px 0 8px; }
+  .sub { font-size: 14px; color: #b7b5af; max-width: 76ch; margin-bottom: 28px; }
+  code { font-family: 'SFMono-Regular', Consolas, monospace; color: #91afc0; }
+
+  .stat-row { display: flex; gap: 32px; margin-bottom: 32px; }
+  .stat .v { font-size: 28px; font-weight: 600; color: #d4af37; }
+  .stat .l { font-size: 11.5px; color: #85837e; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; color: #85837e; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; padding: 0 10px 10px; border-bottom: 1px solid rgba(245,245,240,0.18); }
+  td { padding: 12px 10px; border-bottom: 1px solid rgba(245,245,240,0.08); vertical-align: top; }
+  td.when { color: #b7b5af; }
+  td.num { font-variant-numeric: tabular-nums; color: #f5f5f0; }
+  .label { color: #f5f5f0; margin-bottom: 3px; }
+  .problem { color: #85837e; font-size: 12px; max-width: 440px; }
+  .cached-yes { color: #718a78; }
+  .cached-yes a { color: #91afc0; text-decoration: none; }
+  .cached-no { color: #85837e; }
+  .invalidate-btn { font-size: 11.5px; padding: 6px 10px; border: 1px solid rgba(245,245,240,0.25); color: #b7b5af; background: none; cursor: pointer; border-radius: 3px; }
+</style>

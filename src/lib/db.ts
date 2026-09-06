@@ -158,6 +158,26 @@ export type Submission = {
   created_at: string;
 };
 
+// Use-case templates (industry-vertical pages, e.g. /devshop/restaurants) —
+// caches the first real classify+build result per canned use case so every
+// repeat click is a fast, free reuse instead of another Claude call. See
+// migrations/0017_usecase_templates.sql.
+export type UsecaseTemplate = {
+  id: string;
+  vertical: string;
+  business_function: string;
+  label: string;
+  problem_text: string;
+  hit_count: number;
+  last_used_at: string | null;
+  cached_submission_id: string | null;
+  cached_pnl_levers: PnlLeverHit[] | null;
+  cached_solution_notes: SolutionNotes | null;
+  cached_artefact_html: string | null;
+  cached_at: string | null;
+  created_at: string;
+};
+
 // Service-role client: full read/write, bypasses RLS. Only ever constructed
 // server-side (inside API routes / server-rendered admin pages) — the key
 // must never reach the browser.
@@ -590,6 +610,70 @@ export function getDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: st
         .maybeSingle();
       if (error) throw new Error(`supabase duplicate-check query failed: ${error.message}`);
       return (data as Submission | null) ?? null;
+    },
+
+    // ---- Use-case templates (vertical pages) ----
+
+    async getUsecaseTemplate(id: string): Promise<UsecaseTemplate | null> {
+      const { data, error } = await supabase.from('usecase_templates').select('*').eq('id', id).maybeSingle();
+      if (error) throw new Error(`supabase usecase_templates get failed: ${error.message}`);
+      return (data as UsecaseTemplate | null) ?? null;
+    },
+
+    // Registers the use case on first click from a given vertical page (safe
+    // to call every time — no-op via upsert ignoreDuplicates if it already
+    // exists) then atomically bumps the hit counter. Splitting registration
+    // from the counter increment keeps the increment itself a single
+    // race-safe RPC-free update rather than a read-modify-write.
+    async recordUsecaseHit(row: { id: string; vertical: string; businessFunction: string; label: string; problemText: string }) {
+      const { error: upsertError } = await supabase
+        .from('usecase_templates')
+        .upsert(
+          { id: row.id, vertical: row.vertical, business_function: row.businessFunction, label: row.label, problem_text: row.problemText },
+          { onConflict: 'id', ignoreDuplicates: true }
+        );
+      if (upsertError) throw new Error(`supabase usecase_templates upsert failed: ${upsertError.message}`);
+
+      const existing = await this.getUsecaseTemplate(row.id);
+      const nextCount = (existing?.hit_count ?? 0) + 1;
+      const { error } = await supabase
+        .from('usecase_templates')
+        .update({ hit_count: nextCount, last_used_at: new Date().toISOString() })
+        .eq('id', row.id);
+      if (error) throw new Error(`supabase usecase_templates hit-count update failed: ${error.message}`);
+    },
+
+    // Called once, right after the FIRST real classify+build run for a use
+    // case — every click after this one skips generation entirely and reuses
+    // this result (see /devshop/api/intake).
+    async cacheUsecaseResult(id: string, submissionId: string, levers: PnlLeverHit[], notes: SolutionNotes, artefactHtml: string) {
+      const { error } = await supabase
+        .from('usecase_templates')
+        .update({
+          cached_submission_id: submissionId,
+          cached_pnl_levers: levers,
+          cached_solution_notes: notes,
+          cached_artefact_html: artefactHtml,
+          cached_at: new Date().toISOString(),
+        })
+        .eq('id', id);
+      if (error) throw new Error(`supabase usecase_templates cache-result update failed: ${error.message}`);
+    },
+
+    // Admin-triggered — forces the next click to regenerate for real (e.g.
+    // after a framework library change makes the cached result stale).
+    async invalidateUsecaseCache(id: string) {
+      const { error } = await supabase
+        .from('usecase_templates')
+        .update({ cached_submission_id: null, cached_pnl_levers: null, cached_solution_notes: null, cached_artefact_html: null, cached_at: null })
+        .eq('id', id);
+      if (error) throw new Error(`supabase usecase_templates invalidate failed: ${error.message}`);
+    },
+
+    async listUsecaseTemplates(): Promise<UsecaseTemplate[]> {
+      const { data, error } = await supabase.from('usecase_templates').select('*').order('hit_count', { ascending: false });
+      if (error) throw new Error(`supabase usecase_templates list failed: ${error.message}`);
+      return (data ?? []) as UsecaseTemplate[];
     },
   };
 }

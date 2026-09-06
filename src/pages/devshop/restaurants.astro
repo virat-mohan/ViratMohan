@@ -1,0 +1,1298 @@
+---
+// /devshop/restaurants — F&B industry vertical of the same DevShop product.
+//
+// ARCHITECTURE: this file is a direct copy of /devshop.astro. Per instruction,
+// the whole product architecture (screens, wizard, build/orchestrator
+// simulation, intake pipeline) is reused unchanged across industry verticals
+// — only two things change per vertical: (1) the --dev-* colour tokens
+// (cosmetic — this vertical uses a lighter grey ground instead of near-black,
+// same gold/blue/green/rose hue family) and (2) the content that's specific
+// to the industry (hero copy, the Proof→"Common use cases" section, the
+// industry/tools chip sets in the intake wizard). Everything else —
+// how-it-works, pricing structure, the wizard mechanics, the build/orchestrator
+// screens, login/dashboard/integrations/activity/billing — is untouched.
+// To stand up the next vertical, copy this file and repeat only those two
+// changes.
+//
+// This page intentionally does NOT use Base.astro / Nav.astro / Footer.astro,
+// matching /devshop.astro. Not linked from the main site nav — reachable only
+// by direct URL, per instruction.
+//
+// SCOPE NOTE: everything from "Login" onward (Dashboard, Orchestrator,
+// Integrations, Activity, Billing) is a UI-only front-end simulation,
+// identical to /devshop.astro — see inline comments in the <script> below.
+// The intake wizard is real: it posts to the same /devshop/api/intake
+// endpoint that runs the actual classify+build pipeline.
+
+import { site } from '../../data/site';
+
+// ---- Easily-editable config, per prompt instructions ----
+const CURRENCY = '₹'; // INR is the standard currency for this product.
+const PRICING = {
+  buildLow: '1,00,000',
+  buildHigh: '10,00,000',
+  retainerMin: '50,000',
+};
+// F&B-specific pricing bands are not decided yet — reusing the generic
+// DevShop numbers above as a placeholder until that's scoped (per instruction:
+// "pricing we will decide later but the workflow ... can remain similar").
+
+// ---- Common use cases, mapped to the business function that owns each one.
+// Replaces the generic Proof (client logos/screenshots) section for this
+// vertical — there's no F&B case study yet, and a browsable problem map is
+// more useful here than borrowed proof. Each `problem` string is what gets
+// dropped straight into the intake wizard's "What's the problem?" field when
+// clicked — real enough to submit as-is, specific enough to point the
+// classifier at the right framework immediately.
+const VERTICAL = 'restaurants'; // matches this route, used as usecase_templates.vertical
+
+const useCases = [
+  {
+    fn: 'Inventory & Supply Chain',
+    items: [
+      { id: 'wastage-unexplained', label: 'Unexplained wastage', problem: "Our wastage numbers are high every week and we can't tell how much is spoilage, over-production, or just bad prep — nobody's ever broken it down." },
+      { id: 'stock-count-mismatch', label: 'Stock count never matches', problem: 'Every month our physical stock count is off from what the system says we should have used, and we never find out why before the next count.' },
+      { id: 'par-level-stockouts', label: 'Par-level stockouts', problem: 'Our best-selling dish keeps selling out on Friday and Saturday nights right when demand peaks, and we only find out from a frustrated server.' },
+      { id: 'vendor-invoice-mismatch', label: 'Vendor invoice mismatches', problem: 'We get billed for quantities that don’t match what actually got delivered, and right now someone just eyeballs the invoice against a paper delivery slip.' },
+    ],
+  },
+  {
+    fn: 'Finance & Reconciliation',
+    items: [
+      { id: 'aggregator-payout-mismatch', label: 'Delivery-platform payouts don’t match POS', problem: "Our Swiggy and Zomato payouts never match what the POS says we sold, and we just accept whatever lands in the bank account." },
+      { id: 'cash-register-shrinkage', label: 'Cash register shrinkage', problem: 'We suspect void and discount abuse at the register but have no way to flag which staff member or which shift it’s actually coming from.' },
+      { id: 'prime-cost-drift', label: 'Prime cost drifting', problem: 'Our combined food and labor cost has been creeping up as a percentage of sales and we only notice a full quarter after it happened.' },
+      { id: 'multi-outlet-pnl-rollup', label: 'Multi-outlet P&L rollup', problem: 'Every one of our outlets closes their books on a different day in a different format, so we can never get one clean consolidated P&L.' },
+    ],
+  },
+  {
+    fn: 'Kitchen & Floor Operations',
+    items: [
+      { id: 'ticket-time-blowouts', label: 'Ticket times blow out at peak', problem: 'Ticket times fall apart the moment we hit a Friday-night rush and we can’t tell which station is actually the bottleneck.' },
+      { id: 'order-accuracy-remakes', label: 'Order accuracy & remakes', problem: 'We’re remaking too many orders and nobody’s tracking whether it’s a kitchen error, a POS entry error, or a recipe that’s inconsistent by shift.' },
+      { id: 'recipe-drift-outlets', label: 'Recipe drift across outlets', problem: 'The same dish tastes noticeably different depending on which of our outlets you order it from, and there’s no real SOP compliance check.' },
+      { id: 'table-turnover-wait-times', label: 'Table turnover & wait times', problem: 'We don’t know which part of the dine-in journey — seating, ordering, kitchen, or payment — is actually slowing down our table turns.' },
+    ],
+  },
+  {
+    fn: 'Guest Experience & Reputation',
+    items: [
+      { id: 'reviews-unmanaged', label: 'Reviews nobody’s reading', problem: 'We get a steady stream of Google and Zomato reviews but nobody owns responding to them or feeding the complaints back into operations.' },
+      { id: 'reservation-no-shows', label: 'Reservation no-shows', problem: 'We hold tables for reservations that no-show with no deposit or overbooking logic, and it costs us covers every weekend.' },
+      { id: 'loyalty-declining-repeat', label: 'Loyalty program, declining repeat visits', problem: 'We have a loyalty points program but redemption and repeat visits have been sliding and we don’t have a re-engagement flow for lapsed regulars.' },
+    ],
+  },
+  {
+    fn: 'Revenue & Menu Strategy',
+    items: [
+      { id: 'menu-bloat', label: 'Menu bloat', problem: 'Our menu has grown to the point where we suspect several dishes aren’t earning their shelf space, but we’ve never actually run the numbers.' },
+      { id: 'demand-forecasting-gaps', label: 'Demand forecasting gaps', problem: 'We staff and prep off gut feel, not off the actual weekday, weather, or local-event demand pattern, and it shows in both waste and stockouts.' },
+      { id: 'channel-cannibalization', label: 'Aggregator channel cannibalizing dine-in', problem: 'Our delivery orders have grown but we suspect it’s just pulling dine-in covers onto a lower-margin channel, and we can’t prove it either way.' },
+    ],
+  },
+  {
+    fn: 'People & Labor',
+    items: [
+      { id: 'foh-boh-turnover', label: 'High front/back-of-house turnover', problem: 'We’re constantly rehiring and retraining front-of-house staff and have never actually costed what that churn is doing to us.' },
+      { id: 'labor-demand-misalignment', label: 'Labor cost misaligned to demand', problem: 'We’re fully staffed on slow weeknights and understaffed on our busiest weekend shifts, and the schedule is still built by habit, not by demand.' },
+    ],
+  },
+  {
+    fn: 'Compliance & Food Safety',
+    items: [
+      { id: 'license-audit-gaps', label: 'License & audit-trail gaps', problem: 'Our FSSAI and local health department renewals live in someone’s inbox and we’ve had at least one close call with a lapsed license.' },
+      { id: 'cold-chain-logs', label: 'Cold-chain temperature logs', problem: 'Our fridge and freezer temperature logs are paper-based and exist to be filled in, not to actually catch a breach before it becomes a food-safety incident.' },
+    ],
+  },
+  {
+    fn: 'Bar & Beverage Program',
+    items: [
+      { id: 'pour-cost-drift', label: 'Pour-cost drift', problem: 'Our bar’s pour cost keeps drifting and we suspect over-pouring and uncomfortable comps, but nothing ties a poured drink back to a POS line.' },
+      { id: 'liquor-inventory-shrinkage', label: 'Liquor inventory shrinkage', problem: 'We reconcile our liquor inventory by weight and estimate instead of by actual measure, and the shrinkage number never quite adds up.' },
+    ],
+  },
+  {
+    fn: 'Hotel F&B',
+    items: [
+      { id: 'banquet-costing-drift', label: 'Banquet costing drift', problem: 'Our banquet event orders are quoted one way and the actual consumption almost always comes in different, and we’ve never closed that gap.' },
+      { id: 'room-service-pms-gaps', label: 'Room-service ↔ PMS gaps', problem: 'Room-service and minibar charges post late, post wrong, or don’t post at all against the guest folio in our PMS.' },
+    ],
+  },
+];
+
+// Full-colour icon marks for the Integrations screen only, unchanged from
+// /devshop.astro — same simulation, not F&B-specific.
+const CRM_LOGO = `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="40" rx="6" fill="#91AFC0"/><circle cx="20" cy="15" r="6" fill="#15130F"/><path d="M8 32c0-6.6 5.4-12 12-12s12 5.4 12 12" fill="#15130F"/></svg>`;
+
+const SHEETS_LOGO = `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="40" rx="6" fill="#0F9D58"/><rect x="10" y="7" width="20" height="26" rx="2" fill="#F5F5F0"/><rect x="13" y="11" width="14" height="2.2" fill="#0F9D58"/><rect x="13" y="16" width="14" height="2.2" fill="#0F9D58"/><rect x="13" y="21" width="14" height="2.2" fill="#0F9D58"/><rect x="13" y="26" width="14" height="2.2" fill="#0F9D58"/><rect x="18.9" y="11" width="2.2" height="17.2" fill="#0F9D58"/></svg>`;
+
+const SLACK_LOGO = `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="40" rx="6" fill="#15130F"/><path d="M15.5 24.5a2.5 2.5 0 1 1-2.5-2.5h2.5v2.5z" fill="#E01E5A"/><path d="M16.75 24.5a2.5 2.5 0 1 1 5 0v6.25a2.5 2.5 0 1 1-5 0V24.5z" fill="#E01E5A"/><path d="M17 15.5a2.5 2.5 0 1 1 2.5-2.5v2.5H17z" fill="#36C5F0"/><path d="M17 16.75a2.5 2.5 0 1 1 0 5h-6.25a2.5 2.5 0 1 1 0-5H17z" fill="#36C5F0"/><path d="M25.5 17a2.5 2.5 0 1 1 2.5 2.5H25.5V17z" fill="#2EB67D"/><path d="M24.25 17a2.5 2.5 0 1 1-5 0v-6.25a2.5 2.5 0 1 1 5 0V17z" fill="#2EB67D"/><path d="M24 25.5a2.5 2.5 0 1 1-2.5 2.5V25.5H24z" fill="#ECB22E"/><path d="M24 24.25a2.5 2.5 0 1 1 0-5h6.25a2.5 2.5 0 1 1 0 5H24z" fill="#ECB22E"/></svg>`;
+
+const EMAIL_LOGO = `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="40" rx="6" fill="#F5F5F0"/><path d="M7 12h26v18a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V12z" fill="#EA4335"/><path d="M7 12l13 10 13-10" fill="none" stroke="#F5F5F0" stroke-width="2"/><path d="M7 12l13 10 13-10" fill="#FBBC05"/><path d="M7 12a2 2 0 0 1 2-2h22a2 2 0 0 1 2 2l-13 10L7 12z" fill="#EA4335"/></svg>`;
+
+const title = 'F&B DevShop — problem in, working demo on the spot';
+const description =
+  'F&B DevShop: tell us what’s bleeding margin — wastage, delivery-platform recon, staffing, reviews. Get a working demo right there. Build delivered in 30 days from deposit.';
+const canonical = new URL('/devshop/restaurants', site.domain).href;
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={canonical} />
+  <meta name="robots" content="noindex, follow" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet"
+  />
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo"><span class="logo-vertical">F&amp;B</span>DevShop<span class="logo-sub">Restaurants, bars &amp; hotels</span></div>
+    <nav id="marketingNav">
+      <a href="#" data-go="how-it-works">How it works</a>
+      <a href="/devshop/methodology">Methodology</a>
+      <a href="#" data-go="proof">Common use cases</a>
+      <a href="#" data-go="pricing">Pricing</a>
+      <a href="#" data-go="intake" class="start-link">Start →</a>
+    </nav>
+    <nav id="appNav" style="display:none;">
+      <a href="#" data-go="dashboard">Dashboard</a>
+      <a href="#" data-go="orchestrator">Orchestrator</a>
+      <a href="#" data-go="integrations">Integrations</a>
+      <a href="#" data-go="activity">Activity</a>
+      <a href="#" data-go="billing">Billing</a>
+      <a href="#" data-go="landing" class="btn-plain" style="margin-left:8px;">Log out</a>
+    </nav>
+  </div>
+  <div class="header-hair"></div>
+</header>
+
+<main class="wrap">
+
+  <!-- 01 LANDING -->
+  <section class="screen active" id="landing" data-marketing-index="1">
+    <div class="eyebrow">AI ORCHESTRATION FOR FOOD &amp; BEVERAGE</div>
+    <h1 class="hero serif">Tell us what's <span class="tint-rose">bleeding margin.</span><br />Get a working <span class="tint-gold">demo on the spot.</span></h1>
+    <form class="input-row" id="landingForm">
+      <input type="text" id="landingProblem" placeholder="e.g. our stock count never matches the system" />
+      <button class="btn" type="submit">Submit</button>
+    </form>
+    <p class="sub">No proposal. No scoping call. Just show us what's broken in your kitchen, bar, or delivery ops.</p>
+    <div class="segment-row">
+      <span class="segment-chip">Casual dining</span>
+      <span class="segment-chip">Fast casual</span>
+      <span class="segment-chip">QSR</span>
+      <span class="segment-chip">Bars &amp; nightlife</span>
+      <span class="segment-chip">Cloud kitchens</span>
+      <span class="segment-chip">Hotels &amp; banquets</span>
+      <span class="segment-chip">Multi-outlet chains</span>
+    </div>
+    <div class="footer-bar"><span>Built fast, for restaurants, bars &amp; hotels</span><span class="page-count"></span></div>
+  </section>
+
+  <!-- 02 HOW IT WORKS -->
+  <section class="screen" id="how-it-works" data-marketing-index="2">
+    <div class="eyebrow">HOW IT WORKS</div>
+    <h1 class="hero serif">From <span class="tint-blue">problem</span><br />to production. <span class="tint-gold">Fast.</span></h1>
+    <div class="steps">
+      <div class="step"><div class="num">01</div><div class="rule"></div><h3>Problem in</h3><p>Tell us what's broken.<br />No specs. No decks.</p></div>
+      <div class="step"><div class="num">02</div><div class="rule"></div><h3><span class="tint-gold">Instant</span> demo</h3><p>We diagnose and show you<br />a working demo right there.</p></div>
+      <div class="step"><div class="num">03</div><div class="rule"></div><h3>30-day build</h3><p>You give feedback, then pay the deposit.<br />We ship within 30 days of that.</p></div>
+    </div>
+    <div class="footer-bar"><span>Built fast, for restaurants, bars &amp; hotels</span><span class="page-count"></span></div>
+  </section>
+
+  <!-- 03 COMMON USE CASES (replaces the generic Proof section for this vertical —
+       no F&B case study yet; a browsable, clickable problem map is more useful
+       here. Click any one-liner to drop it straight into the intake wizard. -->
+  <section class="screen" id="proof" data-marketing-index="3">
+    <div class="eyebrow">COMMON USE CASES</div>
+    <h1 class="hero serif" style="font-size:clamp(34px,4.6vw,64px);">Every F&amp;B problem has an <span class="tint-blue">owner.</span></h1>
+    <p class="sub" style="max-width:640px;">Nine business functions, mapped to the failure modes that actually show up on a restaurant P&amp;L. Tap one to start — it drops straight into the intake below, ready to expand on.</p>
+    <div class="usecase-grid">
+      {useCases.map((fn) => (
+        <div class="usecase-card">
+          <div class="usecase-fn">{fn.fn}</div>
+          <div class="usecase-list">
+            {fn.items.map((item) => (
+              <button type="button" class="usecase-btn" data-usecase-id={`${VERTICAL}:${item.id}`} data-fn={fn.fn} data-label={item.label} data-problem={item.problem}>{item.label}</button>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+    <div class="footer-bar"><span>Built fast, for restaurants, bars &amp; hotels</span><span class="page-count"></span></div>
+  </section>
+
+  <!-- 04 PRICING -->
+  <section class="screen" id="pricing" data-marketing-index="4">
+    <div class="eyebrow">PRICING</div>
+    <div class="pricing-block">
+      <h1 class="hero serif" style="font-size:clamp(36px,5vw,72px);">Build once.<br />Run on a <span class="tint-gold">retainer.</span></h1>
+      <div style="display:flex; gap:64px; margin-top:48px; flex-wrap:wrap;">
+        <div>
+          <div class="eyebrow" style="margin-bottom:14px;">ONE-TIME BUILD</div>
+          <div class="serif" style="font-size:clamp(28px,3.2vw,44px);">{CURRENCY}{PRICING.buildLow} – {CURRENCY}{PRICING.buildHigh}</div>
+          <p class="sub" style="max-width:340px;">Depending on complexity.</p>
+        </div>
+        <div>
+          <div class="eyebrow" style="margin-bottom:14px;">MONTHLY RETAINER</div>
+          <div class="serif" style="font-size:clamp(28px,3.2vw,44px);"><span class="tint-gold">{CURRENCY}{PRICING.retainerMin}</span> minimum</div>
+          <p class="sub" style="max-width:340px;">Scales with project spec and requirements.</p>
+        </div>
+      </div>
+      <p class="sub" style="margin-top:36px;">Variable / custom pricing available outside this range. No proposals. No scoping calls.</p>
+      <div style="margin-top:40px;"><button class="btn" data-go="intake">Start →</button></div>
+    </div>
+    <div class="footer-bar"><span>Built fast, for restaurants, bars &amp; hotels</span><span class="page-count"></span></div>
+  </section>
+
+  <!-- 05 INTAKE — one question at a time, centered, keyboard-driven -->
+  <section class="screen wizard-screen" id="intake" data-marketing-index="5">
+    <div class="wizard" id="intakeWizard">
+      <div class="wizard-progress" id="wizardProgress" aria-hidden="true"></div>
+      <form id="intakeForm" novalidate>
+        <input type="hidden" name="usecaseId" value="" />
+        <input type="hidden" name="usecaseVertical" value={VERTICAL} />
+        <input type="hidden" name="usecaseLabel" value="" />
+        <input type="hidden" name="usecaseBusinessFunction" value="" />
+        <div class="wizard-step" data-field="problem" data-required="true" data-minlength="30">
+          <p class="eyebrow">START</p>
+          <h1 class="serif wizard-q">What's the problem?</h1>
+          <p class="wizard-sub">More than one? List them all — we'll solve for each.</p>
+          <textarea
+            name="problem"
+            class="wizard-input"
+            rows="3"
+            placeholder="Tell us what isn't working, what takes too long, or what you wish existed…"
+          ></textarea>
+          <div class="wizard-actions">
+            <button type="button" class="btn wizard-next">Next →</button>
+            <span class="wizard-hint">shift + enter for a new line, enter to continue</span>
+          </div>
+        </div>
+
+        <div class="wizard-step" data-field="company" hidden>
+          <h1 class="serif wizard-q">Who's asking?</h1>
+          <input type="text" name="company" class="wizard-input" placeholder="Company name" />
+          <div class="wizard-actions">
+            <button type="button" class="btn wizard-next">Next →</button>
+            <button type="button" class="btn-plain wizard-skip">Skip</button>
+          </div>
+        </div>
+
+        <div class="wizard-step" data-field="industry" hidden>
+          <h1 class="serif wizard-q">What kind of place are you running?</h1>
+          <p class="wizard-sub">Helps us pick a framework with a real track record for outlets like yours.</p>
+          <div class="chip-row" id="industryChips">
+            <button type="button" class="chip" data-value="F&B — Casual dining">Casual dining</button>
+            <button type="button" class="chip" data-value="F&B — Fast casual">Fast casual</button>
+            <button type="button" class="chip" data-value="F&B — QSR">QSR</button>
+            <button type="button" class="chip" data-value="F&B — Bar / nightlife">Bar / nightlife</button>
+            <button type="button" class="chip" data-value="F&B — Cloud kitchen">Cloud kitchen</button>
+            <button type="button" class="chip" data-value="F&B — Hotel">Hotel F&amp;B</button>
+            <button type="button" class="chip" data-value="F&B — Multi-outlet / franchise">Multi-outlet / franchise</button>
+          </div>
+          <input type="text" name="industry" class="wizard-input wizard-input--secondary" placeholder="Other — name your format" />
+          <div class="wizard-actions">
+            <button type="button" class="btn wizard-next">Next →</button>
+            <button type="button" class="btn-plain wizard-skip">Skip</button>
+          </div>
+        </div>
+
+        <div class="wizard-step" data-field="website" hidden>
+          <h1 class="serif wizard-q">Got a website?</h1>
+          <p class="wizard-sub">Helps the demo match your brand instead of ours.</p>
+          <input type="text" name="website" class="wizard-input" placeholder="company.com" />
+          <div class="wizard-actions">
+            <button type="button" class="btn wizard-next">Next →</button>
+            <button type="button" class="btn-plain wizard-skip">Skip</button>
+          </div>
+        </div>
+
+        <div class="wizard-step" data-field="tools" hidden>
+          <h1 class="serif wizard-q">What do you run on today?</h1>
+          <p class="wizard-sub">Pick what applies — whatever the eventual build needs to connect to.</p>
+          <div class="chip-row" id="toolsChips">
+            <button type="button" class="chip" data-value="POS (Petpooja/Posist/Toast)">POS</button>
+            <button type="button" class="chip" data-value="Delivery aggregators (Zomato/Swiggy/UberEats)">Delivery aggregators</button>
+            <button type="button" class="chip" data-value="Inventory / ERP (Restroworks/Zoho)">Inventory / ERP</button>
+            <button type="button" class="chip" data-value="Accounting (Tally/Zoho Books)">Accounting</button>
+            <button type="button" class="chip" data-value="Reservation system">Reservation system</button>
+            <button type="button" class="chip" data-value="Loyalty / CRM">Loyalty / CRM</button>
+            <button type="button" class="chip" data-value="WhatsApp">WhatsApp</button>
+            <button type="button" class="chip" data-value="Spreadsheets">Spreadsheets</button>
+          </div>
+          <input type="text" name="tools" class="wizard-input wizard-input--secondary" placeholder="Other — name the specific tool(s)" />
+          <div class="wizard-actions">
+            <button type="button" class="btn wizard-next">Next →</button>
+            <button type="button" class="btn-plain wizard-skip">Skip</button>
+          </div>
+        </div>
+
+        <div class="wizard-step" data-field="preferredFramework" hidden>
+          <h1 class="serif wizard-q">Want a specific framework applied?</h1>
+          <p class="wizard-sub">Optional — name it and we'll use it. Otherwise we'll pick the best fit for your problem.</p>
+          <input type="text" name="preferredFramework" class="wizard-input" placeholder="e.g. Lean Six Sigma, OKRs, Jobs to Be Done…" />
+          <div class="wizard-actions">
+            <button type="button" class="btn wizard-next">Next →</button>
+            <button type="button" class="btn-plain wizard-skip">Skip</button>
+          </div>
+        </div>
+
+        <div class="wizard-step" data-field="email" data-required="true" hidden>
+          <h1 class="serif wizard-q">Where should the demo go?</h1>
+          <input type="email" name="email" class="wizard-input" placeholder="you@company.com" />
+          <div class="wizard-actions">
+            <button type="submit" class="btn" id="intakeSubmitBtn">Submit →</button>
+          </div>
+        </div>
+      </form>
+      <p class="wizard-error" id="intakeError" hidden></p>
+    </div>
+  </section>
+
+  <!-- 05a BUILDING — shown while the synchronous Claude classify+build call runs (~60-90s) -->
+  <section class="screen wizard-screen build-screen" id="building">
+    <div class="build-layout">
+      <div class="build-left">
+        <div class="eyebrow">BUILDING</div>
+        <h1 class="serif wizard-q" style="margin-bottom:8px;">Working the problem through the orchestrator.</h1>
+        <p class="wizard-sub" id="buildCountdown">Usually takes about a minute.</p>
+        <div class="build-progress"><div class="build-progress-fill" id="buildProgressFill"></div></div>
+      </div>
+      <div class="build-right">
+        <div class="build-log" id="buildLog"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05b CONFIRMATION — real intake landed, no fake login/dashboard after this -->
+  <section class="screen" id="confirmation">
+    <div class="eyebrow">RECEIVED</div>
+    <h1 class="hero serif" style="max-width:760px;">Got it. <span class="tint-gold">Check your email.</span></h1>
+    <p class="sub" style="max-width:560px;">We've emailed you the link to your demo — one round of feedback, then a 30-day build once the deposit's in.</p>
+    <div style="margin-top:40px;"><a href="#" data-go="landing" class="btn-plain">← Back to start</a></div>
+    <div class="footer-bar"><span>Built fast, for restaurants, bars &amp; hotels</span><span class="page-count"></span></div>
+  </section>
+
+  <!-- 06 LOGIN (UI-only — no real auth, see script comments) -->
+  <section class="screen" id="login" style="justify-content:center;">
+    <div class="login-box">
+      <h2 class="serif">Welcome back.</h2>
+      <form id="loginForm">
+        <div class="field"><label>Email</label><input type="email" placeholder="you@company.com" required /></div>
+        <button type="submit" class="btn" style="width:100%;">Send magic link →</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- 07 DASHBOARD (UI-only — static demo data, no backend) -->
+  <section class="screen" id="dashboard">
+    <div class="eyebrow">PROJECT</div>
+    <h1 class="hero serif" style="font-size:clamp(32px,4.4vw,52px);">Lead Intelligence Orchestrator</h1>
+    <div class="tracker">
+      <div class="node"><div class="dot-row"><div class="dot done"></div><div class="line done"></div></div><div class="label done">01 Problem received</div></div>
+      <div class="node"><div class="dot-row"><div class="dot now"></div><div class="line"></div></div><div class="label now">02 Demo ready</div></div>
+      <div class="node"><div class="dot-row"><div class="dot"></div><div class="line"></div></div><div class="label">03 Building</div></div>
+      <div class="node"><div class="dot-row"><div class="dot"></div></div><div class="label">04 Live</div></div>
+    </div>
+    <div><button class="btn" data-go="orchestrator">View demo →</button></div>
+    <p class="sub" style="margin-top:24px; max-width:620px;">One round of feedback before we build. Approving the demo is the scope document — there's no separate proposal.</p>
+    <div class="activity-box">
+      <div class="h">LAST ACTIVITY</div>
+      <div class="line">Connected to CRM</div>
+      <div class="line">Demo generated</div>
+      <div class="line">Awaiting your feedback</div>
+    </div>
+  </section>
+
+  <!-- 08 ORCHESTRATOR (UI-only — scripted log, no real Claude API call) -->
+  <section class="screen" id="orchestrator">
+    <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:12px;">
+      <div class="eyebrow" style="margin-bottom:0;">LEAD INTELLIGENCE ORCHESTRATOR</div>
+      <div class="app-status" id="orchStatus">BUILDING</div>
+    </div>
+    <div class="orch-problem">
+      <div class="eyebrow" style="margin-bottom:10px;">ORIGINAL PROBLEM</div>
+      <div class="q serif">"We have 90 days of CRM data but our sales team has no clear view of which leads need attention."</div>
+    </div>
+    <div class="orch-log">
+      <div class="h">ORCHESTRATOR ACTIVITY <span class="sim-tag">(simulated)</span></div>
+      <div id="logContainer"></div>
+    </div>
+    <div class="orch-input-row">
+      <input type="text" id="orchInput" placeholder="Ask the orchestrator anything…" />
+      <button class="btn" id="orchRunBtn">Run →</button>
+    </div>
+    <p class="sub" style="margin-top:20px; max-width:620px;">One round of feedback before we build — approve this demo and the 30-day build starts against it.</p>
+  </section>
+
+  <!-- 09 INTEGRATIONS (UI-only — no real OAuth, connect state is client-side only) -->
+  <section class="screen" id="integrations">
+    <div class="eyebrow">CONNECT THE TOOLS</div>
+    <h1 class="hero serif" style="font-size:clamp(32px,4.4vw,52px);">Connect the tools.</h1>
+    <div class="int-list">
+      <div class="int-row">
+        <div class="int-left">
+          <span class="int-logo" aria-hidden="true" set:html={CRM_LOGO} />
+          <div><div class="name">CRM</div><div class="desc">Your customer and pipeline data.</div></div>
+        </div>
+        <button class="btn connect-btn">Connect</button>
+      </div>
+      <div class="int-row">
+        <div class="int-left">
+          <span class="int-logo" aria-hidden="true" set:html={SHEETS_LOGO} />
+          <div><div class="name">Google Sheets</div><div class="desc">Read and write operational data.</div></div>
+        </div>
+        <button class="btn connect-btn">Connect</button>
+      </div>
+      <div class="int-row">
+        <div class="int-left">
+          <span class="int-logo" aria-hidden="true" set:html={SLACK_LOGO} />
+          <div><div class="name">Slack</div><div class="desc">Bring workflows into the team's workspace.</div></div>
+        </div>
+        <button class="btn connect-btn">Connect</button>
+      </div>
+      <div class="int-row">
+        <div class="int-left">
+          <span class="int-logo" aria-hidden="true" set:html={EMAIL_LOGO} />
+          <div><div class="name">Email</div><div class="desc">Send updates and trigger workflows.</div></div>
+        </div>
+        <button class="btn connect-btn">Connect</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 ACTIVITY (UI-only — static log lines, no real job execution layer) -->
+  <section class="screen" id="activity">
+    <div class="eyebrow">AGENT ACTIVITY <span class="sim-tag">(simulated)</span></div>
+    <div class="activity-box" style="max-width:760px;">
+      <div class="line" style="color:var(--gold);"><span class="mono">09:42:16&nbsp;&nbsp;RUNNING&nbsp;&nbsp;&nbsp;&nbsp;Opportunity scoring</span></div>
+      <div class="line mono">09:42:14&nbsp;&nbsp;COMPLETE&nbsp;&nbsp;&nbsp;Priority summary drafted</div>
+      <div class="line mono">09:42:11&nbsp;&nbsp;COMPLETE&nbsp;&nbsp;&nbsp;Inactive opportunities identified</div>
+      <div class="line mono">09:42:07&nbsp;&nbsp;COMPLETE&nbsp;&nbsp;&nbsp;Lead records normalized</div>
+      <div class="line mono">09:42:04&nbsp;&nbsp;COMPLETE&nbsp;&nbsp;&nbsp;90 days of CRM data pulled</div>
+      <div class="line mono">09:42:01&nbsp;&nbsp;COMPLETE&nbsp;&nbsp;&nbsp;CRM connection established</div>
+    </div>
+  </section>
+
+  <!-- 11 BILLING (UI-only — static rows, no real billing system) -->
+  <section class="screen" id="billing">
+    <div class="eyebrow">BILLING</div>
+    <h1 class="hero serif" style="font-size:clamp(32px,4.4vw,52px);">F&amp;B DevShop</h1>
+    <div class="billing-summary">
+      <div class="item"><div class="l">MONTHLY</div><div class="v">{CURRENCY}{PRICING.retainerMin}</div></div>
+      <div class="item"><div class="l">NEXT BILLING</div><div class="v">04 Oct 2026</div></div>
+    </div>
+    <table>
+      <tr><th>Date</th><th>Amount</th><th>Status</th></tr>
+      <tr><td>04 Sep 2026</td><td>{CURRENCY}{PRICING.retainerMin}</td><td class="status">Paid</td></tr>
+      <tr><td>04 Aug 2026</td><td>{CURRENCY}{PRICING.retainerMin}</td><td class="status">Paid</td></tr>
+      <tr><td>04 Jul 2026</td><td>{CURRENCY}{PRICING.retainerMin}</td><td class="status">Paid</td></tr>
+    </table>
+  </section>
+
+</main>
+
+<style>
+  /* Scoped design system for /devshop only — intentionally distinct from the
+     rest of viratmohan.com, per the source prototype's dark palette. */
+  :root {
+    /* F&B vertical: same brand hues as /devshop, re-tuned for a lighter
+       grey ground instead of near-black — cosmetic only, see restaurants.astro
+       header note. Copy this block (and only this block, plus the content
+       sections below) when standing up the next industry vertical. */
+    --dev-bg: #e9e7e0;
+    --dev-text: #211f18;
+    --dev-muted1: #58544a;
+    --dev-muted2: #7c7767;
+    --dev-muted3: #9a9585;
+    --dev-gold: #8a6a1e;
+    --dev-blue: #3f6274;
+    --dev-green: #3f5c46;
+    --dev-rose: #7a4237;
+    --dev-hair: rgba(33, 30, 22, 0.16);
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { width: 100%; }
+  body {
+    background: var(--dev-bg);
+    color: var(--dev-text);
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    overflow-x: hidden;
+    position: relative;
+    margin: 0;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 800px 500px at 15% 0%, rgba(63, 98, 116, 0.07), transparent 60%),
+      radial-gradient(ellipse 800px 500px at 85% 100%, rgba(138, 106, 30, 0.07), transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; cursor: pointer; background: none; border: none; color: inherit; }
+
+  header { position: sticky; top: 0; z-index: 50; background: var(--dev-bg); }
+  .header-inner { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 22px 64px; }
+  .logo {
+    text-align: center;
+    font-family: 'Instrument Serif', Georgia, serif; font-style: italic;
+    font-size: 40px; letter-spacing: 0.01em; color: var(--dev-gold); font-weight: 400; line-height: 1;
+  }
+  .logo-vertical {
+    display: block; font-family: 'JetBrains Mono', monospace; font-style: normal;
+    font-size: 11px; letter-spacing: 0.28em; color: var(--dev-rose); margin-bottom: 6px;
+  }
+  .logo-sub {
+    display: block; font-family: 'Inter', sans-serif; font-style: italic;
+    font-size: 10.5px; letter-spacing: 0.03em; color: var(--dev-muted2); margin-top: 4px;
+  }
+  nav { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 28px 40px; }
+  nav a, nav button.navlink {
+    font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--dev-muted1); transition: color 0.2s;
+  }
+  nav a:hover, nav button.navlink:hover { color: var(--dev-text); }
+  nav a.active, nav button.navlink.active { color: var(--dev-gold); }
+  .start-link { display: flex; align-items: center; gap: 6px; color: var(--dev-gold) !important; }
+  .header-hair {
+    height: 1px;
+    background: linear-gradient(90deg, var(--dev-blue), var(--dev-muted1), var(--dev-gold), var(--dev-rose));
+    opacity: 0.55;
+  }
+
+  .wrap { max-width: 1360px; margin: 0 auto; padding: 0 64px; position: relative; z-index: 1; }
+  .screen { display: none; min-height: calc(100vh - 78px); flex-direction: column; padding-top: 64px; }
+  .screen.active { display: flex; }
+  .eyebrow { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dev-muted2); margin-bottom: 28px; }
+  .sim-tag { color: var(--dev-muted3); text-transform: none; letter-spacing: 0.02em; font-size: 10px; }
+  .serif { font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; }
+  .mono { font-family: 'JetBrains Mono', SFMono-Regular, Consolas, monospace; }
+  h1.hero { font-size: clamp(40px, 6.2vw, 100px); line-height: 0.98; letter-spacing: -0.01em; max-width: 920px; margin: 0; }
+  .tint-blue { color: var(--dev-blue); }
+  .tint-gold { color: var(--dev-gold); }
+  .tint-rose { color: var(--dev-rose); }
+  p.sub { font-size: 17px; color: var(--dev-muted1); max-width: 520px; margin-top: 20px; line-height: 1.6; }
+
+  .footer-bar {
+    margin-top: auto; padding: 28px 0 28px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-top: 1px solid var(--dev-hair);
+    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dev-muted3);
+  }
+
+  .btn {
+    font-size: 14px; letter-spacing: 0.03em; padding: 16px 28px;
+    border: 1px solid var(--dev-gold); color: var(--dev-gold); border-radius: 2px;
+    transition: background 0.2s; white-space: nowrap;
+  }
+  .btn:hover { background: rgba(138, 106, 30, 0.09); }
+  .btn-plain { color: var(--dev-muted1); font-size: 14px; }
+  .btn-plain:hover { color: var(--dev-text); }
+  input[type='text'], input[type='email'], textarea {
+    font-family: inherit; font-size: 16px; color: var(--dev-text);
+    background: transparent; border: 1px solid rgba(33, 30, 22, 0.28);
+    padding: 16px 20px; border-radius: 2px; width: 100%;
+  }
+  input::placeholder, textarea::placeholder { color: var(--dev-muted2); }
+  input:focus, textarea:focus { outline: none; border-color: var(--dev-gold); }
+  textarea { resize: vertical; min-height: 140px; font-size: 17px; line-height: 1.6; }
+
+  .input-row { display: flex; gap: 16px; max-width: 820px; margin-top: 44px; }
+  .input-row input { flex: 1; }
+
+  .steps { display: flex; gap: 56px; margin-top: 70px; flex-wrap: wrap; }
+  .step { flex: 1; min-width: 220px; }
+  .step .rule { height: 1px; margin: 10px 0 22px; }
+  .step .num { font-size: 13px; color: var(--dev-muted2); }
+  .step h3 { font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: 34px; margin: 0 0 14px; }
+  .step p { font-size: 15px; color: var(--dev-muted1); line-height: 1.6; margin: 0; }
+  .step:nth-child(1) .rule { background: var(--dev-gold); }
+  .step:nth-child(2) .rule { background: var(--dev-muted1); }
+  .step:nth-child(3) .rule { background: var(--dev-rose); }
+
+  .segment-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 32px; }
+  .segment-chip {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.03em;
+    color: var(--dev-muted1); border: 1px solid var(--dev-hair); border-radius: 999px; padding: 6px 14px;
+  }
+
+  .usecase-grid {
+    margin-top: 44px; max-width: 1180px; display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;
+  }
+  .usecase-card { border: 1px solid var(--dev-hair); border-radius: 6px; padding: 20px 22px; }
+  .usecase-fn { font-size: 14.5px; font-weight: 600; margin-bottom: 14px; }
+  .usecase-list { display: flex; flex-direction: column; gap: 8px; }
+  .usecase-btn {
+    text-align: left; font-family: 'Inter', sans-serif; font-size: 13.5px; line-height: 1.4;
+    color: var(--dev-muted1); border: 1px solid var(--dev-hair); border-radius: 4px;
+    padding: 10px 13px; transition: border-color 0.2s, color 0.2s, background 0.2s;
+  }
+  .usecase-btn:hover { color: var(--dev-text); border-color: var(--dev-gold); background: rgba(138, 106, 30, 0.06); }
+
+  .pricing-block { margin-top: auto; margin-bottom: auto; }
+
+  .field label { display: block; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dev-muted2); margin-bottom: 10px; }
+
+  /* ---- intake wizard ---- */
+  .wizard-screen { justify-content: center; align-items: center; text-align: center; padding-top: 0; }
+  .wizard { width: 100%; max-width: 640px; margin: 0 auto; position: relative; }
+  .wizard-progress {
+    position: absolute; top: -40px; left: 50%; transform: translateX(-50%);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: var(--dev-muted3);
+  }
+  .wizard-step { display: flex; flex-direction: column; align-items: center; }
+  .wizard-step[hidden] { display: none; }
+  .wizard-step .eyebrow { margin-bottom: 14px; }
+  .wizard-q { font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: clamp(30px, 4.6vw, 52px); line-height: 1.1; margin: 0 0 12px; }
+  .wizard-sub { font-size: 15px; color: var(--dev-muted1); margin: 0 0 28px; max-width: 480px; }
+  .wizard-step .wizard-q:only-of-type { margin-bottom: 28px; }
+  .wizard-input {
+    width: 100%; text-align: center; font-family: 'Instrument Serif', Georgia, serif; font-size: 26px;
+    background: transparent; border: none; border-bottom: 1px solid var(--dev-hair); color: var(--dev-text);
+    padding: 10px 4px 16px; resize: none;
+  }
+  textarea.wizard-input { font-size: 22px; line-height: 1.5; }
+  .wizard-input::placeholder { font-family: 'Inter', sans-serif; font-size: 15px; color: var(--dev-muted3); }
+  .wizard-input:focus { outline: none; border-color: var(--dev-gold); }
+  .wizard-input--error { border-color: var(--dev-rose); }
+  .wizard-input--secondary { margin-top: 20px; font-family: 'Inter', sans-serif; font-size: 15px; }
+  .wizard-actions { display: flex; align-items: center; gap: 20px; margin-top: 32px; }
+  .wizard-hint { font-size: 12px; color: var(--dev-muted3); letter-spacing: 0.02em; }
+  .wizard-error { margin-top: 24px; color: var(--dev-rose); font-size: 14px; }
+
+  .build-progress { width: 100%; max-width: 320px; height: 3px; background: var(--dev-hair); margin: 32px 0 0; overflow: hidden; }
+  .build-progress-fill { height: 100%; width: 0%; background: var(--dev-gold); transition: width 1s linear; }
+
+  .build-screen { text-align: left; align-items: flex-start; }
+  .build-layout { display: flex; gap: 56px; width: 100%; max-width: 1000px; margin: 0 auto; align-items: flex-start; }
+  .build-left { flex: 0 0 320px; }
+  .build-right { flex: 1; min-width: 0; max-height: 62vh; overflow-y: auto; padding-right: 8px; }
+  .build-log-line {
+    font-size: 15px; color: var(--dev-muted1); line-height: 1.6; margin: 0 0 18px;
+    padding-left: 16px; border-left: 2px solid var(--dev-hair);
+    opacity: 0; transform: translateY(4px); transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  .build-log-line.show { opacity: 1; transform: translateY(0); }
+  .build-log-line:last-child { color: var(--dev-text); border-left-color: var(--dev-gold); }
+
+  @media (max-width: 760px) {
+    .build-layout { flex-direction: column; gap: 28px; }
+    .build-left { flex: none; width: 100%; }
+    .build-right { max-height: 40vh; }
+  }
+
+  .chip-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 4px; }
+  .chip {
+    font-family: 'Inter', sans-serif; font-size: 13px; padding: 9px 16px; border: 1px solid var(--dev-hair);
+    color: var(--dev-muted1); border-radius: 999px; transition: border-color 0.2s, color 0.2s, background 0.2s;
+  }
+  .chip:hover { border-color: var(--dev-muted1); color: var(--dev-text); }
+  .chip.selected { border-color: var(--dev-gold); color: var(--dev-gold); background: rgba(138, 106, 30, 0.09); }
+
+  .login-box { max-width: 420px; margin: auto; width: 100%; }
+  .login-box h2 { font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: 38px; margin-bottom: 34px; }
+  .login-box .field { margin-bottom: 24px; }
+
+  .app-status { font-size: 11px; letter-spacing: 0.16em; color: var(--dev-gold); }
+
+  .tracker { display: flex; align-items: center; gap: 0; margin: 56px 0 48px; max-width: 900px; }
+  .tracker .node { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+  .tracker .dot-row { display: flex; align-items: center; }
+  .tracker .dot { width: 8px; height: 8px; background: var(--dev-muted3); flex-shrink: 0; }
+  .tracker .dot.done { background: var(--dev-muted1); }
+  .tracker .dot.now { background: var(--dev-gold); }
+  .tracker .line { height: 1px; background: var(--dev-hair); flex: 1; }
+  .tracker .line.done { background: var(--dev-muted1); }
+  .tracker .label { font-size: 12px; letter-spacing: 0.06em; color: var(--dev-muted3); }
+  .tracker .label.done { color: var(--dev-muted1); }
+  .tracker .label.now { color: var(--dev-gold); }
+
+  .activity-box { margin-top: 40px; max-width: 640px; }
+  .activity-box .h { font-size: 11px; letter-spacing: 0.16em; color: var(--dev-muted2); margin-bottom: 16px; }
+  .activity-box .line { font-family: 'JetBrains Mono', SFMono-Regular, Consolas, monospace; font-size: 13px; color: var(--dev-muted1); padding: 8px 0; border-bottom: 1px solid var(--dev-hair); }
+
+  .orch-problem { max-width: 760px; margin-top: 36px; }
+  .orch-problem .q { font-family: 'Instrument Serif', Georgia, serif; font-size: 26px; line-height: 1.4; color: var(--dev-text); }
+  .orch-log { margin-top: 44px; max-width: 760px; flex: 1; }
+  .orch-log .h { font-size: 11px; letter-spacing: 0.16em; color: var(--dev-muted2); margin-bottom: 18px; }
+  .log-line {
+    font-family: 'JetBrains Mono', SFMono-Regular, Consolas, monospace; font-size: 13px; color: var(--dev-muted3);
+    padding: 9px 0; border-bottom: 1px solid var(--dev-hair);
+    display: flex; gap: 16px; opacity: 0; transform: translateY(4px);
+    transition: opacity 0.35s, transform 0.35s, color 0.3s;
+  }
+  .log-line.show { opacity: 1; transform: translateY(0); }
+  .log-line.running { color: var(--dev-gold); }
+  .log-line .ts { color: var(--dev-muted3); flex-shrink: 0; }
+  .orch-input-row { display: flex; gap: 14px; max-width: 760px; margin-top: 36px; padding-top: 24px; border-top: 1px solid var(--dev-hair); }
+  .orch-input-row input { flex: 1; }
+
+  .int-list { margin-top: 48px; max-width: 820px; }
+  .int-row { display: flex; justify-content: space-between; align-items: center; padding: 26px 0; border-bottom: 1px solid var(--dev-hair); gap: 20px; flex-wrap: wrap; }
+  .int-left { display: flex; align-items: center; gap: 20px; }
+  .int-logo { width: 40px; height: 40px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .int-logo :global(svg) { width: 100%; height: 100%; }
+  .int-row .name { font-size: 16px; margin-bottom: 6px; }
+  .int-row .desc { font-size: 14px; color: var(--dev-muted2); }
+  .int-row .btn.connected { color: var(--dev-green); border-color: var(--dev-green); }
+
+  .billing-summary { display: flex; gap: 64px; margin: 44px 0 48px; flex-wrap: wrap; }
+  .billing-summary .item .l { font-size: 11px; letter-spacing: 0.16em; color: var(--dev-muted2); margin-bottom: 8px; }
+  .billing-summary .item .v { font-family: 'Instrument Serif', Georgia, serif; font-size: 30px; }
+  table { width: 100%; border-collapse: collapse; max-width: 640px; }
+  table th { text-align: left; font-size: 11px; letter-spacing: 0.14em; color: var(--dev-muted2); padding-bottom: 14px; border-bottom: 1px solid var(--dev-hair); font-weight: 400; }
+  table td { padding: 16px 0; border-bottom: 1px solid var(--dev-hair); font-size: 14px; color: var(--dev-muted1); }
+  table td.status { color: var(--dev-green); }
+
+  @media (max-width: 860px) {
+    .header-inner { padding: 20px 24px; }
+    .wrap { padding: 0 24px; }
+    nav { gap: 20px; }
+    nav a, nav button.navlink { font-size: 11px; letter-spacing: 0.08em; }
+    .steps { flex-direction: column; gap: 36px; margin-top: 44px; }
+    .usecase-grid { grid-template-columns: 1fr; }
+    .input-row { flex-direction: column; }
+    .tracker { flex-direction: column; align-items: flex-start; gap: 18px; }
+    .tracker .line { display: none; }
+    .billing-summary { gap: 32px; }
+    h1.hero { font-size: clamp(34px, 9vw, 60px); }
+  }
+
+  @media (max-width: 560px) {
+    .header-inner { padding: 16px 20px; gap: 10px; }
+    .logo { font-size: 26px; }
+    .logo-sub { font-size: 9px; }
+    nav { gap: 10px 20px; }
+    .wrap { padding: 0 20px; }
+    .screen { padding-top: 40px; }
+    h1.hero { font-size: clamp(30px, 10vw, 48px); }
+    p.sub { font-size: 15px; }
+    .wizard-hint { display: none; }
+    .wizard-actions { justify-content: center; }
+    textarea.wizard-input { font-size: 17px; }
+  }
+</style>
+
+<script is:inline>
+  // ============================================================
+  // Everything in this file is a FRONT-END SIMULATION.
+  //
+  // Real (backend, out of scope for this pass):
+  //  - Login / magic link: no auth provider is wired up. "Send magic link"
+  //    just navigates to the dashboard screen.
+  //  - Orchestrator log: hard-coded strings played on a timer. No Claude API
+  //    call, no real problem-to-lever mapping, no real agent execution.
+  //  - Integrations: "Connect" just flips a button's own local state.
+  //    No OAuth flow, no token storage, no live connection to any tool.
+  //  - Activity / Billing: static markup, not read from any job queue or
+  //    payment system.
+  //  - Intake form: does not submit anywhere yet — no endpoint to receive
+  //    the problem statement, company, tools-used, or email fields.
+  //
+  // Making this real needs: an API layer that calls Claude to classify the
+  // problem against the P&L lever taxonomy and draft a demo artefact, an
+  // OAuth flow per integration (CRM/Sheets/Slack/Email), a background job
+  // execution layer for the orchestrator, real auth, and a database.
+  // ============================================================
+
+  var marketingScreens = ['landing', 'how-it-works', 'proof', 'pricing', 'intake'];
+  var appScreens = ['login', 'dashboard', 'orchestrator', 'integrations', 'activity', 'billing'];
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(function (s) { s.classList.remove('active'); });
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.classList.add('active');
+
+    var isApp = appScreens.indexOf(id) !== -1;
+    document.getElementById('marketingNav').style.display = isApp ? 'none' : 'flex';
+    document.getElementById('appNav').style.display = isApp ? 'flex' : 'none';
+
+    document.querySelectorAll('#marketingNav a').forEach(function (a) {
+      a.classList.toggle('active', a.dataset.go === id);
+    });
+    document.querySelectorAll('#appNav a').forEach(function (a) {
+      a.classList.toggle('active', a.dataset.go === id);
+    });
+
+    var idx = el.dataset.marketingIndex;
+    document.querySelectorAll('.page-count').forEach(function (pc) {
+      pc.textContent = idx ? (idx.padStart(2, '0') + ' / ' + String(marketingScreens.length).padStart(2, '0')) : '';
+    });
+
+    window.scrollTo(0, 0);
+
+    if (id === 'orchestrator') setTimeout(startOrchestrator, 50);
+    if (id === 'intake') resetWizard();
+  }
+
+  /* ---- intake wizard: one question at a time ---- */
+  var wizardSteps = Array.prototype.slice.call(document.querySelectorAll('#intakeForm .wizard-step'));
+  var wizardIndex = 0;
+  // Set just before showScreen('intake') when the landing page's own
+  // "What's the problem?" field already has an answer — skips re-asking
+  // the identical question as wizard step 1.
+  var wizardStartIndex = 0;
+
+  function updateWizardProgress() {
+    var el = document.getElementById('wizardProgress');
+    if (el) el.textContent = (wizardIndex + 1) + ' / ' + wizardSteps.length;
+  }
+
+  function showWizardStep(i) {
+    wizardSteps.forEach(function (s, idx) { s.hidden = idx !== i; });
+    updateWizardProgress();
+    var input = wizardSteps[i].querySelector('.wizard-input');
+    if (input) setTimeout(function () { input.focus(); }, 60);
+  }
+
+  function resetWizard() {
+    wizardIndex = wizardStartIndex;
+    wizardStartIndex = 0;
+    showWizardStep(wizardIndex);
+    var errorEl = document.getElementById('intakeError');
+    if (errorEl) errorEl.hidden = true;
+  }
+
+  function combineToolsChips(step) {
+    var selected = Array.prototype.slice.call(step.querySelectorAll('.chip.selected')).map(function (c) {
+      return c.dataset.value;
+    });
+    var otherInput = step.querySelector('input[name="tools"]');
+    var otherVal = otherInput.value.trim();
+    // Strip any previously-combined chip text so re-visiting the step doesn't duplicate it.
+    var combined = selected.concat(otherVal && selected.indexOf(otherVal) === -1 ? [otherVal] : []).join(', ');
+    otherInput.value = combined;
+  }
+
+  function wizardAdvance() {
+    var step = wizardSteps[wizardIndex];
+    if (step.dataset.field === 'tools') combineToolsChips(step);
+    if (step.dataset.field === 'industry') {
+      var industryInput = step.querySelector('input[name="industry"]');
+      var industrySelected = step.querySelector('#industryChips .chip.selected');
+      if (industrySelected && !industryInput.value.trim()) industryInput.value = industrySelected.dataset.value;
+    }
+
+    var required = step.dataset.required === 'true';
+    var input = step.querySelector('.wizard-input:not(.wizard-input--secondary)') || step.querySelector('.wizard-input');
+    var minlength = parseInt(step.dataset.minlength || '0', 10);
+    var errorEl = document.getElementById('intakeError');
+    if (required && input && !input.value.trim()) {
+      input.classList.add('wizard-input--error');
+      input.focus();
+      return;
+    }
+    if (minlength && input && input.value.trim().length < minlength) {
+      input.classList.add('wizard-input--error');
+      input.focus();
+      if (errorEl) {
+        errorEl.textContent = 'Give us a bit more to work with — a full sentence on what\'s actually going wrong, not just a topic.';
+        errorEl.hidden = false;
+      }
+      return;
+    }
+    if (input) input.classList.remove('wizard-input--error');
+    if (errorEl) errorEl.hidden = true;
+
+    if (wizardIndex < wizardSteps.length - 1) {
+      wizardIndex++;
+      showWizardStep(wizardIndex);
+    }
+  }
+
+  document.querySelectorAll('.chip').forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      if (chip.closest('#industryChips')) {
+        var siblings = chip.parentElement.querySelectorAll('.chip');
+        siblings.forEach(function (c) { if (c !== chip) c.classList.remove('selected'); });
+        chip.classList.toggle('selected');
+        var input = chip.closest('.wizard-step').querySelector('input[name="industry"]');
+        input.value = chip.classList.contains('selected') ? chip.dataset.value : '';
+      } else {
+        chip.classList.toggle('selected');
+      }
+    });
+  });
+
+  document.querySelectorAll('.wizard-next, .wizard-skip').forEach(function (btn) {
+    btn.addEventListener('click', wizardAdvance);
+  });
+
+  document.querySelectorAll('.wizard-input').forEach(function (input) {
+    input.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter') return;
+      if (input.tagName === 'TEXTAREA' && e.shiftKey) return; // allow newlines for multi-problem lists
+      e.preventDefault();
+      var step = input.closest('.wizard-step');
+      if (step.dataset.field === 'email') {
+        document.getElementById('intakeForm').requestSubmit();
+      } else {
+        wizardAdvance();
+      }
+    });
+  });
+
+  document.querySelectorAll('[data-go]').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      e.preventDefault();
+      showScreen(el.dataset.go);
+    });
+  });
+
+  var landingForm = document.getElementById('landingForm');
+  if (landingForm) {
+    landingForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var landingInput = document.getElementById('landingProblem');
+      var landingValue = landingInput ? landingInput.value.trim() : '';
+      var problemField = document.querySelector('#intakeForm textarea[name="problem"]');
+      if (problemField) problemField.value = landingValue;
+      // Only skip re-asking "What's the problem?" if the landing answer already
+      // clears the same minimum-detail bar the wizard step itself enforces —
+      // a one-word or single-topic answer ("Customer communication") isn't
+      // enough context to diagnose a real root cause, so send it into the
+      // wizard step instead, pre-filled, to be expanded on.
+      wizardStartIndex = landingValue.length >= 30 ? 1 : 0;
+      showScreen('intake');
+    });
+  }
+
+  /* ---- common use cases: click drops the canned problem straight into the
+     wizard, tagged with a stable usecaseId so the intake API can (a) count
+     the click and (b) reuse a cached result instead of a fresh generation
+     after the first real run. ---- */
+  document.querySelectorAll('.usecase-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var problemField = document.querySelector('#intakeForm textarea[name="problem"]');
+      if (problemField) problemField.value = btn.dataset.problem;
+      document.querySelector('#intakeForm input[name="usecaseId"]').value = btn.dataset.usecaseId || '';
+      document.querySelector('#intakeForm input[name="usecaseLabel"]').value = btn.dataset.label || '';
+      document.querySelector('#intakeForm input[name="usecaseBusinessFunction"]').value = btn.dataset.fn || '';
+      // Every canned problem statement already clears the 30-char detail bar.
+      wizardStartIndex = 1;
+      showScreen('intake');
+    });
+  });
+
+  // If someone edits the problem text after clicking a use case, treat it as
+  // a new, free-text problem rather than silently attaching an unrelated
+  // cached result to whatever they typed.
+  var problemTextarea = document.querySelector('#intakeForm textarea[name="problem"]');
+  if (problemTextarea) {
+    problemTextarea.addEventListener('input', function () {
+      var usecaseIdField = document.querySelector('#intakeForm input[name="usecaseId"]');
+      if (usecaseIdField && usecaseIdField.value && problemTextarea.value !== problemTextarea.dataset.lastSetValue) {
+        usecaseIdField.value = '';
+      }
+    });
+    document.querySelectorAll('.usecase-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () { problemTextarea.dataset.lastSetValue = btn.dataset.problem; });
+    });
+  }
+
+  /* ---- building screen: countdown + contextual rotating messages ---- */
+  var BENCHMARK_LIBRARY = [
+    { keywords: ['checkout', 'cart', 'abandon', 'ecommerce', 'e-commerce', 'shopify', 'order'],
+      lines: [
+        'Cart abandonment averages 65–70% across e-commerce — most of it is friction, not disinterest.',
+        'Recovering even 10–15% of abandoned checkouts is typical once the right nudge fires at the right moment.',
+        'Faster checkout flows routinely lift conversion 5–10 points in direct comparisons.',
+      ] },
+    { keywords: ['support', 'ticket', 'inbox', 'helpdesk', 'email', 'customer service', 'query', 'queries'],
+      lines: [
+        'Support teams typically see 40–60% of inbound volume fall into a handful of repeat categories.',
+        'Auto-classifying and drafting replies for repeat questions commonly cuts response time from hours to minutes.',
+        'A well-scoped triage layer usually absorbs 30–50% of ticket volume without touching complex cases.',
+      ] },
+    { keywords: ['proposal', 'quote', 'lead', 'sales', 'pipeline', 'crm', 'pricing'],
+      lines: [
+        'Speed-to-quote is one of the strongest predictors of close rate in B2B sales — hours beat days, consistently.',
+        'Teams that automate first-draft proposals typically cut turnaround from hours to minutes, with a human finishing the send.',
+        'Lead response within 5 minutes converts several times better than response after an hour, across most benchmarks.',
+      ] },
+    { keywords: ['budget', 'spreadsheet', 'sheet', 'finance', 'cost', 'vendor', 'invoice', 'expense'],
+      lines: [
+        'Budget overruns caught at the moment of commitment are far cheaper to fix than ones caught at reconciliation.',
+        'Manual spreadsheet reconciliation is one of the most common sources of silent margin leakage in operating businesses.',
+        'Real-time budget-vs-committed tracking typically catches overspend 2-4 weeks earlier than periodic review.',
+      ] },
+    { keywords: ['inventory', 'stock', 'warehouse', 'fulfillment', 'fulfilment', 'supply'],
+      lines: [
+        'Manual stock counts are one of the highest-friction, highest-error tasks in retail operations.',
+        'Automated stock reconciliation typically cuts count time by 70-90% versus manual spreadsheet tracking.',
+      ] },
+    { keywords: ['schedule', 'booking', 'appointment', 'calendar', 'staffing'],
+      lines: [
+        'Automated scheduling typically removes 60-80% of the back-and-forth in manual booking coordination.',
+        'No-show rates commonly drop 20-30% with automated confirmation and reminder flows.',
+      ] },
+  ];
+
+  // The actual 8-step methodology, narrated in order — this is what's
+  // genuinely happening server-side right now, not filler copy. Framework
+  // fit scores themselves stay internal (see the fit-scoring writeup), but
+  // the fact that scoring is happening, and roughly how, builds real trust.
+  var PROCESS_STEPS = [
+    'Reading your problem and identifying the actual root cause — not just the symptom you described.',
+    'Shortlisting a handful of proven frameworks that could apply here.',
+    'Scoring each candidate on problem fit, evidence strength, and how it\'s worked for businesses in your industry before.',
+    'Selecting the strongest-fit framework and setting the runners-up aside, with reasons.',
+    'Mapping the fix to the exact line on your P&L it should move — revenue or cost, specifically.',
+    'Designing the actual mechanism: what triggers it, what it uses, what happens step by step.',
+    'Double-checking the diagnosis, the framework choice, and the numbers before any of it goes further.',
+    'Building a real interactive demo of it — not a mockup — in your brand colors.',
+  ];
+
+  var GENERIC_LINES = [
+    'F&B DevShop builds a working demo, not a mockup — every number you\'ll see is either a real assumption or a question we\'ll ask you.',
+    'The orchestrator is mapping your problem against a fixed set of P&L levers — revenue or cost, not a vague "AI opportunity."',
+    'One round of feedback, then a 30-day build — the demo you\'re about to see is the actual scope document.',
+  ];
+
+  function buildMessageQueue(problemText, toolsText) {
+    var haystack = (problemText + ' ' + toolsText).toLowerCase();
+    var matched = [];
+    BENCHMARK_LIBRARY.forEach(function (entry) {
+      var hit = entry.keywords.some(function (k) { return haystack.indexOf(k) !== -1; });
+      if (hit) matched = matched.concat(entry.lines);
+    });
+    // The real methodology narrative plays first, in order; industry-matched
+    // benchmark lines and generic lines fill the rest of the wait. Dedupe so
+    // the same line never appears twice in one run.
+    var combined = PROCESS_STEPS.concat(matched).concat(GENERIC_LINES);
+    var seen = {};
+    return combined.filter(function (line) {
+      if (seen[line]) return false;
+      seen[line] = true;
+      return true;
+    });
+  }
+
+  var buildTimers = [];
+  function startBuildingUi(problemText, toolsText) {
+    var countdownEl = document.getElementById('buildCountdown');
+    var logEl = document.getElementById('buildLog');
+    var fillEl = document.getElementById('buildProgressFill');
+    var queue = buildMessageQueue(problemText, toolsText);
+    var qIndex = 0;
+    var ESTIMATE_SECONDS = 75;
+    var elapsed = 0;
+
+    function tick() {
+      elapsed++;
+      var remaining = ESTIMATE_SECONDS - elapsed;
+      if (remaining > 0) {
+        countdownEl.textContent = 'About ' + remaining + 's left…';
+      } else {
+        countdownEl.textContent = 'Almost there — the good ones take a little longer.';
+      }
+      var pct = Math.min(100, Math.round((elapsed / ESTIMATE_SECONDS) * 92)); // never hit 100 until done
+      fillEl.style.width = pct + '%';
+    }
+    tick();
+    buildTimers.push(setInterval(tick, 1000));
+
+    // Builds a running log, oldest first, newest highlighted — each new
+    // line adds to the story instead of replacing the last one. Previous
+    // lines lose their highlight as a new one arrives, and it never
+    // repeats: once every unique line has appeared, it just stops adding.
+    var messageTimer = null;
+    function addNextMessage() {
+      if (qIndex >= queue.length) {
+        clearInterval(messageTimer);
+        return;
+      }
+      var line = document.createElement('p');
+      line.className = 'build-log-line';
+      line.textContent = queue[qIndex];
+      qIndex++;
+      logEl.appendChild(line);
+      requestAnimationFrame(function () { line.classList.add('show'); });
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+    addNextMessage();
+    messageTimer = setInterval(addNextMessage, 4500);
+    buildTimers.push(messageTimer);
+  }
+
+  function stopBuildingUi(success) {
+    buildTimers.forEach(function (t) { clearInterval(t); });
+    buildTimers = [];
+    var fillEl = document.getElementById('buildProgressFill');
+    if (fillEl) fillEl.style.width = success ? '100%' : fillEl.style.width;
+    var logEl = document.getElementById('buildLog');
+    if (logEl) logEl.innerHTML = '';
+  }
+
+  var intakeSubmitting = false; // guards against a double-click/double-fire firing two full generations
+  document.getElementById('intakeForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (intakeSubmitting) return;
+    intakeSubmitting = true;
+    var form = e.target;
+    var errorEl = document.getElementById('intakeError');
+    errorEl.hidden = true;
+
+    var payload = {
+      problem: form.problem.value.trim(),
+      company: form.company.value.trim(),
+      industry: form.industry.value.trim(),
+      website: form.website.value.trim(),
+      tools: form.tools.value.trim(),
+      preferredFramework: form.preferredFramework.value.trim(),
+      email: form.email.value.trim(),
+      usecaseId: form.usecaseId.value.trim(),
+      usecaseVertical: form.usecaseVertical.value.trim(),
+      usecaseLabel: form.usecaseLabel.value.trim(),
+      usecaseBusinessFunction: form.usecaseBusinessFunction.value.trim(),
+    };
+
+    showScreen('building');
+    startBuildingUi(payload.problem, payload.tools);
+
+    fetch('/devshop/api/intake', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+      .then(function (res) {
+        if (!res.ok) return res.json().then(function (b) { throw new Error(b.error || 'Submission failed'); });
+        return res.json();
+      })
+      .then(function (data) {
+        if (data && data.status === 'failed') {
+          throw new Error('Something went wrong while building your demo — please try again.');
+        }
+        stopBuildingUi(true);
+        form.reset();
+        document.querySelectorAll('.chip.selected').forEach(function (c) { c.classList.remove('selected'); });
+        if (data && data.demoUrl) {
+          window.location.href = data.demoUrl;
+        } else {
+          showScreen('confirmation');
+        }
+      })
+      .catch(function (err) {
+        intakeSubmitting = false;
+        stopBuildingUi(false);
+        showScreen('intake');
+        errorEl.textContent = err.message || 'Something went wrong — try again.';
+        errorEl.hidden = false;
+      });
+  });
+
+  document.getElementById('loginForm').addEventListener('submit', function (e) {
+    e.preventDefault(); // UI-only: no real auth
+    showScreen('dashboard');
+  });
+
+  /* ---- orchestrator log simulation (scripted, not a real agent run) ---- */
+  var roundOne = [
+    'Connected to CRM',
+    'Pulling last 90 days of leads',
+    'Normalizing lead records',
+    'Identifying inactive opportunities',
+    'Drafting priority summary',
+  ];
+
+  function timestamp(offsetSec) {
+    var d = new Date(Date.now() + offsetSec * 1000);
+    return d.toTimeString().slice(0, 8);
+  }
+
+  function runLog(lines, container, onDone) {
+    container.innerHTML = '';
+    var i = 0;
+    function next() {
+      var prevRunning = container.querySelector('.log-line.running');
+      if (prevRunning) prevRunning.classList.remove('running');
+
+      if (i >= lines.length) {
+        if (onDone) onDone();
+        return;
+      }
+      var row = document.createElement('div');
+      row.className = 'log-line running';
+      row.innerHTML = '<span class="ts">' + timestamp(i) + '</span><span>' + lines[i] + '</span>';
+      container.appendChild(row);
+      requestAnimationFrame(function () { row.classList.add('show'); });
+      i++;
+      setTimeout(next, 850);
+    }
+    next();
+  }
+
+  var orchStarted = false;
+  function startOrchestrator() {
+    if (orchStarted) return;
+    orchStarted = true;
+    var container = document.getElementById('logContainer');
+    var statusEl = document.getElementById('orchStatus');
+    runLog(roundOne, container, function () { statusEl.textContent = 'DEMO READY'; });
+  }
+
+  document.getElementById('orchRunBtn').addEventListener('click', function () {
+    var input = document.getElementById('orchInput');
+    var q = input.value.trim();
+    if (!q) return;
+    var container = document.getElementById('logContainer');
+    var statusEl = document.getElementById('orchStatus');
+    statusEl.textContent = 'RUNNING';
+
+    var qRow = document.createElement('div');
+    qRow.className = 'log-line show';
+    qRow.style.color = 'var(--dev-muted1)';
+    qRow.innerHTML = '<span class="ts">' + timestamp(0) + '</span><span>› ' + q.replace(/</g, '&lt;') + '</span>';
+    container.appendChild(qRow);
+
+    var roundTwo = [
+      'Reviewing follow-up request',
+      'Re-scanning relevant records',
+      'Cross-referencing with prior summary',
+      'Updating output',
+    ];
+    setTimeout(function () {
+      var wrap = document.createElement('div');
+      container.appendChild(wrap);
+      runLog(roundTwo, wrap, function () { statusEl.textContent = 'DEMO READY'; });
+    }, 400);
+
+    input.value = '';
+  });
+
+  document.getElementById('orchInput').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { document.getElementById('orchRunBtn').click(); }
+  });
+
+  /* ---- integrations connect toggle (local UI state only) ---- */
+  document.querySelectorAll('.connect-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      btn.textContent = 'Connected';
+      btn.classList.add('connected');
+      btn.disabled = true;
+    });
+  });
+
+  showScreen('landing');
+</script>
+
+</body>
+</html>
