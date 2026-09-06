@@ -1,0 +1,365 @@
+---
+// /devshop/demo/illustrative — a fully hand-built, static sample solution
+// document. Exists because the real generation pipeline
+// (classifyAndBuild -> Claude) is temporarily paused for lack of API
+// credit — see GENERATION_PAUSED in devshop.astro. Shown after the
+// #illustrative-notice disclosure screen, never linked to directly as if
+// it were a real client's document. Delete once live generation is back
+// and the disclosure screen is removed.
+import { site } from '../../../data/site';
+
+const whatsappNumber = '919999277240'; // WhatsApp only — click-to-chat link below.
+const whatsappHref = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent("Hi — I just ran the DevShop sample decision analysis and want to talk about my own problem.")}`;
+
+const title = 'Sample solution document — Fast Tech Dev Shop';
+const description =
+  'A full, real example of what a DevShop solution document looks like: a business decision problem, a proven decision-making framework applied, and an interactive tool that reaches a recommendation.';
+const canonical = new URL('/devshop/demo/illustrative', site.domain).href;
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={canonical} />
+  <meta name="robots" content="noindex, follow" />
+  <link rel="icon" href="/devshop-favicon.svg" type="image/svg+xml" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="DevShop" />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:image" content={new URL('/devshop-og.png', site.domain).href} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={new URL('/devshop-og.png', site.domain).href} />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500&family=Archivo:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet"
+  />
+</head>
+<body>
+  <div class="illus-banner">
+    <span>Sample document — for illustration only. Not a live analysis.</span>
+  </div>
+
+  <main class="brief">
+    <div class="doc-header">
+      <div class="eyebrow">SOLUTION BRIEF</div>
+      <h1>What we heard, and what we're proposing.</h1>
+      <div class="doc-meta">
+        <div class="doc-meta-row"><span class="doc-meta-label">Prepared for</span>A business weighing an AI investment</div>
+        <div class="doc-meta-row"><span class="doc-meta-label">Date</span>Illustrative example</div>
+        <div class="doc-meta-row"><span class="doc-meta-label">Status</span>Sample only — shown while live generation is paused</div>
+      </div>
+    </div>
+
+    <blockquote class="submitted-problem">
+      <span class="submitted-label">What you told us</span>
+      "Our leadership team has been going back and forth for six months on whether we should invest in building an AI-powered capability — something like an AI orchestration studio — for our business. We keep circling the same debate without ever actually deciding, and competitors are already moving."
+    </blockquote>
+
+    <section class="block">
+      <div class="section-head"><span class="section-num">§01</span><h2>The problem</h2></div>
+      <div class="card">
+        <p class="card-title">This isn't a capability problem — it's a decision-making problem. Without a structured way to weigh the investment, the same debate resets every time it comes up, and the cost isn't the investment itself — it's the six months already spent not deciding.</p>
+        <p class="card-function"><span class="card-tag">Business function</span>Leadership / Strategy</p>
+      </div>
+    </section>
+
+    <section class="block framework-block">
+      <div class="section-head"><span class="section-num">§02</span><h2>Grounded in a proven approach</h2></div>
+      <div class="card">
+        <p class="card-title"><a href="https://en.wikipedia.org/wiki/Kepner%E2%80%93Tregoe" target="_blank" rel="noopener">Kepner-Tregoe Decision Analysis</a></p>
+        <p class="card-function">Charles Kepner &amp; Benjamin Tregoe, 1965</p>
+        <p class="plain-copy">This is the standard method for exactly this kind of stuck decision — it forces every option to be scored against the same weighted criteria instead of relitigating the same two or three arguments every time the topic comes up. It turns a circular debate into a single number everyone can look at.</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head"><span class="section-num">§03</span><h2>How we'd apply it</h2></div>
+      <div class="card">
+        <p class="card-title">A weighted decision scorecard for the AI investment</p>
+        <p class="plain-copy">Six criteria that actually matter for this kind of call — growth potential, cost savings, competitive timing, implementation risk, capital required, and team readiness — each weighted by how much it should actually matter to your business, not scored equally by default. Press Run below to see it work end to end.</p>
+      </div>
+    </section>
+
+    <div class="walkthrough-intro">
+      <p class="walkthrough-eyebrow">See it work</p>
+      <h2 class="walkthrough-heading">The interactive walkthrough</h2>
+      <p class="artefact-caption">Press <strong>Run the analysis</strong> to watch the scorecard resolve to a recommendation.</p>
+    </div>
+
+    <div class="browser-chrome">
+      <div class="browser-chrome-bar">
+        <span class="chrome-dot chrome-dot--red"></span>
+        <span class="chrome-dot chrome-dot--yellow"></span>
+        <span class="chrome-dot chrome-dot--green"></span>
+        <div class="chrome-address">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M6 10V8a6 6 0 1112 0v2M5 10h14a1 1 0 011 1v9a1 1 0 01-1 1H5a1 1 0 01-1-1v-9a1 1 0 011-1z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="chrome-address-text">yourcompany.com/ai-investment-decision</span>
+        </div>
+      </div>
+      <div class="artefact-embed">
+        <div class="kt-tool" id="ktTool">
+          <div class="kt-criteria" id="ktCriteria">
+            <div class="kt-row" data-weight="25" data-score="8">
+              <span class="kt-name">Revenue &amp; growth potential</span>
+              <span class="kt-weight">weight 25</span>
+              <div class="kt-bar"><div class="kt-bar-fill"></div></div>
+              <span class="kt-points">—</span>
+            </div>
+            <div class="kt-row" data-weight="20" data-score="7">
+              <span class="kt-name">Cost savings / efficiency gain</span>
+              <span class="kt-weight">weight 20</span>
+              <div class="kt-bar"><div class="kt-bar-fill"></div></div>
+              <span class="kt-points">—</span>
+            </div>
+            <div class="kt-row" data-weight="20" data-score="9">
+              <span class="kt-name">Competitive timing</span>
+              <span class="kt-weight">weight 20</span>
+              <div class="kt-bar"><div class="kt-bar-fill"></div></div>
+              <span class="kt-points">—</span>
+            </div>
+            <div class="kt-row" data-weight="15" data-score="6">
+              <span class="kt-name">Implementation risk (inverted)</span>
+              <span class="kt-weight">weight 15</span>
+              <div class="kt-bar"><div class="kt-bar-fill"></div></div>
+              <span class="kt-points">—</span>
+            </div>
+            <div class="kt-row" data-weight="10" data-score="7">
+              <span class="kt-name">Capital required vs. budget</span>
+              <span class="kt-weight">weight 10</span>
+              <div class="kt-bar"><div class="kt-bar-fill"></div></div>
+              <span class="kt-points">—</span>
+            </div>
+            <div class="kt-row" data-weight="10" data-score="8">
+              <span class="kt-name">Team readiness</span>
+              <span class="kt-weight">weight 10</span>
+              <div class="kt-bar"><div class="kt-bar-fill"></div></div>
+              <span class="kt-points">—</span>
+            </div>
+          </div>
+
+          <button class="kt-run" id="ktRun">Run the analysis &rarr;</button>
+
+          <div class="kt-result" id="ktResult" hidden>
+            <div class="kt-score-row">
+              <span class="kt-score-label">Weighted score</span>
+              <span class="kt-score-value" id="ktScoreValue">0<span class="kt-score-max">/100</span></span>
+            </div>
+            <div class="kt-verdict" id="ktVerdict"></div>
+            <a href="/devshop" class="kt-start">Start now &rarr;</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="appendix-section">
+      <h3>The reasoning behind the scores</h3>
+      <ul class="bullets flat">
+        <li><span class="bullet-label">Threshold</span>A weighted score above 65/100 clears the bar to invest — below that, the honest answer would be "not yet," and this same scorecard would say so.</li>
+        <li><span class="bullet-label">Why now scores highest</span>Competitive timing carries real weight here because the cost of a stalled decision compounds — every quarter of indecision is a quarter competitors spend building the same capability.</li>
+        <li><span class="bullet-label">What would change the answer</span>If implementation risk or team readiness scored materially lower, the recommendation would shift — this isn't a rigged demo, it's a real scorecard that can point either way.</li>
+      </ul>
+    </div>
+
+    <div class="cta-block">
+      <p class="cta-line">This is exactly what your own solution document would look like — built around your actual problem, not this sample one.</p>
+      <a href="/devshop" class="cta-btn cta-btn--primary">Start now &rarr;</a>
+
+      <div class="talk-now">
+        <p class="talk-now-line">Or, if you'd rather just talk it through first —</p>
+        <div class="talk-now-links">
+          <a href={whatsappHref} target="_blank" rel="noopener" class="talk-now-link talk-now-link--whatsapp">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.46 1.32 4.96L2.05 22l5.25-1.38c1.44.79 3.06 1.2 4.71 1.2h.004c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.85 9.85 0 0012.04 2zm5.79 14.11c-.24.68-1.4 1.3-1.93 1.38-.49.08-1.11.11-1.79-.11-.41-.13-.94-.3-1.62-.59-2.85-1.23-4.71-4.1-4.85-4.29-.14-.19-1.16-1.54-1.16-2.94 0-1.4.73-2.08.99-2.37.26-.28.57-.35.76-.35.19 0 .38 0 .54.01.18.01.41-.07.64.49.24.57.81 1.98.88 2.13.07.14.12.31.02.5-.09.19-.14.31-.28.47-.14.16-.29.36-.42.48-.14.14-.28.28-.12.55.16.28.71 1.17 1.53 1.9 1.05.94 1.94 1.23 2.21 1.37.28.14.44.12.6-.07.16-.19.68-.79.87-1.06.19-.28.37-.23.63-.14.26.09 1.66.78 1.94.93.28.14.47.21.54.33.07.12.07.68-.17 1.36z"/></svg>
+            WhatsApp {whatsappNumber.replace(/^91/, '+91 ')}
+          </a>
+          <a href={`mailto:${site.email}`} class="talk-now-link">{site.email}</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bar"><span class="footer-bar-text">Built fast, <em>for real businesses</em><sup>TM</sup></span></div>
+  </main>
+</body>
+</html>
+
+<style>
+  :root {
+    color-scheme: light;
+    --ink: #1c1f22; --ink-soft: #4a4f54; --muted: #767c82; --hair: rgba(28,31,34,0.13);
+    --paper: #f4f2ec; --gold: #7d6435; --gold-soft: #eee7d6; --blue: #4d7a94;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--paper); width: 100%; overflow-x: hidden; }
+  body { font-family: 'Archivo', system-ui, sans-serif; color: #2a2f3a; }
+  a { color: inherit; }
+
+  .illus-banner {
+    background: #2a2f3a; color: #f4f2ec; text-align: center; padding: 12px 20px;
+    font-size: 13px; letter-spacing: 0.02em; position: sticky; top: 0; z-index: 10;
+  }
+
+  .brief { max-width: 760px; margin: 0 auto; padding: 48px 40px 40px; }
+  .eyebrow { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); font-weight: 600; margin-bottom: 16px; }
+
+  .doc-header { padding-bottom: 28px; margin-bottom: 32px; border-bottom: 3px double var(--hair); }
+  h1 { font-family: 'Newsreader', Georgia, serif; font-weight: 600; font-size: clamp(28px, 4vw, 38px); line-height: 1.2; margin: 0 0 24px; max-width: 22ch; color: var(--ink); }
+  .doc-meta { display: flex; flex-wrap: wrap; gap: 24px 32px; }
+  .doc-meta-row { font-size: 13px; color: var(--ink-soft); }
+  .doc-meta-label { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 3px; }
+
+  .submitted-problem {
+    margin: 0 0 40px; padding: 16px 20px; border-left: 3px solid var(--gold);
+    background: var(--gold-soft); font-style: italic; font-size: 15px; line-height: 1.6; color: #4a453e;
+  }
+  .submitted-label {
+    display: block; font-style: normal; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 4px;
+  }
+
+  .section-head { display: flex; align-items: baseline; gap: 12px; margin: 0 0 16px; padding-bottom: 10px; border-bottom: 1px solid var(--hair); }
+  .section-num { font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500; color: var(--gold); letter-spacing: 0.02em; }
+  h2 { font-family: 'Newsreader', Georgia, serif; font-weight: 600; font-size: 19px; margin: 0; color: var(--ink); }
+  .block { margin-bottom: 36px; }
+  .card { padding: 0; }
+  .card-title { font-size: 16px; font-weight: 500; line-height: 1.5; margin: 0 0 10px; color: var(--ink); }
+  .card-function { font-size: 13px; color: var(--muted); margin: 0 0 10px; }
+  .card-tag { display: inline-block; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gold); border: 1px solid var(--gold); border-radius: 3px; padding: 2px 7px; margin-right: 8px; }
+  .plain-copy { font-size: 14.5px; line-height: 1.65; color: var(--ink-soft); margin: 0; }
+
+  .walkthrough-intro { max-width: 640px; margin: 48px auto 28px; text-align: center; }
+  .walkthrough-eyebrow { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); font-weight: 600; margin: 0 0 8px; }
+  .walkthrough-heading { font-family: 'Newsreader', Georgia, serif; font-weight: 600; font-size: clamp(24px, 3.4vw, 32px); color: var(--ink); margin: 0 0 10px; }
+  .artefact-caption { font-size: 14.5px; color: var(--ink-soft); margin: 0; }
+  .artefact-caption strong { color: var(--gold); }
+
+  .browser-chrome {
+    width: min(1180px, calc(100% - 0px)); margin: 0 auto 56px;
+    border-radius: 14px; overflow: hidden; background: #e8e6e0;
+    border: 2px solid var(--gold); box-shadow: 0 32px 72px -24px rgba(26,36,56,0.35), 0 0 0 6px var(--gold-soft);
+  }
+  .browser-chrome-bar { display: flex; align-items: center; gap: 10px; padding: 14px 18px; background: #ecebe6; border-bottom: 1px solid rgba(36,33,29,0.1); }
+  .chrome-dot { width: 13px; height: 13px; border-radius: 50%; display: inline-block; flex: none; }
+  .chrome-dot--red { background: #ec6a5e; }
+  .chrome-dot--yellow { background: #f4bf4f; }
+  .chrome-dot--green { background: #61c454; }
+  .chrome-address {
+    flex: 1; margin-left: 14px; display: flex; align-items: center; gap: 8px;
+    background: #fbfaf8; border: 1px solid rgba(36,33,29,0.1); border-radius: 7px;
+    padding: 7px 16px; font-size: 13.5px; color: #6b6459; max-width: 420px;
+  }
+  .chrome-address svg { color: #8a8378; flex: none; }
+  .chrome-address-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .artefact-embed { background: #fff; padding: 36px 32px; }
+
+  .kt-tool { max-width: 720px; margin: 0 auto; }
+  .kt-criteria { display: flex; flex-direction: column; gap: 16px; margin-bottom: 28px; }
+  .kt-row { display: grid; grid-template-columns: 1fr auto 140px 56px; align-items: center; gap: 14px; }
+  .kt-name { font-size: 14px; color: #1c1f22; font-weight: 500; }
+  .kt-weight { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #767c82; white-space: nowrap; }
+  .kt-bar { height: 8px; background: #eee7d6; border-radius: 4px; overflow: hidden; }
+  .kt-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #7d6435, #4d7a94); border-radius: 4px; transition: width 0.7s ease; }
+  .kt-points { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #4d7a94; text-align: right; }
+  .kt-run {
+    display: block; width: 100%; padding: 14px 24px; font-family: 'Archivo', sans-serif; font-size: 15px; font-weight: 600;
+    background: #7d6435; color: #fff; border: none; border-radius: 6px; cursor: pointer; transition: background 0.2s;
+  }
+  .kt-run:hover { background: #6b5529; }
+  .kt-run:disabled { opacity: 0.6; cursor: default; }
+  .kt-result { margin-top: 28px; padding-top: 24px; border-top: 1px solid #e5e0d3; text-align: center; }
+  .kt-score-row { display: flex; align-items: baseline; justify-content: center; gap: 10px; margin-bottom: 12px; }
+  .kt-score-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: #767c82; }
+  .kt-score-value { font-family: 'Newsreader', Georgia, serif; font-size: 40px; font-weight: 600; color: #1c1f22; }
+  .kt-score-max { font-size: 18px; color: #767c82; font-weight: 400; }
+  .kt-verdict { font-size: 18px; font-weight: 600; color: #2c6b47; margin-bottom: 20px; }
+  .kt-start {
+    display: inline-block; font-size: 14px; font-weight: 600; padding: 12px 26px;
+    background: #2c6b47; color: #fff; border-radius: 6px; text-decoration: none;
+  }
+
+  .appendix-section { margin: 40px 0; }
+  .appendix-section h3 { font-family: 'Newsreader', Georgia, serif; font-weight: 600; font-size: 16px; margin: 0 0 14px; color: var(--ink-soft); }
+  .bullets.flat { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+  .bullets.flat li { font-size: 14px; line-height: 1.6; color: var(--ink-soft); }
+  .bullet-label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gold); margin-bottom: 3px; }
+
+  .cta-block { text-align: center; padding: 48px 0 40px; border-top: 1px solid var(--hair); margin-top: 24px; }
+  .cta-line { font-family: 'Newsreader', Georgia, serif; font-size: 19px; color: var(--ink); max-width: 44ch; margin: 0 auto 24px; line-height: 1.4; }
+  .cta-btn { display: inline-block; font-size: 14px; font-weight: 600; padding: 14px 28px; border-radius: 6px; text-decoration: none; }
+  .cta-btn--primary { background: var(--gold); color: #fff; }
+
+  .talk-now { margin-top: 32px; padding-top: 28px; border-top: 1px solid var(--hair); }
+  .talk-now-line { font-size: 13.5px; color: var(--muted); margin: 0 0 14px; }
+  .talk-now-links { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+  .talk-now-link {
+    display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 500;
+    color: var(--ink-soft); text-decoration: none; padding: 9px 16px; border: 1px solid var(--hair); border-radius: 6px;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .talk-now-link:hover { border-color: var(--gold); color: var(--ink); }
+  .talk-now-link--whatsapp { color: #2c6b47; border-color: rgba(44,107,71,0.3); }
+  .talk-now-link--whatsapp:hover { border-color: #2c6b47; }
+
+  .footer-bar { padding: 24px 0; text-align: center; font-size: 13px; color: var(--muted); }
+  .footer-bar-text em { font-style: italic; color: var(--gold); }
+  .footer-bar-text sup { font-size: 10px; margin-left: 2px; }
+
+  @media (max-width: 640px) {
+    .brief { padding: 32px 20px 24px; }
+    .artefact-embed { padding: 24px 18px; }
+    .kt-row { grid-template-columns: 1fr; gap: 6px; }
+    .kt-points { text-align: left; }
+  }
+</style>
+
+<script is:inline>
+  document.getElementById('ktRun').addEventListener('click', function () {
+    var btn = this;
+    btn.disabled = true;
+    btn.textContent = 'Running…';
+    var rows = Array.prototype.slice.call(document.querySelectorAll('#ktCriteria .kt-row'));
+    var total = 0;
+    var maxTotal = 0;
+
+    rows.forEach(function (row, i) {
+      setTimeout(function () {
+        var weight = parseFloat(row.dataset.weight);
+        var score = parseFloat(row.dataset.score); // out of 10
+        var points = Math.round((weight * score) / 10);
+        total += points;
+        maxTotal += weight;
+        row.querySelector('.kt-bar-fill').style.width = (score * 10) + '%';
+        row.querySelector('.kt-points').textContent = points + ' pts';
+      }, i * 350);
+    });
+
+    setTimeout(function () {
+      var scoreEl = document.getElementById('ktScoreValue');
+      var verdictEl = document.getElementById('ktVerdict');
+      var resultEl = document.getElementById('ktResult');
+      scoreEl.innerHTML = total + '<span class="kt-score-max">/' + maxTotal + '</span>';
+      var pass = total >= 65;
+      verdictEl.textContent = pass
+        ? 'Recommendation: INVEST — clears the 65-point go-threshold.'
+        : 'Recommendation: NOT YET — below the 65-point go-threshold.';
+      verdictEl.style.color = pass ? '#2c6b47' : '#a34a3a';
+      resultEl.hidden = false;
+      btn.textContent = 'Run the analysis →';
+      btn.disabled = false;
+    }, rows.length * 350 + 300);
+  });
+</script>

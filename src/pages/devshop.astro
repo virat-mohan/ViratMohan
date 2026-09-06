@@ -382,6 +382,23 @@ const canonical = new URL('/devshop', site.domain).href;
     <div class="footer-bar"><span class="footer-bar-text">Built fast, <em>for real businesses</em><sup>TM</sup></span></div>
   </section>
 
+  <!-- 05b ILLUSTRATIVE NOTICE — shown instead of a live generation while
+       real demo-building is paused (see GENERATION_PAUSED in the script
+       below). Routes to a hand-built sample solution document instead of
+       calling the (currently out-of-credit) generation API. Remove this
+       screen and flip GENERATION_PAUSED back to false once billing is
+       sorted and live generation is verified working again. -->
+  <section class="screen" id="illustrative-notice">
+    <div class="eyebrow">HEADS UP</div>
+    <h1 class="hero serif" style="max-width:820px;">Right now, every solution document is for <span class="tint-gold">illustrative purposes only.</span></h1>
+    <p class="sub" style="max-width:600px;">We're between billing cycles on our AI provider, so live generation is paused for a moment. Here's a full, real example of exactly what you'd get — same framework scoring, same interactive walkthrough, same everything.</p>
+    <div style="margin-top:40px; display:flex; gap:20px; align-items:center; flex-wrap:wrap;">
+      <a href="/devshop/demo/illustrative" class="btn">See it now &rarr;</a>
+      <a href="#" data-go="landing" class="btn-plain">← Back to start</a>
+    </div>
+    <div class="footer-bar"><span class="footer-bar-text">Built fast, <em>for real businesses</em><sup>TM</sup></span></div>
+  </section>
+
   <!-- 06 LOGIN (UI-only — no real auth, see script comments) -->
   <section class="screen" id="login" style="justify-content:center;">
     <div class="login-box">
@@ -1115,14 +1132,26 @@ const canonical = new URL('/devshop', site.domain).href;
     if (logEl) logEl.innerHTML = '';
   }
 
+  // TEMPORARY: the Anthropic API key backing /devshop/api/intake is out of
+  // credit as of this writing, so a real submission would just wait ~60s
+  // and then fail. Flip this back to false (and delete the
+  // #illustrative-notice screen above) once billing is sorted and a live
+  // generation has been verified working again.
+  var GENERATION_PAUSED = true;
+
   var intakeSubmitting = false; // guards against a double-click/double-fire firing two full generations
   document.getElementById('intakeForm').addEventListener('submit', function (e) {
     e.preventDefault();
     if (intakeSubmitting) return;
-    intakeSubmitting = true;
     var form = e.target;
     var errorEl = document.getElementById('intakeError');
     errorEl.hidden = true;
+
+    if (GENERATION_PAUSED) {
+      showScreen('illustrative-notice');
+      return;
+    }
+    intakeSubmitting = true;
 
     var payload = {
       problem: form.problem.value.trim(),
