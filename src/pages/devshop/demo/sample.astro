@@ -1,0 +1,612 @@
+---
+// /devshop/demo/sample — a static, presentable stand-in for a real
+// /devshop/demo/[id] page. Not backed by a submission row (nothing here
+// hits Supabase or Anthropic) — every number and piece of copy below is
+// hand-authored to be realistic, in the exact structure and CSS the real
+// pipeline produces, so it can be shown to a prospect or teammate without
+// needing a live demo run first. The interactive artefact in the browser-
+// chrome frame is real, working HTML/JS (a Run button that actually
+// animates through a mechanism and changes numbers) — same technique the
+// real pipeline uses (srcdoc iframe), just hand-written instead of
+// generated. Feedback/"move forward" actions are visually present but
+// inert, with a note, since there is no real row for them to write to.
+
+const title = 'Your demo — Copper & Char';
+const preparedDate = new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
+
+const FIT_DIMENSIONS = [
+  ['problem_pattern_fit', 'Matches this problem', 'Does this approach generally fit the kind of problem you described?'],
+  ['root_cause_fit', 'Addresses the root cause', 'Does it address the specific root cause we found, not just the general topic?'],
+  ['business_function_fit', 'Fits the right team', 'Is it built for the part of the business actually feeling this pain?'],
+  ['evidence_sufficiency', 'Enough evidence to apply', 'Do we know enough yet to apply it with real confidence?'],
+  ['intervention_compatibility', 'Fits the planned fix', "Does it match the actual fix we're planning to build?"],
+  ['pnl_relevance', 'Likely to move the numbers', 'Would using it plausibly move the number we\'re targeting?'],
+  ['framework_specificity', 'Specific, not generic', 'Does it give concrete steps, or is it vague enough to fit anything?'],
+  ['contraindication_risk', 'No red flags here', 'Any known reason this approach could mislead or misfire here?'],
+  ['industry_relevance', 'Track record in your industry', 'Does it have a real track record in businesses like yours?'],
+] as const;
+
+const candidates = [
+  { name: 'Ideal Food Cost (Theoretical vs. Actual)', selected: true, scores: [5, 5, 4, 4, 5, 5, 5, 5, 4], total: 42 },
+  { name: 'ABC/XYZ Inventory Classification', selected: false, scores: [4, 3, 4, 4, 3, 3, 4, 4, 3], total: 32 },
+  { name: 'Six Sigma DMAIC', selected: false, scores: [3, 3, 3, 2, 3, 3, 2, 4, 2], total: 25 },
+];
+const FIT_MAX = FIT_DIMENSIONS.length * 5;
+
+const artefactHtml = `<!doctype html><html><head><meta charset="utf-8">
+<style>
+  :root{color-scheme:light}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,'Inter',system-ui,sans-serif;background:#fbfaf8;color:#211f18;}
+  .app{max-width:920px;margin:0 auto;padding:28px 32px 36px;}
+  .app-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;}
+  .app-title{font-family:'Newsreader',Georgia,serif;font-size:19px;font-weight:600;}
+  .app-sub{font-size:12px;color:#847d6c;margin-top:2px;}
+  .statusEl{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#847d6c;}
+  .statusEl.running{color:#9a7620;}
+  .statusEl.done{color:#3f6b4a;}
+  .run-btn{font-family:inherit;font-size:13.5px;font-weight:600;padding:11px 22px;border-radius:5px;border:1px solid #9a7620;background:#9a7620;color:#fff;cursor:pointer;}
+  .run-btn:hover{background:#7f5e18;}
+  .run-btn:disabled{opacity:0.5;cursor:default;}
+  .log{margin-top:22px;border:1px solid rgba(33,31,24,0.12);border-radius:6px;background:#fff;min-height:64px;}
+  .log-line{padding:10px 16px;border-top:1px solid rgba(33,31,24,0.08);font-size:13px;color:#4a4536;display:flex;gap:10px;opacity:0;transform:translateY(3px);transition:opacity .3s,transform .3s;}
+  .log-line:first-child{border-top:none;}
+  .log-line.show{opacity:1;transform:translateY(0);}
+  .log-line .tag{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#9a7620;flex:none;width:120px;}
+  .results{margin-top:22px;opacity:0;transition:opacity .4s;}
+  .results.show{opacity:1;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:0.04em;color:#847d6c;padding:0 12px 8px 0;border-bottom:1px solid rgba(33,31,24,0.12);}
+  td{padding:9px 12px 9px 0;border-bottom:1px solid rgba(33,31,24,0.08);}
+  td.num{font-family:'IBM Plex Mono',monospace;text-align:right;}
+  tr.flag td{color:#8a4527;font-weight:600;}
+  .summary{display:flex;gap:28px;margin-top:20px;padding-top:18px;border-top:2px solid #211f18;flex-wrap:wrap;}
+  .summary-item .label{font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:#847d6c;margin-bottom:4px;}
+  .summary-item .value{font-family:'Newsreader',Georgia,serif;font-size:26px;font-weight:600;}
+  .summary-item .value.gold{color:#9a7620;}
+</style></head>
+<body>
+  <div class="app">
+    <div class="app-head">
+      <div><div class="app-title">Wastage &amp; Shrinkage Diagnostic</div><div class="app-sub">Copper &amp; Char — theoretical vs. actual ingredient usage, last 30 days</div></div>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <span class="statusEl" id="statusEl">Ready</span>
+        <button class="run-btn" id="runBtn">Run ▸</button>
+      </div>
+    </div>
+    <div class="log" id="log"></div>
+    <div class="results" id="results">
+      <table>
+        <thead><tr><th>Ingredient</th><th class="num">Theoretical use</th><th class="num">Actual use</th><th class="num">Variance</th><th class="num">Est. monthly cost</th></tr></thead>
+        <tbody>
+          <tr class="flag"><td>Prawns (200g portion)</td><td class="num">61 kg</td><td class="num">82 kg</td><td class="num">+34%</td><td class="num">₹18,400</td></tr>
+          <tr class="flag"><td>Paneer</td><td class="num">44 kg</td><td class="num">57 kg</td><td class="num">+30%</td><td class="num">₹9,100</td></tr>
+          <tr><td>Chicken thigh</td><td class="num">96 kg</td><td class="num">104 kg</td><td class="num">+8%</td><td class="num">₹4,300</td></tr>
+          <tr><td>Basmati rice</td><td class="num">210 kg</td><td class="num">218 kg</td><td class="num">+4%</td><td class="num">₹1,900</td></tr>
+          <tr><td>Butter</td><td class="num">38 kg</td><td class="num">41 kg</td><td class="num">+8%</td><td class="num">₹2,600</td></tr>
+        </tbody>
+      </table>
+      <div class="summary">
+        <div class="summary-item"><div class="label">Before — untracked</div><div class="value">₹0 recovered</div></div>
+        <div class="summary-item"><div class="label">After — flagged this run</div><div class="value gold" id="totalValue">₹0</div></div>
+        <div class="summary-item"><div class="label">Top cause</div><div class="value" style="font-size:15px;font-weight:400;">Prawns &amp; paneer prep loss</div></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    var steps = [
+      ['POS', 'Pulling 30 days of dish-level sales from POS'],
+      ['RECIPE', 'Loading recipe-cost bill-of-materials per dish'],
+      ['CALC', 'Calculating theoretical ingredient usage from sales × recipe'],
+      ['PURCHASE', 'Pulling actual purchase + prep records for the same window'],
+      ['COMPARE', 'Comparing theoretical vs. actual, flagging variance over 15%'],
+    ];
+    var btn = document.getElementById('runBtn');
+    var statusEl = document.getElementById('statusEl');
+    var log = document.getElementById('log');
+    var results = document.getElementById('results');
+    var totalEl = document.getElementById('totalValue');
+    function animateCount(el, target) {
+      var start = 0, dur = 700, t0 = performance.now();
+      function tick(t) {
+        var p = Math.min(1, (t - t0) / dur);
+        el.textContent = '₹' + Math.round(start + (target - start) * p).toLocaleString('en-IN');
+        if (p < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+    btn.addEventListener('click', function () {
+      btn.disabled = true;
+      statusEl.textContent = 'Running…';
+      statusEl.className = 'statusEl running';
+      log.innerHTML = '';
+      results.classList.remove('show');
+      var i = 0;
+      function next() {
+        if (i >= steps.length) {
+          statusEl.textContent = 'Done';
+          statusEl.className = 'statusEl done';
+          results.classList.add('show');
+          animateCount(totalEl, 36300);
+          btn.disabled = false;
+          btn.textContent = 'Run again ▸';
+          return;
+        }
+        var row = document.createElement('div');
+        row.className = 'log-line';
+        row.innerHTML = '<span class="tag">' + steps[i][0] + '</span><span>' + steps[i][1] + '</span>';
+        log.appendChild(row);
+        requestAnimationFrame(function () { row.classList.add('show'); });
+        i++;
+        setTimeout(next, 550);
+      }
+      next();
+    });
+  </script>
+</body></html>`;
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500&family=Archivo:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet"
+  />
+</head>
+<body>
+
+  <div class="sample-banner">Sample demo — hand-authored for presentation, not tied to a live submission. The interactive walkthrough below is fully functional; feedback and "move forward" actions are shown but inert.</div>
+
+  <main class="brief">
+    <div class="doc-header">
+      <div class="eyebrow">SOLUTION BRIEF</div>
+      <h1>What we heard, and what we're proposing.</h1>
+      <div class="doc-meta">
+        <div class="doc-meta-row"><span class="doc-meta-label">Prepared for</span>Copper &amp; Char</div>
+        <div class="doc-meta-row"><span class="doc-meta-label">Date</span>{preparedDate}</div>
+        <div class="doc-meta-row"><span class="doc-meta-label">Status</span>Confidential — one revision round, then a 30-day build from deposit</div>
+      </div>
+    </div>
+
+    <blockquote class="submitted-problem">
+      <span class="submitted-label">What you told us</span>
+      Our wastage numbers are high every week and we can't tell how much is spoilage, over-production, or just bad prep — nobody's ever broken it down.
+    </blockquote>
+
+    <section class="block">
+      <div class="section-head"><span class="section-num">01</span><h2>The problem</h2></div>
+      <div class="card">
+        <p class="card-title">Wastage is tracked as one blended number with no ingredient-level breakdown</p>
+        <p class="card-function"><span class="card-tag">Business function</span>Inventory &amp; Supply Chain</p>
+      </div>
+    </section>
+
+    <section class="block framework-block">
+      <div class="section-head"><span class="section-num">02</span><h2>Grounded in a proven approach</h2></div>
+      <div class="card">
+        <p class="card-title">Ideal Food Cost (Theoretical vs. Actual)</p>
+        <p class="card-function">Foodservice cost-control methodology</p>
+        <p class="plain-copy">This compares what your recipes say each dish <em>should</em> use against what actually left the storeroom — the gap between the two, ingredient by ingredient, is where wastage, over-portioning, and prep loss actually live. It isolates the problem instead of leaving it as one blended "shrinkage" number.</p>
+      </div>
+    </section>
+
+    <section class="block eval-block">
+      <div class="section-head"><span class="section-num">03</span><h2>How we compared approaches</h2></div>
+      <p class="eval-intro">We don't just pick the first framework that sounds relevant — every candidate below was scored on the same 9 points before we chose. Higher is better on every column; the approach we went with isn't always the highest scorer on every single point, but it's the best overall fit.</p>
+      <div class="eval-table-wrap">
+        <table class="eval-table">
+          <thead>
+            <tr>
+              <th>Approach</th>
+              {FIT_DIMENSIONS.map(([, label, desc]) => <th title={desc}>{label}</th>)}
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {candidates.map((c) => (
+              <tr class={c.selected ? 'eval-row-selected' : ''}>
+                <td>{c.selected && <span class="eval-arrow" aria-hidden="true">→</span>}{c.name}</td>
+                {c.scores.map((s) => <td class="eval-score-cell">{s}</td>)}
+                <td class="eval-total-cell">{c.total}/{FIT_MAX}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p class="eval-recommendation">Our recommendation: <strong>Ideal Food Cost (Theoretical vs. Actual)</strong></p>
+      </div>
+      <h3 class="eval-legend-title">Understanding the scoring metrics</h3>
+      <ul class="eval-legend">
+        {FIT_DIMENSIONS.map(([, label, desc]) => <li><strong>{label}</strong> — {desc}</li>)}
+      </ul>
+    </section>
+
+    <section class="block">
+      <div class="section-head"><span class="section-num">04</span><h2>What we'd build</h2></div>
+      <div class="card">
+        <p class="card-title">Wastage &amp; Shrinkage Diagnostic Console</p>
+        <p class="plain-copy">A daily job pulls dish-level sales from your POS and matches it against each recipe's bill of materials to calculate what usage <em>should</em> have been — then compares that to actual purchase and prep records for the same window. Anything more than 15% over theoretical gets flagged by ingredient, ranked by cost impact, so you know exactly where to look first instead of just seeing one wastage percentage.</p>
+        <p class="agent-list">Powered by: POS data extraction, Recipe-cost lookup, Variance calculation, Exception flagging</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head"><span class="section-num">05</span><h2>Expected impact</h2></div>
+      <div class="impact-card">
+        <p class="plain-copy">Cost lever — food cost as a % of sales. Flagging and correcting over-usage on just the two worst-offending ingredients (prawns and paneer) is estimated to recover most of their combined variance cost each month.</p>
+        <table class="calc-table">
+          <tbody>
+            <tr><td class="calc-label">Current unflagged variance (5 tracked ingredients)</td><td class="calc-value">₹36,300/mo</td></tr>
+            <tr><td class="calc-label">Est. recoverable once flagged &amp; corrected (~70%)</td><td class="calc-value">₹25,400/mo</td></tr>
+            <tr class="calc-result-row"><td class="calc-label">Annualized recovery</td><td class="calc-value">≈ ₹3,04,800/yr</td></tr>
+          </tbody>
+        </table>
+        <p class="calc-note">Based on typical foodservice over-portioning rates, not your real purchase data yet — see the questions below to make this exact.</p>
+      </div>
+    </section>
+
+    <section class="block questions">
+      <div class="section-head"><span class="section-num">06</span><h2>To sharpen these numbers, we'd ask</h2></div>
+      <p class="questions-intro">(<em>Assumptions used industry benchmarks where we didn't have your real figures — answer any of these in your reply for the exact number.</em>)</p>
+      <ul class="bullets">
+        <li><span class="q-blocking">Please confirm</span>What's your average weekly food cost as a % of sales right now?</li>
+        <li>Do you currently do daily or weekly physical stock counts — or only monthly?</li>
+        <li>Roughly how many outlets does this apply to — just this one, or all of them?</li>
+      </ul>
+    </section>
+
+    <p class="feedback-note">Have a change or a correction? Use the feedback form below — we'll fold it into one revised version, and that's the scope we build to. The 30-day clock starts once your deposit is in, not before.</p>
+
+    <details class="appendix">
+      <summary>Appendix — the detailed reasoning behind this</summary>
+      <div class="appendix-section">
+        <h3>Diagnosis, in full</h3>
+        <div class="appendix-card">
+          <p class="appendix-title">Our wastage numbers are high every week and we can't tell how much is spoilage, over-production, or just bad prep.</p>
+          <ul class="bullets">
+            <li><span class="bullet-label">Root cause</span>No ingredient-level comparison exists between what recipes say should be used and what actually leaves the storeroom — wastage, over-portioning, and theft-adjacent shrinkage are all blended into one monthly number.</li>
+            <li><span class="bullet-label">Who's affected</span>Kitchen management (accountable for food cost %) and ownership (absorbing the margin loss without visibility into cause).</li>
+            <li><span class="bullet-label">Cost of inaction</span>Continued unflagged variance at the current rate — roughly ₹4.4L/year across just the five highest-variance ingredients.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="appendix-section">
+        <h3>Why this framework, specifically</h3>
+        <div class="appendix-card">
+          <p class="appendix-title">Ideal Food Cost (Theoretical vs. Actual)</p>
+          <ul class="bullets">
+            <li><span class="bullet-label">Why this fits</span>The problem as described is a diagnosis gap, not an ops-efficiency gap — the fastest path to a real answer is comparing what should have been used to what was, which this framework is built specifically to do.</li>
+          </ul>
+          <p class="also-considered">Also weighed: ABC/XYZ Inventory Classification, Six Sigma DMAIC</p>
+        </div>
+      </div>
+      <div class="appendix-section">
+        <h3>How the mechanism actually works</h3>
+        <div class="appendix-card">
+          <p class="appendix-title">Wastage &amp; Shrinkage Diagnostic Console</p>
+          <ol class="bullets numbered">
+            <li>Pull the last 30 days of dish-level sales from the POS.</li>
+            <li>Load each dish's recipe-cost bill of materials.</li>
+            <li>Calculate theoretical ingredient usage: sales × recipe quantity.</li>
+            <li>Pull actual purchase and prep-loss records for the same window.</li>
+            <li>Compare theoretical to actual per ingredient; flag anything over a 15% variance threshold.</li>
+            <li>Rank flagged ingredients by estimated monthly cost impact.</li>
+          </ol>
+        </div>
+      </div>
+      <div class="appendix-section">
+        <h3>The P&amp;L reasoning</h3>
+        <ul class="bullets flat">
+          <li><span class="bullet-label">Food cost %</span>Every point of unflagged variance shows up directly as food cost creeping above target — this mechanism exists to catch it before the monthly P&amp;L does.</li>
+        </ul>
+      </div>
+    </details>
+  </main>
+
+  <div class="walkthrough-intro">
+    <p class="walkthrough-eyebrow">See it work</p>
+    <h2 class="walkthrough-heading">The interactive walkthrough</h2>
+    <p class="artefact-caption">Press <strong>Run</strong> below to watch the mechanism work end to end, using your own tools.</p>
+  </div>
+
+  <div class="browser-chrome">
+    <div class="browser-chrome-bar">
+      <span class="chrome-dot chrome-dot--red"></span>
+      <span class="chrome-dot chrome-dot--yellow"></span>
+      <span class="chrome-dot chrome-dot--green"></span>
+      <div class="chrome-address">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M6 10V8a6 6 0 1112 0v2M5 10h14a1 1 0 011 1v9a1 1 0 01-1 1H5a1 1 0 01-1-1v-9a1 1 0 011-1z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="chrome-address-text">app.copperandchar.com</span>
+      </div>
+    </div>
+    <div class="artefact-embed">
+      <iframe id="artefactFrame" title="Interactive demo" srcdoc={artefactHtml}></iframe>
+    </div>
+  </div>
+
+  <main class="brief next-steps">
+    <section class="block feedback-block" id="feedbackSection">
+      <div class="section-head"><span class="section-num">07</span><h2>Your feedback</h2></div>
+      <p class="eval-intro">Answer what you can below, add anything else that needs to change, then submit. No email needed.</p>
+      <div class="qa-list">
+        <div class="qa-row">
+          <label class="qa-question" for="qa-answer-0">What's your average weekly food cost as a % of sales right now?</label>
+          <input type="text" id="qa-answer-0" class="qa-answer" placeholder="Your answer (optional)" disabled />
+        </div>
+        <div class="qa-row">
+          <label class="qa-question" for="qa-answer-1">Do you currently do daily or weekly physical stock counts — or only monthly?</label>
+          <input type="text" id="qa-answer-1" class="qa-answer" placeholder="Your answer (optional)" disabled />
+        </div>
+      </div>
+      <label class="qa-question" for="additionalFeedback">Anything else to change?</label>
+      <textarea id="additionalFeedback" rows="3" placeholder="Optional — describe any other changes" disabled></textarea>
+      <button class="cta-btn" disabled title="Sample page — not wired to a live submission">Submit feedback &amp; revise</button>
+      <p class="hint-text">This is a sample — feedback submission isn't wired up here since there's no real record behind it.</p>
+    </section>
+
+    <section class="block timeline-block">
+      <div class="section-head"><span class="section-num">08</span><h2>Where this stands</h2></div>
+      <div class="timeline">
+        <div class="timeline-step current"><span class="timeline-dot"></span><span class="timeline-label">Demo delivered</span></div>
+        <div class="timeline-step"><span class="timeline-dot"></span><span class="timeline-label">You confirmed</span></div>
+        <div class="timeline-step"><span class="timeline-dot"></span><span class="timeline-label">Scoping call</span></div>
+        <div class="timeline-step"><span class="timeline-dot"></span><span class="timeline-label">Proposal</span></div>
+        <div class="timeline-step"><span class="timeline-dot"></span><span class="timeline-label">Deposit &amp; kickoff</span></div>
+        <div class="timeline-step"><span class="timeline-dot"></span><span class="timeline-label">30-day build</span></div>
+        <div class="timeline-step"><span class="timeline-dot"></span><span class="timeline-label">Delivered</span></div>
+        <div class="timeline-step"><span class="timeline-dot"></span><span class="timeline-label">Live on AMC</span></div>
+      </div>
+    </section>
+
+    <section class="block pricing-block">
+      <div class="section-head"><span class="section-num">09</span><h2>Investment</h2></div>
+      <div class="pricing-grid">
+        <div class="pricing-card">
+          <p class="pricing-amount">₹1,50,000</p>
+          <p class="pricing-label">First module — standard build</p>
+        </div>
+        <div class="pricing-card">
+          <p class="pricing-amount">₹75,000</p>
+          <p class="pricing-label">Each additional module, within 30 days of the first</p>
+        </div>
+        <div class="pricing-card">
+          <p class="pricing-amount">From ₹50,000<span class="pricing-per">/mo</span></p>
+          <p class="pricing-label">AMC per live module — ongoing updates, monitoring, and support</p>
+        </div>
+      </div>
+      <p class="pricing-note">A genuinely complex build is custom-quoted after a short scoping call, not fit into the standard price. The 30-day delivery guarantee applies to standard builds, and the clock starts the moment your deposit clears — not at the demo, not at scoping.</p>
+
+      <div class="team-block">
+        <h3 class="team-title">Who works on your build</h3>
+        <p class="team-intro">Transparently — the actual team and hours behind the price, not a black box.</p>
+        <div class="team-rows">
+          <div class="team-row"><span class="team-role">Solution architect</span><span class="team-hours">1 person · 8 hrs</span></div>
+          <div class="team-row"><span class="team-role">Software engineer</span><span class="team-hours">1 person · 22 hrs</span></div>
+          <div class="team-row"><span class="team-role">AI/automation engineer</span><span class="team-hours">1 person · 14 hrs</span></div>
+          <div class="team-row"><span class="team-role">QA/UAT</span><span class="team-hours">1 person · 6 hrs</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block move-forward-block">
+      <button class="cta-btn cta-btn--primary" disabled title="Sample page — not wired to a live submission">This solves it — let's move forward</button>
+      <p class="hint-text">Sample page — this button isn't wired up since there's no real record behind it.</p>
+    </section>
+  </main>
+
+  <script>
+    const frame = document.getElementById('artefactFrame');
+    if (frame) {
+      let observed = false;
+      const resize = () => {
+        try {
+          const doc = frame.contentDocument;
+          if (doc && doc.documentElement) frame.style.height = doc.documentElement.scrollHeight + 'px';
+          if (!observed && doc && doc.body && 'ResizeObserver' in window) {
+            observed = true;
+            new ResizeObserver(resize).observe(doc.body);
+          }
+        } catch (e) {}
+      };
+      resize();
+      frame.addEventListener('load', resize);
+      setInterval(resize, 600);
+    }
+  </script>
+
+</body>
+</html>
+
+<style>
+  :root {
+    color-scheme: light;
+    --ink: #1c1f22; --ink-soft: #4a4f54; --muted: #767c82; --hair: rgba(28,31,34,0.13);
+    --paper: #f4f2ec; --gold: #7d6435; --gold-soft: #eee7d6;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--paper); width: 100%; overflow-x: hidden; }
+  body { font-family: 'Archivo', system-ui, sans-serif; color: #2a2f3a; }
+
+  .sample-banner {
+    background: #211f18; color: #f5f5f0; font-size: 12.5px; text-align: center;
+    padding: 10px 20px; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.01em;
+  }
+
+  .brief { max-width: 760px; margin: 0 auto; padding: 64px 40px 40px; }
+  .eyebrow { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); font-weight: 600; margin-bottom: 16px; }
+
+  .doc-header { padding-bottom: 28px; margin-bottom: 32px; border-bottom: 3px double var(--hair); }
+  h1 { font-family: 'Newsreader', Georgia, serif; font-weight: 600; font-size: clamp(28px, 4vw, 38px); line-height: 1.2; margin: 0 0 24px; max-width: 22ch; color: var(--ink); }
+  .doc-meta { display: flex; flex-wrap: wrap; gap: 24px 32px; }
+  .doc-meta-row { font-size: 13px; color: var(--ink-soft); }
+  .doc-meta-label { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 3px; }
+
+  .submitted-problem {
+    margin: 0 0 40px; padding: 16px 20px; border-left: 3px solid var(--gold);
+    background: var(--gold-soft); font-style: italic; font-size: 15px; line-height: 1.6; color: #4a453e;
+  }
+  .submitted-label {
+    display: block; font-style: normal; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 4px;
+  }
+
+  .section-head { display: flex; align-items: baseline; gap: 12px; margin: 0 0 16px; padding-bottom: 10px; border-bottom: 1px solid var(--hair); }
+  .section-num { font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500; color: var(--gold); letter-spacing: 0.02em; }
+  .section-num::before { content: '§'; margin-right: 1px; opacity: 0.6; }
+  h2 { font-family: 'Newsreader', Georgia, serif; font-weight: 600; font-size: 19px; margin: 0; color: var(--ink); }
+  .block { margin-bottom: 36px; }
+  .card { padding: 14px 0; border-top: 1px solid var(--hair); }
+  .card:first-of-type { border-top: none; }
+  .card-title { font-weight: 600; font-size: 15px; margin: 0 0 4px; color: var(--ink); }
+  .card-function { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 0 0 10px; }
+  .card-tag { display: inline-block; color: var(--muted); margin-right: 8px; padding-right: 8px; border-right: 1px solid var(--hair); }
+
+  .bullets { margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.55; color: #3a3f4a; }
+  .bullets li { margin-bottom: 4px; }
+  .bullets.flat > li { padding: 10px 0; border-top: 1px solid var(--hair); list-style: none; padding-left: 0; margin-left: -18px; }
+  .bullets.flat > li:first-child { border-top: none; }
+  .bullets.numbered { padding-left: 20px; }
+  .bullet-label { display: block; font-weight: 600; color: var(--ink); font-size: 12px; text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 2px; }
+
+  .questions { background: var(--gold-soft); border: 1px solid rgba(184,134,46,0.3); border-radius: 4px; padding: 22px 26px; }
+  .framework-block { background: #f6f7f9; border: 1px solid var(--hair); border-radius: 4px; padding: 22px 26px; }
+  .framework-block .card { border-top-color: var(--hair); }
+  .framework-block .card:first-of-type { border-top: none; }
+  .also-considered { font-size: 12.5px; color: var(--muted); margin: 10px 0 0; }
+
+  .eval-block { background: #f6f7f9; border: 1px solid var(--hair); border-radius: 4px; padding: 22px 26px; }
+  .eval-intro { font-size: 13.5px; color: var(--ink-soft); line-height: 1.55; margin: 0 0 16px; }
+  .eval-table-wrap { overflow-x: auto; margin-bottom: 18px; -webkit-overflow-scrolling: touch; }
+  .eval-table { border-collapse: collapse; font-size: 12px; width: 100%; min-width: 640px; }
+  .eval-table th, .eval-table td { padding: 8px 10px; border: 1px solid var(--hair); text-align: center; }
+  .eval-table th { font-weight: 600; color: var(--ink); font-size: 11px; cursor: help; background: #f6f7f9; }
+  .eval-table th:first-child, .eval-table td:first-child { text-align: left; font-weight: 500; }
+  .eval-row-selected { background: var(--gold-soft); }
+  .eval-arrow { color: var(--gold); font-weight: 700; margin-right: 4px; }
+  .eval-score-cell { color: var(--ink-soft); }
+  .eval-total-cell { font-weight: 600; color: var(--ink); }
+  .eval-table th:last-child, .eval-table td:last-child { position: sticky; right: 0; background: #f6f7f9; box-shadow: -6px 0 6px -6px rgba(26,36,56,0.15); }
+  .eval-row-selected td:last-child { background: #f7ecd2; }
+  .eval-recommendation { font-size: 13px; color: var(--gold); margin: 10px 0 0; padding-left: 2px; }
+  .eval-recommendation strong { font-weight: 600; }
+  .eval-legend-title { font-family: 'Newsreader', Georgia, serif; font-weight: 600; font-size: 14px; color: var(--ink); margin: 4px 0 8px; }
+  .eval-legend { margin: 0; padding: 0; list-style: none; font-size: 12px; color: var(--muted); line-height: 1.7; }
+  .eval-legend strong { color: var(--ink-soft); }
+  .questions-intro { font-size: 13px; color: #7a6a3e; margin: 0 0 10px; font-style: italic; }
+  .q-blocking { display: inline-block; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.04em; color: #a34a3a; border: 1px solid rgba(163,74,58,0.35); padding: 1px 6px; border-radius: 10px; margin-right: 8px; vertical-align: middle; }
+  .impact-card { padding: 14px 0; border-top: 1px solid var(--hair); }
+  .impact-card:first-of-type { border-top: none; }
+  .calc-table { border-collapse: collapse; font-size: 13px; margin: 10px 0 0; }
+  .calc-table td { padding: 5px 12px 5px 0; }
+  .calc-label { color: var(--muted); }
+  .calc-value { color: var(--ink); font-weight: 500; font-family: 'IBM Plex Mono', 'SF Mono', monospace; }
+  .calc-result-row td { border-top: 1px solid var(--hair); padding-top: 8px; font-weight: 600; }
+  .calc-note { font-size: 12px; color: var(--muted); margin: 8px 0 0; font-style: italic; }
+  .feedback-note { font-size: 13px; color: var(--muted); border-top: 1px solid var(--hair); padding-top: 20px; }
+  .plain-copy { font-size: 15px; line-height: 1.6; color: #3a3f4a; margin: 0; }
+  .agent-list { font-size: 12px; color: var(--muted); margin: 8px 0 0; text-transform: uppercase; letter-spacing: 0.03em; }
+
+  .appendix { margin-top: 12px; }
+  .appendix summary { cursor: pointer; font-size: 12.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; padding: 16px 0; border-top: 1px solid var(--hair); }
+  .appendix-section { margin: 20px 0; }
+  .appendix h3 { font-family: 'Newsreader', Georgia, serif; font-weight: 600; font-size: 14.5px; margin: 0 0 10px; color: var(--ink-soft); }
+  .appendix-card { padding: 10px 0; border-top: 1px solid var(--hair); }
+  .appendix-card:first-of-type { border-top: none; }
+  .appendix-title { font-weight: 600; font-size: 13.5px; margin: 0 0 6px; color: var(--ink-soft); }
+
+  .walkthrough-intro { max-width: 900px; margin: 12px auto 28px; padding: 0 40px; text-align: center; }
+  .walkthrough-eyebrow { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); font-weight: 600; margin: 0 0 8px; }
+  .walkthrough-heading { font-family: 'Newsreader', Georgia, serif; font-weight: 600; font-size: clamp(24px, 3.4vw, 32px); color: var(--ink); margin: 0 0 10px; }
+  .artefact-caption { max-width: 640px; margin: 0 auto; font-size: 14.5px; color: var(--ink-soft); }
+  .artefact-caption strong { color: var(--gold); }
+
+  .browser-chrome {
+    width: min(1180px, calc(100% - 48px)); margin: 0 auto 72px;
+    border-radius: 14px; overflow: hidden; background: #e8e6e0;
+    border: 2px solid var(--gold); box-shadow: 0 32px 72px -24px rgba(26,36,56,0.35), 0 0 0 6px var(--gold-soft);
+  }
+  .browser-chrome-bar { display: flex; align-items: center; gap: 10px; padding: 14px 18px; background: #ecebe6; border-bottom: 1px solid rgba(36,33,29,0.1); }
+  .chrome-dot { width: 13px; height: 13px; border-radius: 50%; display: inline-block; flex: none; }
+  .chrome-dot--red { background: #ec6a5e; }
+  .chrome-dot--yellow { background: #f4bf4f; }
+  .chrome-dot--green { background: #61c454; }
+  .chrome-address {
+    flex: 1; margin-left: 14px; display: flex; align-items: center; gap: 8px;
+    background: #fbfaf8; border: 1px solid rgba(36,33,29,0.1); border-radius: 7px;
+    padding: 7px 16px; font-size: 13.5px; color: #6b6459; max-width: 420px;
+  }
+  .chrome-address svg { color: #8a8378; flex: none; }
+  .chrome-address-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .artefact-embed { background: #fff; }
+  .artefact-embed iframe { width: 100%; border: 0; display: block; min-height: 560px; }
+
+  .next-steps { padding-top: 48px; }
+
+  .feedback-block { background: #f6f7f9; border: 1px solid var(--hair); border-radius: 4px; padding: 24px 26px; }
+  .qa-list { margin: 16px 0; }
+  .qa-row { margin-bottom: 14px; }
+  .qa-question { display: block; font-size: 13.5px; color: var(--ink-soft); margin-bottom: 6px; line-height: 1.4; }
+  .qa-answer, #additionalFeedback {
+    width: 100%; box-sizing: border-box; font-family: inherit; font-size: 14px; color: var(--ink);
+    background: #fff; border: 1px solid var(--hair); border-radius: 4px; padding: 9px 12px;
+  }
+  #additionalFeedback { margin-top: 6px; margin-bottom: 18px; resize: vertical; }
+  .cta-btn {
+    font-family: inherit; font-size: 13.5px; font-weight: 600; padding: 11px 22px; border-radius: 4px;
+    border: 1px solid var(--ink); background: #fff; color: var(--ink); cursor: pointer;
+  }
+  .cta-btn:hover { background: var(--ink); color: #fff; }
+  .cta-btn--primary { background: var(--gold); border-color: var(--gold); color: #fff; }
+  .cta-btn--primary:hover { background: #9c6f22; border-color: #9c6f22; }
+  .cta-btn:disabled { opacity: 0.6; cursor: default; }
+  .hint-text { font-size: 12.5px; color: var(--muted); margin: 10px 0 0; }
+
+  .timeline { display: flex; flex-wrap: wrap; gap: 0; }
+  .timeline-step { flex: 1; min-width: 90px; text-align: center; position: relative; padding-top: 18px; }
+  .timeline-step::before {
+    content: ''; position: absolute; top: 4px; left: -50%; width: 100%; height: 2px; background: var(--hair);
+  }
+  .timeline-step:first-child::before { display: none; }
+  .timeline-dot { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 10px; height: 10px; border-radius: 50%; background: #fff; border: 2px solid var(--hair); }
+  .timeline-step.done .timeline-dot { background: var(--gold); border-color: var(--gold); }
+  .timeline-step.done::before { background: var(--gold); }
+  .timeline-step.current .timeline-dot { background: #fff; border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-soft); }
+  .timeline-label { font-size: 11px; color: var(--muted); line-height: 1.3; display: block; }
+  .timeline-step.current .timeline-label { color: var(--ink); font-weight: 600; }
+  .timeline-step.done .timeline-label { color: var(--ink-soft); }
+
+  .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
+  .pricing-card { border: 1px solid var(--hair); border-radius: 4px; padding: 18px; text-align: center; }
+  .pricing-amount { font-family: 'Newsreader', Georgia, serif; font-size: 22px; font-weight: 600; color: var(--ink); margin: 0 0 6px; }
+  .pricing-per { font-size: 13px; font-weight: 400; color: var(--muted); }
+  .pricing-label { font-size: 12px; color: var(--muted); line-height: 1.4; margin: 0; }
+  .pricing-note { font-size: 12.5px; color: var(--muted); line-height: 1.6; margin: 0; }
+  .team-block { margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--hair); }
+  .team-title { font-family: 'Newsreader', Georgia, serif; font-size: 15px; font-weight: 600; color: var(--ink); margin: 0 0 4px; }
+  .team-intro { font-size: 12.5px; color: var(--muted); margin: 0 0 10px; }
+  .team-rows { display: flex; flex-direction: column; gap: 6px; }
+  .team-row { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-top: 1px solid var(--hair); }
+  .team-row:first-child { border-top: none; }
+  .team-role { color: var(--ink-soft); text-transform: capitalize; }
+  .team-hours { font-family: 'IBM Plex Mono', 'SF Mono', monospace; font-size: 12px; color: var(--muted); }
+
+  .move-forward-block { text-align: center; padding: 8px 0 0; }
+
+  @media (max-width: 640px) {
+    .brief { padding: 36px 20px 24px; }
+    .browser-chrome { width: min(1180px, calc(100% - 40px)); }
+    .pricing-grid { grid-template-columns: 1fr; }
+    .timeline { flex-direction: column; gap: 14px; align-items: flex-start; }
+    .timeline-step { padding-left: 22px; padding-top: 0; text-align: left; min-width: 0; }
+    .timeline-step::before { display: none; }
+    .timeline-dot { left: 0; top: 3px; transform: none; }
+  }
+</style>
