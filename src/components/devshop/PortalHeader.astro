@@ -38,6 +38,20 @@ const navItems = [
     {industryLabel && <div class="ds-industry-badge">AI-Enabled Solutions for {industryLabel}</div>}
 
     <nav class="ds-nav" id="marketingNav">
+      <div class="ds-dropdown">
+        <button type="button" class="ds-dropdown-trigger" id="dsIndustriesTrigger">Industries ▾</button>
+        <div class="ds-dropdown-menu" id="dsIndustriesMenu">
+          <a href="/devshop" class:list={{ active: currentSlug === null }}>DevShop — overview</a>
+          {devshopVerticals.map((v) => (
+            v.status === 'live' ? (
+              <a href={`/devshop/${v.slug}`} class:list={{ active: currentSlug === v.slug }}>{v.tag} — {v.name}</a>
+            ) : (
+              <span class="ds-dropdown-soon">{v.tag} — {v.name} <em>(coming soon)</em></span>
+            )
+          ))}
+        </div>
+      </div>
+
       {spa ? (
         <a href="#" data-go={navItems[0].screenId}>{navItems[0].label}</a>
       ) : (
@@ -53,20 +67,6 @@ const navItems = [
       ) : (
         <a href={`${homeHref}#${navItems[1].screenId}`}>{navItems[1].label}</a>
       )}
-
-      <div class="ds-dropdown">
-        <button type="button" class="ds-dropdown-trigger" id="dsIndustriesTrigger">Industries ▾</button>
-        <div class="ds-dropdown-menu" id="dsIndustriesMenu">
-          <a href="/devshop" class:list={{ active: currentSlug === null }}>DevShop — overview</a>
-          {devshopVerticals.map((v) => (
-            v.status === 'live' ? (
-              <a href={`/devshop/${v.slug}`} class:list={{ active: currentSlug === v.slug }}>{v.tag} — {v.name}</a>
-            ) : (
-              <span class="ds-dropdown-soon">{v.tag} — {v.name} <em>(coming soon)</em></span>
-            )
-          ))}
-        </div>
-      </div>
 
       {spa ? (
         <a href="#" data-go="intake" class="ds-start">Start →</a>
