@@ -11,45 +11,84 @@ const description = 'How every demo gets built: diagnosis, a proven framework sc
 const steps = [
   {
     n: '01',
+    key: 'diagnose',
+    label: 'DIAGNOSE',
     title: 'Diagnose the real problem',
+    subline: 'Root cause, not the symptom — confidence-rated, not asserted.',
     body: "We start by naming which part of the business actually owns the problem, then dig past the symptom to the root cause. Every diagnosis is tagged with how confident we actually are — strongly supported, a reasonable inference, or a preliminary hypothesis — so you can see exactly which parts are grounded in what you told us and which are our best working assumption.",
   },
   {
     n: '02',
+    key: 'framework',
+    label: 'FRAMEWORK',
     title: 'Apply a proven framework, not a guess',
+    subline: 'Scored across 9 dimensions against real alternatives — you see the table.',
     body: "Every recommendation is grounded in an established methodology with a real track record — Six Sigma, Lean, Theory of Constraints, and others — never an invented framework. We score every framework we seriously considered across 9 dimensions (problem fit, evidence strength, industry track record, and more) and show you the comparison table, not just the winner.",
   },
   {
     n: '03',
+    key: 'pnl',
+    label: 'P&L MAP',
     title: 'Map it to your P&L, in numbers',
+    subline: 'One specific line, from baseline to target — the arithmetic shown, not hidden.',
     body: "We name the specific revenue or cost line the fix moves — not “improves efficiency,” but which line, from what baseline, to what target. The arithmetic behind that number is shown as a simple table you can check yourself, and every figure is tagged as something you told us or an industry-grounded assumption — never presented as fact when it isn't.",
   },
   {
     n: '04',
+    key: 'mechanism',
+    label: 'MECHANISM',
     title: 'Design the actual mechanism',
+    subline: 'Built from one fixed library of AI agent roles — never invented per pitch.',
     body: "We design the specific workflow that fixes the root cause — what triggers it, what data it acts on, what happens at each step — built from a fixed, curated library of AI agent roles (data extraction, classification, decision-making, action-taking, and more). That consistency means what we propose is something we've actually built the pattern for before, not a one-off idea invented for your pitch.",
   },
   {
     n: '05',
+    key: 'validate',
+    label: 'VALIDATE',
     title: 'Validate it before you ever see it',
+    subline: 'Two independent self-audits — a flagged issue holds the release, automatically.',
     body: "Before a demo reaches you, it goes through two rounds of self-audit: one checking the reasoning itself (does the evidence really support this confidence level, does the framework genuinely fit, is the economics plausible), and a second checking the actual working demo (does it use real tools, do the before/after numbers actually change, is there a control you can press). A flagged issue holds the demo back for our review instead of shipping automatically.",
   },
   {
     n: '06',
+    key: 'demo',
+    label: 'DEMO',
     title: 'See it work, not a slide deck',
+    subline: 'A live, interactive walkthrough using your own tools and your own numbers.',
     body: "You get a working, interactive walkthrough of the mechanism — press Run and watch it move through the same steps it would in production, using your own tools and your own numbers. No mockups standing in for a real product.",
   },
   {
     n: '07',
+    key: 'feedback',
+    label: 'FEEDBACK',
     title: 'One round of feedback, then we build',
+    subline: 'Every point directly incorporated — not a cosmetic pass.',
     body: "Answer the clarifying questions, add anything else that needs to change, and we revise once — directly incorporating every point, not a cosmetic pass. From there, the build runs on a fixed 30-day timeline from deposit.",
   },
   {
     n: '08',
+    key: 'build',
+    label: 'BUILD',
     title: 'Priced like a team, not a project',
+    subline: 'Role-based estimate, same spec as the demo — 30 days from deposit.',
     body: "The one-time build is estimated role by role — solution architect, engineer, AI/automation engineer, and others — using the same mechanism spec the demo was built from. Ongoing support after launch is priced the same way: a transparent resource estimate, not a black-box retainer.",
   },
 ];
+
+// Minimal proprietary icon marks — thin single-color strokes, drawn to match
+// the site's own instrument-diagram language (see demo/[id].astro's browser
+// chrome + section marks) rather than a generic icon set. currentColor lets
+// each row tint its own icon gold or blue via CSS.
+const ICONS: Record<string, string> = {
+  diagnose: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="4" cy="24" r="2" fill="currentColor"/><path d="M4 24C10 24 12 12 18 12C24 12 24 24 32 24H36" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`,
+  framework: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="18" cy="20" r="11" stroke="currentColor" stroke-width="1.6"/><path d="M18 20L23 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M32 14L37 10M33 20H38M32 26L37 30" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.6"/></svg>`,
+  pnl: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 8L34 16L20 24L6 16L20 8Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M6 23L20 31L34 23" stroke="currentColor" stroke-width="1.4" opacity="0.6"/><path d="M6 30L20 38L34 30" stroke="currentColor" stroke-width="1.2" opacity="0.35"/></svg>`,
+  mechanism: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5" cy="20" r="3" stroke="currentColor" stroke-width="1.6"/><circle cx="15" cy="20" r="3" stroke="currentColor" stroke-width="1.6"/><circle cx="25" cy="20" r="3" stroke="currentColor" stroke-width="1.6"/><circle cx="35" cy="20" r="4" fill="currentColor" class="mech-tip"/><path d="M8 20H12M18 20H22M28 20H31" stroke="currentColor" stroke-width="1.6"/></svg>`,
+  validate: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="11" width="9" height="18" stroke="currentColor" stroke-width="1.6"/><rect x="28" y="11" width="9" height="18" stroke="currentColor" stroke-width="1.6"/><path d="M13 20H27" stroke="currentColor" stroke-width="1.4" stroke-dasharray="3 3"/></svg>`,
+  demo: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="8" width="34" height="24" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M3 14H37" stroke="currentColor" stroke-width="1.6"/><circle cx="7.5" cy="11" r="0.9" fill="currentColor"/><circle cx="11" cy="11" r="0.9" fill="currentColor"/><path d="M15 20L23 26L15 28V20Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>`,
+  feedback: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M32 14C29 9 23 7 17 9C11 11 7 17 8 23" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M8 8V15H15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 26C11 31 17 33 23 31C29 29 33 23 32 17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M32 32V25H25" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  build: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L34 13V27L20 34L6 27V13L20 6Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M6 13L20 20L34 13M20 20V34" stroke="currentColor" stroke-width="1.4" opacity="0.6"/></svg>`,
+};
 ---
 
 <html lang="en">
@@ -76,7 +115,24 @@ const steps = [
     <h1 class="hero serif">How every demo <span class="tint-blue">actually</span> gets built.</h1>
     <p class="sub">Not a chatbot bolted onto your business. The same eight-stage process, every time — which is exactly what makes the output something you can trust and we can stand behind.</p>
 
+    <div class="diagram">
+      {steps.map((s, i) => (
+        <div class={`diagram-row ${i === 3 ? 'is-transition' : i >= 4 ? 'is-blue' : 'is-gold'}`}>
+          <div class="diagram-rail">
+            <span class="diagram-icon" set:html={ICONS[s.key]} />
+          </div>
+          <div class="diagram-copy">
+            <span class="diagram-num mono">{s.n}</span>
+            <span class="diagram-label">{s.label}</span>
+            <span class="diagram-subline">{s.subline}</span>
+          </div>
+        </div>
+      ))}
+      <a class="diagram-start" href="/devshop">Start &rarr;</a>
+    </div>
+
     <div class="steps-list">
+      <p class="steps-list-eyebrow">The detail, for anyone who wants it</p>
       {steps.map((s) => (
         <div class="step-row">
           <div class="step-num mono">{s.n}</div>
@@ -145,6 +201,44 @@ const steps = [
   h1.hero { font-size: clamp(34px, 5.2vw, 56px); line-height: 1.05; letter-spacing: -0.01em; margin: 0 0 20px; }
   p.sub { font-size: 17px; color: var(--dev-muted1); max-width: 560px; line-height: 1.6; margin: 0 0 56px; }
 
+  .diagram { display: flex; flex-direction: column; margin: 0 0 24px; padding-left: 4px; }
+  .diagram-row { display: flex; gap: 28px; align-items: flex-start; }
+  .diagram-rail {
+    flex: none; width: 40px; display: flex; flex-direction: column; align-items: center;
+    position: relative;
+  }
+  .diagram-rail::before {
+    content: ''; position: absolute; top: 40px; bottom: -28px; left: 50%; width: 1.5px;
+    transform: translateX(-50%); background: var(--rail-color, var(--dev-gold));
+  }
+  .diagram-row:last-of-type .diagram-rail::before { display: none; }
+  .diagram-icon {
+    width: 40px; height: 40px; flex: none; color: var(--rail-color, var(--dev-gold));
+    display: flex; align-items: center; justify-content: center;
+  }
+  .diagram-icon :global(svg) { width: 100%; height: 100%; }
+  .diagram-icon :global(.mech-tip) { color: var(--dev-blue); }
+  .diagram-row.is-gold { --rail-color: var(--dev-gold); }
+  .diagram-row.is-blue { --rail-color: var(--dev-blue); }
+  .diagram-row.is-transition { --rail-color: var(--dev-gold); }
+  .diagram-row.is-transition .diagram-rail::before {
+    background: linear-gradient(var(--dev-gold), var(--dev-blue));
+  }
+  .diagram-copy { padding: 4px 0 40px; display: flex; flex-direction: column; gap: 4px; }
+  .diagram-num { font-size: 11px; color: var(--rail-color, var(--dev-gold)); letter-spacing: 0.08em; }
+  .diagram-label { font-size: 17px; letter-spacing: 0.02em; font-weight: 600; color: var(--dev-text); }
+  .diagram-subline { font-size: 13.5px; color: var(--dev-muted1); max-width: 46ch; line-height: 1.5; }
+  .diagram-start {
+    margin-left: 68px; font-size: 13px; letter-spacing: 0.08em; color: var(--dev-blue);
+    border: 1px solid var(--dev-blue); border-radius: 2px; padding: 10px 20px; width: fit-content;
+    transition: background 0.2s;
+  }
+  .diagram-start:hover { background: rgba(145, 175, 192, 0.1); }
+
+  .steps-list-eyebrow {
+    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dev-muted3);
+    margin: 96px 0 8px;
+  }
   .steps-list { display: flex; flex-direction: column; }
   .step-row { display: flex; gap: 28px; padding: 32px 0; border-top: 1px solid var(--dev-hair); }
   .step-row:last-child { border-bottom: 1px solid var(--dev-hair); }
@@ -176,5 +270,12 @@ const steps = [
     .step-row { gap: 16px; padding: 24px 0; }
     .step-body h2 { font-size: 20px; }
     .cta-block { padding: 48px 0 40px; }
+    .diagram-row { gap: 16px; }
+    .diagram-rail, .diagram-icon { width: 32px; height: 32px; }
+    .diagram-rail::before { top: 32px; }
+    .diagram-label { font-size: 15px; }
+    .diagram-subline { font-size: 12.5px; }
+    .diagram-start { margin-left: 48px; }
+    .steps-list-eyebrow { margin-top: 64px; }
   }
 </style>
