@@ -157,7 +157,7 @@ const canonical = new URL('/devshop', site.domain).href;
     <div class="wizard" id="intakeWizard">
       <div class="wizard-progress" id="wizardProgress" aria-hidden="true"></div>
       <form id="intakeForm" novalidate>
-        <div class="wizard-step" data-field="problem" data-required="true">
+        <div class="wizard-step" data-field="problem" data-required="true" data-minlength="30">
           <p class="eyebrow">START</p>
           <h1 class="serif wizard-q">What's the problem?</h1>
           <p class="wizard-sub">More than one? List them all — we'll solve for each.</p>
@@ -744,12 +744,24 @@ const canonical = new URL('/devshop', site.domain).href;
 
     var required = step.dataset.required === 'true';
     var input = step.querySelector('.wizard-input:not(.wizard-input--secondary)') || step.querySelector('.wizard-input');
+    var minlength = parseInt(step.dataset.minlength || '0', 10);
+    var errorEl = document.getElementById('intakeError');
     if (required && input && !input.value.trim()) {
       input.classList.add('wizard-input--error');
       input.focus();
       return;
     }
+    if (minlength && input && input.value.trim().length < minlength) {
+      input.classList.add('wizard-input--error');
+      input.focus();
+      if (errorEl) {
+        errorEl.textContent = 'Give us a bit more to work with — a full sentence on what\'s actually going wrong, not just a topic.';
+        errorEl.hidden = false;
+      }
+      return;
+    }
     if (input) input.classList.remove('wizard-input--error');
+    if (errorEl) errorEl.hidden = true;
 
     if (wizardIndex < wizardSteps.length - 1) {
       wizardIndex++;
@@ -802,11 +814,14 @@ const canonical = new URL('/devshop', site.domain).href;
       e.preventDefault();
       var landingInput = document.getElementById('landingProblem');
       var landingValue = landingInput ? landingInput.value.trim() : '';
-      if (landingValue) {
-        var problemField = document.querySelector('#intakeForm textarea[name="problem"]');
-        if (problemField) problemField.value = landingValue;
-        wizardStartIndex = 1; // skip re-asking "What's the problem?" — already answered above
-      }
+      var problemField = document.querySelector('#intakeForm textarea[name="problem"]');
+      if (problemField) problemField.value = landingValue;
+      // Only skip re-asking "What's the problem?" if the landing answer already
+      // clears the same minimum-detail bar the wizard step itself enforces —
+      // a one-word or single-topic answer ("Customer communication") isn't
+      // enough context to diagnose a real root cause, so send it into the
+      // wizard step instead, pre-filled, to be expanded on.
+      wizardStartIndex = landingValue.length >= 30 ? 1 : 0;
       showScreen('intake');
     });
   }

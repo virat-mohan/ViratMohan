@@ -13,6 +13,7 @@ describe('isProtectedPath', () => {
     expect(isProtectedPath('/devshop/api/track-update')).toBe(true);
     expect(isProtectedPath('/devshop/api/frameworks')).toBe(true);
     expect(isProtectedPath('/devshop/api/review-action')).toBe(true);
+    expect(isProtectedPath('/devshop/api/delete-submission')).toBe(true);
   });
 
   it('does not protect public intake/demo/tracker routes', () => {

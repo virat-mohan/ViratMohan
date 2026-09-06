@@ -30,6 +30,13 @@ export const POST: APIRoute = async ({ request }) => {
   if (!problem || !email) {
     return json({ error: 'problem and email are required' }, 400);
   }
+  if (problem.length < 30) {
+    // Mirrors the client-side wizard's minlength gate — a one-word or
+    // single-topic problem statement ("Customer communication") isn't
+    // enough for the diagnosis step to find a real root cause. Enforced
+    // server-side too since the client check can be bypassed.
+    return json({ error: 'Give us a bit more to work with — describe what\'s actually going wrong, not just a topic.' }, 400);
+  }
 
   const origin = getOrigin(request);
   const db = getDb(env);

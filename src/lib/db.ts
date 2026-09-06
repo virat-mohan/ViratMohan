@@ -414,6 +414,14 @@ export function getDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: st
       if (error) throw new Error(`supabase ai_agents update failed: ${error.message}`);
     },
 
+    // Admin-only hard delete — used to clear dev/test submissions out of the
+    // queue. Cascades to stage_transitions/generations/review_actions via
+    // their FK `on delete cascade`.
+    async deleteSubmission(id: string) {
+      const { error } = await supabase.from('submissions').delete().eq('id', id);
+      if (error) throw new Error(`supabase submissions delete failed: ${error.message}`);
+    },
+
     // AMC rate benchmarks (4b) — admin-curated, source-cited market rates.
     // The pricing math in src/lib/amc.ts only ever uses a rate from here,
     // flagged `verified: false` when sourced but not cross-checked.
