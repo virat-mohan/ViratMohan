@@ -27,6 +27,9 @@ import travaholicShot from '../assets/screenshots/travaholic.png';
 import travaholicStaysShot from '../assets/screenshots/travaholic-stays.png';
 import feelingCoShot from '../assets/screenshots/thefeelingco.png';
 import indiaContemporaryShot from '../assets/screenshots/india-contemporary.png';
+import clarityhqShot from '../assets/screenshots/Clarityhq.png';
+import contentmentShot from '../assets/screenshots/contentment.png';
+import coachYourPsycheShot from '../assets/screenshots/coachyourpsyche.png';
 
 // ---- Easily-editable config, per prompt instructions ----
 const CURRENCY = '₹'; // INR is the standard currency for this product.
@@ -38,15 +41,17 @@ const PRICING = {
 
 // TODO: confirm these case studies are cleared for public naming
 // (client sign-off) before treating this copy as final. logo is omitted (not
-// `undefined`-assigned) where no logo file exists yet — India Contemporary
-// doesn't have one.
-// ClarityHQ, Content-ment, and Coach Your Psyche removed — their screenshots
-// need to be redone before they go back up.
+// `undefined`-assigned) where no logo file exists yet — India Contemporary,
+// ClarityHQ, Content-ment, and Coach Your Psyche don't have one; href is
+// omitted for the same reason on the latter three (not live yet).
 const proof = [
-  { name: 'Travaholic', result: 'D2C infrastructure live in 2 days', href: 'https://travaholic.in', logo: travaholicLogo, screenshot: travaholicShot },
-  { name: 'Travaholic Stays', result: 'Direct booking system replacing Airbnb, WhatsApp, and a spreadsheet', href: 'https://travaholicstays.com', logo: travaholicStaysLogo, screenshot: travaholicStaysShot },
-  { name: 'The Feeling Co.', result: 'Full digital operation — 9 releases, zero external subscriptions', href: 'https://thefeelingco.online', logo: feelingCoLogo, screenshot: feelingCoShot },
-  { name: 'India Contemporary', result: 'Two-sided marketplace connecting artists to collectors', href: 'https://indiacontemporary.net', screenshot: indiaContemporaryShot },
+  { name: 'Travaholic', industry: 'D2C E-Commerce', result: 'D2C infrastructure live in 2 days', href: 'https://travaholic.in', logo: travaholicLogo, screenshot: travaholicShot },
+  { name: 'Travaholic Stays', industry: 'Hospitality / Travel', result: 'Direct booking system replacing Airbnb, WhatsApp, and a spreadsheet', href: 'https://travaholicstays.com', logo: travaholicStaysLogo, screenshot: travaholicStaysShot },
+  { name: 'The Feeling Co.', industry: 'Events / Hospitality', result: 'Full digital operation — 9 releases, zero external subscriptions', href: 'https://thefeelingco.online', logo: feelingCoLogo, screenshot: feelingCoShot },
+  { name: 'India Contemporary', industry: 'Retail / Marketplace', result: 'Two-sided marketplace connecting artists to collectors', href: 'https://indiacontemporary.net', screenshot: indiaContemporaryShot },
+  { name: 'ClarityHQ', industry: 'Marketing / Growth', result: 'AI-native growth agency — acquisition, conversion, and retention run on one shared Brand Intelligence layer', href: site.clarityhq, screenshot: clarityhqShot },
+  { name: 'Content-ment', industry: 'Content / Marketing Tech', result: 'AI content operating system — drafting, approval, and export, entirely in-browser with zero backend', screenshot: contentmentShot },
+  { name: 'Coach Your Psyche', industry: 'Health & Wellness', result: 'AI mental wellness coaching — 4 personality-styled therapists, pay-per-message via Stripe', screenshot: coachYourPsycheShot },
 ];
 
 // Full-colour icon marks for the Integrations screen only (per instruction —
@@ -199,6 +204,7 @@ const canonical = new URL('/devshop', site.domain).href;
           {p.screenshot && (
             <div class="proof-shot">
               <Image src={p.screenshot} alt={`${p.name} screenshot`} width={480} height={300} />
+              {p.industry && <span class="proof-industry-tag">{p.industry}</span>}
             </div>
           )}
           <div class="proof-card-body">
@@ -263,7 +269,7 @@ const canonical = new URL('/devshop', site.domain).href;
           <p class="sub" style="max-width:340px;">Scales with project spec and requirements.</p>
         </div>
       </div>
-      <p class="sub" style="margin-top:36px;">Variable / custom pricing available outside this range. No proposals. No scoping calls.</p>
+      <p class="sub" style="margin-top:36px;">Variable / custom pricing available outside this range.</p>
       <div style="margin-top:40px;"><button class="btn" data-go="intake">Start →</button></div>
     </div>
     <div class="footer-bar"><span class="footer-bar-text">Built fast, <em>for real businesses</em><sup>TM</sup></span></div>
@@ -674,7 +680,13 @@ const canonical = new URL('/devshop', site.domain).href;
     overflow: hidden; transition: border-color 0.2s;
   }
   .proof-card:hover { border-color: var(--dev-muted1); }
-  .proof-shot { aspect-ratio: 16 / 10; overflow: hidden; background: #000; }
+  .proof-shot { position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: #000; }
+  .proof-industry-tag {
+    position: absolute; top: 10px; left: 10px; z-index: 1;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.04em;
+    color: var(--dev-gold); background: rgba(21,19,15,0.82); border: 1px solid rgba(212,175,55,0.4);
+    border-radius: 4px; padding: 4px 9px;
+  }
   .proof-shot :global(img) { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; opacity: 0.88; transition: opacity 0.2s; }
   .proof-card:hover .proof-shot :global(img) { opacity: 1; }
   .proof-card-body { display: flex; align-items: center; gap: 14px; padding: 18px 20px; }
