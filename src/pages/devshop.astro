@@ -14,7 +14,17 @@
 // (API orchestration, OAuth per integration, a job execution layer, a DB)
 // would be needed to make them real. That work is out of scope for this pass.
 
+import { Image } from 'astro:assets';
 import { site } from '../data/site';
+
+import travaholicLogo from '../assets/logos/travaholic.png';
+import travaholicStaysLogo from '../assets/logos/travaholic-stays.png';
+import feelingCoLogo from '../assets/logos/thefeelingco.png';
+
+import travaholicShot from '../assets/screenshots/travaholic.png';
+import travaholicStaysShot from '../assets/screenshots/travaholic-stays.png';
+import feelingCoShot from '../assets/screenshots/thefeelingco.png';
+import indiaContemporaryShot from '../assets/screenshots/india-contemporary.png';
 
 // ---- Easily-editable config, per prompt instructions ----
 const CURRENCY = '₹'; // TODO: confirm ₹ vs $ before this goes live
@@ -24,13 +34,16 @@ const PRICING = {
   retainerMin: '50,000',
 };
 
-// TODO: confirm these four case studies are cleared for public naming
-// (client sign-off) before treating this copy as final.
+// TODO: confirm these case studies are cleared for public naming
+// (client sign-off) before treating this copy as final. logo/screenshot are
+// omitted (not `undefined`-assigned) where no asset exists yet — ClarityHQ
+// and India Contemporary don't have a logo file, ClarityHQ has no screenshot.
 const proof = [
-  { name: 'Travaholic', result: 'D2C infrastructure live in 2 days' },
-  { name: 'The Feeling Co.', result: 'Full digital operation — 9 releases, zero external subscriptions' },
-  { name: 'India Contemporary', result: 'Two-sided marketplace connecting artists to collectors' },
-  { name: 'ClarityHQ', result: 'Internal campaign builder, now licensed to other agencies' },
+  { name: 'Travaholic', result: 'D2C infrastructure live in 2 days', href: 'https://travaholic.in', logo: travaholicLogo, screenshot: travaholicShot },
+  { name: 'Travaholic Stays', result: 'Direct booking system replacing Airbnb, WhatsApp, and a spreadsheet', href: 'https://travaholicstays.com', logo: travaholicStaysLogo, screenshot: travaholicStaysShot },
+  { name: 'The Feeling Co.', result: 'Full digital operation — 9 releases, zero external subscriptions', href: 'https://thefeelingco.online', logo: feelingCoLogo, screenshot: feelingCoShot },
+  { name: 'India Contemporary', result: 'Two-sided marketplace connecting artists to collectors', href: 'https://indiacontemporary.net', screenshot: indiaContemporaryShot },
+  { name: 'ClarityHQ', result: 'Internal campaign builder, now licensed to other agencies', href: site.clarityhq },
 ];
 
 // Full-colour icon marks for the Integrations screen only (per instruction —
@@ -122,9 +135,26 @@ const canonical = new URL('/devshop', site.domain).href;
   <section class="screen" id="proof" data-marketing-index="3">
     <div class="eyebrow">PROOF</div>
     <h1 class="hero serif">Built fast. <span class="tint-blue">Shipped</span> for real.</h1>
-    <div class="proof-list">
+    <div class="proof-grid">
       {proof.map((p) => (
-        <div class="proof-row"><div class="name">{p.name}</div><div class="result">{p.result}</div></div>
+        <a class="proof-card" href={p.href} target="_blank" rel="noopener noreferrer">
+          {p.screenshot && (
+            <div class="proof-shot">
+              <Image src={p.screenshot} alt={`${p.name} screenshot`} width={480} height={300} />
+            </div>
+          )}
+          <div class="proof-card-body">
+            {p.logo ? (
+              <Image class="proof-logo-img" src={p.logo} alt={`${p.name} logo`} width={28} height={28} />
+            ) : (
+              <span class="proof-logo-text serif">{p.name}</span>
+            )}
+            <div class="proof-card-text">
+              {p.logo && <div class="name">{p.name}</div>}
+              <div class="result">{p.result}</div>
+            </div>
+          </div>
+        </a>
       ))}
     </div>
     <div class="footer-bar"><span>Built fast, for real businesses</span><span class="page-count"></span></div>
@@ -511,10 +541,24 @@ const canonical = new URL('/devshop', site.domain).href;
   .step:nth-child(2) .rule { background: var(--dev-muted1); }
   .step:nth-child(3) .rule { background: var(--dev-rose); }
 
-  .proof-list { margin-top: 56px; max-width: 980px; }
-  .proof-row { display: flex; justify-content: space-between; align-items: baseline; padding: 26px 0; border-bottom: 1px solid var(--dev-hair); gap: 24px; flex-wrap: wrap; }
-  .proof-row .name { font-size: 14px; letter-spacing: 0.1em; text-transform: uppercase; }
-  .proof-row .result { font-size: 15px; color: var(--dev-muted1); text-align: right; }
+  .proof-grid {
+    margin-top: 56px; max-width: 980px; display: grid;
+    grid-template-columns: repeat(2, 1fr); gap: 20px;
+  }
+  .proof-card {
+    display: flex; flex-direction: column; border: 1px solid var(--dev-hair); border-radius: 4px;
+    overflow: hidden; transition: border-color 0.2s;
+  }
+  .proof-card:hover { border-color: var(--dev-muted1); }
+  .proof-shot { aspect-ratio: 16 / 10; overflow: hidden; background: #000; }
+  .proof-shot :global(img) { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; opacity: 0.88; transition: opacity 0.2s; }
+  .proof-card:hover .proof-shot :global(img) { opacity: 1; }
+  .proof-card-body { display: flex; align-items: center; gap: 14px; padding: 18px 20px; }
+  .proof-logo-img { flex: none; width: 28px; height: 28px; object-fit: contain; border-radius: 4px; }
+  .proof-logo-text { flex: none; font-size: 18px; font-style: italic; color: var(--dev-gold); }
+  .proof-card-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .proof-card-text .name { font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dev-text); }
+  .proof-card-text .result { font-size: 13.5px; color: var(--dev-muted1); line-height: 1.4; }
 
   .pricing-block { margin-top: auto; margin-bottom: auto; }
 
@@ -637,8 +681,7 @@ const canonical = new URL('/devshop', site.domain).href;
     nav { gap: 20px; }
     nav a, nav button.navlink { font-size: 11px; letter-spacing: 0.08em; }
     .steps { flex-direction: column; gap: 36px; margin-top: 44px; }
-    .proof-row { flex-direction: column; align-items: flex-start; gap: 8px; }
-    .proof-row .result { text-align: left; }
+    .proof-grid { grid-template-columns: 1fr; }
     .input-row { flex-direction: column; }
     .tracker { flex-direction: column; align-items: flex-start; gap: 18px; }
     .tracker .line { display: none; }
