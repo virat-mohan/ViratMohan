@@ -25,9 +25,10 @@ import travaholicShot from '../assets/screenshots/travaholic.png';
 import travaholicStaysShot from '../assets/screenshots/travaholic-stays.png';
 import feelingCoShot from '../assets/screenshots/thefeelingco.png';
 import indiaContemporaryShot from '../assets/screenshots/india-contemporary.png';
+import clarityhqShot from '../assets/screenshots/Clarityhq.png';
 
 // ---- Easily-editable config, per prompt instructions ----
-const CURRENCY = '₹'; // TODO: confirm ₹ vs $ before this goes live
+const CURRENCY = '₹'; // INR is the standard currency for this product.
 const PRICING = {
   buildLow: '1,00,000',
   buildHigh: '10,00,000',
@@ -35,15 +36,15 @@ const PRICING = {
 };
 
 // TODO: confirm these case studies are cleared for public naming
-// (client sign-off) before treating this copy as final. logo/screenshot are
-// omitted (not `undefined`-assigned) where no asset exists yet — ClarityHQ
-// and India Contemporary don't have a logo file, ClarityHQ has no screenshot.
+// (client sign-off) before treating this copy as final. logo is omitted (not
+// `undefined`-assigned) where no logo file exists yet — ClarityHQ and India
+// Contemporary don't have one.
 const proof = [
   { name: 'Travaholic', result: 'D2C infrastructure live in 2 days', href: 'https://travaholic.in', logo: travaholicLogo, screenshot: travaholicShot },
   { name: 'Travaholic Stays', result: 'Direct booking system replacing Airbnb, WhatsApp, and a spreadsheet', href: 'https://travaholicstays.com', logo: travaholicStaysLogo, screenshot: travaholicStaysShot },
   { name: 'The Feeling Co.', result: 'Full digital operation — 9 releases, zero external subscriptions', href: 'https://thefeelingco.online', logo: feelingCoLogo, screenshot: feelingCoShot },
   { name: 'India Contemporary', result: 'Two-sided marketplace connecting artists to collectors', href: 'https://indiacontemporary.net', screenshot: indiaContemporaryShot },
-  { name: 'ClarityHQ', result: 'Internal campaign builder, now licensed to other agencies', href: site.clarityhq },
+  { name: 'ClarityHQ', result: 'Internal campaign builder, now licensed to other agencies', href: site.clarityhq, screenshot: clarityhqShot },
 ];
 
 // Full-colour icon marks for the Integrations screen only (per instruction —
