@@ -5,24 +5,28 @@ import type { ImageMetadata } from 'astro';
 interface Props {
   src: ImageMetadata;
   alt: string;
+  /** false = natural color, halftone texture only, no duotone map. */
+  duotone?: boolean;
+  objectPosition?: string;
 }
 
-const { src, alt } = Astro.props;
+const { src, alt, duotone = true, objectPosition = '35% 30%' } = Astro.props;
 ---
 
-<figure class="duotone">
+<figure class={`duotone ${duotone ? '' : 'duotone--color'}`}>
   <Image
     class="duotone__img"
     src={src}
     alt={alt}
     width={640}
     format="webp"
-    quality={82}
+    quality={85}
     decoding="async"
     fetchpriority="high"
     loading="eager"
+    style={`object-position: ${objectPosition}`}
   />
-  <div class="duotone__map" aria-hidden="true"></div>
+  {duotone && <div class="duotone__map" aria-hidden="true"></div>}
   <div class="halftone" aria-hidden="true"></div>
 </figure>
 
@@ -42,6 +46,9 @@ const { src, alt } = Astro.props;
     object-position: 35% 30%;
     filter: grayscale(1) contrast(1.15) brightness(1.05);
   }
+  .duotone--color .duotone__img {
+    filter: none;
+  }
   /* Duotone: shadows -> ink, highlights -> cream, via a blended gradient
      over the grayscale photo. */
   .duotone__map {
@@ -58,5 +65,8 @@ const { src, alt } = Astro.props;
   }
   .duotone .halftone {
     opacity: 0.5;
+  }
+  .duotone--color .halftone {
+    opacity: 0.16;
   }
 </style>

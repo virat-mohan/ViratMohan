@@ -30,14 +30,6 @@ const here = Astro.url.pathname.replace(/\/$/, '') || '/';
         }
       </ul>
     </nav>
-    <button
-      class="nav__toggle"
-      type="button"
-      aria-label="Toggle colour theme"
-      data-theme-toggle
-    >
-      <span class="nav__toggle-dot" aria-hidden="true"></span>
-    </button>
   </div>
 </header>
 
@@ -82,31 +74,6 @@ const here = Astro.url.pathname.replace(/\/$/, '') || '/';
   .nav__link[aria-current='page'] {
     color: var(--muted);
   }
-  .nav__toggle {
-    width: 2rem;
-    height: 2rem;
-    display: grid;
-    place-items: center;
-    background: transparent;
-    border: 1px solid var(--rule);
-    border-radius: 999px;
-    cursor: pointer;
-    padding: 0;
-    transition: border-color 0.3s ease;
-  }
-  .nav__toggle:hover {
-    border-color: var(--gold);
-  }
-  .nav__toggle-dot {
-    width: 0.6rem;
-    height: 0.6rem;
-    border-radius: 999px;
-    background: var(--fg);
-    transition: background 0.3s ease;
-  }
-  :global([data-theme='dark']) .nav__toggle-dot {
-    background: var(--gold);
-  }
   @media (max-width: 540px) {
     .nav__inner {
       flex-wrap: wrap;
@@ -119,11 +86,8 @@ const here = Astro.url.pathname.replace(/\/$/, '') || '/';
     .nav__mark {
       order: 1;
     }
-    .nav__toggle {
-      order: 2;
-    }
     nav {
-      order: 3;
+      order: 2;
       margin-left: 0;
       flex: 1 0 100%;
     }
@@ -136,19 +100,3 @@ const here = Astro.url.pathname.replace(/\/$/, '') || '/';
     }
   }
 </style>
-
-<script is:inline>
-  (function () {
-    var btn = document.querySelector('[data-theme-toggle]');
-    if (!btn) return;
-    btn.addEventListener('click', function () {
-      var root = document.documentElement;
-      var next =
-        root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-      root.setAttribute('data-theme', next);
-      try {
-        localStorage.setItem('theme', next);
-      } catch (e) {}
-    });
-  })();
-</script>

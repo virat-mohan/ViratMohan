@@ -50,27 +50,9 @@
   color-scheme: light;
 }
 
-:root[data-theme='dark'] {
-  --bg: color-mix(in srgb, var(--ink) 85%, var(--indigo) 15%);
-  --fg: var(--paper);
-  --muted: #a89e92;
-  --rule: rgba(245, 245, 240, 0.1);
-  --portrait-grad: linear-gradient(160deg, #1a1410 0%, #221b15 100%);
-  --portrait-blend: screen;
-  color-scheme: dark;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --bg: color-mix(in srgb, var(--ink) 85%, var(--indigo) 15%);
-    --fg: var(--paper);
-    --muted: #a89e92;
-    --rule: rgba(245, 245, 240, 0.1);
-    --portrait-grad: linear-gradient(160deg, #1a1410 0%, #221b15 100%);
-    --portrait-blend: screen;
-    color-scheme: dark;
-  }
-}
+/* This site commits to one authored look — a poster is a fixed artifact,
+   not something that inverts for a dark-mode viewer. No toggle, no
+   prefers-color-scheme override. */
 
 /* =========================================================================
    BASE

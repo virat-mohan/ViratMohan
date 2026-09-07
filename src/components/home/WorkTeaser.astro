@@ -29,9 +29,8 @@ const projects = (await getCollection('work'))
     <ul class="work-teaser__list">
       {
         projects.map((p) => (
-          <li class="work-teaser__item" data-reveal>
+          <li class="work-teaser__item" data-reveal style={`--c: ${p.data.accent}`}>
             <a class="work-teaser__link" href={`/work/${p.id}`}>
-              <span class="work-teaser__swatch" style={`background:${p.data.accent}`}></span>
               <span class="eyebrow work-teaser__category">
                 {p.data.category}
               </span>
@@ -71,29 +70,28 @@ const projects = (await getCollection('work'))
   .work-teaser__link {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.6rem;
     text-decoration: none;
     background: var(--bg);
-    padding: 1.75rem 1.5rem;
+    padding: 1.75rem 1.5rem 2rem;
     height: 100%;
+    border-top: 5px solid var(--c);
     transition: background 0.3s ease;
   }
   .work-teaser__link:hover,
   .work-teaser__link:focus-visible {
-    background: color-mix(in srgb, var(--gold) 6%, var(--bg));
-  }
-  .work-teaser__swatch {
-    display: block;
-    width: 2rem;
-    height: 6px;
-    margin-bottom: 0.25rem;
+    background: color-mix(in srgb, var(--c) 8%, var(--bg));
   }
   .work-teaser__category {
     margin: 0;
+    color: var(--c);
   }
   .work-teaser__brand {
-    font-family: var(--serif);
-    font-size: clamp(1.2rem, 2.2vw, 1.5rem);
+    font-family: var(--display);
+    font-weight: 400;
+    text-transform: uppercase;
+    font-size: clamp(1.3rem, 2.2vw, 1.6rem);
+    letter-spacing: 0.01em;
     color: var(--fg);
   }
   .work-teaser__more {

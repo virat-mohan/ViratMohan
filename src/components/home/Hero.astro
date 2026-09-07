@@ -3,7 +3,7 @@ import { Image } from 'astro:assets';
 import { site } from '../../data/site';
 import DuotonePhoto from '../DuotonePhoto.astro';
 import devshopLogo from '../../assets/devshop-logo.png';
-import virat from '../../assets/virat.png';
+import vm1 from '../../assets/vm1.png';
 ---
 
 <section class="hero" aria-labelledby="hero-name">
@@ -47,7 +47,12 @@ import virat from '../../assets/virat.png';
     </div>
     <div class="hero__portrait">
       <div class="hero__portrait-reveal" data-reveal style="--reveal-delay: 120ms">
-        <DuotonePhoto src={virat} alt="Virat Mohan" />
+        <DuotonePhoto
+          src={vm1}
+          alt="Virat Mohan at his desk"
+          duotone={false}
+          objectPosition="50% 18%"
+        />
       </div>
     </div>
   </div>

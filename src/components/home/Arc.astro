@@ -1,27 +1,28 @@
 ---
 import { arc } from '../../data/site';
+
+const swatches = ['terracotta', 'cobalt', 'magenta', 'bronze', 'ink'];
 ---
 
 <section class="arc section" aria-labelledby="arc-h">
   <div class="container">
     <p class="eyebrow" data-reveal>The arc</p>
     <h2 id="arc-h" class="arc__h" data-reveal style="--reveal-delay: 60ms">
-      Two decades, five turns.
+      Twenty-plus years, ten turns.
     </h2>
 
-    <div class="arc__list">
+    <div class="arc__grid">
       {
         arc.map((block, i) => (
-          <>
-            {i > 0 && <hr class="rule-gold arc__rule" />}
-            <article class="arc__block" data-reveal>
-              <p class="eyebrow arc__range">{block.range}</p>
-              <div class="arc__copy">
-                <h3 class="arc__title">{block.title}</h3>
-                <p class="arc__text dim">{block.body}</p>
-              </div>
-            </article>
-          </>
+          <article
+            class="arc__tile"
+            data-reveal
+            style={`--reveal-delay: ${(i % 5) * 40}ms; --c: var(--${swatches[i % swatches.length]})`}
+          >
+            <p class="arc__range">{block.range}</p>
+            <h3 class="arc__title">{block.title}</h3>
+            <p class="arc__text dim">{block.body}</p>
+          </article>
         ))
       }
     </div>
@@ -31,41 +32,49 @@ import { arc } from '../../data/site';
 <style>
   .arc__h {
     margin: 0.75rem 0 3.5rem;
-    max-width: 16ch;
+    max-width: 18ch;
   }
-  .arc__list {
-    display: flex;
-    flex-direction: column;
-  }
-  .arc__rule {
-    width: 100%;
-    margin-block: 2.75rem;
-  }
-  .arc__block {
+  .arc__grid {
     display: grid;
-    grid-template-columns: 12rem 1fr;
-    gap: clamp(1rem, 4vw, 3rem);
-    align-items: baseline;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+  }
+  .arc__tile {
+    background: var(--bg);
+    padding: 1.75rem 1.5rem 2rem;
+    border-top: 5px solid var(--c);
   }
   .arc__range {
-    margin: 0;
-    padding-top: 0.4rem;
+    font-family: var(--sans);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--c);
+    margin: 0 0 0.6rem;
   }
   .arc__title {
+    font-family: var(--display);
+    font-weight: 400;
+    text-transform: uppercase;
+    font-size: 1.15rem;
+    letter-spacing: 0.01em;
     margin: 0 0 0.75rem;
   }
   .arc__text {
     margin: 0;
-    max-width: 60ch;
-    font-size: 1.0625rem;
+    font-size: 0.875rem;
+    line-height: 1.55;
   }
-  @media (max-width: 680px) {
-    .arc__block {
-      grid-template-columns: 1fr;
-      gap: 0.75rem;
+  @media (max-width: 980px) {
+    .arc__grid {
+      grid-template-columns: repeat(2, 1fr);
     }
-    .arc__range {
-      padding-top: 0;
+  }
+  @media (max-width: 560px) {
+    .arc__grid {
+      grid-template-columns: 1fr;
     }
   }
 </style>

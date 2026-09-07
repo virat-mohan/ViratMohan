@@ -63,17 +63,42 @@ export type ArcBlock = {
   body: string;
 };
 
-// THE ARC — five prose blocks, no timeline component.
+// THE ARC — ten prose blocks, no timeline component.
 export const arc: ArcBlock[] = [
+  {
+    range: '2002',
+    title: 'The Trade',
+    body: 'Traded computer hardware between the UAE and India — cabinets, mice, keyboards. The first business, and the first lesson in margin.',
+  },
+  {
+    range: '~2005',
+    title: 'The Brand',
+    body: 'General Manager, India, for Surya Henna — a Brazilian hair-colour brand. Early exposure to running a consumer brand end to end, on someone else’s balance sheet.',
+  },
   {
     range: '2008–2015',
     title: 'The Discipline',
     body: 'KPMG London and HSBC statutory audits, qualifying as an ICAEW chartered accountant. Financial-services rigour became the foundation for everything that followed — the habit of tying every claim back to a number.',
   },
   {
+    range: '2009–2014',
+    title: 'The Ice',
+    body: 'Founded Perfect Ice, a D2C ice brand with home delivery. Production, cold-chain and last-mile in one business, with demand that spiked on the hottest days of the year and vanished the rest.',
+  },
+  {
+    range: '2010',
+    title: 'The Daily',
+    body: 'Started a free daily newspaper aimed at metro commuters — content, print and distribution, on a model that lived entirely on advertising.',
+  },
+  {
+    range: '~2010',
+    title: 'The Pavers',
+    body: 'Ran a tile manufacturing unit producing concrete pavers for the Commonwealth Games. Heavy industry, a world away from everything else on this list.',
+  },
+  {
     range: '2015–2020',
     title: 'The Operator',
-    body: 'Pita Pit, from regional director to CEO across India, the UK, the UAE, KSA and Singapore. Grew the estate from 6 to 21 units and quadrupled revenue. The move from auditing operators to being one.',
+    body: 'Pita Pit, from regional director to CEO across India, the UK, the UAE, KSA and Singapore. Grew the estate from 6 to 21 units and quadrupled revenue — one chapter in 15+ years spent across restaurant brands worldwide.',
   },
   {
     range: '2020–2022',
@@ -87,7 +112,7 @@ export const arc: ArcBlock[] = [
   },
   {
     range: '2024–now',
-    title: 'The Layer',
+    title: 'Consulting and AI',
     body: 'Opportunities Unlocked LLP and ClarityHQ. AI-native growth services delivered by a distributed human network — the operating layer between capital and execution, built for a market where judgment is the scarce input.',
   },
 ];
