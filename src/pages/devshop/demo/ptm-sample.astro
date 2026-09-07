@@ -1,0 +1,247 @@
+---
+// A hand-built SAMPLE of the PTM (Process/Task/Machine) operating-model
+// document DevShop delivers at implementation — not before. Built for the
+// same Meridian Supply Co / AR-reconciliation example already used in
+// methodology.astro's case study and the AR-reconciliation artefact mock,
+// so every example on the site stays consistent instead of introducing a
+// new company/problem. Static page, same portal chrome as methodology.astro.
+
+import PortalHeader from '../../../components/devshop/PortalHeader.astro';
+import { site } from '../../../data/site';
+
+const title = 'Sample PTM document — Fast Tech Dev Shop';
+const description = 'A real example of the PTM (Process/Task/Machine) operating-model document delivered at implementation — Function Library entry, task-by-task Human vs Machine allocation, and the workload math behind it.';
+const canonical = new URL('/devshop/demo/ptm-sample', site.domain).href;
+
+const tasks = [
+  { task: 'Pull the incoming payment record from the bank feed', complexity: 'Low', automation: 'F', time: '—', freq: '310 / mo', hours: '0', role: '—', systems: 'Accounting system', priority: 3 },
+  { task: 'Match payment against open invoices', complexity: 'Medium', automation: 'A', time: '—', freq: '310 / mo', hours: '0', role: '—', systems: 'Accounting system', priority: 5 },
+  { task: 'Diagnose the variance on an unmatched payment', complexity: 'Medium–High', automation: 'SA', time: '8 min', freq: '49 / mo', hours: '6.5', role: 'AR Lead', systems: 'Accounting system, Email', priority: 5 },
+  { task: 'Approve the match override or write-off', complexity: 'High (judgement)', automation: 'M', time: '2 min', freq: '49 / mo', hours: '1.6', role: 'AR Lead', systems: 'Accounting system', priority: 4 },
+  { task: 'Post the resolution and close the ledger entry', complexity: 'Low', automation: 'F', time: '—', freq: '359 / mo', hours: '0', role: '—', systems: 'Accounting system', priority: 2 },
+];
+
+const AUTOMATION_LABELS: Record<string, string> = { M: 'Manual', A: 'Automated', SA: 'Semi-Automated', F: 'Fully AI-driven' };
+---
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={canonical} />
+  <meta name="robots" content="noindex, follow" />
+  <link rel="icon" href="/devshop-favicon.svg" type="image/svg+xml" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <PortalHeader homeHref="/devshop" spa={false} currentSlug={null} />
+
+  <main class="wrap">
+    <div class="eyebrow">SAMPLE DELIVERABLE — SHIPS AT IMPLEMENTATION, NOT BEFORE</div>
+    <h1 class="hero serif">The PTM<span class="tag mono">&trade;</span> operating model,<br />for one real process.</h1>
+    <p class="sub">A real example of what you get once a build moves into implementation — not a diagram of our process, a document about <em>your</em> business. Built for the same Meridian Supply Co example used on the <a href="/devshop/methodology">methodology page</a>.</p>
+
+    <section class="block">
+      <div class="section-head"><span class="section-num mono">01</span><h2>Function Library entry</h2></div>
+      <div class="fn-grid">
+        <div class="fn-row"><span class="fn-key">Function</span><span class="fn-val">Accounts Receivable — Payment Reconciliation</span></div>
+        <div class="fn-row"><span class="fn-key">Purpose</span><span class="fn-val">Confirm every incoming payment against the invoice(s) it settles, so the books close clean.</span></div>
+        <div class="fn-row"><span class="fn-key">Trigger</span><span class="fn-val">A payment lands in the bank feed.</span></div>
+        <div class="fn-row"><span class="fn-key">Outcome</span><span class="fn-val">Payment matched to invoice, ledger updated, exceptions resolved.</span></div>
+        <div class="fn-row"><span class="fn-key">Stakeholders</span><span class="fn-val">AR Lead, Finance Controller, Sales Ops (invoice accuracy)</span></div>
+        <div class="fn-row"><span class="fn-key">Inputs</span><span class="fn-val">Bank feed transactions, open-invoice ledger</span></div>
+        <div class="fn-row"><span class="fn-key">Outputs</span><span class="fn-val">Reconciled ledger entries, exception resolutions</span></div>
+        <div class="fn-row"><span class="fn-key">Frequency</span><span class="fn-val">Continuous — ≈310 payments / month</span></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head"><span class="section-num mono">02</span><h2>Process → Task → Human/Machine allocation</h2></div>
+      <p class="section-intro">Process: <strong>Incoming Payment Reconciliation.</strong> Every task below is classified Manual (M), Semi-Automated (SA), Automated (A), or Fully AI-driven (F) — decided task by task, not "automate everything."</p>
+      <div class="task-table-wrap">
+        <table class="task-table">
+          <thead>
+            <tr>
+              <th>Task</th><th>Complexity</th><th>Automation</th><th>Human time</th><th>Frequency</th><th>Monthly hrs</th><th>Role</th><th>Systems</th><th>Priority</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tasks.map((t) => (
+              <tr>
+                <td class="t-task">{t.task}</td>
+                <td>{t.complexity}</td>
+                <td><span class={`auto-pill auto-${t.automation}`}>{t.automation}</span></td>
+                <td class="mono">{t.time}</td>
+                <td class="mono">{t.freq}</td>
+                <td class="mono">{t.hours}</td>
+                <td>{t.role}</td>
+                <td class="t-systems">{t.systems}</td>
+                <td class="mono">{t.priority}/5</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div class="auto-legend">
+        {Object.entries(AUTOMATION_LABELS).map(([k, v]) => (
+          <span class="auto-legend-item"><span class={`auto-pill auto-${k}`}>{k}</span>{v}</span>
+        ))}
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head"><span class="section-num mono">03</span><h2>Current → Augmented → Future</h2></div>
+      <div class="cav-grid">
+        <div class="cav-card">
+          <p class="cav-label">Current</p>
+          <p class="cav-body">An AR clerk opens the bank feed, cross-checks every payment against a spreadsheet of open invoices by hand, and flags anything odd in a running notes doc. ≈40 hrs/month, every payment touched by a human regardless of whether it's a clean match.</p>
+        </div>
+        <div class="cav-card">
+          <p class="cav-label">Augmented</p>
+          <p class="cav-body">The mechanism auto-matches clean payments and closes the ledger entry itself. The AR Lead only ever sees the ≈49/month genuine exceptions, and the mechanism drafts the variance summary before they look at it — they approve or correct, not investigate from scratch.</p>
+        </div>
+        <div class="cav-card">
+          <p class="cav-label">Future</p>
+          <p class="cav-body">Same allocation as Augmented, but the exception rate itself trends down as upstream data quality (PO references, bank remittance detail) improves — reviewed quarterly as part of DevShop Care + Optimisation, not a new build.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head"><span class="section-num mono">04</span><h2>Workload math</h2></div>
+      <div class="calc-grid">
+        <div class="calc-card"><p class="calc-num serif">≈40<span class="calc-unit">hrs/mo</span></p><p class="calc-cap">Current — fully manual baseline</p></div>
+        <div class="calc-arrow">→</div>
+        <div class="calc-card"><p class="calc-num serif">≈8<span class="calc-unit">hrs/mo</span></p><p class="calc-cap">Future — exceptions only</p></div>
+        <div class="calc-card calc-card--result"><p class="calc-num serif">≈32<span class="calc-unit">hrs/mo</span></p><p class="calc-cap">Recovered — ≈0.18 FTE of capacity, without adding headcount</p></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head"><span class="section-num mono">05</span><h2>Planning, training &amp; tech stack</h2></div>
+      <div class="pt-grid">
+        <div class="pt-item">
+          <p class="pt-title">Planning</p>
+          <p class="pt-body">PTM Priority sequences the build — the two Priority 5 tasks (matching, diagnosis) get built and validated first, since they carry the most workload; Priority 2–3 tasks (extraction, posting) are lower-risk to automate and follow once the core match logic is proven.</p>
+        </div>
+        <div class="pt-item">
+          <p class="pt-title">Training</p>
+          <p class="pt-body">Only the AR Lead needs training — on reading the mechanism's variance summary and using the approve/override action. The fully-automated tasks need no training at all; nobody has to learn a new tool to do work that no longer reaches them.</p>
+        </div>
+        <div class="pt-item">
+          <p class="pt-title">Tech stack</p>
+          <p class="pt-body">Reads and writes to the existing accounting system's bank feed and invoice ledger directly — no new system of record. Exception notifications route to the AR Lead's existing inbox, not a new dashboard they have to remember to check.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="cta-block">
+      <h2 class="serif">This is what implementation actually produces.</h2>
+      <a class="btn" href="/devshop">Start with your own problem →</a>
+    </div>
+  </main>
+</body>
+</html>
+
+<style>
+  :root {
+    --dev-bg: #15130f;
+    --dev-text: #f5f5f0;
+    --dev-muted1: #b7b5af;
+    --dev-muted2: #85837e;
+    --dev-muted3: #625f59;
+    --dev-gold: #d4af37;
+    --dev-blue: #91afc0;
+    --dev-green: #6fae6a;
+    --dev-rose: #a66a62;
+    --dev-hair: rgba(245, 245, 240, 0.18);
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { width: 100%; margin: 0; }
+  body {
+    background: var(--dev-bg); color: var(--dev-text);
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif; overflow-x: hidden;
+  }
+  a { color: inherit; }
+  .serif { font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; }
+  .mono { font-family: 'JetBrains Mono', SFMono-Regular, Consolas, monospace; }
+
+  .wrap { max-width: 980px; margin: 0 auto; padding: 64px 64px 80px; }
+  .eyebrow { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dev-gold); margin-bottom: 24px; }
+  h1.hero { font-size: clamp(32px, 4.6vw, 52px); line-height: 1.08; letter-spacing: -0.01em; margin: 0 0 20px; }
+  h1.hero .tag { font-size: 16px; color: var(--dev-gold); vertical-align: super; }
+  p.sub { font-size: 16px; color: var(--dev-muted1); line-height: 1.65; max-width: 640px; margin: 0 0 56px; }
+  p.sub a { color: var(--dev-blue); text-decoration: underline; }
+  p.sub em { color: var(--dev-text); font-style: normal; }
+
+  .block { margin-bottom: 56px; }
+  .section-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--dev-hair); }
+  .section-num { font-size: 12px; color: var(--dev-gold); }
+  .section-head h2 { font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: 24px; margin: 0; }
+  .section-intro { font-size: 13.5px; color: var(--dev-muted1); line-height: 1.6; margin: 0 0 18px; max-width: 68ch; }
+  .section-intro strong { color: var(--dev-text); }
+
+  .fn-grid { display: flex; flex-direction: column; }
+  .fn-row { display: flex; gap: 20px; padding: 11px 0; border-top: 1px solid var(--dev-hair); }
+  .fn-row:first-child { border-top: none; }
+  .fn-key { flex: none; width: 130px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--dev-muted2); padding-top: 2px; }
+  .fn-val { font-size: 14px; color: var(--dev-text); line-height: 1.55; }
+
+  .task-table-wrap { overflow-x: auto; }
+  .task-table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 760px; }
+  .task-table th {
+    text-align: left; font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--dev-muted2);
+    font-weight: 400; padding: 0 10px 10px 0; border-bottom: 1px solid var(--dev-hair);
+  }
+  .task-table td { padding: 12px 10px 12px 0; border-bottom: 1px solid var(--dev-hair); vertical-align: top; color: var(--dev-muted1); }
+  .task-table .t-task { color: var(--dev-text); max-width: 220px; }
+  .task-table .t-systems { color: var(--dev-muted2); }
+
+  .auto-pill {
+    display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600;
+    border-radius: 4px; padding: 2px 7px; letter-spacing: 0.02em;
+  }
+  .auto-M { background: rgba(166,106,98,0.18); color: var(--dev-rose); }
+  .auto-A { background: rgba(145,175,192,0.18); color: var(--dev-blue); }
+  .auto-SA { background: rgba(212,175,55,0.18); color: var(--dev-gold); }
+  .auto-F { background: rgba(111,174,106,0.18); color: var(--dev-green); }
+
+  .auto-legend { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 16px; }
+  .auto-legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--dev-muted2); }
+
+  .cav-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .cav-card { border: 1px solid var(--dev-hair); border-radius: 6px; padding: 20px 22px; }
+  .cav-label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dev-gold); margin: 0 0 10px; }
+  .cav-body { font-size: 13px; color: var(--dev-muted1); line-height: 1.6; margin: 0; }
+
+  .calc-grid { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+  .calc-arrow { color: var(--dev-muted3); font-size: 20px; }
+  .calc-card { flex: 1; min-width: 160px; border: 1px solid var(--dev-hair); border-radius: 6px; padding: 20px 22px; text-align: center; }
+  .calc-card--result { border-color: var(--dev-gold); }
+  .calc-num { font-size: 32px; margin: 0 0 6px; }
+  .calc-unit { font-family: 'Inter', sans-serif; font-size: 13px; color: var(--dev-muted2); margin-left: 4px; }
+  .calc-cap { font-size: 12px; color: var(--dev-muted2); line-height: 1.5; margin: 0; }
+
+  .pt-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
+  .pt-title { font-family: 'Instrument Serif', Georgia, serif; font-size: 18px; margin: 0 0 8px; color: var(--dev-text); }
+  .pt-body { font-size: 13px; color: var(--dev-muted1); line-height: 1.6; margin: 0; }
+
+  .cta-block { text-align: center; padding: 56px 0 24px; border-top: 1px solid var(--dev-hair); }
+  .cta-block h2 { font-size: 24px; margin: 0 0 22px; }
+  .btn {
+    display: inline-block; font-size: 14px; letter-spacing: 0.03em; padding: 14px 26px;
+    border: 1px solid var(--dev-gold); color: var(--dev-gold); border-radius: 2px; text-decoration: none;
+    transition: background 0.2s;
+  }
+  .btn:hover { background: rgba(212, 175, 55, 0.08); }
+
+  @media (max-width: 860px) {
+    .wrap { padding: 48px 24px 60px; }
+    .cav-grid { grid-template-columns: 1fr; }
+  }
+</style>

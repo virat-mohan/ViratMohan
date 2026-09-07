@@ -18,8 +18,8 @@ const steps = [
     key: 'diagnose',
     label: 'DIAGNOSE',
     title: 'Diagnose the real problem',
-    subline: 'Decomposed to the actual task, not left as a vague symptom.',
-    body: "We start by naming which business function actually owns the problem, then break it down to the specific process and task where the failure lives — not \"sales is slow,\" but which step, done by whom, with what tool. Every diagnosis is tagged with how confident we actually are — strongly supported, a reasonable inference, or a preliminary hypothesis — so you can see exactly which parts are grounded in what you told us and which are our best working assumption.",
+    subline: 'Root cause, not the symptom — confidence-rated, not asserted.',
+    body: "We start by naming which part of the business actually owns the problem, then dig past the symptom to the root cause. Every diagnosis is tagged with how confident we actually are — strongly supported, a reasonable inference, or a preliminary hypothesis — so you can see exactly which parts are grounded in what you told us and which are our best working assumption.",
   },
   {
     n: '02',
@@ -42,8 +42,8 @@ const steps = [
     key: 'mechanism',
     label: 'MECHANISM',
     title: 'Design the actual mechanism',
-    subline: 'Every task classified Manual, Semi-Automated, Automated, or Fully AI-driven — not automated by default.',
-    body: "For each task in the workflow, we classify what level of human involvement is actually right — Manual, Semi-Automated, Automated, or Fully AI-driven — not \"automate everything\" by default. What should stay human stays human; what genuinely should run itself gets built from a fixed, curated library of AI agent roles (data extraction, classification, decision-making, action-taking, and more), never invented per pitch. That consistency means what we propose is something we've actually built the pattern for before.",
+    subline: 'Built from one fixed library of AI agent roles — never invented per pitch.',
+    body: "We design the specific workflow that fixes the root cause — what triggers it, what data it acts on, what happens at each step — built from a fixed, curated library of AI agent roles (data extraction, classification, decision-making, action-taking, and more). That consistency means what we propose is something we've actually built the pattern for before, not a one-off idea invented for your pitch.",
   },
   {
     n: '05',
@@ -141,7 +141,7 @@ const ICONS: Record<string, string> = {
 
     <div class="ptm-mark">
       <span class="ptm-mark-badge mono">PTM<sup>&trade;</sup></span>
-      <p class="ptm-mark-text">Underneath every stage is <strong>Process / Task / Machine</strong> — our proprietary framework for decomposing a business into its actual functions, processes, and tasks, then determining exactly which piece of work stays human, which gets AI alongside a person, and which the system should own outright. It's the reasoning behind every "who builds it" and "what stays human" answer on this page.</p>
+      <p class="ptm-mark-text">Stages 01–07 above are how we diagnose and design the demo you're looking at — grounded in established frameworks like Six Sigma and DMAIC. Once you move forward, implementation runs on <strong>Process / Task / Machine</strong>, our proprietary framework for decomposing your business into its actual functions, processes, and tasks, then deciding exactly which piece of work stays human, which gets AI alongside a person, and which the system should own outright. <a href="/devshop/demo/ptm-sample" class="ptm-mark-link">See a full sample PTM document →</a></p>
     </div>
 
     <div class="methodology-grid">
@@ -183,7 +183,7 @@ const ICONS: Record<string, string> = {
           <span class="case-value">Data Extraction &rarr; Reconciliation/Matching &rarr; Exception/Diagnosis &rarr; Notification</span>
         </div>
         <div class="case-row">
-          <span class="case-label mono">§04 AUTOMATION</span>
+          <span class="case-label mono">§08 PTM</span>
           <span class="case-value">Semi-Automated (SA) — clean matches clear themselves, variances escalate to the AR Lead</span>
         </div>
         <div class="case-row">
@@ -282,6 +282,7 @@ const ICONS: Record<string, string> = {
   .ptm-mark-badge sup { font-size: 9px; }
   .ptm-mark-text { font-size: 13.5px; color: var(--dev-muted1); line-height: 1.6; margin: 0; }
   .ptm-mark-text strong { color: var(--dev-text); font-weight: 600; }
+  .ptm-mark-link { color: var(--dev-blue); text-decoration: underline; white-space: nowrap; }
 
   .methodology-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; margin-bottom: 24px; }
   .steps-list, .cta-block { max-width: 760px; }
