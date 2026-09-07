@@ -57,13 +57,13 @@ const problemLibrary = [
 // ClarityHQ, Content-ment, and Coach Your Psyche don't have one; href is
 // omitted for the same reason on the latter three (not live yet).
 const proof = [
-  { name: 'Travaholic', industry: 'D2C E-Commerce', result: 'D2C infrastructure live in 2 days', href: 'https://travaholic.in', logo: travaholicLogo, screenshot: travaholicShot },
-  { name: 'Travaholic Stays', industry: 'Hospitality / Travel', result: 'Direct booking system replacing Airbnb, WhatsApp, and a spreadsheet', href: 'https://travaholicstays.com', logo: travaholicStaysLogo, screenshot: travaholicStaysShot },
-  { name: 'The Feeling Co.', industry: 'Events / Hospitality', result: 'Full digital operation — 9 releases, zero external subscriptions', href: 'https://thefeelingco.online', logo: feelingCoLogo, screenshot: feelingCoShot },
-  { name: 'India Contemporary', industry: 'Retail / Marketplace', result: 'Two-sided marketplace connecting artists to collectors', href: 'https://indiacontemporary.net', screenshot: indiaContemporaryShot },
-  { name: 'ClarityHQ', industry: 'Marketing / Growth', result: 'AI-native growth agency — acquisition, conversion, and retention run on one shared Brand Intelligence layer', href: site.clarityhq, screenshot: clarityhqShot, fit: 'contain' },
-  { name: 'Content-ment', industry: 'Content / Marketing Tech', result: 'AI content operating system — drafting, approval, and export, entirely in-browser with zero backend', screenshot: contentmentShot, fit: 'contain' },
-  { name: 'Coach Your Psyche', industry: 'Health & Wellness', result: 'AI mental wellness coaching — 4 personality-styled therapists, pay-per-message via Stripe', screenshot: coachYourPsycheShot, fit: 'contain' },
+  { name: 'Travaholic', industry: 'D2C E-Commerce', result: 'Full commerce platform — catalog, checkout, and order management live in 2 days', href: 'https://travaholic.in', logo: travaholicLogo, screenshot: travaholicShot },
+  { name: 'Travaholic Stays', industry: 'Hospitality / Travel', result: 'Direct booking platform — reservations, payments, and inventory replacing Airbnb, WhatsApp, and a spreadsheet', href: 'https://travaholicstays.com', logo: travaholicStaysLogo, screenshot: travaholicStaysShot },
+  { name: 'The Feeling Co.', industry: 'Events / Hospitality', result: 'Full digital operation — 9 releases on one integrated stack, zero external subscriptions', href: 'https://thefeelingco.online', logo: feelingCoLogo, screenshot: feelingCoShot },
+  { name: 'India Contemporary', industry: 'Retail / Marketplace', result: 'Two-sided marketplace platform — listings, payments, and fulfillment connecting artists to collectors', href: 'https://indiacontemporary.net', screenshot: indiaContemporaryShot },
+  { name: 'ClarityHQ', industry: 'Marketing / Growth', result: 'AI-native growth platform — acquisition, conversion, and retention run on one shared Brand Intelligence layer and database', href: site.clarityhq, screenshot: clarityhqShot, fit: 'contain' },
+  { name: 'Content-ment', industry: 'Content / Marketing Tech', result: 'AI content operating platform — drafting, approval, and export in one integrated workflow, not three disconnected tools', screenshot: contentmentShot, fit: 'contain' },
+  { name: 'Coach Your Psyche', industry: 'Health & Wellness', result: 'AI mental wellness platform — 4 personality-styled therapists, session history, and pay-per-message billing via Stripe', screenshot: coachYourPsycheShot, fit: 'contain' },
 ];
 
 // Full-colour icon marks for the Integrations screen only (per instruction —
@@ -253,6 +253,7 @@ const canonical = new URL('/devshop', site.domain).href;
   <section class="screen screen--scroll" id="proof" data-marketing-index="3">
     <div class="eyebrow">PROOF</div>
     <h1 class="hero serif">Built fast. <span class="tint-blue">Shipped</span> for real.</h1>
+    <p class="sub" style="max-width:640px; margin-top:8px;">Every one of these is a fully functional platform — a real backend, a database, payments, and an integrated tech stack — not a marketing site with a form on it. We can do customer-facing design too, but that's not the core of what we sell; the core is solving the business problem underneath it.</p>
     <div class="proof-grid">
       {proof.map((p) => (
         <a
@@ -269,10 +270,10 @@ const canonical = new URL('/devshop', site.domain).href;
             {p.logo ? (
               <Image class="proof-logo-img" src={p.logo} alt={`${p.name} logo`} width={28} height={28} />
             ) : (
-              <span class="proof-logo-text serif">{p.name}</span>
+              <span class="proof-logo-text serif">{p.name.charAt(0)}</span>
             )}
             <div class="proof-card-text">
-              {p.logo && <div class="name">{p.name}</div>}
+              <div class="name">{p.name}</div>
               <div class="result">{p.result}</div>
             </div>
           </div>
@@ -919,7 +920,10 @@ const canonical = new URL('/devshop', site.domain).href;
   .proof-card:hover .proof-shot :global(img) { transform: scale(1.03); }
   .proof-card-body { display: flex; align-items: center; gap: 14px; padding: 18px 20px; }
   .proof-logo-img { flex: none; width: 28px; height: 28px; object-fit: contain; border-radius: 4px; }
-  .proof-logo-text { flex: none; font-size: 18px; font-style: italic; color: var(--dev-gold); }
+  .proof-logo-text {
+    flex: none; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+    border-radius: 6px; background: var(--dev-bg); font-size: 15px; font-style: italic; color: var(--dev-gold);
+  }
   .proof-card-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
   .proof-card-text .name { font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dev-text); }
   .proof-card-text .result { font-size: 13.5px; color: var(--dev-muted1); line-height: 1.4; }
