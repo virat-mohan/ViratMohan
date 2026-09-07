@@ -21,6 +21,7 @@
     "@fontsource/instrument-serif": "^5.1.0",
     "@supabase/supabase-js": "^2.115.0",
     "@tailwindcss/vite": "^4.0.0",
+    "@vercel/analytics": "^2.0.1",
     "@vercel/functions": "^3.9.5",
     "astro": "^5.1.0",
     "svix": "^2.3.0",
