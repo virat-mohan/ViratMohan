@@ -6,9 +6,10 @@ interface Props {
   src: ImageMetadata;
   alt: string;
   aspect?: string;
+  objectPosition?: string;
 }
 
-const { src, alt, aspect = '4 / 5' } = Astro.props;
+const { src, alt, aspect = '4 / 5', objectPosition = '50% 30%' } = Astro.props;
 ---
 
 <figure class="photo-block" style={`aspect-ratio: ${aspect}`}>
@@ -21,6 +22,7 @@ const { src, alt, aspect = '4 / 5' } = Astro.props;
     quality={82}
     decoding="async"
     loading="lazy"
+    style={`object-position: ${objectPosition}`}
   />
   <div class="photo-block__warm" aria-hidden="true"></div>
   <svg class="photo-block__grain" aria-hidden="true" preserveAspectRatio="none">

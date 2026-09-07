@@ -1,10 +1,9 @@
 ---
 const links = [
-  { href: '/devshop', label: 'Dev Shop' },
-  { href: '/about', label: 'About' },
-  { href: '/advisory', label: 'Advisory' },
-  { href: '/writing', label: 'Writing' },
-  { href: '/clarityhq', label: 'ClarityHQ' },
+  { href: '/devshop', label: 'Dev Shop', c: 'var(--gold)' },
+  { href: '/clarityhq', label: 'ClarityHQ', c: 'var(--magenta)' },
+  { href: '/advisory', label: 'Advisory', c: 'var(--cobalt)' },
+  { href: '/writing', label: 'My Writing', c: 'var(--terracotta)' },
 ];
 const here = Astro.url.pathname.replace(/\/$/, '') || '/';
 ---
@@ -19,7 +18,8 @@ const here = Astro.url.pathname.replace(/\/$/, '') || '/';
             <li>
               <a
                 href={l.href}
-                class="nav__link link-underline"
+                class="nav__link"
+                style={`--c: ${l.c}`}
                 aria-current={here === l.href ? 'page' : undefined}
               >
                 {l.label}
@@ -30,6 +30,12 @@ const here = Astro.url.pathname.replace(/\/$/, '') || '/';
       </ul>
     </nav>
   </div>
+  <div class="nav__bar" aria-hidden="true">
+    <span style="background: var(--gold)"></span>
+    <span style="background: var(--magenta)"></span>
+    <span style="background: var(--cobalt)"></span>
+    <span style="background: var(--terracotta)"></span>
+  </div>
 </header>
 
 <style>
@@ -38,18 +44,17 @@ const here = Astro.url.pathname.replace(/\/$/, '') || '/';
     top: 0;
     z-index: 50;
     background: var(--bg);
-    border-bottom: 1px solid var(--rule);
   }
   .nav__inner {
     display: flex;
     align-items: center;
     gap: 2rem;
-    height: 4.5rem;
+    height: 5.5rem;
   }
   .nav__mark {
     font-family: var(--display);
     font-weight: 400;
-    font-size: 1.25rem;
+    font-size: 1.75rem;
     letter-spacing: 0.01em;
     text-decoration: none;
     color: var(--fg);
@@ -60,27 +65,42 @@ const here = Astro.url.pathname.replace(/\/$/, '') || '/';
   }
   .nav__list {
     display: flex;
-    gap: clamp(1rem, 3vw, 2.25rem);
+    gap: clamp(1.25rem, 3vw, 2.5rem);
     list-style: none;
     margin: 0;
     padding: 0;
   }
   .nav__link {
-    font-size: 0.8125rem;
-    letter-spacing: 0.02em;
+    position: relative;
+    font-family: var(--sans);
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
     color: var(--fg);
+    text-decoration: none;
+    padding-bottom: 4px;
+    border-bottom: 3px solid transparent;
+    transition: border-color 0.25s ease, color 0.25s ease;
   }
+  .nav__link:hover,
+  .nav__link:focus-visible,
   .nav__link[aria-current='page'] {
-    color: var(--muted);
+    color: var(--c);
+    border-bottom-color: var(--c);
   }
-  @media (max-width: 540px) {
+  .nav__bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    height: 5px;
+  }
+  @media (max-width: 620px) {
     .nav__inner {
       flex-wrap: wrap;
       justify-content: space-between;
       height: auto;
-      padding-top: 1rem;
-      padding-bottom: 1rem;
-      row-gap: 0.75rem;
+      padding-top: 1.25rem;
+      padding-bottom: 1.25rem;
+      row-gap: 1rem;
     }
     .nav__mark {
       order: 1;
@@ -92,10 +112,10 @@ const here = Astro.url.pathname.replace(/\/$/, '') || '/';
     }
     .nav__list {
       flex-wrap: wrap;
-      gap: 0.6rem 1rem;
+      gap: 0.9rem 1.25rem;
     }
     .nav__link {
-      font-size: 0.75rem;
+      font-size: 0.9rem;
     }
   }
 </style>

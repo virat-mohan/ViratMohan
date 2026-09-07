@@ -64,13 +64,15 @@ const areas = [
       <ul class="advisory__list">
         {
           areas.map((a, i) => (
-            <li class="advisory__item" data-reveal>
-              <hr
-                class="advisory__item-rule"
-                style={`background: var(--${swatches[i % swatches.length]})`}
-              />
+            <li
+              class="advisory__item"
+              data-reveal
+              style={`--c: var(--${swatches[i % swatches.length]}); --rot: ${
+                i % 2 === 0 ? '-1deg' : '0.8deg'
+              }`}
+            >
               <h2 class="advisory__title">{a.title}</h2>
-              <p class="advisory__body dim">{a.body}</p>
+              <p class="advisory__body">{a.body}</p>
             </li>
           ))
         }
@@ -111,40 +113,47 @@ const areas = [
   .advisory__relation a {
     color: var(--fg);
   }
-  .advisory__item-rule {
-    border: 0;
-    height: 4px;
-    margin: 0;
-  }
   .advisory__list {
     list-style: none;
-    margin: 0;
+    margin: 0 0 3rem;
     padding: 0;
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0 4rem;
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    gap: 2rem 1.75rem;
   }
   .advisory__item {
-    padding-block: 2.25rem;
+    background: var(--c);
+    padding: 2.25rem 1.75rem 2.5rem;
+    transform: rotate(var(--rot));
+    transition: transform 0.3s ease;
+    min-height: 13rem;
+  }
+  .advisory__item:hover {
+    transform: rotate(0deg) scale(1.02);
   }
   .advisory__title {
-    font-size: clamp(1.25rem, 2vw, 1.6rem);
-    margin: 1.25rem 0 0.75rem;
+    font-size: clamp(1.4rem, 2.2vw, 1.75rem);
+    margin: 0 0 0.9rem;
+    color: var(--poster-cream);
   }
   .advisory__body {
     margin: 0;
-    font-size: 1rem;
-    max-width: 46ch;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--poster-cream);
+    opacity: 0.92;
   }
   .advisory__cta {
-    margin-top: 4.5rem;
+    margin-top: 3rem;
     font-family: var(--serif);
     font-size: clamp(1.75rem, 4vw, 3rem);
   }
   @media (max-width: 720px) {
     .advisory__list {
       grid-template-columns: 1fr;
-      gap: 0;
+    }
+    .advisory__item {
+      transform: none;
     }
   }
 </style>

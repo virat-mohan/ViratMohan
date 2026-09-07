@@ -63,57 +63,95 @@ export type ArcBlock = {
   body: string;
 };
 
-// THE ARC — ten prose blocks, no timeline component.
+// THE ARC — eleven prose blocks, no timeline component.
 export const arc: ArcBlock[] = [
+  {
+    range: 'Education',
+    title: 'The Foundation',
+    body: 'Don Bosco School and The Shri Ram School, then LSE and Bayes Business School (formerly Cass). Qualified ACA — chartered accountant. Microsoft Certified Systems Engineer and C++ certified, from age twelve.',
+  },
   {
     range: '2002',
     title: 'The Trade',
-    body: 'Traded computer hardware between the UAE and India — cabinets, mice, keyboards. The first business, and the first lesson in margin.',
+    body: 'Traded computer hardware between the UAE and India — cabinets, mice, keyboards. The first business.',
   },
   {
     range: '~2005',
     title: 'The Brand',
-    body: 'General Manager, India, for Surya Henna — a Brazilian hair-colour brand. Early exposure to running a consumer brand end to end, on someone else’s balance sheet.',
+    body: 'General Manager, India, for Surya Henna, a Brazilian hair-colour brand. First time running a consumer brand end to end.',
   },
   {
     range: '2008–2015',
     title: 'The Discipline',
-    body: 'KPMG London and HSBC statutory audits, qualifying as an ICAEW chartered accountant. Financial-services rigour became the foundation for everything that followed — the habit of tying every claim back to a number.',
+    body: 'KPMG London and HSBC statutory audits. Seven years that built the habit of tying every claim back to a number.',
   },
   {
     range: '2009–2014',
     title: 'The Ice',
-    body: 'Founded Perfect Ice, a D2C ice brand with home delivery. Production, cold-chain and last-mile in one business, with demand that spiked on the hottest days of the year and vanished the rest.',
+    body: 'Founded Perfect Ice, a D2C ice brand with home delivery. Production, cold-chain and last-mile, one business.',
   },
   {
     range: '2010',
     title: 'The Daily',
-    body: 'Started a free daily newspaper aimed at metro commuters — content, print and distribution, on a model that lived entirely on advertising.',
+    body: 'Started a free daily newspaper for metro commuters — content, print and distribution, on advertising alone.',
   },
   {
     range: '~2010',
     title: 'The Pavers',
-    body: 'Ran a tile manufacturing unit producing concrete pavers for the Commonwealth Games. Heavy industry, a world away from everything else on this list.',
+    body: 'Ran a tile manufacturing unit producing concrete pavers for the Commonwealth Games.',
   },
   {
     range: '2015–2020',
     title: 'The Operator',
-    body: 'Pita Pit, from regional director to CEO across India, the UK, the UAE, KSA and Singapore. Grew the estate from 6 to 21 units and quadrupled revenue — one chapter in 15+ years spent across restaurant brands worldwide.',
+    body: 'Pita Pit, regional director to CEO across India, the UK, the UAE, KSA and Singapore. 6 to 21 units, revenue quadrupled.',
   },
   {
     range: '2020–2022',
     title: 'The Scale',
-    body: 'CloudKitchens®. Built 122 kitchens across three cities in under 24 months and ran APAC customer success for 1,000+ brands. Learned how throughput, not intuition, decides whether a food business survives.',
+    body: 'CloudKitchens®. 122 kitchens, three cities, under 24 months. APAC customer success for 1,000+ brands.',
   },
   {
     range: '2022–2025',
     title: 'The Capital',
-    body: 'Daryaganj CFBO — a $2M raise, Shark Tank India, a ₹150 Cr valuation. Then Chief of Staff at Foodlink through an ₹80 Cr pre-IPO round and DRHP. Sat on both sides of the term sheet.',
+    body: 'Daryaganj — $2M raised, Shark Tank India, ₹150 Cr valuation. Then Chief of Staff at Foodlink through a pre-IPO round.',
   },
   {
     range: '2024–now',
     title: 'Consulting and AI',
-    body: 'Opportunities Unlocked LLP and ClarityHQ. AI-native growth services delivered by a distributed human network — the operating layer between capital and execution, built for a market where judgment is the scarce input.',
+    body: 'ClarityHQ and Dev Shop. Advisory and AI-native builds, same operator instinct, new tools.',
+  },
+];
+
+export type Facet = {
+  title: string;
+  body: string;
+};
+
+// OFF THE RÉSUMÉ — the parts that don't fit a career timeline.
+export const facets: Facet[] = [
+  {
+    title: 'Learning to DJ',
+    body: 'Deep house and minimal techno — Boris Brejcha, Deadmau5.',
+  },
+  {
+    title: 'Pianist',
+    body: 'National competitions, and a band — Anachronox.',
+  },
+  {
+    title: 'Marathoner',
+    body: 'Vienna — rained out before the finish.',
+  },
+  {
+    title: 'Longevity',
+    body: 'Studying the Bryan Johnson school of it.',
+  },
+  {
+    title: 'Community',
+    body: 'President, Shri Ram Alumni Society — 7 years.',
+  },
+  {
+    title: 'Fitness',
+    body: 'Ongoing, not for show.',
   },
 ];
 
@@ -156,8 +194,10 @@ export function personSchema() {
     description:
       'Virat Mohan builds the operating layer between capital and execution. Two decades across finance, hospitality and technology: LSE, KPMG London, Pita Pit, CloudKitchens®, Daryaganj and Foodlink, now ClarityHQ.',
     alumniOf: [
+      { '@type': 'EducationalOrganization', name: 'Don Bosco School' },
+      { '@type': 'EducationalOrganization', name: 'The Shri Ram School' },
       { '@type': 'CollegeOrUniversity', name: 'London School of Economics and Political Science' },
-      { '@type': 'CollegeOrUniversity', name: 'Cass Business School, City University London' },
+      { '@type': 'CollegeOrUniversity', name: 'Bayes Business School (formerly Cass Business School), City, University of London' },
       { '@type': 'EducationalOrganization', name: 'ICAEW' },
     ],
     worksFor: {

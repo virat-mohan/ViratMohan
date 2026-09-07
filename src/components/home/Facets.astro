@@ -1,0 +1,97 @@
+---
+import { facets, site } from '../../data/site';
+
+const swatches = ['terracotta', 'cobalt', 'magenta', 'bronze'];
+---
+
+<section class="facets section" aria-labelledby="facets-h">
+  <div class="container">
+    <p class="eyebrow" data-reveal style="color: var(--bronze)">
+      Off the résumé
+    </p>
+    <h2 id="facets-h" class="facets__h" data-reveal style="--reveal-delay: 60ms">
+      Everything else.
+    </h2>
+    <p class="facets__intro dim" data-reveal style="--reveal-delay: 120ms">
+      The parts that don't fit a career timeline but are just as real. More
+      on Instagram —
+      <a
+        class="link-underline"
+        href={site.instagram}
+        target="_blank"
+        rel="noopener noreferrer">@vmviews</a
+      >.
+    </p>
+
+    <ul class="facets__grid">
+      {
+        facets.map((f, i) => (
+          <li
+            class="facets__tile"
+            data-reveal
+            style={`--c: var(--${swatches[i % swatches.length]}); --rot: ${
+              i % 2 === 0 ? '-1.1deg' : '1.1deg'
+            }`}
+          >
+            <span class="facets__title">{f.title}</span>
+            <span class="facets__body">{f.body}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .facets__h {
+    margin: 0.75rem 0 1rem;
+    max-width: 18ch;
+  }
+  .facets__intro {
+    max-width: 52ch;
+    font-size: 1.0625rem;
+    margin: 0 0 3rem;
+  }
+  .facets__grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 1.5rem;
+  }
+  .facets__tile {
+    background: var(--c);
+    padding: 2rem 1.75rem 2.25rem;
+    transform: rotate(var(--rot));
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    transition: transform 0.3s ease;
+  }
+  .facets__tile:hover {
+    transform: rotate(0deg) scale(1.02);
+  }
+  .facets__title {
+    font-family: var(--display);
+    font-weight: 400;
+    text-transform: uppercase;
+    font-size: clamp(1.35rem, 2.4vw, 1.75rem);
+    letter-spacing: 0.01em;
+    color: var(--poster-cream);
+  }
+  .facets__body {
+    font-size: 0.9375rem;
+    color: var(--poster-cream);
+    opacity: 0.9;
+    line-height: 1.45;
+  }
+  @media (max-width: 560px) {
+    .facets__grid {
+      grid-template-columns: 1fr;
+    }
+    .facets__tile {
+      transform: none;
+    }
+  }
+</style>

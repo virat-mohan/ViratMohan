@@ -14,6 +14,9 @@ export async function getStaticPaths() {
 const { entry } = Astro.props;
 const { Content } = await render(entry);
 
+const swatches = ['terracotta', 'cobalt', 'magenta', 'bronze'];
+const accent = `var(--${swatches[entry.data.order % swatches.length]})`;
+
 const articleSchema = {
   '@type': 'Article',
   '@id': `${site.domain}/writing/${entry.id}#article`,
@@ -35,12 +38,12 @@ const articleSchema = {
   <article class="essay section">
     <div class="container">
       <header class="essay__head" data-reveal>
-        <p class="eyebrow" style="color: var(--terracotta)">
+        <p class="eyebrow" style={`color: ${accent}`}>
           <a class="link-underline" href="/writing">Writing</a>
         </p>
         <h1 class="essay__title">{entry.data.title}</h1>
         <p class="essay__standfirst dim">{entry.data.standfirst}</p>
-        <hr class="essay__rule" />
+        <hr class="essay__rule" style={`background: ${accent}`} />
       </header>
 
       <div class="prose tnum" data-reveal style="--reveal-delay: 80ms">
@@ -93,10 +96,10 @@ const articleSchema = {
     margin: 3rem 0 0.75rem;
     font-family: var(--sans);
     font-size: 0.875rem;
-    font-weight: 500;
+    font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.14em;
-    color: var(--muted);
+    color: var(--fg);
   }
   .prose :global(strong) {
     color: var(--fg);

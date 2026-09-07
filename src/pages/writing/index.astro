@@ -34,13 +34,12 @@ function readingTime(body: string | undefined): number {
       <ul class="writing__list">
         {
           essays.map((e, i) => (
-            <li class="writing__item" data-reveal>
-              {i > 0 && (
-                <hr
-                  class="writing__divider"
-                  style={`background: var(--${swatches[i % swatches.length]})`}
-                />
-              )}
+            <li
+              class="writing__item"
+              data-reveal
+              style={`--c: var(--${swatches[i % swatches.length]})`}
+            >
+              {i > 0 && <hr class="writing__divider" />}
               <a class="writing__link" href={`/writing/${e.id}`}>
                 <span class="eyebrow writing__time">
                   {readingTime(e.body)} min read
@@ -72,9 +71,9 @@ function readingTime(body: string | undefined): number {
   }
   .writing__divider {
     border: 0;
-    height: 3px;
+    height: 4px;
     margin: 0;
-    opacity: 0.7;
+    background: var(--c);
   }
   .writing__list {
     list-style: none;
@@ -96,12 +95,15 @@ function readingTime(body: string | undefined): number {
   }
   .writing__time {
     margin: 0;
+    color: var(--c);
   }
   .writing__title {
-    font-family: var(--serif);
-    font-size: clamp(1.75rem, 4vw, 2.5rem);
-    line-height: 1.1;
-    letter-spacing: -0.01em;
+    font-family: var(--display);
+    font-weight: 400;
+    text-transform: uppercase;
+    font-size: clamp(2rem, 4.6vw, 3rem);
+    line-height: 1;
+    letter-spacing: 0.005em;
     transition: color 0.3s ease;
   }
   .writing__standfirst {
@@ -111,6 +113,6 @@ function readingTime(body: string | undefined): number {
   }
   .writing__link:hover .writing__title,
   .writing__link:focus-visible .writing__title {
-    color: var(--gold);
+    color: var(--c);
   }
 </style>
