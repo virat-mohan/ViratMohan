@@ -67,9 +67,7 @@ const areas = [
             <li
               class="advisory__item"
               data-reveal
-              style={`--c: var(--${swatches[i % swatches.length]}); --rot: ${
-                i % 2 === 0 ? '-1deg' : '0.8deg'
-              }`}
+              style={`--c: var(--${swatches[i % swatches.length]})`}
             >
               <h2 class="advisory__title">{a.title}</h2>
               <p class="advisory__body">{a.body}</p>
@@ -124,12 +122,11 @@ const areas = [
   .advisory__item {
     background: var(--c);
     padding: 2.25rem 1.75rem 2.5rem;
-    transform: rotate(var(--rot));
     transition: transform 0.3s ease;
     min-height: 13rem;
   }
   .advisory__item:hover {
-    transform: rotate(0deg) scale(1.02);
+    transform: scale(1.02);
   }
   .advisory__title {
     font-size: clamp(1.4rem, 2.2vw, 1.75rem);

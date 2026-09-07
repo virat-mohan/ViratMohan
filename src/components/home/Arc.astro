@@ -2,7 +2,6 @@
 import { arc } from '../../data/site';
 
 const swatches = ['terracotta', 'cobalt', 'magenta', 'bronze', 'ink'];
-const rotations = ['-1.2deg', '0.9deg', '-0.7deg', '1.3deg', '-1deg'];
 ---
 
 <section class="arc section" aria-labelledby="arc-h">
@@ -18,7 +17,7 @@ const rotations = ['-1.2deg', '0.9deg', '-0.7deg', '1.3deg', '-1deg'];
           <article
             class="arc__tile"
             data-reveal
-            style={`--reveal-delay: ${(i % 5) * 40}ms; --c: var(--${swatches[i % swatches.length]}); --rot: ${rotations[i % rotations.length]}`}
+            style={`--reveal-delay: ${(i % 5) * 40}ms; --c: var(--${swatches[i % swatches.length]})`}
           >
             <p class="arc__range">{block.range}</p>
             <h3 class="arc__title">{block.title}</h3>
@@ -43,12 +42,11 @@ const rotations = ['-1.2deg', '0.9deg', '-0.7deg', '1.3deg', '-1deg'];
   .arc__tile {
     background: var(--c);
     padding: 2.25rem 1.75rem 2.5rem;
-    transform: rotate(var(--rot));
     transition: transform 0.3s ease;
     min-height: 14rem;
   }
   .arc__tile:hover {
-    transform: rotate(0deg) scale(1.03);
+    transform: scale(1.03);
   }
   .arc__range {
     font-family: var(--sans);

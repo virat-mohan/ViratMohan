@@ -81,14 +81,14 @@ export const arc: ArcBlock[] = [
     body: 'General Manager, India, for Surya Henna, a Brazilian hair-colour brand. First time running a consumer brand end to end.',
   },
   {
-    range: '2008–2015',
+    range: '~2008',
     title: 'The Discipline',
-    body: 'KPMG London and HSBC statutory audits. Seven years that built the habit of tying every claim back to a number.',
+    body: 'KPMG London and HSBC statutory audits. Built the habit of tying every claim back to a number.',
   },
   {
     range: '2009–2014',
     title: 'The Ice',
-    body: 'Founded Perfect Ice, a D2C ice brand with home delivery. Production, cold-chain and last-mile, one business.',
+    body: 'Perfect Ice, a D2C ice brand with home delivery — founded by my father, revived by me. Production, cold-chain and last-mile, one business.',
   },
   {
     range: '2010',
@@ -113,7 +113,7 @@ export const arc: ArcBlock[] = [
   {
     range: '2022–2025',
     title: 'The Capital',
-    body: 'Daryaganj — $2M raised, Shark Tank India, ₹150 Cr valuation. Then Chief of Staff at Foodlink through a pre-IPO round.',
+    body: 'Daryaganj — $2M raised, ₹150 Cr valuation. Then Chief of Staff at Foodlink through a pre-IPO round.',
   },
   {
     range: '2024–now',
@@ -130,16 +130,16 @@ export type Facet = {
 // OFF THE RÉSUMÉ — the parts that don't fit a career timeline.
 export const facets: Facet[] = [
   {
+    title: 'Keyboardist',
+    body: 'Playing since age four. National competitions, and a band — Anachronox.',
+  },
+  {
     title: 'Learning to DJ',
     body: 'Deep house and minimal techno — Boris Brejcha, Deadmau5.',
   },
   {
-    title: 'Pianist',
-    body: 'National competitions, and a band — Anachronox.',
-  },
-  {
     title: 'Marathoner',
-    body: 'Vienna — rained out before the finish.',
+    body: 'Prepared for Vienna, but never made it to the start.',
   },
   {
     title: 'Longevity',
@@ -147,7 +147,7 @@ export const facets: Facet[] = [
   },
   {
     title: 'Community',
-    body: 'President, Shri Ram Alumni Society — 7 years.',
+    body: 'Ex-President, Shri Ram Alumni Society.',
   },
   {
     title: 'Fitness',

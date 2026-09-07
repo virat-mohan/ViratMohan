@@ -48,7 +48,7 @@
   --sans: 'Inter Variable', 'Inter', system-ui, -apple-system, sans-serif;
 
   --measure: 66ch;
-  --pad-section: 10rem;
+  --pad-section: 6rem;
 
   color-scheme: light;
 }
@@ -204,7 +204,7 @@ a {
 
 @media (max-width: 768px) {
   :root {
-    --pad-section: 5rem;
+    --pad-section: 3.5rem;
   }
 }
 

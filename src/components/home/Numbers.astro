@@ -37,7 +37,7 @@ import { stats } from '../../data/site';
 
 <style>
   .numbers {
-    padding-block: 14rem;
+    padding-block: 6rem;
   }
   .numbers__grid {
     list-style: none;
@@ -68,10 +68,14 @@ import { stats } from '../../data/site';
     font-variant-numeric: tabular-nums lining-nums;
     white-space: nowrap;
   }
-  .stat:nth-child(1) .stat__num { color: var(--terracotta); }
-  .stat:nth-child(2) .stat__num { color: var(--cobalt); }
-  .stat:nth-child(3) .stat__num { color: var(--magenta); }
-  .stat:nth-child(4) .stat__num { color: var(--bronze); }
+  .stat:nth-child(1) .stat__num,
+  .stat:nth-child(1) .stat__label { color: var(--terracotta); }
+  .stat:nth-child(2) .stat__num,
+  .stat:nth-child(2) .stat__label { color: var(--cobalt); }
+  .stat:nth-child(3) .stat__num,
+  .stat:nth-child(3) .stat__label { color: var(--magenta); }
+  .stat:nth-child(4) .stat__num,
+  .stat:nth-child(4) .stat__label { color: var(--bronze); }
   .stat__context {
     margin: 0;
     font-size: 0.9375rem;

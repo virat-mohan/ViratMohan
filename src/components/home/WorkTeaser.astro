@@ -4,12 +4,11 @@ import { getCollection } from 'astro:content';
 const projects = (await getCollection('work')).sort(
   (a, b) => a.data.order - b.data.order
 );
-const rotations = ['-1.1deg', '0.8deg', '-0.6deg', '1.2deg'];
 ---
 
 <section class="work-teaser section" aria-labelledby="work-teaser-h">
   <div class="container">
-    <p class="eyebrow" data-reveal>Recent projects</p>
+    <p class="eyebrow" data-reveal style="color: var(--terracotta)">Recent projects</p>
     <h2
       id="work-teaser-h"
       class="work-teaser__h"
@@ -28,11 +27,7 @@ const rotations = ['-1.1deg', '0.8deg', '-0.6deg', '1.2deg'];
     </p>
 
     <ul class="work-teaser__list">
-      <li
-        class="work-teaser__item"
-        data-reveal
-        style={`--c: var(--gold); --rot: ${rotations[0]}`}
-      >
+      <li class="work-teaser__item" data-reveal style="--c: var(--gold)">
         <a class="work-teaser__link" href="/devshop">
           <span class="eyebrow work-teaser__category">
             AI Orchestration Studio
@@ -41,12 +36,8 @@ const rotations = ['-1.1deg', '0.8deg', '-0.6deg', '1.2deg'];
         </a>
       </li>
       {
-        projects.map((p, i) => (
-          <li
-            class="work-teaser__item"
-            data-reveal
-            style={`--c: ${p.data.accent}; --rot: ${rotations[(i + 1) % rotations.length]}`}
-          >
+        projects.map((p) => (
+          <li class="work-teaser__item" data-reveal style={`--c: ${p.data.accent}`}>
             <a class="work-teaser__link" href={`/work/${p.id}`}>
               <span class="eyebrow work-teaser__category">
                 {p.data.category}
@@ -57,10 +48,6 @@ const rotations = ['-1.1deg', '0.8deg', '-0.6deg', '1.2deg'];
         ))
       }
     </ul>
-
-    <p class="work-teaser__more" data-reveal>
-      <a class="link-underline" href="/work">See all work and pricing →</a>
-    </p>
   </div>
 </section>
 
@@ -83,11 +70,10 @@ const rotations = ['-1.1deg', '0.8deg', '-0.6deg', '1.2deg'];
     gap: 2rem 1.75rem;
   }
   .work-teaser__item {
-    transform: rotate(var(--rot));
     transition: transform 0.3s ease;
   }
   .work-teaser__item:hover {
-    transform: rotate(0deg) scale(1.03);
+    transform: scale(1.03);
   }
   .work-teaser__link {
     display: flex;
@@ -117,16 +103,9 @@ const rotations = ['-1.1deg', '0.8deg', '-0.6deg', '1.2deg'];
     letter-spacing: 0.01em;
     color: var(--poster-cream);
   }
-  .work-teaser__more {
-    margin: 0;
-    font-size: 1rem;
-  }
   @media (max-width: 620px) {
     .work-teaser__list {
       grid-template-columns: 1fr;
-    }
-    .work-teaser__item {
-      transform: none;
     }
   }
 </style>
