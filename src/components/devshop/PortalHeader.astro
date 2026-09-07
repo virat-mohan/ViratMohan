@@ -47,7 +47,7 @@ const navItems = [
           <div class="ds-dropdown-menu" id="dsIndustriesMenu">
             {devshopVerticals.map((v) => (
               v.status === 'live' ? (
-                <a href={`/devshop/${v.slug}`} class:list={{ active: currentSlug === v.slug }} style={`--chip-color:${v.color};`}><span class="ds-dropdown-dot"></span>{v.tag} — {v.name}</a>
+                <a href={`/devshop/${v.slug}`} class:list={{ active: currentSlug === v.slug }} style={`--chip-color:${v.color}; --band-color:${v.bg};`}><span class="ds-dropdown-dot"></span>{v.tag} — {v.name}</a>
               ) : (
                 <span class="ds-dropdown-soon"><span class="ds-dropdown-dot"></span>{v.tag} — {v.name} <em>(coming soon)</em></span>
               )
@@ -234,7 +234,7 @@ const navItems = [
     display: flex; align-items: center; gap: 9px; font-size: 12.5px; letter-spacing: 0.02em; text-transform: none;
     color: var(--ds-nav); text-decoration: none; padding: 9px 12px; border-radius: 4px; white-space: nowrap;
   }
-  .ds-dropdown-dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--chip-color, currentColor); opacity: 0.85; }
+  .ds-dropdown-dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--band-color, var(--chip-color, currentColor)); border: 1px solid rgba(30,33,26,0.15); opacity: 1; }
   .ds-dropdown-menu a:hover { background: var(--ds-dropdown-hover-bg); color: var(--chip-color, var(--ds-nav-hover)); }
   .ds-dropdown-menu a.active { color: var(--chip-color, var(--ds-nav-active)); }
   .ds-dropdown-soon { color: var(--ds-dropdown-soon); cursor: default; }

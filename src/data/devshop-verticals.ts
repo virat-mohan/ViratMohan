@@ -19,6 +19,10 @@ export type DevShopVertical = {
   // brand hue. Used for its industry-chip tag badge on the main landing
   // page AND as that vertical page's own --dev-gold, so the two stay in
   // sync as a color legend a visitor can actually learn.
+  bg: string; // this vertical's actual page background tint (matches its
+  // own --dev-bg) — used for the color band/dot in the Industries dropdown
+  // menus so the color you see there is literally the color of the page
+  // you're about to land on, not the accent color.
 };
 
 export const devshopVerticals: DevShopVertical[] = [
@@ -30,6 +34,7 @@ export const devshopVerticals: DevShopVertical[] = [
     status: 'live',
     blurb: 'Wastage, delivery-platform recon, kitchen ops, guest experience, menu strategy, labor, compliance — across QSR, casual dining, bars, cloud kitchens, and hotel F&B.',
     color: '#8a6a1e',
+    bg: '#f7ece9',
   },
   {
     name: 'D2C E-Commerce',
@@ -39,6 +44,7 @@ export const devshopVerticals: DevShopVertical[] = [
     status: 'live',
     blurb: 'Cart abandonment, courier RTO, returns & reverse logistics, rising CAC, marketplace payout recon, and catalog data quality — across fashion, beauty, home, electronics, and subscription-box D2C brands.',
     color: '#a3573f',
+    bg: '#f9ecf1',
   },
   {
     name: 'Retail',
@@ -48,6 +54,7 @@ export const devshopVerticals: DevShopVertical[] = [
     status: 'live',
     blurb: 'Shrinkage, stockouts, omnichannel inventory sync, staff scheduling, and marketplace payout recon — across fashion, grocery, electronics, and multi-store chains.',
     color: '#6b7a4a',
+    bg: '#eaf1f3',
   },
   {
     name: 'Real Estate & Property Management',
@@ -57,5 +64,6 @@ export const devshopVerticals: DevShopVertical[] = [
     status: 'live',
     blurb: 'Rent recon, maintenance ticketing, vacancy forecasting, and tenant turnover — across residential, commercial, and mixed-use portfolios.',
     color: '#7a6a52',
+    bg: '#eeece7',
   },
 ];
