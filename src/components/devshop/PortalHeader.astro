@@ -13,7 +13,7 @@
 // the same nav items render as real links back to `homeHref`'s screens.
 import { Image } from 'astro:assets';
 import { devshopVerticals } from '../../data/devshop-verticals';
-import devshopLogo from '../../assets/screenshots/devshop logo.png';
+import devshopLogo from '../../assets/screenshots/devshop-logo-transparent.png';
 
 export interface Props {
   homeHref: string; // the SPA page these nav items' screens belong to, e.g. "/devshop" or "/devshop/restaurants"
@@ -35,51 +35,53 @@ const navItems = [
 <header class="ds-portal-header" data-theme={theme}>
   <div class="ds-header-inner">
     <a class="ds-logo" href="/devshop">
-      {theme === 'light' ? (
-        <Image class="ds-logo-mark" src={devshopLogo} width={devshopLogo.width} height={devshopLogo.height} alt="DevShop — built fast, for real businesses" />
-      ) : (
-        <>DevShop</>
-      )}
+      <Image class="ds-logo-mark" src={devshopLogo} width={devshopLogo.width} height={devshopLogo.height} alt="DevShop — built fast, for real businesses" />
       {verticalTag && <span class="ds-logo-tag">{verticalTag}</span>}
     </a>
     {industryLabel && <div class="ds-industry-badge">Built for {industryLabel}</div>}
 
     <nav class="ds-nav" id="marketingNav">
-      <div class="ds-dropdown">
-        <button type="button" class="ds-dropdown-trigger" id="dsIndustriesTrigger">Industries ▾</button>
-        <div class="ds-dropdown-menu" id="dsIndustriesMenu">
-          <a href="/devshop" class:list={{ active: currentSlug === null }}>DevShop — overview</a>
-          {devshopVerticals.map((v) => (
-            v.status === 'live' ? (
-              <a href={`/devshop/${v.slug}`} class:list={{ active: currentSlug === v.slug }}>{v.tag} — {v.name}</a>
-            ) : (
-              <span class="ds-dropdown-soon">{v.tag} — {v.name} <em>(coming soon)</em></span>
-            )
-          ))}
+      <div class="ds-nav-side ds-nav-side--left">
+        <div class="ds-dropdown">
+          <button type="button" class="ds-dropdown-trigger" id="dsIndustriesTrigger">Industries ▾</button>
+          <div class="ds-dropdown-menu" id="dsIndustriesMenu">
+            <a href="/devshop" class:list={{ active: currentSlug === null }}>DevShop — overview</a>
+            {devshopVerticals.map((v) => (
+              v.status === 'live' ? (
+                <a href={`/devshop/${v.slug}`} class:list={{ active: currentSlug === v.slug }}>{v.tag} — {v.name}</a>
+              ) : (
+                <span class="ds-dropdown-soon">{v.tag} — {v.name} <em>(coming soon)</em></span>
+              )
+            ))}
+          </div>
         </div>
       </div>
 
-      {spa ? (
-        <a href="#" data-go={navItems[0].screenId}>{navItems[0].label}</a>
-      ) : (
-        <a href={`${homeHref}#${navItems[0].screenId}`}>{navItems[0].label}</a>
-      )}
+      <div class="ds-nav-center">
+        {spa ? (
+          <a href="#" data-go={navItems[0].screenId}>{navItems[0].label}</a>
+        ) : (
+          <a href={`${homeHref}#${navItems[0].screenId}`}>{navItems[0].label}</a>
+        )}
 
-      <slot name="extra-nav" />
+        <slot name="extra-nav" />
 
-      <a href="/devshop/methodology" class:list={{ active: !spa && homeHref === '/devshop' && currentSlug === null }}>Methodology</a>
+        <a href="/devshop/methodology" class:list={{ active: !spa && homeHref === '/devshop' && currentSlug === null }}>Methodology</a>
 
-      {spa ? (
-        <a href="#" data-go={navItems[1].screenId}>{navItems[1].label}</a>
-      ) : (
-        <a href={`${homeHref}#${navItems[1].screenId}`}>{navItems[1].label}</a>
-      )}
+        {spa ? (
+          <a href="#" data-go={navItems[1].screenId}>{navItems[1].label}</a>
+        ) : (
+          <a href={`${homeHref}#${navItems[1].screenId}`}>{navItems[1].label}</a>
+        )}
 
-      {spa ? (
-        <a href="#" data-go="intake" class="ds-start">Start →</a>
-      ) : (
-        <a href={`${homeHref}#intake`} class="ds-start">Start →</a>
-      )}
+        {spa ? (
+          <a href="#" data-go="intake" class="ds-start">Start →</a>
+        ) : (
+          <a href={`${homeHref}#intake`} class="ds-start">Start →</a>
+        )}
+      </div>
+
+      <div class="ds-nav-side ds-nav-side--right" aria-hidden="true"></div>
     </nav>
 
     <nav class="ds-nav ds-app-nav" id="appNav" style="display:none;">
@@ -184,13 +186,22 @@ const navItems = [
     font-family: 'JetBrains Mono', monospace; font-style: normal;
     font-size: 11px; letter-spacing: 0.22em; color: var(--ds-tag);
   }
-  .ds-logo-mark { display: block; height: 46px; width: auto; border-radius: 6px; }
+  .ds-logo-mark { display: block; height: 46px; width: auto; }
   @media (max-width: 560px) { .ds-logo-mark { height: 36px; } }
   .ds-industry-badge {
     font-family: 'Inter', sans-serif; font-size: 10.5px; letter-spacing: 0.05em;
     color: var(--ds-badge); text-transform: uppercase;
   }
-  .ds-nav { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 24px 34px; }
+  .ds-nav { display: flex; align-items: center; width: 100%; gap: 16px; }
+  .ds-nav-side { flex: 1; display: flex; align-items: center; }
+  .ds-nav-side--left { justify-content: flex-start; }
+  .ds-nav-side--right { justify-content: flex-end; }
+  .ds-nav-center { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 24px 34px; flex: none; }
+  @media (max-width: 860px) {
+    .ds-nav { flex-wrap: wrap; justify-content: center; }
+    .ds-nav-side { flex: none; }
+    .ds-nav-side--right { display: none; }
+  }
   /* :global — the extra-nav slot's <a> is defined in the HOST page's file,
      not this component's, so a normally-scoped rule here would never match
      it (Astro scopes don't cross a slot boundary). Unscope just the nav
