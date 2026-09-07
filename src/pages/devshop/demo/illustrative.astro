@@ -113,55 +113,85 @@ const canonical = new URL('/devshop/demo/illustrative', site.domain).href;
         </div>
       </div>
       <div class="artefact-embed">
-        <div class="kt-tool" id="ktTool">
-          <div class="kt-criteria" id="ktCriteria">
-            <div class="kt-row" data-weight="25" data-score="9">
-              <span class="kt-name">Revenue &amp; growth potential</span>
-              <span class="kt-weight">weight 25</span>
-              <div class="kt-bar"><div class="kt-bar-fill"></div></div>
-              <span class="kt-points">—</span>
+        <div class="kt-tabs" id="ktTabs">
+          <button type="button" class="kt-tab active" data-kttab="decision">The decision</button>
+          <button type="button" class="kt-tab" data-kttab="run">See it run</button>
+          <button type="button" class="kt-tab" data-kttab="impact">Business impact</button>
+        </div>
+
+        <div class="kt-panel active" data-ktpanel="decision">
+          <p class="kt-panel-intro">Six criteria that actually matter for this kind of call — each weighted by how much it should matter to <em>this</em> business, not scored equally by default.</p>
+          <div class="kt-criteria-static">
+            <div class="kt-static-row"><span>Revenue &amp; growth potential</span><span class="mono">weight 25</span></div>
+            <div class="kt-static-row"><span>Cost savings / efficiency gain</span><span class="mono">weight 20</span></div>
+            <div class="kt-static-row"><span>Competitive timing</span><span class="mono">weight 20</span></div>
+            <div class="kt-static-row"><span>Implementation risk (inverted)</span><span class="mono">weight 15</span></div>
+            <div class="kt-static-row"><span>Capital required vs. budget</span><span class="mono">weight 10</span></div>
+            <div class="kt-static-row"><span>Team readiness</span><span class="mono">weight 10</span></div>
+          </div>
+          <p class="kt-panel-cta">Press <strong>See it run →</strong> above, then Run the analysis.</p>
+        </div>
+
+        <div class="kt-panel" data-ktpanel="run">
+          <div class="kt-tool" id="ktTool">
+            <div class="kt-criteria" id="ktCriteria">
+              <div class="kt-row" data-weight="25" data-score="9">
+                <span class="kt-name">Revenue &amp; growth potential</span>
+                <span class="kt-weight">weight 25</span>
+                <div class="kt-bar"><div class="kt-bar-fill"></div></div>
+                <span class="kt-points">—</span>
+              </div>
+              <div class="kt-row" data-weight="20" data-score="8">
+                <span class="kt-name">Cost savings / efficiency gain</span>
+                <span class="kt-weight">weight 20</span>
+                <div class="kt-bar"><div class="kt-bar-fill"></div></div>
+                <span class="kt-points">—</span>
+              </div>
+              <div class="kt-row" data-weight="20" data-score="10">
+                <span class="kt-name">Competitive timing</span>
+                <span class="kt-weight">weight 20</span>
+                <div class="kt-bar"><div class="kt-bar-fill"></div></div>
+                <span class="kt-points">—</span>
+              </div>
+              <div class="kt-row" data-weight="15" data-score="8">
+                <span class="kt-name">Implementation risk (inverted)</span>
+                <span class="kt-weight">weight 15</span>
+                <div class="kt-bar"><div class="kt-bar-fill"></div></div>
+                <span class="kt-points">—</span>
+              </div>
+              <div class="kt-row" data-weight="10" data-score="8">
+                <span class="kt-name">Capital required vs. budget</span>
+                <span class="kt-weight">weight 10</span>
+                <div class="kt-bar"><div class="kt-bar-fill"></div></div>
+                <span class="kt-points">—</span>
+              </div>
+              <div class="kt-row" data-weight="10" data-score="9">
+                <span class="kt-name">Team readiness</span>
+                <span class="kt-weight">weight 10</span>
+                <div class="kt-bar"><div class="kt-bar-fill"></div></div>
+                <span class="kt-points">—</span>
+              </div>
             </div>
-            <div class="kt-row" data-weight="20" data-score="8">
-              <span class="kt-name">Cost savings / efficiency gain</span>
-              <span class="kt-weight">weight 20</span>
-              <div class="kt-bar"><div class="kt-bar-fill"></div></div>
-              <span class="kt-points">—</span>
-            </div>
-            <div class="kt-row" data-weight="20" data-score="10">
-              <span class="kt-name">Competitive timing</span>
-              <span class="kt-weight">weight 20</span>
-              <div class="kt-bar"><div class="kt-bar-fill"></div></div>
-              <span class="kt-points">—</span>
-            </div>
-            <div class="kt-row" data-weight="15" data-score="8">
-              <span class="kt-name">Implementation risk (inverted)</span>
-              <span class="kt-weight">weight 15</span>
-              <div class="kt-bar"><div class="kt-bar-fill"></div></div>
-              <span class="kt-points">—</span>
-            </div>
-            <div class="kt-row" data-weight="10" data-score="8">
-              <span class="kt-name">Capital required vs. budget</span>
-              <span class="kt-weight">weight 10</span>
-              <div class="kt-bar"><div class="kt-bar-fill"></div></div>
-              <span class="kt-points">—</span>
-            </div>
-            <div class="kt-row" data-weight="10" data-score="9">
-              <span class="kt-name">Team readiness</span>
-              <span class="kt-weight">weight 10</span>
-              <div class="kt-bar"><div class="kt-bar-fill"></div></div>
-              <span class="kt-points">—</span>
+
+            <button class="kt-run" id="ktRun">Run the analysis &rarr;</button>
+
+            <div class="kt-result" id="ktResult" hidden>
+              <div class="kt-score-row">
+                <span class="kt-score-label">Weighted score</span>
+                <span class="kt-score-value" id="ktScoreValue">0<span class="kt-score-max">/100</span></span>
+              </div>
+              <div class="kt-verdict" id="ktVerdict"></div>
+              <a href="/devshop" class="kt-start">Start now &rarr;</a>
             </div>
           </div>
+        </div>
 
-          <button class="kt-run" id="ktRun">Run the analysis &rarr;</button>
-
-          <div class="kt-result" id="ktResult" hidden>
-            <div class="kt-score-row">
-              <span class="kt-score-label">Weighted score</span>
-              <span class="kt-score-value" id="ktScoreValue">0<span class="kt-score-max">/100</span></span>
-            </div>
-            <div class="kt-verdict" id="ktVerdict"></div>
-            <a href="/devshop" class="kt-start">Start now &rarr;</a>
+        <div class="kt-panel" data-ktpanel="impact">
+          <p class="kt-panel-intro">What an 88/100 "invest" recommendation actually means in practice — not the score itself, but what changes because of it.</p>
+          <div class="kt-impact-grid">
+            <div class="kt-impact-card"><p class="kt-impact-num">6 mo</p><p class="kt-impact-cap">of stalled-debate cost avoided by deciding now instead of relitigating next quarter</p></div>
+            <div class="kt-impact-card"><p class="kt-impact-num">3</p><p class="kt-impact-cap">objections already scored into the recommendation (hype, execution risk, cost) — not afterthoughts</p></div>
+            <div class="kt-impact-card"><p class="kt-impact-num">0</p><p class="kt-impact-cap">criteria papered over — Team Readiness scored honestly at 9/10, not assumed</p></div>
           </div>
         </div>
       </div>
@@ -276,7 +306,38 @@ const canonical = new URL('/devshop/demo/illustrative', site.domain).href;
   }
   .chrome-address svg { color: #8a8378; flex: none; }
   .chrome-address-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .artefact-embed { background: #fff; padding: 36px 32px; }
+  .artefact-embed { background: #fff; padding: 28px 32px 36px; }
+
+  .kt-tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--hair); margin-bottom: 24px; }
+  .kt-tab {
+    font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 600; color: var(--muted);
+    background: none; border: none; cursor: pointer; padding: 10px 2px; margin-right: 24px;
+    border-bottom: 2.5px solid transparent; transition: color 0.15s, border-color 0.15s; position: relative; top: 1px;
+  }
+  .kt-tab:hover { color: var(--ink-soft); }
+  .kt-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+  .kt-panel { display: none; }
+  .kt-panel.active { display: block; animation: kt-fade 0.25s ease; }
+  @keyframes kt-fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+  .kt-panel-intro { font-size: 14px; color: var(--muted); line-height: 1.6; margin: 0 0 20px; max-width: 60ch; }
+  .kt-panel-intro em { font-style: italic; color: var(--ink); }
+  .kt-panel-cta { font-size: 13px; color: var(--muted); margin: 20px 0 0; }
+  .kt-panel-cta strong { color: var(--gold); }
+
+  .kt-criteria-static { display: flex; flex-direction: column; }
+  .kt-static-row {
+    display: flex; justify-content: space-between; padding: 11px 0; border-top: 1px solid var(--hair);
+    font-size: 13.5px; color: var(--ink);
+  }
+  .kt-static-row:first-child { border-top: none; }
+  .kt-static-row .mono { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--muted); }
+
+  .kt-impact-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .kt-impact-card { border: 1px solid var(--hair); border-radius: 8px; padding: 20px 18px; text-align: center; }
+  .kt-impact-num { font-family: 'Newsreader', Georgia, serif; font-size: 34px; margin: 0 0 8px; color: var(--gold); }
+  .kt-impact-cap { font-size: 12px; color: var(--muted); line-height: 1.5; margin: 0; }
+  @media (max-width: 640px) { .kt-impact-grid { grid-template-columns: 1fr; } }
 
   .kt-tool { max-width: 720px; margin: 0 auto; }
   .kt-criteria { display: flex; flex-direction: column; gap: 16px; margin-bottom: 28px; }
@@ -339,6 +400,15 @@ const canonical = new URL('/devshop/demo/illustrative', site.domain).href;
 </style>
 
 <script is:inline>
+  // Tab switcher — same click-to-toggle pattern used across the site's
+  // other artefact tab bars.
+  document.getElementById('ktTabs').addEventListener('click', function (e) {
+    var btn = e.target.closest('.kt-tab');
+    if (!btn) return;
+    document.querySelectorAll('.kt-tab').forEach(function (t) { t.classList.toggle('active', t === btn); });
+    document.querySelectorAll('.kt-panel').forEach(function (p) { p.classList.toggle('active', p.dataset.ktpanel === btn.dataset.kttab); });
+  });
+
   document.getElementById('ktRun').addEventListener('click', function () {
     var btn = this;
     btn.disabled = true;
@@ -346,6 +416,7 @@ const canonical = new URL('/devshop/demo/illustrative', site.domain).href;
     var rows = Array.prototype.slice.call(document.querySelectorAll('#ktCriteria .kt-row'));
     var total = 0;
     var maxTotal = 0;
+    var stepDelay = 1100; // matches the pacing used across the site's other run demos
 
     rows.forEach(function (row, i) {
       setTimeout(function () {
@@ -356,7 +427,7 @@ const canonical = new URL('/devshop/demo/illustrative', site.domain).href;
         maxTotal += weight;
         row.querySelector('.kt-bar-fill').style.width = (score * 10) + '%';
         row.querySelector('.kt-points').textContent = points + ' pts';
-      }, i * 350);
+      }, i * stepDelay);
     });
 
     setTimeout(function () {
@@ -372,6 +443,6 @@ const canonical = new URL('/devshop/demo/illustrative', site.domain).href;
       resultEl.hidden = false;
       btn.textContent = 'Run the analysis →';
       btn.disabled = false;
-    }, rows.length * 350 + 300);
+    }, rows.length * stepDelay + 600);
   });
 </script>
