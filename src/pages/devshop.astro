@@ -336,7 +336,17 @@ const canonical = new URL('/devshop', site.domain).href;
           <p class="sub" style="max-width:340px;">Floor, not the price — depends on what the system actually needs to stay useful.</p>
         </div>
       </div>
-      <p class="sub" style="margin-top:36px;">Genuinely complex or custom systems are human-priced after a short scoping call, not forced into the standard tiers.</p>
+      <div class="module-def">
+        <p class="module-def-label">What's a module?</p>
+        <p class="module-def-intro">One priced unit of work — a defined function of your business, mapped to an actual mechanism, delivered as a working system. Every module includes:</p>
+        <div class="module-def-grid">
+          <div class="module-def-item"><span class="module-def-item-title">The team, named</span><span class="module-def-item-body">Role-by-role, hours behind the price — not a black box.</span></div>
+          <div class="module-def-item"><span class="module-def-item-title">A subject matter expert</span><span class="module-def-item-body">In your industry and this specific business function.</span></div>
+          <div class="module-def-item"><span class="module-def-item-title">A functioning app</span><span class="module-def-item-body">Live, connected to your real tools — not a prototype.</span></div>
+          <div class="module-def-item"><span class="module-def-item-title">Training &amp; handoff</span><span class="module-def-item-body">We walk your team through it directly at launch.</span></div>
+        </div>
+      </div>
+      <p class="sub" style="margin-top:28px;">Genuinely complex or custom systems are human-priced after a short scoping call, not forced into the standard tiers.</p>
       <div style="margin-top:40px;"><button class="btn" data-go="intake">Start →</button></div>
     </div>
   </section>
@@ -771,6 +781,17 @@ const canonical = new URL('/devshop', site.domain).href;
     .hero-device-overlay { padding: 18px 20px; }
     .hero-device-label { max-width: 20ch; font-size: 12.5px; }
   }
+
+  .module-def {
+    margin-top: 44px; max-width: 720px; background: var(--dev-panel); border: 1px solid var(--dev-hair);
+    border-radius: 14px; padding: 26px 28px; box-shadow: 0 1px 3px rgba(30,33,26,0.06);
+  }
+  .module-def-label { font-family: 'Crimson Text', Georgia, serif; font-size: 20px; margin: 0 0 8px; color: var(--dev-text); }
+  .module-def-intro { font-size: 14px; color: var(--dev-muted1); line-height: 1.6; margin: 0 0 20px; max-width: 56ch; }
+  .module-def-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px 24px; }
+  .module-def-item { display: flex; flex-direction: column; gap: 4px; padding-top: 14px; border-top: 1px solid var(--dev-hair); }
+  .module-def-item-title { font-size: 13.5px; font-weight: 600; color: var(--dev-text); }
+  .module-def-item-body { font-size: 12.5px; color: var(--dev-muted1); line-height: 1.5; }
 
   .contact-row { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 48px; max-width: 720px; }
   .contact-card {
