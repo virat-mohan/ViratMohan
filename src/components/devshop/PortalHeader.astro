@@ -19,9 +19,10 @@ export interface Props {
   currentSlug?: string | null; // vertical slug this page belongs to, e.g. "restaurants" — highlights it in the Industries dropdown
   industryLabel?: string | null; // e.g. "Food & Beverage" — renders "Built for {industryLabel}"; omit on the main portal page
   verticalTag?: string | null; // e.g. "F&B" — short badge next to the wordmark
+  theme?: 'dark' | 'light'; // 'dark' (default) is the existing black/gold portal chrome; 'light' is the cream/sage palette trial (see devshop.astro) — everything else about the header is identical between the two.
 }
 
-const { homeHref, spa, currentSlug = null, industryLabel = null, verticalTag = null } = Astro.props;
+const { homeHref, spa, currentSlug = null, industryLabel = null, verticalTag = null, theme = 'dark' } = Astro.props;
 
 const navItems = [
   { label: 'How it works', screenId: 'how-it-works' },
@@ -29,7 +30,7 @@ const navItems = [
 ];
 ---
 
-<header class="ds-portal-header">
+<header class="ds-portal-header" data-theme={theme}>
   <div class="ds-header-inner">
     <a class="ds-logo" href="/devshop">
       {verticalTag && <span class="ds-logo-tag">{verticalTag}</span>}
@@ -133,26 +134,48 @@ const navItems = [
 </script>
 
 <style>
-  :root { color-scheme: dark; }
+  /* Theme tokens — 'dark' is the original black/gold portal chrome (the
+     default, used everywhere except the light-theme trial); 'light' is the
+     cream/sage palette pulled from the Figma design-system reference,
+     currently only used on devshop.astro. Same structure/markup either way,
+     only these tokens change. */
+  .ds-portal-header[data-theme='dark'] {
+    --ds-bg: #15130f; --ds-scheme: dark;
+    --ds-logo: #d4af37; --ds-tag: #a66a62; --ds-badge: #85837e;
+    --ds-nav: #b7b5af; --ds-nav-hover: #f5f5f0; --ds-nav-active: #d4af37;
+    --ds-start: #d4af37; --ds-start-hover-bg: rgba(212, 175, 55, 0.1);
+    --ds-dropdown-bg: #1c1a15; --ds-dropdown-border: rgba(245,245,240,0.15);
+    --ds-dropdown-hover-bg: rgba(245,245,240,0.06); --ds-dropdown-soon: #625f59;
+    --ds-hair-gradient: linear-gradient(90deg, #91afc0, #b7b5af, #d4af37, #a66a62);
+  }
+  .ds-portal-header[data-theme='light'] {
+    --ds-bg: #f5f2ea; --ds-scheme: light;
+    --ds-logo: #4f5f42; --ds-tag: #a3573f; --ds-badge: #82806f;
+    --ds-nav: #52564a; --ds-nav-hover: #1e211a; --ds-nav-active: #4f5f42;
+    --ds-start: #4f5f42; --ds-start-hover-bg: rgba(79, 95, 66, 0.08);
+    --ds-dropdown-bg: #ffffff; --ds-dropdown-border: rgba(30,33,26,0.12);
+    --ds-dropdown-hover-bg: rgba(30,33,26,0.05); --ds-dropdown-soon: #9a9d90;
+    --ds-hair-gradient: linear-gradient(90deg, #b08a63, #82806f, #4f5f42, #a3573f);
+  }
   .ds-portal-header {
     position: sticky; top: 0; z-index: 50;
-    background: #15130f;
+    background: var(--ds-bg); color-scheme: var(--ds-scheme);
     font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   }
   .ds-header-inner { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 20px 64px; }
   .ds-logo {
     display: flex; align-items: baseline; gap: 10px;
     font-family: 'Instrument Serif', Georgia, serif; font-style: italic;
-    font-size: 34px; letter-spacing: 0.01em; color: #d4af37; font-weight: 400; line-height: 1;
+    font-size: 34px; letter-spacing: 0.01em; color: var(--ds-logo); font-weight: 400; line-height: 1;
     text-decoration: none;
   }
   .ds-logo-tag {
     font-family: 'JetBrains Mono', monospace; font-style: normal;
-    font-size: 11px; letter-spacing: 0.22em; color: #a66a62;
+    font-size: 11px; letter-spacing: 0.22em; color: var(--ds-tag);
   }
   .ds-industry-badge {
     font-family: 'Inter', sans-serif; font-size: 10.5px; letter-spacing: 0.05em;
-    color: #85837e; text-transform: uppercase;
+    color: var(--ds-badge); text-transform: uppercase;
   }
   .ds-nav { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 24px 34px; }
   /* :global — the extra-nav slot's <a> is defined in the HOST page's file,
@@ -161,37 +184,37 @@ const navItems = [
      link look so every page's slotted item inherits it too. */
   .ds-nav :global(a), .ds-dropdown-trigger, .ds-plain {
     font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase;
-    color: #b7b5af; text-decoration: none; background: none; border: none; cursor: pointer;
+    color: var(--ds-nav); text-decoration: none; background: none; border: none; cursor: pointer;
     font-family: inherit; padding: 0;
   }
-  .ds-nav :global(a:hover), .ds-dropdown-trigger:hover { color: #f5f5f0; }
-  .ds-nav :global(a.active) { color: #d4af37; }
+  .ds-nav :global(a:hover), .ds-dropdown-trigger:hover { color: var(--ds-nav-hover); }
+  .ds-nav :global(a.active) { color: var(--ds-nav-active); }
   .ds-start {
-    color: #d4af37 !important; font-size: 15px !important; font-weight: 600;
-    border: 1px solid #d4af37 !important; border-radius: 4px; padding: 8px 18px !important;
+    color: var(--ds-start) !important; font-size: 15px !important; font-weight: 600;
+    border: 1px solid var(--ds-start) !important; border-radius: 4px; padding: 8px 18px !important;
     transition: background 0.2s;
   }
-  .ds-start:hover { background: rgba(212, 175, 55, 0.1); color: #d4af37 !important; }
+  .ds-start:hover { background: var(--ds-start-hover-bg); color: var(--ds-start) !important; }
 
   .ds-dropdown { position: relative; }
   .ds-dropdown-menu {
     display: none; position: absolute; top: calc(100% + 14px); left: 50%; transform: translateX(-50%);
-    background: #1c1a15; border: 1px solid rgba(245,245,240,0.15); border-radius: 6px;
+    background: var(--ds-dropdown-bg); border: 1px solid var(--ds-dropdown-border); border-radius: 6px;
     padding: 8px; min-width: 260px; flex-direction: column; gap: 2px; z-index: 60;
   }
   .ds-dropdown-menu.open { display: flex; }
   .ds-dropdown-menu a, .ds-dropdown-menu .ds-dropdown-soon {
     display: block; font-size: 12.5px; letter-spacing: 0.02em; text-transform: none;
-    color: #b7b5af; text-decoration: none; padding: 9px 12px; border-radius: 4px; white-space: nowrap;
+    color: var(--ds-nav); text-decoration: none; padding: 9px 12px; border-radius: 4px; white-space: nowrap;
   }
-  .ds-dropdown-menu a:hover { background: rgba(245,245,240,0.06); color: #f5f5f0; }
-  .ds-dropdown-menu a.active { color: #d4af37; }
-  .ds-dropdown-soon { color: #625f59; cursor: default; }
+  .ds-dropdown-menu a:hover { background: var(--ds-dropdown-hover-bg); color: var(--ds-nav-hover); }
+  .ds-dropdown-menu a.active { color: var(--ds-nav-active); }
+  .ds-dropdown-soon { color: var(--ds-dropdown-soon); cursor: default; }
   .ds-dropdown-soon em { font-style: normal; }
 
   .ds-header-hair {
     height: 1px;
-    background: linear-gradient(90deg, #91afc0, #b7b5af, #d4af37, #a66a62);
+    background: var(--ds-hair-gradient);
     opacity: 0.55;
   }
 

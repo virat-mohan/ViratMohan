@@ -136,13 +136,13 @@ const canonical = new URL('/devshop', site.domain).href;
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Newsreader:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
     rel="stylesheet"
   />
 </head>
 <body>
 
-<PortalHeader homeHref="/devshop" spa={true} currentSlug={null}>
+<PortalHeader homeHref="/devshop" spa={true} currentSlug={null} theme="light">
   <a href="#" data-go="proof" slot="extra-nav">Proof</a>
 </PortalHeader>
 
@@ -576,18 +576,24 @@ const canonical = new URL('/devshop', site.domain).href;
 
 <style>
   /* Scoped design system for /devshop only — intentionally distinct from the
-     rest of viratmohan.com, per the source prototype's dark palette. */
+     rest of viratmohan.com. TRIAL: this page has been re-themed from the
+     original dark gold-on-near-black palette to a light cream/sage palette
+     pulled from a Figma design-system reference ("Modern Product Launch"),
+     trialled on this page only — variable NAMES are unchanged (--dev-gold,
+     --dev-blue etc.) to keep the diff small across ~1300 lines of rules
+     that reference them, but their VALUES now point at the new palette. */
   :root {
-    --dev-bg: #15130f;
-    --dev-text: #f5f5f0;
-    --dev-muted1: #b7b5af;
-    --dev-muted2: #85837e;
-    --dev-muted3: #625f59;
-    --dev-gold: #d4af37;
-    --dev-blue: #91afc0;
-    --dev-green: #718a78;
-    --dev-rose: #a66a62;
-    --dev-hair: rgba(245, 245, 240, 0.18);
+    --dev-bg: #f5f2ea;
+    --dev-panel: #ffffff;
+    --dev-text: #1e211a;
+    --dev-muted1: #52564a;
+    --dev-muted2: #767a6c;
+    --dev-muted3: #9a9d90;
+    --dev-gold: #4f5f42;
+    --dev-blue: #b08a63;
+    --dev-green: #3f6b46;
+    --dev-rose: #a3573f;
+    --dev-hair: rgba(30, 33, 26, 0.12);
   }
   *, *::before, *::after { box-sizing: border-box; }
   html, body { width: 100%; }
@@ -604,8 +610,8 @@ const canonical = new URL('/devshop', site.domain).href;
     position: fixed;
     inset: 0;
     background:
-      radial-gradient(ellipse 800px 500px at 15% 0%, rgba(145, 175, 192, 0.06), transparent 60%),
-      radial-gradient(ellipse 800px 500px at 85% 100%, rgba(212, 175, 55, 0.05), transparent 60%);
+      radial-gradient(ellipse 800px 500px at 15% 0%, rgba(79, 95, 66, 0.05), transparent 60%),
+      radial-gradient(ellipse 800px 500px at 85% 100%, rgba(176, 138, 99, 0.06), transparent 60%);
     pointer-events: none;
     z-index: 0;
   }
@@ -623,7 +629,10 @@ const canonical = new URL('/devshop', site.domain).href;
   .sim-tag { color: var(--dev-muted3); text-transform: none; letter-spacing: 0.02em; font-size: 10px; }
   .serif { font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; }
   .mono { font-family: 'JetBrains Mono', SFMono-Regular, Consolas, monospace; }
-  h1.hero { font-size: clamp(40px, 6.2vw, 100px); line-height: 0.98; letter-spacing: -0.01em; max-width: 920px; margin: 0; }
+  h1.hero {
+    font-family: 'Newsreader', Georgia, serif; font-weight: 600;
+    font-size: clamp(40px, 6.2vw, 100px); line-height: 0.98; letter-spacing: -0.01em; max-width: 920px; margin: 0;
+  }
   .tint-blue { color: var(--dev-blue); }
   .tint-gold { color: var(--dev-gold); }
   .tint-rose { color: var(--dev-rose); }
@@ -642,17 +651,17 @@ const canonical = new URL('/devshop', site.domain).href;
   .footer-bar-text sup { font-size: 12px; letter-spacing: 0; margin-left: 2px; color: var(--dev-muted2); }
 
   .btn {
-    font-size: 14px; letter-spacing: 0.03em; padding: 16px 28px;
-    border: 1px solid var(--dev-gold); color: var(--dev-gold); border-radius: 2px;
-    transition: background 0.2s; white-space: nowrap;
+    font-size: 14px; font-weight: 600; letter-spacing: 0.02em; padding: 15px 30px;
+    border: 1px solid var(--dev-gold); background: var(--dev-gold); color: #fdfcf8; border-radius: 999px;
+    transition: background 0.2s, transform 0.15s; white-space: nowrap; display: inline-block;
   }
-  .btn:hover { background: rgba(212, 175, 55, 0.08); }
+  .btn:hover { background: #435237; transform: translateY(-1px); }
   .btn-plain { color: var(--dev-muted1); font-size: 14px; }
   .btn-plain:hover { color: var(--dev-text); }
   input[type='text'], input[type='email'], textarea {
     font-family: inherit; font-size: 16px; color: var(--dev-text);
-    background: transparent; border: 1px solid rgba(245, 245, 240, 0.35);
-    padding: 16px 20px; border-radius: 2px; width: 100%;
+    background: var(--dev-panel); border: 1px solid rgba(30, 33, 26, 0.22);
+    padding: 16px 20px; border-radius: 8px; width: 100%;
   }
   input::placeholder, textarea::placeholder { color: var(--dev-muted2); }
   input:focus, textarea:focus { outline: none; border-color: var(--dev-gold); }
@@ -673,7 +682,7 @@ const canonical = new URL('/devshop', site.domain).href;
   .industry-chip:hover { border-color: var(--dev-gold); color: var(--dev-text); }
   .industry-chip-tag {
     font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.04em;
-    color: var(--dev-gold); border: 1px solid rgba(212,175,55,0.35); border-radius: 4px; padding: 2px 6px;
+    color: var(--dev-gold); border: 1px solid rgba(79,95,66,0.35); border-radius: 4px; padding: 2px 6px;
   }
   .industry-chip--soon { opacity: 0.5; cursor: default; }
   .industry-chip--soon:hover { border-color: var(--dev-hair); color: var(--dev-muted1); }
@@ -713,15 +722,15 @@ const canonical = new URL('/devshop', site.domain).href;
     grid-template-columns: repeat(2, 1fr); gap: 20px;
   }
   .proof-card {
-    display: flex; flex-direction: column; border: 1px solid var(--dev-hair); border-radius: 4px;
-    overflow: hidden; transition: border-color 0.2s;
+    display: flex; flex-direction: column; background: var(--dev-panel); border: 1px solid var(--dev-hair); border-radius: 14px;
+    overflow: hidden; box-shadow: 0 1px 3px rgba(30,33,26,0.06); transition: box-shadow 0.2s, transform 0.2s;
   }
-  .proof-card:hover { border-color: var(--dev-muted1); }
+  .proof-card:hover { box-shadow: 0 6px 18px rgba(30,33,26,0.1); transform: translateY(-2px); }
   .proof-shot { position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: #000; }
   .proof-industry-tag {
     position: absolute; top: 10px; left: 10px; z-index: 1;
     font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.04em;
-    color: var(--dev-gold); background: rgba(21,19,15,0.82); border: 1px solid rgba(212,175,55,0.4);
+    color: #f5f2ea; background: rgba(21,19,15,0.82); border: 1px solid rgba(212,175,140,0.4);
     border-radius: 4px; padding: 4px 9px;
   }
   .proof-shot :global(img) { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; opacity: 0.88; transition: opacity 0.2s; }
@@ -740,11 +749,12 @@ const canonical = new URL('/devshop', site.domain).href;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;
   }
   .problem-card {
-    display: block; text-align: left; width: 100%; background: none; cursor: pointer;
-    border: 1px solid var(--dev-hair); border-radius: 6px; padding: 22px 24px;
-    font-family: inherit; color: inherit; transition: border-color 0.2s;
+    display: block; text-align: left; width: 100%; background: var(--dev-panel); cursor: pointer;
+    border: 1px solid var(--dev-hair); border-radius: 14px; padding: 22px 24px;
+    font-family: inherit; color: inherit; box-shadow: 0 1px 3px rgba(30,33,26,0.06);
+    transition: box-shadow 0.2s, transform 0.2s;
   }
-  .problem-card:hover { border-color: var(--dev-gold); }
+  .problem-card:hover { box-shadow: 0 6px 18px rgba(30,33,26,0.1); transform: translateY(-2px); }
   .problem-name { font-size: 21px; margin-bottom: 10px; }
   .problem-desc { font-size: 13.5px; color: var(--dev-muted1); line-height: 1.55; margin-bottom: 16px; }
   .problem-cta { font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dev-muted2); }
@@ -755,10 +765,10 @@ const canonical = new URL('/devshop', site.domain).href;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;
   }
   .vertical-card {
-    display: block; border: 1px solid var(--dev-hair); border-radius: 6px; padding: 24px 26px;
-    transition: border-color 0.2s;
+    display: block; background: var(--dev-panel); border: 1px solid var(--dev-hair); border-radius: 14px; padding: 24px 26px;
+    box-shadow: 0 1px 3px rgba(30,33,26,0.06); transition: box-shadow 0.2s, transform 0.2s;
   }
-  a.vertical-card:hover { border-color: var(--dev-gold); }
+  a.vertical-card:hover { box-shadow: 0 6px 18px rgba(30,33,26,0.1); transform: translateY(-2px); }
   .vertical-card--soon { opacity: 0.55; }
   .vertical-tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.12em; color: var(--dev-gold); margin-bottom: 10px; }
   .vertical-name { font-family: 'Instrument Serif', Georgia, serif; font-size: 24px; margin-bottom: 10px; }
@@ -822,7 +832,7 @@ const canonical = new URL('/devshop', site.domain).href;
     color: var(--dev-muted1); border-radius: 999px; transition: border-color 0.2s, color 0.2s, background 0.2s;
   }
   .chip:hover { border-color: var(--dev-muted1); color: var(--dev-text); }
-  .chip.selected { border-color: var(--dev-gold); color: var(--dev-gold); background: rgba(212, 175, 55, 0.08); }
+  .chip.selected { border-color: var(--dev-gold); color: var(--dev-gold); background: rgba(79, 95, 66, 0.08); }
 
   .login-box { max-width: 420px; margin: auto; width: 100%; }
   .login-box h2 { font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: 38px; margin-bottom: 34px; }
