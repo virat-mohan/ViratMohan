@@ -127,7 +127,7 @@ export function personSchema() {
     '@id': personId,
     name: site.name,
     url: site.domain,
-    jobTitle: 'Operator, CFO and founder — AI-native growth services',
+    jobTitle: 'Operator and founder — AI-native growth services',
     description:
       'Virat Mohan builds the operating layer between capital and execution. Two decades across finance, hospitality and technology: LSE, KPMG London, Pita Pit, CloudKitchens®, Daryaganj and Foodlink, now ClarityHQ.',
     alumniOf: [
