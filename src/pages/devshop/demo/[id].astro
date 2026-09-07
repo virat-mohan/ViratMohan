@@ -82,7 +82,7 @@ const TIMELINE_STAGES: { statuses: PipelineStage[]; label: string }[] = [
   { statuses: ['deposit_paid', 'build_scheduled'], label: 'Deposit & kickoff' },
   { statuses: ['in_build', 'uat'], label: '30-day build' },
   { statuses: ['delivered', 'feedback_requested'], label: 'Delivered' },
-  { statuses: ['amc_active'], label: 'Live on AMC' },
+  { statuses: ['amc_active'], label: 'Live on Care + Optimisation' },
 ];
 const currentTimelineIndex = Math.max(0, TIMELINE_STAGES.findIndex((s) => s.statuses.includes(row.status)));
 const canMoveForward = row.status === 'sent';
@@ -272,7 +272,7 @@ function nextSectionNum() {
         <div class="roadmap-step"><span class="roadmap-phase">Days 1–2 · Kickoff</span><p>Confirm the scope this demo represents, get access to the systems named above, and lock the exact numbers your team gave us in place of the assumptions.</p></div>
         <div class="roadmap-step"><span class="roadmap-phase">Days 3–25 · Build</span><p>Build the mechanism against your real data, wire up the integrations, and run it internally before your team ever sees it.</p></div>
         <div class="roadmap-step"><span class="roadmap-phase">Days 26–28 · UAT</span><p>Your team runs it alongside their normal work for a few days — we're watching and fixing in real time, not waiting for a bug report.</p></div>
-        <div class="roadmap-step"><span class="roadmap-phase">Days 29–30 · Launch</span><p>Go live, walk your team through it directly, and the AMC support clock starts.</p></div>
+        <div class="roadmap-step"><span class="roadmap-phase">Days 29–30 · Launch</span><p>Go live, walk your team through it directly, and DevShop Care + Optimisation starts.</p></div>
       </div>
     </section>
 
@@ -459,7 +459,7 @@ function nextSectionNum() {
         </div>
         <div class="pricing-card">
           <p class="pricing-amount">From ₹50,000<span class="pricing-per">/mo</span></p>
-          <p class="pricing-label">AMC per live module — ongoing updates, monitoring, and support</p>
+          <p class="pricing-label">DevShop Care + Optimisation, per live module — ongoing updates, monitoring, and support</p>
         </div>
       </div>
       <p class="pricing-note">A genuinely complex build is custom-quoted after a short scoping call, not fit into the standard price. The 30-day delivery guarantee applies to standard builds, and the clock starts the moment your deposit clears — not at the demo, not at scoping.</p>
@@ -482,7 +482,7 @@ function nextSectionNum() {
       {row.amc_resource_estimate && row.amc_pricing_decision && (
         <div class="team-block">
           <h3 class="team-title">Who supports you afterward</h3>
-          <p class="team-intro">Ongoing FTDS team included in your AMC, ₹{row.amc_pricing_decision.monthly_amount_inr.toLocaleString('en-IN')}/month.</p>
+          <p class="team-intro">Ongoing FTDS team included in DevShop Care + Optimisation, ₹{row.amc_pricing_decision.monthly_amount_inr.toLocaleString('en-IN')}/month.</p>
           <div class="team-rows">
             {row.amc_resource_estimate.estimates.map((e) => (
               <div class="team-row">
@@ -493,6 +493,53 @@ function nextSectionNum() {
           </div>
         </div>
       )}
+
+      <div class="team-block">
+        <h3 class="team-title">Direct technology costs</h3>
+        <p class="team-intro">Model usage, hosting, and any third-party tool subscriptions your build needs are passed through at cost, itemized separately from the build and Care + Optimisation fees. We don't mark up infrastructure.</p>
+      </div>
+    </section>
+
+    <section class="block boundaries-block">
+      <div class="section-head"><span class="section-num">{nextSectionNum()}</span><h2>What's included, and what isn't</h2></div>
+      <div class="boundaries-grid">
+        <div class="boundaries-col">
+          <h3 class="boundaries-title boundaries-title--in">Included, every month</h3>
+          <ul class="bullets">
+            <li>Operation — keeping the build running day to day</li>
+            <li>Maintenance — fixes, updates, and monitoring</li>
+            <li>Agreed optimisation — tuning against the plan we set together</li>
+            <li>Technical support — when something breaks or behaves unexpectedly</li>
+            <li>Domain support — subject-matter input specific to your framework</li>
+            <li>Client engagement — a standing point of contact, not a ticket queue</li>
+            <li>Outcome review — checking the system still moves the P&L line it was built for</li>
+          </ul>
+        </div>
+        <div class="boundaries-col">
+          <h3 class="boundaries-title boundaries-title--out">Not included — scoped and quoted separately</h3>
+          <ul class="bullets">
+            <li>New modules</li>
+            <li>Major new features</li>
+            <li>Major new integrations</li>
+            <li>Data migrations</li>
+            <li>Fundamentally changed requirements</li>
+            <li>Unlimited development hours</li>
+            <li>Unlimited expert hours</li>
+          </ul>
+        </div>
+      </div>
+      <p class="pricing-note">Genuinely new scope gets its own proposal and price — Care + Optimisation keeps what you already have running well, it isn't a blank-check retainer.</p>
+    </section>
+
+    <section class="block boundaries-block">
+      <div class="section-head"><span class="section-num">{nextSectionNum()}</span><h2>What we need from you</h2></div>
+      <ul class="bullets">
+        <li>Grant access to the tools and systems named in scope, within a few days of kickoff</li>
+        <li>Name one point of contact who can answer questions during the build</li>
+        <li>Give feedback within the single revision round — changes after that reset the clock</li>
+        <li>Confirm the real numbers behind any assumption we've flagged as unverified</li>
+        <li>Show up for the handoff walkthrough when the build is ready</li>
+      </ul>
     </section>
 
     <section class="block move-forward-block">
@@ -774,6 +821,14 @@ function nextSectionNum() {
   .pricing-per { font-size: 13px; font-weight: 400; color: var(--muted); }
   .pricing-label { font-size: 12px; color: var(--muted); line-height: 1.4; margin: 0; }
   .pricing-note { font-size: 12.5px; color: var(--muted); line-height: 1.6; margin: 0; }
+
+  .boundaries-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 16px; }
+  .boundaries-title { font-family: 'Newsreader', Georgia, serif; font-size: 15px; font-weight: 600; margin: 0 0 10px; }
+  .boundaries-title--in { color: #2f6f4e; }
+  .boundaries-title--out { color: #9a4a3a; }
+  @media (max-width: 640px) {
+    .boundaries-grid { grid-template-columns: 1fr; gap: 24px; }
+  }
   .team-block { margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--hair); }
   .team-title { font-family: 'Newsreader', Georgia, serif; font-size: 15px; font-weight: 600; color: var(--ink); margin: 0 0 4px; }
   .team-intro { font-size: 12.5px; color: var(--muted); margin: 0 0 10px; }
