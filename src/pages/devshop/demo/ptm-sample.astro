@@ -1,5 +1,5 @@
 ---
-// A hand-built SAMPLE of the PTM (Process/Task/Machine) operating-model
+// A hand-built SAMPLE of the PTM (Process, Training, Mapping) operating-model
 // document DevShop delivers at implementation — not before. Built for the
 // same Meridian Supply Co / AR-reconciliation example already used in
 // methodology.astro's case study and the AR-reconciliation artefact mock,
@@ -10,7 +10,7 @@ import PortalHeader from '../../../components/devshop/PortalHeader.astro';
 import { site } from '../../../data/site';
 
 const title = 'Sample PTM document — Fast Tech Dev Shop';
-const description = 'A real example of the PTM (Process/Task/Machine) operating-model document delivered at implementation — Function Library entry, task-by-task Human vs Machine allocation, and the workload math behind it.';
+const description = 'A real example of the PTM (Process, Training, Mapping) operating-model document delivered at implementation — Function Library entry, task-by-task Human vs Machine allocation, and the workload math behind it.';
 const canonical = new URL('/devshop/demo/ptm-sample', site.domain).href;
 
 const tasks = [
@@ -61,7 +61,7 @@ const AUTOMATION_LABELS: Record<string, string> = { M: 'Manual', A: 'Automated',
     </section>
 
     <section class="block">
-      <div class="section-head"><span class="section-num mono">02</span><h2>Process → Task → Human/Machine allocation</h2></div>
+      <div class="section-head"><span class="section-num mono">02</span><h2>Process → Task → Mapping</h2></div>
       <p class="section-intro">Process: <strong>Incoming Payment Reconciliation.</strong> Every task below is classified Manual (M), Semi-Automated (SA), Automated (A), or Fully AI-driven (F) — decided task by task, not "automate everything."</p>
       <div class="task-table-wrap">
         <table class="task-table">
@@ -95,7 +95,20 @@ const AUTOMATION_LABELS: Record<string, string> = { M: 'Manual', A: 'Automated',
     </section>
 
     <section class="block">
-      <div class="section-head"><span class="section-num mono">03</span><h2>Current → Augmented → Future</h2></div>
+      <div class="section-head"><span class="section-num mono">03</span><h2>Training — what the AR Lead needs to know</h2></div>
+      <p class="section-intro">Automation removes the two clean-match tasks from a human's plate entirely — it doesn't remove the need to train someone on what's left. The AR Lead's role shifts from "match every payment by hand" to "judge the ones the mechanism couldn't."</p>
+      <div class="training-grid">
+        <div class="training-row"><span class="training-key">Knowledge</span><span class="training-val">What counts as a normal bank-charge variance vs. a real discrepancy; which invoices are commonly split-paid by which customers.</span></div>
+        <div class="training-row"><span class="training-key">Decision rules</span><span class="training-val">Variances under ₹200 tied to a recognizable bank-charge pattern: approve. Anything else: escalate to the Finance Controller.</span></div>
+        <div class="training-row"><span class="training-key">SOP</span><span class="training-val">Review the mechanism's variance summary → confirm the matched invoice(s) against the customer's account → approve or correct within the tool, never in a separate spreadsheet.</span></div>
+        <div class="training-row"><span class="training-key">Quality standard</span><span class="training-val">Every escalation resolved within 1 business day; zero manually-corrected entries that don't match the audit trail.</span></div>
+        <div class="training-row"><span class="training-key">Assessment</span><span class="training-val">Shadow run (Days 26–28 of the build) — the AR Lead handles real exceptions with the FDE watching before going solo.</span></div>
+        <div class="training-row"><span class="training-key">Continuous learning</span><span class="training-val">If the exception rate or type shifts (e.g. a new customer pays in installments), the mechanism's matching logic gets retuned — reviewed as part of Care + Optimisation, not left for the AR Lead to work around manually.</span></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="section-head"><span class="section-num mono">04</span><h2>Current → Augmented → Future</h2></div>
       <div class="cav-grid">
         <div class="cav-card">
           <p class="cav-label">Current</p>
@@ -113,7 +126,7 @@ const AUTOMATION_LABELS: Record<string, string> = { M: 'Manual', A: 'Automated',
     </section>
 
     <section class="block">
-      <div class="section-head"><span class="section-num mono">04</span><h2>Workload math</h2></div>
+      <div class="section-head"><span class="section-num mono">05</span><h2>Workload math</h2></div>
       <div class="calc-grid">
         <div class="calc-card"><p class="calc-num serif">≈40<span class="calc-unit">hrs/mo</span></p><p class="calc-cap">Current — fully manual baseline</p></div>
         <div class="calc-arrow">→</div>
@@ -123,15 +136,11 @@ const AUTOMATION_LABELS: Record<string, string> = { M: 'Manual', A: 'Automated',
     </section>
 
     <section class="block">
-      <div class="section-head"><span class="section-num mono">05</span><h2>Planning, training &amp; tech stack</h2></div>
+      <div class="section-head"><span class="section-num mono">06</span><h2>Planning &amp; tech stack</h2></div>
       <div class="pt-grid">
         <div class="pt-item">
           <p class="pt-title">Planning</p>
           <p class="pt-body">PTM Priority sequences the build — the two Priority 5 tasks (matching, diagnosis) get built and validated first, since they carry the most workload; Priority 2–3 tasks (extraction, posting) are lower-risk to automate and follow once the core match logic is proven.</p>
-        </div>
-        <div class="pt-item">
-          <p class="pt-title">Training</p>
-          <p class="pt-body">Only the AR Lead needs training — on reading the mechanism's variance summary and using the approve/override action. The fully-automated tasks need no training at all; nobody has to learn a new tool to do work that no longer reaches them.</p>
         </div>
         <div class="pt-item">
           <p class="pt-title">Tech stack</p>
@@ -193,6 +202,12 @@ const AUTOMATION_LABELS: Record<string, string> = { M: 'Manual', A: 'Automated',
   .fn-key { flex: none; width: 130px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--dev-muted2); padding-top: 2px; }
   .fn-val { font-size: 14px; color: var(--dev-text); line-height: 1.55; }
 
+  .training-grid { display: flex; flex-direction: column; }
+  .training-row { display: flex; gap: 20px; padding: 11px 0; border-top: 1px solid var(--dev-hair); }
+  .training-row:first-child { border-top: none; }
+  .training-key { flex: none; width: 150px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--dev-gold); padding-top: 2px; }
+  .training-val { font-size: 13.5px; color: var(--dev-muted1); line-height: 1.6; }
+
   .task-table-wrap { overflow-x: auto; }
   .task-table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 760px; }
   .task-table th {
@@ -249,6 +264,8 @@ const AUTOMATION_LABELS: Record<string, string> = { M: 'Manual', A: 'Automated',
   @media (max-width: 560px) {
     h1.hero { font-size: clamp(26px, 8vw, 36px); }
     .fn-row { flex-direction: column; gap: 4px; }
+    .training-row { flex-direction: column; gap: 4px; }
+    .training-key { width: auto; }
     .fn-key { width: auto; }
     .calc-grid { flex-direction: column; align-items: stretch; }
     .calc-arrow { transform: rotate(90deg); align-self: center; }
