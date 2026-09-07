@@ -13,7 +13,7 @@ const whatsappHref = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
 
 const title = 'Sample solution document — Fast Tech Dev Shop';
 const description =
-  'A full, real example of what a DevShop solution document looks like: a business decision problem, a proven decision-making framework applied, and an interactive tool that reaches a recommendation.';
+  'A full, real example of what a DevShop solution document looks like: a common finance-ops problem, a proven framework applied, and an interactive mechanism with real AI agents running end to end.';
 const canonical = new URL('/devshop/demo/illustrative', site.domain).href;
 ---
 
@@ -58,46 +58,48 @@ const canonical = new URL('/devshop/demo/illustrative', site.domain).href;
       <div class="eyebrow">SOLUTION BRIEF</div>
       <h1>What we heard, and what we're proposing.</h1>
       <div class="doc-meta">
-        <div class="doc-meta-row"><span class="doc-meta-label">Prepared for</span>A business weighing an AI investment</div>
+        <div class="doc-meta-row"><span class="doc-meta-label">Prepared for</span>Meridian Supply Co — Finance / AR</div>
         <div class="doc-meta-row"><span class="doc-meta-label">Date</span>Illustrative example</div>
         <div class="doc-meta-row"><span class="doc-meta-label">Status</span>Sample only — shown while live generation is paused</div>
       </div>
     </div>
 
+    <p class="illus-picked-note">We picked this one on purpose: it's not the hardest problem we solve, it's the <strong>most common</strong> — a pattern we see across most businesses that take in payments against invoices. The mechanism below is the same standard solution we'd build for almost any business with this pattern, tuned to your real numbers and your real tools.</p>
+
     <blockquote class="submitted-problem">
       <span class="submitted-label">What you told us</span>
-      "Our leadership team has been going back and forth for six months on whether we should invest in building an AI-powered capability — something like an AI orchestration studio — for our business. We keep circling the same debate without ever actually deciding, and competitors are already moving."
+      "Our AR team manually logs every incoming customer invoice payment against open invoices, and we keep finding mismatches weeks later when the books don't reconcile."
     </blockquote>
 
     <section class="block">
       <div class="section-head"><span class="section-num">§01</span><h2>The problem</h2></div>
       <div class="card">
-        <p class="card-title">This isn't a capability problem — it's a decision-making problem. Without a structured way to weigh the investment, the same debate resets every time it comes up, and the cost isn't the investment itself — it's the six months already spent not deciding.</p>
-        <p class="card-function"><span class="card-tag">Business function</span>Leadership / Strategy</p>
+        <p class="card-title">There's no automated match step between the bank feed and open invoices — every payment gets eyeballed by hand, whether it's a clean match or a genuine exception. The team isn't slow; the process makes no distinction between the two.</p>
+        <p class="card-function"><span class="card-tag">Business function</span>Finance / Accounts Receivable</p>
       </div>
     </section>
 
     <section class="block framework-block">
       <div class="section-head"><span class="section-num">§02</span><h2>Grounded in a proven approach</h2></div>
       <div class="card">
-        <p class="card-title"><a href="https://en.wikipedia.org/wiki/Kepner%E2%80%93Tregoe" target="_blank" rel="noopener">Kepner-Tregoe Decision Analysis</a></p>
-        <p class="card-function">Charles Kepner &amp; Benjamin Tregoe, 1965</p>
-        <p class="plain-copy">This is the standard method for exactly this kind of stuck decision — it forces every option to be scored against the same weighted criteria instead of relitigating the same two or three arguments every time the topic comes up. It turns a circular debate into a single number everyone can look at.</p>
+        <p class="card-title"><a href="https://en.wikipedia.org/wiki/DMAIC" target="_blank" rel="noopener">Six Sigma — DMAIC</a></p>
+        <p class="card-function">Define, Measure, Analyze, Improve, Control</p>
+        <p class="plain-copy">The standard method for fixing a broken process without guessing — measure what's actually happening today, find the specific step causing the failure, fix that step, then control it so it doesn't drift back. Not reinvented per client; applied the same way every time this pattern shows up.</p>
       </div>
     </section>
 
     <section class="block">
       <div class="section-head"><span class="section-num">§03</span><h2>How we'd apply it</h2></div>
       <div class="card">
-        <p class="card-title">A weighted decision scorecard for the AI investment</p>
-        <p class="plain-copy">Six criteria that actually matter for this kind of call — growth potential, cost savings, competitive timing, implementation risk, capital required, and team readiness — each weighted by how much it should actually matter to your business, not scored equally by default. Press Run below to see it work end to end.</p>
+        <p class="card-title">Automated payment-to-invoice matching, with real AI agents doing the work</p>
+        <p class="plain-copy">Four agents, each with one job: <strong>Data Extraction</strong> reads the payment off the bank feed, <strong>Reconciliation/Matching</strong> checks it against open invoices, <strong>Exception/Diagnosis</strong> flags anything that doesn't clear automatically, and <strong>Notification</strong> routes the real exceptions to a person. Press Run below to watch one actual payment move through it.</p>
       </div>
     </section>
 
     <div class="walkthrough-intro">
       <p class="walkthrough-eyebrow">See it work</p>
       <h2 class="walkthrough-heading">The interactive walkthrough</h2>
-      <p class="artefact-caption">Press <strong>Run the analysis</strong> to watch the scorecard resolve to a recommendation.</p>
+      <p class="artefact-caption">One real payment, run through the actual mechanism — press <strong>Run</strong> in the "See it run" tab.</p>
     </div>
 
     <div class="browser-chrome">
@@ -109,89 +111,106 @@ const canonical = new URL('/devshop/demo/illustrative', site.domain).href;
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path d="M6 10V8a6 6 0 1112 0v2M5 10h14a1 1 0 011 1v9a1 1 0 01-1 1H5a1 1 0 01-1-1v-9a1 1 0 011-1z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          <span class="chrome-address-text">yourcompany.com/ai-investment-decision</span>
+          <span class="chrome-address-text">app.meridiansupply.co</span>
         </div>
       </div>
       <div class="artefact-embed">
         <div class="kt-tabs" id="ktTabs">
-          <button type="button" class="kt-tab active" data-kttab="decision">The decision</button>
+          <button type="button" class="kt-tab active" data-kttab="decision">The problem</button>
+          <button type="button" class="kt-tab" data-kttab="connects">How it connects</button>
           <button type="button" class="kt-tab" data-kttab="run">See it run</button>
           <button type="button" class="kt-tab" data-kttab="impact">Business impact</button>
         </div>
 
         <div class="kt-panel active" data-ktpanel="decision">
-          <p class="kt-panel-intro">Six criteria that actually matter for this kind of call — each weighted by how much it should matter to <em>this</em> business, not scored equally by default.</p>
-          <div class="kt-criteria-static">
-            <div class="kt-static-row"><span>Revenue &amp; growth potential</span><span class="mono">weight 25</span></div>
-            <div class="kt-static-row"><span>Cost savings / efficiency gain</span><span class="mono">weight 20</span></div>
-            <div class="kt-static-row"><span>Competitive timing</span><span class="mono">weight 20</span></div>
-            <div class="kt-static-row"><span>Implementation risk (inverted)</span><span class="mono">weight 15</span></div>
-            <div class="kt-static-row"><span>Capital required vs. budget</span><span class="mono">weight 10</span></div>
-            <div class="kt-static-row"><span>Team readiness</span><span class="mono">weight 10</span></div>
+          <p class="kt-panel-intro">A common problem, not a rare one: incoming payments arrive faster than anyone can match them by hand, so the whole batch gets touched by a human — even the ones that are a clean, obvious match.</p>
+          <div class="kt-stat-row">
+            <div class="kt-stat-card"><div class="kt-stat-k">Root cause</div><div class="kt-stat-v">No automated match step between bank feed and open invoices</div></div>
+            <div class="kt-stat-card"><div class="kt-stat-k">Owner</div><div class="kt-stat-v">Accounts Receivable</div></div>
+            <div class="kt-stat-card"><div class="kt-stat-k">P&amp;L line</div><div class="kt-stat-v">AR labor cost</div></div>
           </div>
-          <p class="kt-panel-cta">Press <strong>See it run →</strong> above, then Run the analysis.</p>
+        </div>
+
+        <div class="kt-panel" data-ktpanel="connects">
+          <div class="kt-flow">
+            <div class="kt-flow-node">Accounting system (bank feed)</div>
+            <span class="kt-flow-arrow">→</span>
+            <div class="kt-flow-node">Reconciliation mechanism</div>
+            <span class="kt-flow-arrow">→</span>
+            <div class="kt-flow-node">Email — AR Lead</div>
+          </div>
+          <p class="kt-agents-title">Agents involved</p>
+          <div class="kt-agent-chips">
+            <span class="kt-agent-chip">Data Extraction Agent</span>
+            <span class="kt-agent-chip">Reconciliation/Matching Agent</span>
+            <span class="kt-agent-chip">Exception/Diagnosis Agent</span>
+            <span class="kt-agent-chip">Notification Agent</span>
+          </div>
         </div>
 
         <div class="kt-panel" data-ktpanel="run">
-          <div class="kt-tool" id="ktTool">
-            <div class="kt-criteria" id="ktCriteria">
-              <div class="kt-row" data-weight="25" data-score="9">
-                <span class="kt-name">Revenue &amp; growth potential</span>
-                <span class="kt-weight">weight 25</span>
-                <div class="kt-bar"><div class="kt-bar-fill"></div></div>
-                <span class="kt-points">—</span>
+          <div class="kt-run-controls">
+            <button class="kt-run" id="ktRun">▶ Run the mechanism</button>
+            <span class="kt-run-status" id="ktRunStatus">Payment #PMT-88213 · ₹1,84,500 · Orbis Retail</span>
+          </div>
+          <div class="kt-run-grid">
+            <div class="kt-scenario">
+              <div class="kt-sc-step" data-step="1">
+                <div class="kt-sc-num">1</div>
+                <div>
+                  <div class="kt-sc-label">Data in</div>
+                  <div class="kt-sc-body">Payment record pulled from the accounting system's bank feed.</div>
+                  <div class="kt-record" id="ktRec1">
+                    <div class="kt-record-row"><span>Payment ID</span><span>PMT-88213</span></div>
+                    <div class="kt-record-row"><span>Amount</span><span>₹1,84,500</span></div>
+                    <div class="kt-record-row"><span>Payer</span><span>Orbis Retail Pvt Ltd</span></div>
+                  </div>
+                </div>
               </div>
-              <div class="kt-row" data-weight="20" data-score="8">
-                <span class="kt-name">Cost savings / efficiency gain</span>
-                <span class="kt-weight">weight 20</span>
-                <div class="kt-bar"><div class="kt-bar-fill"></div></div>
-                <span class="kt-points">—</span>
+              <div class="kt-sc-step" data-step="2">
+                <div class="kt-sc-num">2</div>
+                <div>
+                  <div class="kt-sc-label">Processing — DMAIC Measure/Analyze</div>
+                  <div class="kt-sc-body">Checked against 14 open invoices. No single invoice matches ₹1,84,500 exactly.</div>
+                  <div class="kt-record" id="ktRec2">
+                    <div class="kt-record-row"><span>Candidate match</span><span>INV-4471 + INV-4483</span></div>
+                    <div class="kt-record-row"><span>Variance</span><span>−₹120 (bank charge)</span></div>
+                  </div>
+                </div>
               </div>
-              <div class="kt-row" data-weight="20" data-score="10">
-                <span class="kt-name">Competitive timing</span>
-                <span class="kt-weight">weight 20</span>
-                <div class="kt-bar"><div class="kt-bar-fill"></div></div>
-                <span class="kt-points">—</span>
-              </div>
-              <div class="kt-row" data-weight="15" data-score="8">
-                <span class="kt-name">Implementation risk (inverted)</span>
-                <span class="kt-weight">weight 15</span>
-                <div class="kt-bar"><div class="kt-bar-fill"></div></div>
-                <span class="kt-points">—</span>
-              </div>
-              <div class="kt-row" data-weight="10" data-score="8">
-                <span class="kt-name">Capital required vs. budget</span>
-                <span class="kt-weight">weight 10</span>
-                <div class="kt-bar"><div class="kt-bar-fill"></div></div>
-                <span class="kt-points">—</span>
-              </div>
-              <div class="kt-row" data-weight="10" data-score="9">
-                <span class="kt-name">Team readiness</span>
-                <span class="kt-weight">weight 10</span>
-                <div class="kt-bar"><div class="kt-bar-fill"></div></div>
-                <span class="kt-points">—</span>
+              <div class="kt-sc-step" data-step="3">
+                <div class="kt-sc-num">3</div>
+                <div>
+                  <div class="kt-sc-label">Outcome — escalated</div>
+                  <div class="kt-sc-body">A ₹120 variance is outside auto-approve tolerance — routed to the AR Lead.</div>
+                  <div class="kt-esc-card" id="ktEsc">
+                    <div class="kt-esc-subject">Payment #PMT-88213 needs review — multi-invoice match, ₹120 short</div>
+                    <div class="kt-esc-action">Action needed: approve match, write off ₹120</div>
+                  </div>
+                </div>
               </div>
             </div>
-
-            <button class="kt-run" id="ktRun">Run the analysis &rarr;</button>
-
-            <div class="kt-result" id="ktResult" hidden>
-              <div class="kt-score-row">
-                <span class="kt-score-label">Weighted score</span>
-                <span class="kt-score-value" id="ktScoreValue">0<span class="kt-score-max">/100</span></span>
+            <div class="kt-agent-pane">
+              <div class="kt-agent-pane-title">Agent activity</div>
+              <div class="kt-agent-log" id="ktAgentLog">
+                <div class="kt-agent-line show"><span class="kt-who">Data Extraction Agent</span> — idle</div>
+                <div class="kt-agent-line show"><span class="kt-who">Reconciliation/Matching Agent</span> — idle</div>
+                <div class="kt-agent-line show"><span class="kt-who">Exception/Diagnosis Agent</span> — idle</div>
+                <div class="kt-agent-line show"><span class="kt-who">Notification Agent</span> — idle</div>
               </div>
-              <div class="kt-verdict" id="ktVerdict"></div>
-              <a href="/devshop" class="kt-start">Start now &rarr;</a>
             </div>
+          </div>
+          <div class="kt-result" id="ktResult" hidden>
+            <a href="/devshop" class="kt-start">Start now &rarr;</a>
           </div>
         </div>
 
         <div class="kt-panel" data-ktpanel="impact">
-          <p class="kt-panel-intro">What an 88/100 "invest" recommendation actually means in practice — not the score itself, but what changes because of it.</p>
+          <p class="kt-panel-intro">Same mechanism, run across every payment that month — not a one-off.</p>
           <div class="kt-impact-grid">
-            <div class="kt-impact-card"><p class="kt-impact-num">6 mo</p><p class="kt-impact-cap">of stalled-debate cost avoided by deciding now instead of relitigating next quarter</p></div>
-            <div class="kt-impact-card"><p class="kt-impact-num">3</p><p class="kt-impact-cap">objections already scored into the recommendation (hype, execution risk, cost) — not afterthoughts</p></div>
-            <div class="kt-impact-card"><p class="kt-impact-num">0</p><p class="kt-impact-cap">criteria papered over — Team Readiness scored honestly at 9/10, not assumed</p></div>
+            <div class="kt-impact-card"><p class="kt-impact-num">40&rarr;8</p><p class="kt-impact-cap">hrs/month of manual matching, current vs. after</p></div>
+            <div class="kt-impact-card"><p class="kt-impact-num">84%</p><p class="kt-impact-cap">of payments auto-matched, no human touch</p></div>
+            <div class="kt-impact-card"><p class="kt-impact-num">32</p><p class="kt-impact-cap">AR hours recovered per month, without adding headcount</p></div>
           </div>
         </div>
       </div>
@@ -217,21 +236,18 @@ const canonical = new URL('/devshop/demo/illustrative', site.domain).href;
     </section>
 
     <div class="appendix-section">
-      <h3>The reasoning behind the scores</h3>
+      <h3>Why we picked this one</h3>
       <ul class="bullets flat">
-        <li><span class="bullet-label">Threshold</span>A weighted score above 65/100 clears the bar to invest — below that, the honest answer would be "not yet," and this same scorecard would say so.</li>
-        <li><span class="bullet-label">Why now scores highest</span>Competitive timing carries real weight here because the cost of a stalled decision compounds — every quarter of indecision is a quarter competitors spend building the same capability.</li>
-        <li><span class="bullet-label">What would change the answer</span>If implementation risk or team readiness scored materially lower, the recommendation would shift — this isn't a rigged demo, it's a real scorecard that can point either way.</li>
+        <li><span class="bullet-label">Common, not hard</span>Payment reconciliation is one of the highest-frequency finance-ops problems we see — not a showcase edge case, the exact pattern most businesses taking payments against invoices already have.</li>
+        <li><span class="bullet-label">Standard solution</span>Same four-agent mechanism every time this pattern shows up. What changes per client is the numbers and the tools, not the approach.</li>
       </ul>
     </div>
 
     <div class="appendix-section">
-      <h3>The honest case against — and why it doesn't hold up</h3>
+      <h3>The honest objections</h3>
       <ul class="bullets flat">
-        <li><span class="bullet-label">"Isn't this just AI hype?"</span>Fair concern — but the scorecard isn't scoring "AI" as a category, it's scoring this specific mechanism against your specific numbers. Hype doesn't survive being run through a weighted scorecard; this one still cleared the bar with room to spare.</li>
-        <li><span class="bullet-label">"What if the team can't execute?"</span>That's exactly what Team Readiness is there to catch — and it scored a 9/10 here, not a weak spot papered over. If it had scored a 4, the recommendation would say so.</li>
-        <li><span class="bullet-label">"Isn't it expensive to build?"</span>Capital Required scored well inside the threshold — and the real comparison isn't "cost to build" vs. "zero," it's cost to build vs. six more months of the same stalled debate, which is its own real cost, just an invisible one.</li>
-        <li><span class="bullet-label">Net</span>Every real objection was already a line item in the scorecard, not an afterthought — and the recommendation still held. That's what makes 88/100 a conviction score, not an optimistic one.</li>
+        <li><span class="bullet-label">"Isn't this just AI hype?"</span>The agents aren't doing anything a human couldn't — they're doing it on every payment, instantly, and only escalating the ones that actually need judgement.</li>
+        <li><span class="bullet-label">"What about the exceptions it gets wrong?"</span>It doesn't guess on exceptions — it escalates them, with the discrepancy already diagnosed, to a named person.</li>
       </ul>
     </div>
 
@@ -282,6 +298,9 @@ const canonical = new URL('/devshop/demo/illustrative', site.domain).href;
   .doc-meta { display: flex; flex-wrap: wrap; gap: 24px 32px; }
   .doc-meta-row { font-size: 13px; color: var(--ink-soft); }
   .doc-meta-label { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 3px; }
+
+  .illus-picked-note { font-size: 13.5px; color: var(--muted); line-height: 1.6; margin: 0 0 24px; max-width: 62ch; }
+  .illus-picked-note strong { color: var(--ink); }
 
   .submitted-problem {
     margin: 0 0 40px; padding: 16px 20px; border-left: 3px solid var(--gold);
@@ -358,26 +377,58 @@ const canonical = new URL('/devshop/demo/illustrative', site.domain).href;
   .kt-impact-cap { font-size: 12px; color: var(--muted); line-height: 1.5; margin: 0; }
   @media (max-width: 640px) { .kt-impact-grid { grid-template-columns: 1fr; } }
 
-  .kt-tool { max-width: 720px; margin: 0 auto; }
-  .kt-criteria { display: flex; flex-direction: column; gap: 16px; margin-bottom: 28px; }
-  .kt-row { display: grid; grid-template-columns: 1fr auto 140px 56px; align-items: center; gap: 14px; }
-  .kt-name { font-size: 14px; color: #1c1f22; font-weight: 500; }
-  .kt-weight { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #767c82; white-space: nowrap; }
-  .kt-bar { height: 8px; background: #eee7d6; border-radius: 4px; overflow: hidden; }
-  .kt-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #7d6435, #4d7a94); border-radius: 4px; transition: width 0.7s ease; }
-  .kt-points { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #4d7a94; text-align: right; }
+  .kt-stat-row { display: flex; gap: 14px; flex-wrap: wrap; }
+  .kt-stat-card { flex: 1; min-width: 160px; background: var(--paper); border-radius: 6px; padding: 14px 16px; }
+  .kt-stat-k { font-size: 11px; letter-spacing: 0.04em; color: var(--gold); text-transform: uppercase; margin-bottom: 4px; }
+  .kt-stat-v { font-size: 13.5px; color: var(--ink); }
+
+  .kt-flow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 6px 0 24px; }
+  .kt-flow-node { background: var(--paper); border: 1px solid var(--hair); border-radius: 7px; padding: 10px 14px; font-size: 12.5px; font-weight: 600; color: var(--ink); }
+  .kt-flow-arrow { color: var(--muted); font-size: 15px; }
+  .kt-agents-title { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+  .kt-agent-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .kt-agent-chip { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--gold); background: var(--paper); border-radius: 20px; padding: 6px 12px; }
+
+  .kt-run-controls { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
   .kt-run {
-    display: block; width: 100%; padding: 14px 24px; font-family: 'Archivo', sans-serif; font-size: 15px; font-weight: 600;
-    background: #7d6435; color: #fff; border: none; border-radius: 6px; cursor: pointer; transition: background 0.2s;
+    font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 600; color: #fff;
+    background: var(--gold); border: none; border-radius: 6px; padding: 11px 22px; cursor: pointer; transition: background 0.2s;
   }
   .kt-run:hover { background: #6b5529; }
   .kt-run:disabled { opacity: 0.6; cursor: default; }
-  .kt-result { margin-top: 28px; padding-top: 24px; border-top: 1px solid #e5e0d3; text-align: center; }
-  .kt-score-row { display: flex; align-items: baseline; justify-content: center; gap: 10px; margin-bottom: 12px; }
-  .kt-score-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: #767c82; }
-  .kt-score-value { font-family: 'Newsreader', Georgia, serif; font-size: 40px; font-weight: 600; color: #1c1f22; }
-  .kt-score-max { font-size: 18px; color: #767c82; font-weight: 400; }
-  .kt-verdict { font-size: 18px; font-weight: 600; color: #2c6b47; margin-bottom: 20px; }
+  .kt-run-status { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--muted); }
+
+  .kt-run-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 720px) { .kt-run-grid { grid-template-columns: 1fr; } }
+
+  .kt-scenario { border: 1px solid var(--hair); border-radius: 8px; padding: 16px 18px; min-height: 260px; }
+  .kt-sc-step { display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid var(--hair); }
+  .kt-sc-step:first-child { border-top: none; }
+  .kt-sc-num { flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--hair); color: var(--ink-soft); font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; display: flex; align-items: center; justify-content: center; margin-top: 2px; }
+  .kt-sc-step.live .kt-sc-num { background: var(--gold); color: #fff; }
+  .kt-sc-step.done .kt-sc-num { background: var(--blue); color: #fff; }
+  .kt-sc-label { font-size: 11.5px; letter-spacing: 0.03em; color: var(--muted); text-transform: uppercase; margin-bottom: 3px; }
+  .kt-sc-body { font-size: 13px; color: var(--ink-soft); line-height: 1.5; }
+  .kt-record { margin-top: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; background: var(--paper); border-radius: 5px; padding: 8px 10px; color: var(--ink-soft); display: none; }
+  .kt-record.show { display: block; }
+  .kt-record-row { display: flex; justify-content: space-between; padding: 2px 0; }
+  .kt-record-row span:last-child { color: var(--ink); }
+  .kt-esc-card { margin-top: 10px; border: 1px solid var(--gold); background: #f5ead9; border-radius: 6px; padding: 10px 12px; display: none; }
+  .kt-esc-card.show { display: block; }
+  .kt-esc-subject { font-weight: 600; font-size: 12.5px; margin-bottom: 6px; color: var(--ink); }
+  .kt-esc-action { font-size: 11.5px; font-weight: 600; color: var(--gold); background: #fff; border: 1px solid var(--gold); border-radius: 4px; padding: 5px 8px; display: inline-block; }
+
+  .kt-agent-pane { background: #1b1e1a; border-radius: 8px; padding: 14px 14px 12px; color: #dcded8; min-height: 260px; }
+  .kt-agent-pane-title { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #8b9086; margin-bottom: 10px; }
+  .kt-agent-log { font-family: 'IBM Plex Mono', monospace; font-size: 11px; line-height: 1.9; }
+  .kt-agent-line { opacity: 0; transform: translateY(3px); transition: opacity 0.3s, transform 0.3s; }
+  .kt-agent-line.show { opacity: 1; transform: translateY(0); }
+  .kt-who { color: #7fc4bd; }
+  .kt-agent-line.term .kt-who { color: #e0a15c; }
+  .kt-pulse { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #7fc4bd; margin-right: 6px; animation: kt-blink 1s infinite; }
+  @keyframes kt-blink { 50% { opacity: 0.25; } }
+
+  .kt-result { margin-top: 20px; text-align: center; }
   .kt-start {
     display: inline-block; font-size: 14px; font-weight: 600; padding: 12px 26px;
     background: #2c6b47; color: #fff; border-radius: 6px; text-decoration: none;
@@ -435,8 +486,6 @@ const canonical = new URL('/devshop/demo/illustrative', site.domain).href;
   @media (max-width: 640px) {
     .brief { padding: 32px 20px 24px; }
     .artefact-embed { padding: 24px 18px; }
-    .kt-row { grid-template-columns: 1fr; gap: 6px; }
-    .kt-points { text-align: left; }
   }
 </style>
 
@@ -450,40 +499,69 @@ const canonical = new URL('/devshop/demo/illustrative', site.domain).href;
     document.querySelectorAll('.kt-panel').forEach(function (p) { p.classList.toggle('active', p.dataset.ktpanel === btn.dataset.kttab); });
   });
 
-  document.getElementById('ktRun').addEventListener('click', function () {
-    var btn = this;
-    btn.disabled = true;
-    btn.textContent = 'Running…';
-    var rows = Array.prototype.slice.call(document.querySelectorAll('#ktCriteria .kt-row'));
-    var total = 0;
-    var maxTotal = 0;
-    var stepDelay = 1100; // matches the pacing used across the site's other run demos
+  // Scenario run — one named payment, moving through data-in ->
+  // processing -> outcome, with a separate agent-activity pane logging
+  // which agent fires at each step. Same pacing (~1.1-1.6s/step) used
+  // across the site's other run demos.
+  (function () {
+    var runBtn = document.getElementById('ktRun');
+    if (!runBtn) return;
+    var runStatus = document.getElementById('ktRunStatus');
+    var steps = Array.prototype.slice.call(document.querySelectorAll('.kt-sc-step'));
+    var logEl = document.getElementById('ktAgentLog');
+    var wait = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
 
-    rows.forEach(function (row, i) {
-      setTimeout(function () {
-        var weight = parseFloat(row.dataset.weight);
-        var score = parseFloat(row.dataset.score); // out of 10
-        var points = Math.round((weight * score) / 10);
-        total += points;
-        maxTotal += weight;
-        row.querySelector('.kt-bar-fill').style.width = (score * 10) + '%';
-        row.querySelector('.kt-points').textContent = points + ' pts';
-      }, i * stepDelay);
+    function logLine(who, text, term) {
+      return wait(30).then(function () {
+        var line = document.createElement('div');
+        line.className = 'kt-agent-line';
+        line.innerHTML = (term ? '' : '<span class="kt-pulse"></span>') + '<span class="kt-who">' + who + '</span> — ' + text;
+        if (term) line.classList.add('term');
+        logEl.appendChild(line);
+        return wait(20).then(function () { line.classList.add('show'); });
+      });
+    }
+
+    runBtn.addEventListener('click', function () {
+      runBtn.disabled = true;
+      runBtn.textContent = '● Running…';
+      runStatus.textContent = 'Payment #PMT-88213 · ₹1,84,500 · Orbis Retail';
+      steps.forEach(function (s) { s.classList.remove('live', 'done'); });
+      document.querySelectorAll('.kt-record').forEach(function (r) { r.classList.remove('show'); });
+      document.getElementById('ktEsc').classList.remove('show');
+      logEl.innerHTML = '';
+
+      (async function () {
+        steps[0].classList.add('live');
+        await logLine('Data Extraction Agent', 'reading payment record PMT-88213…');
+        await wait(1300);
+        document.getElementById('ktRec1').classList.add('show');
+        await wait(700);
+        steps[0].classList.remove('live'); steps[0].classList.add('done');
+
+        steps[1].classList.add('live');
+        await logLine('Reconciliation/Matching Agent', 'checking against 14 open invoices…');
+        await wait(1500);
+        await logLine('Reconciliation/Matching Agent', 'matched INV-4471 + INV-4483, ₹120 short');
+        await wait(700);
+        document.getElementById('ktRec2').classList.add('show');
+        await wait(800);
+        steps[1].classList.remove('live'); steps[1].classList.add('done');
+
+        steps[2].classList.add('live');
+        await logLine('Exception/Diagnosis Agent', 'variance outside auto-approve tolerance — flagging');
+        await wait(1300);
+        await logLine('Notification Agent', 'sending escalation to AR Lead', true);
+        await wait(700);
+        document.getElementById('ktEsc').classList.add('show');
+        await wait(400);
+        steps[2].classList.remove('live'); steps[2].classList.add('done');
+
+        runStatus.textContent = 'Escalated to AR Lead — one payment, real agents, real outcome';
+        runBtn.disabled = false;
+        runBtn.textContent = '↻ Run again';
+        document.getElementById('ktResult').hidden = false;
+      })();
     });
-
-    setTimeout(function () {
-      var scoreEl = document.getElementById('ktScoreValue');
-      var verdictEl = document.getElementById('ktVerdict');
-      var resultEl = document.getElementById('ktResult');
-      scoreEl.innerHTML = total + '<span class="kt-score-max">/' + maxTotal + '</span>';
-      var pass = total >= 65;
-      verdictEl.textContent = pass
-        ? 'Recommendation: INVEST — clears the 65-point go-threshold.'
-        : 'Recommendation: NOT YET — below the 65-point go-threshold.';
-      verdictEl.style.color = pass ? '#2c6b47' : '#a34a3a';
-      resultEl.hidden = false;
-      btn.textContent = 'Run the analysis →';
-      btn.disabled = false;
-    }, rows.length * stepDelay + 600);
-  });
+  })();
 </script>
