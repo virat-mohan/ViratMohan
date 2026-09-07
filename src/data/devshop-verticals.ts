@@ -14,6 +14,11 @@ export type DevShopVertical = {
   industryLabel: string; // used in "AI-Enabled Solutions for {industryLabel}"
   status: 'live' | 'soon';
   blurb: string;
+  color: string; // this vertical's accent — a tonal variation within the
+  // same warm-earth family (amber/terracotta/olive/stone), not a different
+  // brand hue. Used for its industry-chip tag badge on the main landing
+  // page AND as that vertical page's own --dev-gold, so the two stay in
+  // sync as a color legend a visitor can actually learn.
 };
 
 export const devshopVerticals: DevShopVertical[] = [
@@ -24,6 +29,7 @@ export const devshopVerticals: DevShopVertical[] = [
     industryLabel: 'Food & Beverage',
     status: 'live',
     blurb: 'Wastage, delivery-platform recon, kitchen ops, guest experience, menu strategy, labor, compliance — across QSR, casual dining, bars, cloud kitchens, and hotel F&B.',
+    color: '#8a6a1e',
   },
   {
     name: 'D2C E-Commerce',
@@ -32,6 +38,7 @@ export const devshopVerticals: DevShopVertical[] = [
     industryLabel: 'D2C E-Commerce',
     status: 'live',
     blurb: 'Cart abandonment, courier RTO, returns & reverse logistics, rising CAC, marketplace payout recon, and catalog data quality — across fashion, beauty, home, electronics, and subscription-box D2C brands.',
+    color: '#a3573f',
   },
   {
     name: 'Retail',
@@ -40,6 +47,7 @@ export const devshopVerticals: DevShopVertical[] = [
     industryLabel: 'Retail',
     status: 'live',
     blurb: 'Shrinkage, stockouts, omnichannel inventory sync, staff scheduling, and marketplace payout recon — across fashion, grocery, electronics, and multi-store chains.',
+    color: '#6b7a4a',
   },
   {
     name: 'Real Estate & Property Management',
@@ -48,5 +56,6 @@ export const devshopVerticals: DevShopVertical[] = [
     industryLabel: 'Real Estate & Property Management',
     status: 'live',
     blurb: 'Rent recon, maintenance ticketing, vacancy forecasting, and tenant turnover — across residential, commercial, and mixed-use portfolios.',
+    color: '#7a6a52',
   },
 ];

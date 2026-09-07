@@ -199,11 +199,11 @@ const canonical = new URL('/devshop', site.domain).href;
       <div class="industry-chips">
         {devshopVerticals.map((v) => (
           v.status === 'live' ? (
-            <a href={`/devshop/${v.slug}`} class="industry-chip">
+            <a href={`/devshop/${v.slug}`} class="industry-chip" style={`--chip-color:${v.color};`}>
               <span class="industry-chip-tag">{v.tag}</span>{v.name}
             </a>
           ) : (
-            <span class="industry-chip industry-chip--soon">
+            <span class="industry-chip industry-chip--soon" style={`--chip-color:${v.color};`}>
               <span class="industry-chip-tag">{v.tag}</span>{v.name}<em>Coming soon</em>
             </span>
           )
@@ -296,7 +296,7 @@ const canonical = new URL('/devshop', site.domain).href;
     <div class="vertical-grid">
       {devshopVerticals.map((v) => (
         v.status === 'live' ? (
-          <a class="vertical-card" href={`/devshop/${v.slug}`}>
+          <a class="vertical-card" href={`/devshop/${v.slug}`} style={`--chip-color:${v.color};`}>
             <div class="vertical-tag">{v.tag}</div>
             <div class="vertical-name">{v.name}</div>
             <div class="vertical-blurb">{v.blurb}</div>
@@ -821,10 +821,10 @@ const canonical = new URL('/devshop', site.domain).href;
     background: var(--dev-panel); border: 1px solid var(--dev-hair); border-radius: 999px; padding: 8px 18px 8px 10px;
     box-shadow: 0 1px 3px rgba(30,33,26,0.05); transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
   }
-  .industry-chip:hover { border-color: var(--dev-gold); box-shadow: 0 5px 14px rgba(30,33,26,0.09); transform: translateY(-1px); }
+  .industry-chip:hover { border-color: var(--chip-color, var(--dev-gold)); box-shadow: 0 5px 14px rgba(30,33,26,0.09); transform: translateY(-1px); }
   .industry-chip-tag {
     font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.04em; font-weight: 600;
-    color: #fdfcf8; background: var(--dev-gold); border-radius: 4px; padding: 3px 7px;
+    color: #fdfcf8; background: var(--chip-color, var(--dev-gold)); border-radius: 4px; padding: 3px 7px;
   }
   .industry-chip--soon { opacity: 0.6; cursor: default; box-shadow: none; }
   .industry-chip--soon .industry-chip-tag { background: var(--dev-muted3); }
@@ -911,9 +911,9 @@ const canonical = new URL('/devshop', site.domain).href;
     display: block; background: var(--dev-panel); border: 1px solid var(--dev-hair); border-radius: 14px; padding: 24px 26px;
     box-shadow: 0 1px 3px rgba(30,33,26,0.06); transition: box-shadow 0.2s, transform 0.2s;
   }
-  a.vertical-card:hover { box-shadow: 0 6px 18px rgba(30,33,26,0.1); transform: translateY(-2px); }
+  a.vertical-card:hover { box-shadow: 0 6px 18px rgba(30,33,26,0.1); transform: translateY(-2px); border-color: var(--chip-color, var(--dev-gold)); }
   .vertical-card--soon { opacity: 0.55; }
-  .vertical-tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.12em; color: var(--dev-gold); margin-bottom: 10px; }
+  .vertical-tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.12em; color: var(--chip-color, var(--dev-gold)); margin-bottom: 10px; }
   .vertical-name { font-family: 'Instrument Serif', Georgia, serif; font-size: 24px; margin-bottom: 10px; }
   .vertical-blurb { font-size: 13.5px; color: var(--dev-muted1); line-height: 1.55; margin-bottom: 18px; }
   .vertical-cta { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dev-text); }
