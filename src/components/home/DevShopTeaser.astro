@@ -1,9 +1,20 @@
 ---
+import { Image } from 'astro:assets';
+import devshopLogo from '../../assets/screenshots/devshop logo.png';
 ---
 
 <section class="devshop-teaser section" aria-labelledby="devshop-teaser-h">
   <div class="container devshop-teaser__inner">
-    <p class="eyebrow" data-reveal>Latest — Dev Shop</p>
+    <p class="eyebrow" data-reveal>Latest</p>
+    <a href="/devshop" class="devshop-teaser__logo-link" data-reveal style="--reveal-delay: 20ms">
+      <Image
+        class="devshop-teaser__logo"
+        src={devshopLogo}
+        width={devshopLogo.width}
+        height={devshopLogo.height}
+        alt="DevShop — built fast, for real businesses"
+      />
+    </a>
     <h2
       id="devshop-teaser-h"
       class="devshop-teaser__h"
@@ -36,8 +47,25 @@
   .devshop-teaser__inner {
     max-width: 62ch;
   }
-  .devshop-teaser__h {
+  .devshop-teaser__logo-link {
+    display: inline-block;
     margin: 0.75rem 0 1.75rem;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 16px 32px -18px rgba(26, 20, 16, 0.4);
+    transition: transform 0.3s ease;
+  }
+  .devshop-teaser__logo-link:hover,
+  .devshop-teaser__logo-link:focus-visible {
+    transform: translateY(-2px);
+  }
+  .devshop-teaser__logo {
+    display: block;
+    height: 3.25rem;
+    width: auto;
+  }
+  .devshop-teaser__h {
+    margin: 0 0 1.75rem;
     max-width: 22ch;
   }
   .devshop-teaser__prose p {
