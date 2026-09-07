@@ -11,6 +11,7 @@ export const site = {
   email: 'viratmohan@gmail.com',
   whatsapp: '919999277240',
   linkedin: 'https://www.linkedin.com/in/viratmohan/', // TODO: confirm exact handle
+  instagram: 'https://www.instagram.com/vmviews/',
   clarityhq: 'https://clarityhq.ai',
   bookingUrl: 'https://meetings-na2.hubspot.com/virat-mohan',
   location: {

@@ -82,6 +82,8 @@ const EMAIL_LOGO = `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
 // boxed logos above) so they tint with the page's own accent tokens.
 const WHATSAPP_ICON = `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6C12.3 6 6 12.3 6 20c0 2.7.8 5.2 2.1 7.3L6.5 34l6.9-1.6C15.4 33.4 17.6 34 20 34c7.7 0 14-6.3 14-14S27.7 6 20 6z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M14.5 15.8c.3-.7.7-.7 1-.7h.8c.3 0 .6 0 .8.6.3.7 1 2.4 1 2.6.1.2.1.4 0 .6-.1.2-.2.4-.4.6l-.6.6c-.2.2-.4.4-.2.8.2.4 1 1.6 2.1 2.6 1.4 1.3 2.6 1.7 3 1.9.4.2.6.1.8-.1l.9-1c.2-.3.5-.2.8-.1.3.1 2.1 1 2.4 1.2.3.2.5.3.6.4.1.2.1 1-.3 1.9-.4.9-2.1 1.8-2.9 1.9-.8.1-1.5.4-4.8-1-3.9-1.6-6.3-5.6-6.5-5.9-.2-.3-1.5-2-1.5-3.7 0-1.7.9-2.6 1.2-2.9z" fill="currentColor"/></svg>`;
 const EMAIL_ICON = `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="9" width="28" height="22" rx="3" stroke="currentColor" stroke-width="1.6"/><path d="M7.5 11.5L20 22 32.5 11.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const LINKEDIN_ICON = `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="7" y="16" width="6" height="17" fill="currentColor"/><circle cx="10" cy="9.5" r="3.3" fill="currentColor"/><path d="M19 16h6v3.2c1-1.9 3-3.7 6.3-3.7 6 0 6.7 4.3 6.7 9.4V33h-6V25c0-2 0-4.6-3-4.6s-3.5 2.2-3.5 4.5V33h-6.5V16z" fill="currentColor"/></svg>`;
+const INSTAGRAM_ICON = `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="6" width="28" height="28" rx="8" stroke="currentColor" stroke-width="1.6"/><circle cx="20" cy="20" r="7" stroke="currentColor" stroke-width="1.6"/><circle cx="28.5" cy="11.5" r="1.6" fill="currentColor"/></svg>`;
 
 // Compact landing-page teaser of the same 8-stage pipeline explained in
 // full on /devshop/methodology — same icon marks, same gold-to-blue
@@ -342,7 +344,7 @@ const canonical = new URL('/devshop', site.domain).href;
   <!-- 06 CONTACT -->
   <section class="screen" id="contact" data-marketing-index="7">
     <div class="eyebrow">CONTACT</div>
-    <h1 class="hero serif" style="font-size:clamp(36px,5vw,72px);">Talk to a <span class="tint-gold">person,</span><br />not a form.</h1>
+    <h1 class="hero serif" style="font-size:clamp(36px,5vw,72px);">Connect<span class="tint-gold">.</span></h1>
     <p class="sub" style="margin-top:8px;">No ticket queue. Message directly and a real person on the team replies.</p>
     <div class="contact-row">
       <a class="contact-card" href={`https://wa.me/${site.whatsapp}`} target="_blank" rel="noopener noreferrer">
@@ -359,6 +361,20 @@ const canonical = new URL('/devshop', site.domain).href;
           <span class="contact-value">{site.email}</span>
         </span>
       </a>
+      <a class="contact-card" href={site.linkedin} target="_blank" rel="noopener noreferrer">
+        <span class="contact-icon" aria-hidden="true" set:html={LINKEDIN_ICON} />
+        <span>
+          <span class="contact-label">LinkedIn</span>
+          <span class="contact-value">Virat Mohan</span>
+        </span>
+      </a>
+      <a class="contact-card" href={site.instagram} target="_blank" rel="noopener noreferrer">
+        <span class="contact-icon" aria-hidden="true" set:html={INSTAGRAM_ICON} />
+        <span>
+          <span class="contact-label">Instagram</span>
+          <span class="contact-value">@vmviews</span>
+        </span>
+      </a>
     </div>
   </section>
 
@@ -373,8 +389,8 @@ const canonical = new URL('/devshop', site.domain).href;
           <p class="wizard-sub">More than one? List them all — we'll solve for each.</p>
           <textarea
             name="problem"
-            class="wizard-input"
-            rows="3"
+            class="wizard-input wizard-input--autogrow"
+            rows="1"
             placeholder="Tell us what isn't working, what takes too long, or what you wish existed…"
           ></textarea>
           <div class="wizard-actions">
@@ -895,7 +911,8 @@ const canonical = new URL('/devshop', site.domain).href;
     background: transparent; border: none; border-bottom: 1px solid var(--dev-hair); color: var(--dev-text);
     padding: 10px 4px 16px; resize: none;
   }
-  textarea.wizard-input { font-size: 22px; line-height: 1.5; }
+  textarea.wizard-input { font-size: 22px; line-height: 1.5; overflow: hidden; }
+  textarea.wizard-input--autogrow { padding-bottom: 8px; }
   .wizard-input::placeholder { font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--dev-muted3); }
   .wizard-input:focus { outline: none; border-color: var(--dev-gold); }
   .wizard-input--error { border-color: var(--dev-rose); }
@@ -1163,6 +1180,17 @@ const canonical = new URL('/devshop', site.domain).href;
     btn.addEventListener('click', wizardAdvance);
   });
 
+  // Autogrowing textarea — keeps the underline hugging the last typed line
+  // instead of the fixed-rows box leaving a stray gap above it.
+  document.querySelectorAll('.wizard-input--autogrow').forEach(function (el) {
+    function resize() {
+      el.style.height = 'auto';
+      el.style.height = el.scrollHeight + 'px';
+    }
+    el.addEventListener('input', resize);
+    resize();
+  });
+
   document.querySelectorAll('.wizard-input').forEach(function (input) {
     input.addEventListener('keydown', function (e) {
       if (e.key !== 'Enter') return;
@@ -1191,7 +1219,11 @@ const canonical = new URL('/devshop', site.domain).href;
       var landingInput = document.getElementById('landingProblem');
       var landingValue = landingInput ? landingInput.value.trim() : '';
       var problemField = document.querySelector('#intakeForm textarea[name="problem"]');
-      if (problemField) problemField.value = landingValue;
+      if (problemField) {
+        problemField.value = landingValue;
+        problemField.style.height = 'auto';
+        problemField.style.height = problemField.scrollHeight + 'px';
+      }
       // Only skip re-asking "What's the problem?" if the landing answer already
       // clears the same minimum-detail bar the wizard step itself enforces —
       // a one-word or single-topic answer ("Customer communication") isn't
