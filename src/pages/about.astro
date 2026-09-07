@@ -2,7 +2,7 @@
 import Base from '../layouts/Base.astro';
 import { site } from '../data/site';
 import PhotoBlock from '../components/PhotoBlock.astro';
-import vm1 from '../assets/vm1.png';
+import virat from '../assets/virat.png';
 ---
 
 <Base
@@ -13,8 +13,9 @@ import vm1 from '../assets/vm1.png';
   <article class="about section">
     <div class="container">
       <header class="about__head" data-reveal>
-        <p class="eyebrow">About</p>
+        <p class="eyebrow" style="color: var(--terracotta)">About</p>
         <h1 class="about__title">Virat Mohan</h1>
+        <hr class="about__rule" />
         <p class="about__standfirst dim">
           Two decades across finance, hospitality and technology. LSE, then
           KPMG London, then operator, then CEO, now building AI-native
@@ -36,7 +37,7 @@ import vm1 from '../assets/vm1.png';
         </p>
 
         <div class="about__photo" data-reveal>
-          <PhotoBlock src={vm1} alt="Virat Mohan at his desk" aspect="6 / 5" />
+          <PhotoBlock src={virat} alt="Virat Mohan" aspect="6 / 5" />
         </div>
 
         <h2>Education and the first discipline</h2>
@@ -177,6 +178,13 @@ import vm1 from '../assets/vm1.png';
   }
   .about__title {
     margin: 1rem 0 1.5rem;
+  }
+  .about__rule {
+    border: 0;
+    height: 4px;
+    width: 4rem;
+    background: var(--terracotta);
+    margin: 0 0 1.5rem;
   }
   .about__standfirst {
     font-family: var(--serif);

@@ -12,9 +12,12 @@
   --ink: #1a1410;
   --gold: #d4af37;
   --sage: #a8b5a0;
-  --paper: #f5f5f0;
-  --dim: #6b6259;
-  --line: rgba(26, 20, 16, 0.08);
+  /* Poster paper, not flat off-white — the same warm cream as the hero's
+     ghost-type and the printed-poster texture, used as the base ground
+     everywhere instead of a duller neutral grey-cream. */
+  --paper: #f4ead4;
+  --dim: #5a4c3c;
+  --line: rgba(23, 19, 15, 0.14);
   /* Deep indigo — a single, restrained nod to a colder palette explored
      elsewhere. Used only as a dark-mode background undertone, never as a
      fill or a competing accent alongside gold. */
@@ -38,7 +41,7 @@
   --fg: var(--ink);
   --muted: var(--dim);
   --rule: var(--line);
-  --portrait-grad: linear-gradient(160deg, #f5f5f0 0%, #e8e4d9 100%);
+  --portrait-grad: linear-gradient(160deg, #f4ead4 0%, #e6d8b8 100%);
   --portrait-blend: multiply;
 
   --serif: 'Instrument Serif', 'Newsreader', Georgia, 'Times New Roman', serif;
@@ -91,31 +94,54 @@ body {
   color: var(--ink);
 }
 
+/* A faint, site-wide halftone signature — the same texture as the poster
+   bands, at low enough opacity to sit under paper-background reading
+   pages without hurting contrast. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(
+    circle,
+    rgba(23, 19, 15, 0.09) 1.4px,
+    transparent 1.4px
+  );
+  background-size: 13px 13px;
+  pointer-events: none;
+  z-index: -1;
+}
+
 /* Typography ------------------------------------------------------------- */
-h1,
-h2,
 h3 {
   font-family: var(--serif);
   font-weight: 400;
   margin: 0;
-}
-
-h1 {
-  font-size: clamp(3.5rem, 8vw, 7rem);
-  line-height: 0.95;
-  letter-spacing: -0.03em;
-}
-
-h2 {
-  font-size: clamp(2rem, 4vw, 3.25rem);
-  line-height: 1.05;
-  letter-spacing: -0.02em;
-}
-
-h3 {
   font-size: clamp(1.35rem, 2.4vw, 1.75rem);
   line-height: 1.15;
   letter-spacing: -0.01em;
+}
+
+/* Poster identity type — every page title and section head runs in Anton,
+   the same face as the homepage hero/nav/tiles. Long-form in-body copy
+   (h3, essay prose) stays on the serif for reading comfort. */
+h1,
+h2 {
+  font-family: var(--display);
+  font-weight: 400;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+h1 {
+  font-size: clamp(3rem, 7.5vw, 6.5rem);
+  line-height: 0.88;
+  letter-spacing: 0.005em;
+}
+
+h2 {
+  font-size: clamp(1.75rem, 3.8vw, 3rem);
+  line-height: 0.95;
+  letter-spacing: 0.005em;
 }
 
 p {

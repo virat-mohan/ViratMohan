@@ -18,10 +18,11 @@ const displayDomain = (d: string) =>
 >
   <section class="section">
     <div class="container">
-      <p class="eyebrow" data-reveal>Work</p>
+      <p class="eyebrow" data-reveal style="color: var(--bronze)">Work</p>
       <h1 class="work__h" data-reveal style="--reveal-delay: 60ms">
         Products, proven in production.
       </h1>
+      <hr class="work__rule" />
       <p class="work__intro dim" data-reveal style="--reveal-delay: 120ms">
         Each of these is a live system, built end to end for a real business
         — not a mockup. Every one is licensable for yours: a fixed monthly
@@ -68,6 +69,13 @@ const displayDomain = (d: string) =>
     margin: 0.75rem 0 1.5rem;
     max-width: 16ch;
   }
+  .work__rule {
+    border: 0;
+    height: 4px;
+    width: 4rem;
+    background: var(--bronze);
+    margin: 0 0 2rem;
+  }
   .work__intro {
     max-width: 56ch;
     font-size: 1.0625rem;
@@ -81,8 +89,7 @@ const displayDomain = (d: string) =>
   .work__divider {
     margin: 0;
     border: 0;
-    height: 2px;
-    opacity: 0.7;
+    height: 4px;
   }
   .work__link {
     display: flex;

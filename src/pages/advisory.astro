@@ -2,6 +2,8 @@
 import Base from '../layouts/Base.astro';
 import { site } from '../data/site';
 
+const swatches = ['terracotta', 'cobalt', 'magenta', 'bronze'];
+
 const areas = [
   {
     title: 'Commercial & operational due diligence',
@@ -37,22 +39,36 @@ const areas = [
 >
   <section class="section">
     <div class="container">
-      <p class="eyebrow" data-reveal>Advisory</p>
+      <p class="eyebrow" data-reveal style="color: var(--cobalt)">Advisory</p>
       <h1 class="advisory__h" data-reveal style="--reveal-delay: 60ms">
         Where capital meets execution.
       </h1>
+      <hr class="advisory__rule" />
       <p class="advisory__intro dim measure" data-reveal style="--reveal-delay: 120ms">
         Selective advisory for founders, investors and operating teams. The
         work concentrates on the seam between financing and operations — the
         place a career spent on both sides of the term sheet is most useful.
         Geographic focus: India, the UAE and the UK.
       </p>
+      <p class="advisory__relation dim measure" data-reveal style="--reveal-delay: 140ms">
+        This sits apart from <a class="link-underline" href="/devshop">Dev Shop</a> on
+        purpose. Dev Shop is fast and technical — a working system in days.
+        Advisory is the opposite kind of engagement: longer-term, not
+        code-driven, and built entirely on judgment accumulated across two
+        decades of audit, operating and capital work. Dev Shop answers
+        "can this be built." Advisory answers the questions no machine
+        can — where a plan quietly breaks, which number actually decides
+        the outcome, what a term sheet is really pricing in.
+      </p>
 
       <ul class="advisory__list">
         {
-          areas.map((a) => (
+          areas.map((a, i) => (
             <li class="advisory__item" data-reveal>
-              <hr class="rule-hair" />
+              <hr
+                class="advisory__item-rule"
+                style={`background: var(--${swatches[i % swatches.length]})`}
+              />
               <h2 class="advisory__title">{a.title}</h2>
               <p class="advisory__body dim">{a.body}</p>
             </li>
@@ -74,9 +90,31 @@ const areas = [
     margin: 0.75rem 0 1.75rem;
     max-width: 14ch;
   }
+  .advisory__rule {
+    border: 0;
+    height: 4px;
+    width: 4rem;
+    background: var(--cobalt);
+    margin: 0 0 1.5rem;
+  }
   .advisory__intro {
-    margin: 0 0 4rem;
+    margin: 0 0 1.75rem;
     font-size: 1.125rem;
+  }
+  .advisory__relation {
+    margin: 0 0 4rem;
+    font-size: 0.9375rem;
+    padding: 1.5rem;
+    background: color-mix(in srgb, var(--cobalt) 8%, var(--bg));
+    border-left: 3px solid var(--cobalt);
+  }
+  .advisory__relation a {
+    color: var(--fg);
+  }
+  .advisory__item-rule {
+    border: 0;
+    height: 4px;
+    margin: 0;
   }
   .advisory__list {
     list-style: none;

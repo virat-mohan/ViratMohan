@@ -10,10 +10,11 @@ import { site } from '../data/site';
 >
   <section class="section">
     <div class="container clarity">
-      <p class="eyebrow" data-reveal>ClarityHQ</p>
+      <p class="eyebrow" data-reveal style="color: var(--magenta)">ClarityHQ</p>
       <h1 class="clarity__h" data-reveal style="--reveal-delay: 60ms">
         Growth, with a human in front of the machine.
       </h1>
+      <hr class="clarity__rule" />
       <div class="clarity__body measure" data-reveal style="--reveal-delay: 120ms">
         <p>
           ClarityHQ is an AI-native growth practice. It pairs a brand
@@ -44,8 +45,15 @@ import { site } from '../data/site';
 
 <style>
   .clarity__h {
-    margin: 0.75rem 0 2rem;
+    margin: 0.75rem 0 1.5rem;
     max-width: 16ch;
+  }
+  .clarity__rule {
+    border: 0;
+    height: 4px;
+    width: 4rem;
+    background: var(--magenta);
+    margin: 0 0 2rem;
   }
   .clarity__body {
     font-size: 1.125rem;

@@ -22,11 +22,19 @@ const projects = (await getCollection('work')).sort(
       data-reveal
       style="--reveal-delay: 120ms"
     >
-      Seven systems, built end to end for real businesses — most of them
+      Eight systems, built end to end for real businesses — most of them
       licensable for yours.
     </p>
 
     <ul class="work-teaser__list">
+      <li class="work-teaser__item" data-reveal style="--c: var(--gold)">
+        <a class="work-teaser__link" href="/devshop">
+          <span class="eyebrow work-teaser__category">
+            AI Orchestration Studio
+          </span>
+          <span class="work-teaser__brand">Dev Shop</span>
+        </a>
+      </li>
       {
         projects.map((p) => (
           <li class="work-teaser__item" data-reveal style={`--c: ${p.data.accent}`}>

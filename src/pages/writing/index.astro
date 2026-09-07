@@ -6,6 +6,8 @@ const essays = (await getCollection('writing')).sort(
   (a, b) => a.data.order - b.data.order
 );
 
+const swatches = ['terracotta', 'cobalt', 'magenta', 'bronze'];
+
 function readingTime(body: string | undefined): number {
   const words = (body ?? '')
     .replace(/```[\s\S]*?```/g, ' ')
@@ -23,16 +25,22 @@ function readingTime(body: string | undefined): number {
 >
   <section class="section">
     <div class="container">
-      <p class="eyebrow" data-reveal>Writing</p>
+      <p class="eyebrow" data-reveal style="color: var(--terracotta)">Writing</p>
       <h1 class="writing__h" data-reveal style="--reveal-delay: 60ms">
         Notes on capital, execution and judgment.
       </h1>
+      <hr class="writing__rule" />
 
       <ul class="writing__list">
         {
           essays.map((e, i) => (
             <li class="writing__item" data-reveal>
-              {i > 0 && <hr class="rule-gold" />}
+              {i > 0 && (
+                <hr
+                  class="writing__divider"
+                  style={`background: var(--${swatches[i % swatches.length]})`}
+                />
+              )}
               <a class="writing__link" href={`/writing/${e.id}`}>
                 <span class="eyebrow writing__time">
                   {readingTime(e.body)} min read
@@ -52,8 +60,21 @@ function readingTime(body: string | undefined): number {
 
 <style>
   .writing__h {
-    margin: 0.75rem 0 3.5rem;
+    margin: 0.75rem 0 1.5rem;
     max-width: 16ch;
+  }
+  .writing__rule {
+    border: 0;
+    height: 4px;
+    width: 4rem;
+    background: var(--terracotta);
+    margin: 0 0 2rem;
+  }
+  .writing__divider {
+    border: 0;
+    height: 3px;
+    margin: 0;
+    opacity: 0.7;
   }
   .writing__list {
     list-style: none;

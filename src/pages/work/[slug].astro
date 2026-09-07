@@ -45,7 +45,7 @@ const workSchema = {
           founder={entry.data.founder}
           size="lg"
         />
-        <p class="eyebrow project__eyebrow">
+        <p class="eyebrow project__eyebrow" style={`color: ${entry.data.accent}`}>
           <a class="link-underline" href="/work">Work</a>
         </p>
         <h1 class="project__title">{entry.data.category}</h1>
@@ -137,8 +137,7 @@ const workSchema = {
   .project__rule {
     margin: 0;
     border: 0;
-    height: 2px;
-    opacity: 0.7;
+    height: 4px;
   }
 
   .prose {

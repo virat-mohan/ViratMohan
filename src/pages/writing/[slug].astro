@@ -35,12 +35,12 @@ const articleSchema = {
   <article class="essay section">
     <div class="container">
       <header class="essay__head" data-reveal>
-        <p class="eyebrow">
+        <p class="eyebrow" style="color: var(--terracotta)">
           <a class="link-underline" href="/writing">Writing</a>
         </p>
         <h1 class="essay__title">{entry.data.title}</h1>
         <p class="essay__standfirst dim">{entry.data.standfirst}</p>
-        <hr class="rule-gold essay__rule" />
+        <hr class="essay__rule" />
       </header>
 
       <div class="prose tnum" data-reveal style="--reveal-delay: 80ms">
@@ -69,6 +69,10 @@ const articleSchema = {
     margin: 0 0 2rem;
   }
   .essay__rule {
+    border: 0;
+    height: 4px;
+    width: 4rem;
+    background: var(--terracotta);
     margin: 0;
   }
 
