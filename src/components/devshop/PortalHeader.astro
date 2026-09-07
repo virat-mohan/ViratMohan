@@ -45,7 +45,6 @@ const navItems = [
         <div class="ds-dropdown">
           <button type="button" class="ds-dropdown-trigger" id="dsIndustriesTrigger">Industries ▾</button>
           <div class="ds-dropdown-menu" id="dsIndustriesMenu">
-            <a href="/devshop" class:list={{ active: currentSlug === null }}>DevShop — overview</a>
             {devshopVerticals.map((v) => (
               v.status === 'live' ? (
                 <a href={`/devshop/${v.slug}`} class:list={{ active: currentSlug === v.slug }} style={`--chip-color:${v.color};`}><span class="ds-dropdown-dot"></span>{v.tag} — {v.name}</a>
@@ -164,12 +163,12 @@ const navItems = [
     --ds-dropdown-bg: #ffffff; --ds-dropdown-border: rgba(30,33,26,0.12);
     --ds-dropdown-hover-bg: rgba(30,33,26,0.05); --ds-dropdown-soon: #9a9d90;
     --ds-hair-gradient: linear-gradient(90deg, #b08a63, #82806f, #4f5f42, #a3573f);
-    /* Nav typography: same Crimson Text serif family as the page's own
-       headlines, not a generic sans — gives the nav an editorial voice
-       instead of reading like a stock template. The dark theme's uppercase
-       mono-spaced look stays the default everywhere else. */
-    --ds-nav-font: 'Crimson Text', Georgia, serif; --ds-nav-weight: 600;
-    --ds-nav-case: none; --ds-nav-spacing: 0.01em; --ds-nav-size: 16px;
+    /* Nav typography: DM Sans Medium, small-caps-style tracking — clean and
+       legible rather than a loud bold sans or an unexpected serif (both
+       tried and rejected). The dark theme's uppercase mono-spaced look
+       stays the default everywhere else. */
+    --ds-nav-font: 'DM Sans', system-ui, sans-serif; --ds-nav-weight: 500;
+    --ds-nav-case: none; --ds-nav-spacing: 0.01em; --ds-nav-size: 14.5px;
   }
   .ds-portal-header {
     position: sticky; top: 0; z-index: 50;
@@ -187,8 +186,8 @@ const navItems = [
     font-family: 'JetBrains Mono', monospace; font-style: normal;
     font-size: 10px; font-weight: 400; letter-spacing: 0.14em; color: var(--ds-badge); opacity: 0.75;
   }
-  .ds-logo-mark { display: block; height: 84px; width: auto; }
-  @media (max-width: 560px) { .ds-logo-mark { height: 56px; } }
+  .ds-logo-mark { display: block; height: 132px; width: auto; }
+  @media (max-width: 560px) { .ds-logo-mark { height: 84px; } }
   .ds-industry-badge {
     font-family: 'Crimson Text', Georgia, serif; font-size: 22px; font-weight: 600; letter-spacing: 0;
     color: var(--ds-nav-active, var(--ds-logo)); text-transform: none;
