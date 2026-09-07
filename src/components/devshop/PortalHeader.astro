@@ -63,15 +63,17 @@ const navItems = [
           <a href={`${homeHref}#${navItems[0].screenId}`}>{navItems[0].label}</a>
         )}
 
-        <slot name="extra-nav" />
-
         <a href="/devshop/methodology" class:list={{ active: !spa && homeHref === '/devshop' && currentSlug === null }}>Methodology</a>
+
+        <slot name="extra-nav" />
 
         {spa ? (
           <a href="#" data-go={navItems[1].screenId}>{navItems[1].label}</a>
         ) : (
           <a href={`${homeHref}#${navItems[1].screenId}`}>{navItems[1].label}</a>
         )}
+
+        <slot name="extra-nav-2" />
 
         {spa ? (
           <a href="#" data-go="intake" class="ds-start">Start →</a>
