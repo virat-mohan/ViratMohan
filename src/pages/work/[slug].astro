@@ -15,14 +15,16 @@ export async function getStaticPaths() {
 const { entry } = Astro.props;
 const { Content } = await render(entry);
 
-const displayDomain = entry.data.domain.replace(/^https?:\/\//, '').replace(/\/$/, '');
+const displayDomain = entry.data.domain
+  ?.replace(/^https?:\/\//, '')
+  .replace(/\/$/, '');
 
 const workSchema = {
   '@type': 'CreativeWork',
   '@id': `${site.domain}/work/${entry.id}#work`,
   name: `${entry.data.category} — ${entry.data.brand}`,
   description: entry.data.tagline,
-  url: entry.data.domain,
+  ...(entry.data.domain ? { url: entry.data.domain } : {}),
   creator: { '@id': personId },
 };
 ---
@@ -48,15 +50,23 @@ const workSchema = {
         </p>
         <h1 class="project__title">{entry.data.category}</h1>
         <p class="project__proof">
-          Built and running for <strong>{entry.data.brand}</strong> —
-          <a
-            class="link-underline"
-            href={entry.data.domain}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {displayDomain} ↗
-          </a>
+          {entry.data.domain ? (
+            <>
+              Built and running for <strong>{entry.data.brand}</strong> —{' '}
+              <a
+                class="link-underline"
+                href={entry.data.domain}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {displayDomain} ↗
+              </a>
+            </>
+          ) : (
+            <>
+              Built for <strong>{entry.data.brand}</strong>
+            </>
+          )}
         </p>
         <p class="project__tagline">{entry.data.tagline}</p>
         <hr

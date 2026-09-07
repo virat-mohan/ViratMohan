@@ -1,9 +1,9 @@
 ---
 import { getCollection } from 'astro:content';
 
-const projects = (await getCollection('work'))
-  .sort((a, b) => a.data.order - b.data.order)
-  .slice(0, 4);
+const projects = (await getCollection('work')).sort(
+  (a, b) => a.data.order - b.data.order
+);
 ---
 
 <section class="work-teaser section" aria-labelledby="work-teaser-h">
@@ -22,7 +22,7 @@ const projects = (await getCollection('work'))
       data-reveal
       style="--reveal-delay: 120ms"
     >
-      Four live systems, built end to end for real businesses — each one
+      Seven systems, built end to end for real businesses — most of them
       licensable for yours.
     </p>
 
@@ -62,7 +62,7 @@ const projects = (await getCollection('work'))
     margin: 0 0 2.5rem;
     padding: 0;
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
     gap: 1px;
     background: var(--rule);
     border: 1px solid var(--rule);

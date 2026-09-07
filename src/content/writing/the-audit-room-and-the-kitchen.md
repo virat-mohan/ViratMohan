@@ -49,7 +49,7 @@ The auditor's instinct is to widen the sample. The operator's job is to know whi
 
 In 2020 I went to build cloud kitchens.
 
-A hundred and twenty-two of them, three cities, under twenty-four months. Ninety per cent occupancy inside twelve, across more than a hundred enterprise F&B brands.
+A hundred and twenty-two of them, three cities, under twenty-four months. Ninety per cent occupancy inside twelve, across more than a hundred F&B brands — twenty-five of them enterprise accounts.
 
 Those are the numbers. But 122 is not the number that matters. Ninety per cent occupancy is the number that matters, and it only means something if you know what it is a ratio of — how sticky the tenants were, how quickly a vacated kitchen refilled, whether occupancy was being bought with pricing.
 

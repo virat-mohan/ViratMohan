@@ -49,7 +49,9 @@ const displayDomain = (d: string) =>
                   </span>
                   <span class="work__tagline">{p.data.tagline}</span>
                   <span class="work__proof dim">
-                    Built for {p.data.brand} — {displayDomain(p.data.domain)}
+                    {p.data.domain
+                      ? `Built for ${p.data.brand} — ${displayDomain(p.data.domain)}`
+                      : `Built for ${p.data.brand}`}
                   </span>
                 </span>
               </a>

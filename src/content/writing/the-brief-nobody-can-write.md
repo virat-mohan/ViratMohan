@@ -1,13 +1,13 @@
 ---
 title: "The Brief Nobody Can Write"
-standfirst: "A hundred enterprise F&B brands taught me the hardest part of marketing was never the campaign. It was that nobody could tell you, in one place, what was actually true about the brand."
+standfirst: "A hundred F&B brands taught me the hardest part of marketing was never the campaign. It was that nobody could tell you, in one place, what was actually true about the brand."
 order: 4
 pubDate: 2026-08-03
 ---
 
 Somewhere around the fortieth brand, I stopped being surprised.
 
-We were onboarding enterprise F&B brands onto CloudKitchens infrastructure — eventually more than a hundred of them, across three cities. Each one arrived with a menu, a logo, a positioning line, and a marketing team somewhere upstream running campaigns for it. And each one, without exception, could not tell me the same thing twice.
+We were onboarding F&B brands onto CloudKitchens infrastructure — eventually more than a hundred of them, across three cities, about a quarter of them enterprise accounts. Each one arrived with a menu, a logo, a positioning line, and a marketing team somewhere upstream running campaigns for it. And each one, without exception, could not tell me the same thing twice.
 
 The photo on their own website did not match the photo on the delivery app. The price on one platform did not match the price on another, which did not match the price at their own kiosk. Ask three people at the same brand what their tagline was and you would get three answers, all approximately right, none of them identical. This was not incompetence. These were serious operators, well-funded, well-staffed. It was something else.
 

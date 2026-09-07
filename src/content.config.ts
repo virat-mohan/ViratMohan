@@ -20,7 +20,8 @@ const work = defineCollection({
       category: z.string(),
       brand: z.string(),
       tagline: z.string(),
-      domain: z.string().url(),
+      // optional — a couple of entries aren't live at a public domain yet.
+      domain: z.string().url().optional(),
       order: z.number(),
       // a real colour pulled from the brand's own live site, used as a
       // small accent — falls back to an initials badge when there's no

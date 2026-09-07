@@ -43,7 +43,7 @@ export const stats: Stat[] = [
     countTo: 90,
     suffix: '%',
     label: 'Occupancy in 12 months',
-    context: '100+ enterprise F&B brands onboarded',
+    context: '25+ enterprise F&B brands onboarded',
   },
   {
     value: '$2M',
