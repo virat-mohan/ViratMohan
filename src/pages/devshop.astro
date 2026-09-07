@@ -157,7 +157,7 @@ const canonical = new URL('/devshop', site.domain).href;
 <main class="wrap">
 
   <!-- 01 LANDING -->
-  <section class="screen active" id="landing" data-marketing-index="1">
+  <section class="screen screen--scroll active" id="landing" data-marketing-index="1">
     <div class="eyebrow">FAST TECH DEV SHOP</div>
     <h1 class="hero serif">Give us a <span class="tint-gold">business&nbsp;problem.</span></h1>
     <p class="sub" style="max-width:560px; margin-top:8px;">We'll figure out what's actually causing it, ground the fix in the right researched framework — real credibility, not a guess — show you the mechanism we'd build, and put a working version in front of you before you buy anything.</p>
@@ -227,7 +227,7 @@ const canonical = new URL('/devshop', site.domain).href;
   </section>
 
   <!-- 02 HOW IT WORKS -->
-  <section class="screen" id="how-it-works" data-marketing-index="2">
+  <section class="screen screen--scroll" id="how-it-works" data-marketing-index="2">
     <div class="eyebrow">HOW IT WORKS</div>
     <h1 class="hero serif">From <span class="tint-blue">problem</span><br />to production. <span class="tint-gold">Fast.</span></h1>
     <div class="steps">
@@ -239,7 +239,7 @@ const canonical = new URL('/devshop', site.domain).href;
   </section>
 
   <!-- 03 PROOF -->
-  <section class="screen" id="proof" data-marketing-index="3">
+  <section class="screen screen--scroll" id="proof" data-marketing-index="3">
     <div class="eyebrow">PROOF</div>
     <h1 class="hero serif">Built fast. <span class="tint-blue">Shipped</span> for real.</h1>
     <div class="proof-grid">
@@ -272,7 +272,7 @@ const canonical = new URL('/devshop', site.domain).href;
 
   <!-- 04 PROBLEM LIBRARY — leads with the business problem, not the
        technology behind it. Deliberately no "AI use case" framing. -->
-  <section class="screen" id="problems" data-marketing-index="4">
+  <section class="screen screen--scroll" id="problems" data-marketing-index="4">
     <div class="eyebrow">PROBLEMS WE'VE WORKED ON</div>
     <h1 class="hero serif">Real business problems.<br /><span class="tint-blue">Not</span> <span class="tint-gold">AI use cases.</span></h1>
     <p class="sub" style="max-width:560px;">If one of these sounds familiar, you already know enough to start — the technology is our problem, not yours.</p>
@@ -289,7 +289,7 @@ const canonical = new URL('/devshop', site.domain).href;
 
   <!-- 05 INDUSTRIES — one page per vertical, same architecture, re-skinned
        and re-populated per industry (see verticals config above). -->
-  <section class="screen" id="verticals" data-marketing-index="5">
+  <section class="screen screen--scroll" id="verticals" data-marketing-index="5">
     <div class="eyebrow">INDUSTRIES</div>
     <h1 class="hero serif" style="font-size:clamp(32px,4.4vw,52px);">Same method. <span class="tint-blue">Every</span> <span class="tint-gold">industry.</span></h1>
     <p class="sub" style="max-width:600px;">Each industry gets its own common-problem library and its own starting point — the same diagnosis-first process underneath.</p>
@@ -315,7 +315,7 @@ const canonical = new URL('/devshop', site.domain).href;
   </section>
 
   <!-- 05 PRICING -->
-  <section class="screen" id="pricing" data-marketing-index="6">
+  <section class="screen screen--scroll" id="pricing" data-marketing-index="6">
     <div class="eyebrow">PRICING</div>
     <div class="pricing-block">
       <h1 class="hero serif" style="font-size:clamp(36px,5vw,72px);">Build once.<br />Keep it <span class="tint-gold">running well.</span></h1>
@@ -352,7 +352,7 @@ const canonical = new URL('/devshop', site.domain).href;
   </section>
 
   <!-- 06 CONTACT -->
-  <section class="screen" id="contact" data-marketing-index="7">
+  <section class="screen screen--scroll" id="contact" data-marketing-index="7">
     <div class="eyebrow">CONTACT</div>
     <h1 class="hero serif" style="font-size:clamp(36px,5vw,72px);">Connect<span class="tint-gold">.</span></h1>
     <p class="sub" style="margin-top:8px;">No ticket queue. Message directly and a real person on the team replies.</p>
@@ -699,6 +699,13 @@ const canonical = new URL('/devshop', site.domain).href;
   .wrap { max-width: 1360px; margin: 0 auto; padding: 0 64px; position: relative; z-index: 1; }
   .screen { display: none; min-height: calc(100vh - 78px); flex-direction: column; padding-top: 64px; }
   .screen.active { display: flex; }
+  /* Marketing sections render as one continuous scrollable page — always
+     flexed regardless of .active, and hidden as a group only while an
+     overlay screen (intake wizard, post-submit states, app simulation)
+     takes over the whole viewport. */
+  .screen--scroll { display: flex; scroll-margin-top: 132px; }
+  body.ds-overlay-active .screen--scroll { display: none; }
+  html { scroll-behavior: smooth; }
   .eyebrow { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dev-muted2); margin-bottom: 28px; }
   .sim-tag { color: var(--dev-muted3); text-transform: none; letter-spacing: 0.02em; font-size: 10px; }
   .serif { font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; }
@@ -1082,25 +1089,52 @@ const canonical = new URL('/devshop', site.domain).href;
   // execution layer for the orchestrator, real auth, and a database.
   // ============================================================
 
+  // scrollScreens render as one continuous page (stacked, always in the
+  // DOM, no hide/show) — data-go links to these just smooth-scroll to the
+  // section instead of swapping screens, so the marketing site reads as one
+  // cohesive page. Everything else (the intake wizard, the post-submit
+  // states, and the logged-in app simulation) is still a full takeover —
+  // those aren't "content" to scroll through, they're a distinct flow/mode,
+  // so they keep the original hide-everything-but-me behavior.
   var marketingScreens = ['landing', 'how-it-works', 'proof', 'problems', 'verticals', 'pricing', 'contact', 'intake'];
+  var scrollScreens = ['landing', 'how-it-works', 'proof', 'problems', 'verticals', 'pricing', 'contact'];
   var appScreens = ['login', 'dashboard', 'orchestrator', 'integrations', 'activity', 'billing'];
 
-  function showScreen(id) {
-    document.querySelectorAll('.screen').forEach(function (s) { s.classList.remove('active'); });
-    var el = document.getElementById(id);
-    if (!el) return;
-    el.classList.add('active');
-
-    var isApp = appScreens.indexOf(id) !== -1;
-    document.getElementById('marketingNav').style.display = isApp ? 'none' : 'flex';
-    document.getElementById('appNav').style.display = isApp ? 'flex' : 'none';
-
+  function updateNavActiveState(id) {
     document.querySelectorAll('#marketingNav a').forEach(function (a) {
       a.classList.toggle('active', a.dataset.go === id);
     });
     document.querySelectorAll('#appNav a').forEach(function (a) {
       a.classList.toggle('active', a.dataset.go === id);
     });
+  }
+
+  function showScreen(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+
+    if (scrollScreens.indexOf(id) !== -1) {
+      // Jump back into the scrollable page (e.g. from the intake wizard's
+      // "Back to start", or the app simulation's logout) and scroll to the
+      // section — no full-takeover screen to hide/show anymore.
+      document.body.classList.remove('ds-overlay-active');
+      document.querySelectorAll('.screen:not(.screen--scroll)').forEach(function (s) { s.classList.remove('active'); });
+      document.getElementById('marketingNav').style.display = 'flex';
+      document.getElementById('appNav').style.display = 'none';
+      updateNavActiveState(id);
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+
+    document.body.classList.add('ds-overlay-active');
+    document.querySelectorAll('.screen:not(.screen--scroll)').forEach(function (s) { s.classList.remove('active'); });
+    el.classList.add('active');
+
+    var isApp = appScreens.indexOf(id) !== -1;
+    document.getElementById('marketingNav').style.display = isApp ? 'none' : 'flex';
+    document.getElementById('appNav').style.display = isApp ? 'flex' : 'none';
+
+    updateNavActiveState(id);
 
     window.scrollTo(0, 0);
 
