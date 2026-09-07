@@ -18,8 +18,8 @@ const steps = [
     key: 'diagnose',
     label: 'DIAGNOSE',
     title: 'Diagnose the real problem',
-    subline: 'Root cause, not the symptom — confidence-rated, not asserted.',
-    body: "We start by naming which part of the business actually owns the problem, then dig past the symptom to the root cause. Every diagnosis is tagged with how confident we actually are — strongly supported, a reasonable inference, or a preliminary hypothesis — so you can see exactly which parts are grounded in what you told us and which are our best working assumption.",
+    subline: 'Decomposed to the actual task, not left as a vague symptom.',
+    body: "We start by naming which business function actually owns the problem, then break it down to the specific process and task where the failure lives — not \"sales is slow,\" but which step, done by whom, with what tool. Every diagnosis is tagged with how confident we actually are — strongly supported, a reasonable inference, or a preliminary hypothesis — so you can see exactly which parts are grounded in what you told us and which are our best working assumption.",
   },
   {
     n: '02',
@@ -42,8 +42,8 @@ const steps = [
     key: 'mechanism',
     label: 'MECHANISM',
     title: 'Design the actual mechanism',
-    subline: 'Built from one fixed library of AI agent roles — never invented per pitch.',
-    body: "We design the specific workflow that fixes the root cause — what triggers it, what data it acts on, what happens at each step — built from a fixed, curated library of AI agent roles (data extraction, classification, decision-making, action-taking, and more). That consistency means what we propose is something we've actually built the pattern for before, not a one-off idea invented for your pitch.",
+    subline: 'Every task classified Manual, Semi-Automated, Automated, or Fully AI-driven — not automated by default.',
+    body: "For each task in the workflow, we classify what level of human involvement is actually right — Manual, Semi-Automated, Automated, or Fully AI-driven — not \"automate everything\" by default. What should stay human stays human; what genuinely should run itself gets built from a fixed, curated library of AI agent roles (data extraction, classification, decision-making, action-taking, and more), never invented per pitch. That consistency means what we propose is something we've actually built the pattern for before.",
   },
   {
     n: '05',
@@ -176,6 +176,10 @@ const ICONS: Record<string, string> = {
         <div class="case-row">
           <span class="case-label mono">§04 AGENTS</span>
           <span class="case-value">Data Extraction &rarr; Reconciliation/Matching &rarr; Exception/Diagnosis &rarr; Notification</span>
+        </div>
+        <div class="case-row">
+          <span class="case-label mono">§04 AUTOMATION</span>
+          <span class="case-value">Semi-Automated (SA) — clean matches clear themselves, variances escalate to the AR Lead</span>
         </div>
         <div class="case-row">
           <span class="case-label mono">§05 VALIDATE</span>
