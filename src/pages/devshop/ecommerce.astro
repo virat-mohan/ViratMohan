@@ -652,29 +652,29 @@ const canonical = new URL('/devshop/ecommerce', site.domain).href;
   .segment-row { display: flex; flex-wrap: wrap; gap: 10px; margin: 32px 0 36px; }
   .segment-chip {
     font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.03em;
-    color: var(--dev-muted1); border: 1px solid var(--dev-hair); border-radius: 999px; padding: 6px 14px;
-    transition: border-color 0.2s, color 0.2s, background 0.2s;
+    color: var(--dev-muted1); background: var(--dev-panel); border: 1px solid var(--dev-hair); border-radius: 999px; padding: 7px 15px;
+    box-shadow: 0 1px 3px rgba(30,33,26,0.05); transition: border-color 0.2s, color 0.2s, background 0.2s, box-shadow 0.2s;
   }
-  .segment-chip:hover { color: var(--dev-text); border-color: var(--dev-muted1); }
-  .segment-chip.active { color: var(--dev-gold); border-color: var(--dev-gold); background: rgba(143, 108, 34, 0.1); }
+  .segment-chip:hover { color: var(--dev-text); border-color: var(--dev-muted1); box-shadow: 0 4px 10px rgba(30,33,26,0.08); }
+  .segment-chip.active { color: #fdfcf8; border-color: var(--dev-gold); background: var(--dev-gold); box-shadow: 0 3px 8px rgba(143, 108, 34, 0.1); }
 
   .usecase-grid {
     margin-top: 44px; max-width: 1180px; display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;
   }
-  .usecase-card { border: 1px solid var(--dev-hair); border-radius: 6px; padding: 20px 22px; }
+  .usecase-card { background: var(--dev-panel); border: 1px solid var(--dev-hair); border-radius: 14px; padding: 20px 22px; box-shadow: 0 1px 3px rgba(30,33,26,0.05); }
   .usecase-fn { font-size: 14.5px; font-weight: 600; margin-bottom: 14px; }
   .usecase-list { display: flex; flex-direction: column; gap: 8px; }
   .usecase-btn {
     display: flex; align-items: flex-start; gap: 10px;
-    text-align: left; font-family: 'Inter', sans-serif; font-size: 13.5px; line-height: 1.4;
-    color: var(--dev-muted1); border: 1px solid var(--dev-hair); border-radius: 4px;
-    padding: 10px 13px; transition: border-color 0.2s, color 0.2s, background 0.2s;
+    text-align: left; font-family: 'DM Sans', sans-serif; font-size: 13.5px; line-height: 1.4;
+    color: var(--dev-muted1); background: var(--dev-panel); border: 1px solid var(--dev-hair); border-radius: 8px;
+    padding: 11px 14px; box-shadow: 0 1px 2px rgba(30,33,26,0.04); transition: border-color 0.2s, color 0.2s, box-shadow 0.2s, transform 0.15s;
   }
-  .usecase-btn:hover { color: var(--dev-text); border-color: var(--dev-gold); background: rgba(143, 108, 34, 0.07); }
+  .usecase-btn:hover { color: var(--dev-text); border-color: var(--dev-gold); box-shadow: 0 4px 12px rgba(143, 108, 34, 0.07); }
   .usecase-check {
-    flex: none; width: 14px; height: 14px; margin-top: 1px; border-radius: 3px;
-    border: 1px solid var(--dev-hair); transition: border-color 0.2s, background 0.2s;
+    flex: none; width: 17px; height: 17px; margin-top: 1px; border-radius: 5px;
+    background: var(--dev-panel); border: 1.5px solid var(--dev-hair); transition: border-color 0.2s, background 0.2s;
   }
   .usecase-btn.selected {
     color: var(--dev-text); border-color: var(--dev-gold); background: rgba(143, 108, 34, 0.09);
