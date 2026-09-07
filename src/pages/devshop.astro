@@ -319,7 +319,7 @@ const canonical = new URL('/devshop', site.domain).href;
     <div class="eyebrow">PRICING</div>
     <div class="pricing-block">
       <h1 class="hero serif" style="font-size:clamp(36px,5vw,72px);">Build once.<br />Keep it <span class="tint-gold">running well.</span></h1>
-      <div style="display:flex; gap:64px; margin-top:48px; flex-wrap:wrap; justify-content:center;">
+      <div class="pricing-tiers">
         <div>
           <div class="eyebrow" style="margin-bottom:14px;">BUILD</div>
           <div class="serif" style="font-size:clamp(28px,3.2vw,44px);">{CURRENCY}{PRICING.buildFirst}</div>
@@ -889,6 +889,7 @@ const canonical = new URL('/devshop', site.domain).href;
   .proof-card-text .result { font-size: 13.5px; color: var(--dev-muted1); line-height: 1.4; }
 
   .pricing-block { margin-top: auto; margin-bottom: auto; }
+  .pricing-tiers { display: flex; gap: 64px; margin-top: 48px; flex-wrap: wrap; justify-content: center; }
 
   .problem-grid {
     margin-top: 48px; max-width: 920px; display: grid;
@@ -1037,24 +1038,20 @@ const canonical = new URL('/devshop', site.domain).href;
   table td.status { color: var(--dev-green); }
 
   @media (max-width: 860px) {
-    .header-inner { padding: 20px 24px; }
     .wrap { padding: 0 24px; }
-    nav { gap: 20px; }
-    nav a, nav button.navlink { font-size: 11px; letter-spacing: 0.08em; }
-    .steps { flex-direction: column; gap: 36px; margin-top: 44px; }
+    .steps { flex-direction: column; gap: 36px; margin-top: 44px; align-items: flex-start; }
     .proof-grid { grid-template-columns: 1fr; }
     .input-row { flex-direction: column; }
     .tracker { flex-direction: column; align-items: flex-start; gap: 18px; }
     .tracker .line { display: none; }
     .billing-summary { gap: 32px; }
     h1.hero { font-size: clamp(34px, 9vw, 60px); }
+    .hero-device-num { font-size: clamp(30px, 8vw, 44px); }
+    .module-def { padding: 22px 20px; }
+    .module-def-grid { grid-template-columns: 1fr; }
   }
 
   @media (max-width: 560px) {
-    .header-inner { padding: 16px 20px; gap: 10px; }
-    .logo { font-size: 26px; }
-    .logo-sub { font-size: 9px; }
-    nav { gap: 10px 20px; }
     .wrap { padding: 0 20px; }
     .screen { padding-top: 40px; }
     h1.hero { font-size: clamp(30px, 10vw, 48px); }
@@ -1067,6 +1064,11 @@ const canonical = new URL('/devshop', site.domain).href;
     .process-icon { width: 40px; height: 40px; }
     .process-item::before { top: 20px; }
     .process-label { font-size: 12px; }
+    .contact-row { flex-direction: column; }
+    .contact-card { min-width: 0; width: 100%; }
+    .industry-chip { width: 100%; }
+    .problem-grid, .vertical-grid { grid-template-columns: 1fr; }
+    .pricing-tiers { gap: 32px; }
   }
 </style>
 

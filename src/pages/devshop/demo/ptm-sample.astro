@@ -244,4 +244,13 @@ const AUTOMATION_LABELS: Record<string, string> = { M: 'Manual', A: 'Automated',
     .wrap { padding: 48px 24px 60px; }
     .cav-grid { grid-template-columns: 1fr; }
   }
+
+  @media (max-width: 560px) {
+    h1.hero { font-size: clamp(26px, 8vw, 36px); }
+    .fn-row { flex-direction: column; gap: 4px; }
+    .fn-key { width: auto; }
+    .calc-grid { flex-direction: column; align-items: stretch; }
+    .calc-arrow { transform: rotate(90deg); align-self: center; }
+    .pt-grid { grid-template-columns: 1fr; }
+  }
 </style>

@@ -164,11 +164,12 @@ const navItems = [
     --ds-dropdown-bg: #ffffff; --ds-dropdown-border: rgba(30,33,26,0.12);
     --ds-dropdown-hover-bg: rgba(30,33,26,0.05); --ds-dropdown-soon: #9a9d90;
     --ds-hair-gradient: linear-gradient(90deg, #b08a63, #82806f, #4f5f42, #a3573f);
-    /* Nav typography per the Figma reference: DM Sans Bold, mixed case,
-       tighter tracking — the dark theme's uppercase mono-spaced look stays
-       the default everywhere else. */
-    --ds-nav-font: 'DM Sans', sans-serif; --ds-nav-weight: 700;
-    --ds-nav-case: none; --ds-nav-spacing: 0; --ds-nav-size: 14px;
+    /* Nav typography: same Crimson Text serif family as the page's own
+       headlines, not a generic sans — gives the nav an editorial voice
+       instead of reading like a stock template. The dark theme's uppercase
+       mono-spaced look stays the default everywhere else. */
+    --ds-nav-font: 'Crimson Text', Georgia, serif; --ds-nav-weight: 600;
+    --ds-nav-case: none; --ds-nav-spacing: 0.01em; --ds-nav-size: 16px;
   }
   .ds-portal-header {
     position: sticky; top: 0; z-index: 50;
