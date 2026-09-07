@@ -73,9 +73,17 @@ const steps = [
     n: '08',
     key: 'build',
     label: 'BUILD',
-    title: 'Priced like a team, not a project',
-    subline: 'Role-based estimate, same spec as the demo — 30 days from deposit.',
-    body: "The one-time build is estimated role by role — solution architect, engineer, AI/automation engineer, and others — using the same mechanism spec the demo was built from. Ongoing support after launch is priced the same way: a transparent resource estimate, not a black-box retainer.",
+    title: 'Staffed like a team, not a project',
+    subline: 'FDE/client lead, solution architect, engineers, and a domain expert where the problem needs one.',
+    body: "The one-time build is estimated role by role against the same mechanism spec the demo was built from — an FDE/client lead, a solution architect, software engineers, an AI/automation engineer, QA, and a subject-matter expert where the problem calls for one. You see who's staffed and how many hours, not a bare price. We ship within 30 days of deposit.",
+  },
+  {
+    n: '09',
+    key: 'support',
+    label: 'SUPPORT',
+    title: 'Go live, then we stay on it',
+    subline: 'A walkthrough at handover, then DevShop Care + Optimisation — priced the same transparent way.',
+    body: "At handover, we walk your team through the build directly — not a link and a goodbye. From there, DevShop Care + Optimisation covers monitoring, updates, and ongoing support, estimated the same way as the build: a resource breakdown by category, not a black-box retainer.",
   },
 ];
 
@@ -92,6 +100,7 @@ const ICONS: Record<string, string> = {
   demo: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="8" width="34" height="24" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M3 14H37" stroke="currentColor" stroke-width="1.6"/><circle cx="7.5" cy="11" r="0.9" fill="currentColor"/><circle cx="11" cy="11" r="0.9" fill="currentColor"/><path d="M15 20L23 26L15 28V20Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>`,
   feedback: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M32 14C29 9 23 7 17 9C11 11 7 17 8 23" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M8 8V15H15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 26C11 31 17 33 23 31C29 29 33 23 32 17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M32 32V25H25" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   build: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L34 13V27L20 34L6 27V13L20 6Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M6 13L20 20L34 13M20 20V34" stroke="currentColor" stroke-width="1.4" opacity="0.6"/></svg>`,
+  support: `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="14" stroke="currentColor" stroke-width="1.6"/><path d="M20 13V20L25 24" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
 };
 ---
 
@@ -128,12 +137,12 @@ const ICONS: Record<string, string> = {
   <main class="wrap">
     <div class="eyebrow">METHODOLOGY</div>
     <h1 class="hero serif">How every demo <span class="tint-blue">actually</span> gets built.</h1>
-    <p class="sub">The same eight-stage process, every time — which is exactly what makes the output something you can trust and we can stand behind.</p>
+    <p class="sub">The same nine-stage process, every time — which is exactly what makes the output something you can trust and we can stand behind.</p>
 
     <div class="methodology-grid">
       <div class="diagram">
         {steps.map((s, i) => (
-          <div class={`diagram-row ${i === 3 ? 'is-transition' : i >= 4 ? 'is-blue' : 'is-gold'}`}>
+          <div class={`diagram-row ${i === 3 ? 'is-transition' : i >= 4 && i <= 7 ? 'is-blue' : 'is-gold'}`}>
             <div class="diagram-rail">
               <span class="diagram-icon" set:html={ICONS[s.key]} />
             </div>
