@@ -50,7 +50,7 @@ const canonical = new URL('/devshop/demo/illustrative', site.domain).href;
 </head>
 <body>
   <div class="illus-banner">
-    <span>Sample document — for illustration only. Not a live analysis.</span>
+    <span>A real example, not your problem yet — <a href="/devshop">bring us yours →</a></span>
   </div>
 
   <main class="brief">
@@ -222,6 +222,8 @@ const canonical = new URL('/devshop/demo/illustrative', site.domain).href;
     background: #2a2f3a; color: #f4f2ec; text-align: center; padding: 12px 20px;
     font-size: 13px; letter-spacing: 0.02em; position: sticky; top: 0; z-index: 10;
   }
+  .illus-banner a { color: #d4af37; font-weight: 600; text-decoration: none; }
+  .illus-banner a:hover { text-decoration: underline; }
 
   .brief { max-width: 760px; margin: 0 auto; padding: 48px 40px 40px; }
   .eyebrow { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); font-weight: 600; margin-bottom: 16px; }

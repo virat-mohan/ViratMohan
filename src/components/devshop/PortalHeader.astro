@@ -17,7 +17,7 @@ export interface Props {
   homeHref: string; // the SPA page these nav items' screens belong to, e.g. "/devshop" or "/devshop/restaurants"
   spa: boolean; // true if THIS page is that SPA (renders data-go); false if it's a static page linking back to homeHref
   currentSlug?: string | null; // vertical slug this page belongs to, e.g. "restaurants" — highlights it in the Industries dropdown
-  industryLabel?: string | null; // e.g. "Food & Beverage" — renders "AI-Enabled Solutions for {industryLabel}"; omit on the main portal page
+  industryLabel?: string | null; // e.g. "Food & Beverage" — renders "Built for {industryLabel}"; omit on the main portal page
   verticalTag?: string | null; // e.g. "F&B" — short badge next to the wordmark
 }
 
@@ -35,7 +35,7 @@ const navItems = [
       {verticalTag && <span class="ds-logo-tag">{verticalTag}</span>}
       DevShop
     </a>
-    {industryLabel && <div class="ds-industry-badge">AI-Enabled Solutions for {industryLabel}</div>}
+    {industryLabel && <div class="ds-industry-badge">Built for {industryLabel}</div>}
 
     <nav class="ds-nav" id="marketingNav">
       <div class="ds-dropdown">

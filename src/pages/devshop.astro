@@ -34,9 +34,9 @@ import coachYourPsycheShot from '../assets/screenshots/coachyourpsyche.png';
 // ---- Easily-editable config, per prompt instructions ----
 const CURRENCY = '₹'; // INR is the standard currency for this product.
 const PRICING = {
-  buildLow: '1,00,000',
-  buildHigh: '10,00,000',
-  retainerMin: '50,000',
+  buildFirst: '1,50,000',
+  buildAdditional: '75,000',
+  careMin: '50,000',
 };
 
 // TODO: confirm these case studies are cleared for public naming
@@ -138,13 +138,14 @@ const canonical = new URL('/devshop', site.domain).href;
 
   <!-- 01 LANDING -->
   <section class="screen active" id="landing" data-marketing-index="1">
-    <div class="eyebrow">AI ORCHESTRATION STUDIO</div>
-    <h1 class="hero serif">Tell us the <span class="tint-blue">business problem.</span><br />Get a working <span class="tint-gold">demo on the spot.</span></h1>
+    <div class="eyebrow">FAST TECH DEV SHOP</div>
+    <h1 class="hero serif">Give us an <span class="tint-gold">expensive business problem.</span></h1>
+    <p class="sub" style="max-width:560px; margin-top:8px;">We'll figure out what's actually causing it, show you the mechanism we'd build, and put a working version in front of you — before you buy anything.</p>
     <form class="input-row" id="landingForm">
       <input type="text" id="landingProblem" placeholder="What's the business problem?" />
-      <button class="btn" type="submit">Submit</button>
+      <button class="btn" type="submit">Give us a problem →</button>
     </form>
-    <p class="sub">No proposal. No scoping call. Just show us what's broken.</p>
+    <p class="sub" style="margin-top:16px;"><a href="#" data-go="proof" class="btn-plain">See what we've built →</a></p>
 
     <div class="industry-pick">
       <p class="industry-pick-label">Or pick from common problems in your industry</p>
@@ -228,8 +229,8 @@ const canonical = new URL('/devshop', site.domain).href;
        and re-populated per industry (see verticals config above). -->
   <section class="screen" id="verticals" data-marketing-index="4">
     <div class="eyebrow">INDUSTRIES</div>
-    <h1 class="hero serif" style="font-size:clamp(32px,4.4vw,52px);">Same engine. <span class="tint-blue">Every</span> <span class="tint-gold">industry.</span></h1>
-    <p class="sub" style="max-width:600px;">Each vertical gets its own problem library and its own entry point — same orchestrator underneath.</p>
+    <h1 class="hero serif" style="font-size:clamp(32px,4.4vw,52px);">Same method. <span class="tint-blue">Every</span> <span class="tint-gold">industry.</span></h1>
+    <p class="sub" style="max-width:600px;">Each industry gets its own common-problem library and its own starting point — the same diagnosis-first process underneath.</p>
     <div class="vertical-grid">
       {devshopVerticals.map((v) => (
         v.status === 'live' ? (
@@ -256,20 +257,25 @@ const canonical = new URL('/devshop', site.domain).href;
   <section class="screen" id="pricing" data-marketing-index="5">
     <div class="eyebrow">PRICING</div>
     <div class="pricing-block">
-      <h1 class="hero serif" style="font-size:clamp(36px,5vw,72px);">Build once.<br />Run on a <span class="tint-gold">retainer.</span></h1>
+      <h1 class="hero serif" style="font-size:clamp(36px,5vw,72px);">Build once.<br />Keep it <span class="tint-gold">running well.</span></h1>
       <div style="display:flex; gap:64px; margin-top:48px; flex-wrap:wrap;">
         <div>
-          <div class="eyebrow" style="margin-bottom:14px;">ONE-TIME BUILD</div>
-          <div class="serif" style="font-size:clamp(28px,3.2vw,44px);">{CURRENCY}{PRICING.buildLow} – {CURRENCY}{PRICING.buildHigh}</div>
-          <p class="sub" style="max-width:340px;">Depending on complexity.</p>
+          <div class="eyebrow" style="margin-bottom:14px;">BUILD</div>
+          <div class="serif" style="font-size:clamp(28px,3.2vw,44px);">{CURRENCY}{PRICING.buildFirst}</div>
+          <p class="sub" style="max-width:340px;">First module. 30-calendar-day working-build commitment from deposit.</p>
         </div>
         <div>
-          <div class="eyebrow" style="margin-bottom:14px;">MONTHLY RETAINER</div>
-          <div class="serif" style="font-size:clamp(28px,3.2vw,44px);"><span class="tint-gold">{CURRENCY}{PRICING.retainerMin}</span> minimum</div>
-          <p class="sub" style="max-width:340px;">Scales with project spec and requirements.</p>
+          <div class="eyebrow" style="margin-bottom:14px;">ADDITIONAL MODULE</div>
+          <div class="serif" style="font-size:clamp(28px,3.2vw,44px);">{CURRENCY}{PRICING.buildAdditional}</div>
+          <p class="sub" style="max-width:340px;">Each additional module, within the same 30-day window.</p>
+        </div>
+        <div>
+          <div class="eyebrow" style="margin-bottom:14px;">DEVSHOP CARE + OPTIMISATION</div>
+          <div class="serif" style="font-size:clamp(28px,3.2vw,44px);">{CURRENCY}{PRICING.careMin}<span style="font-size:16px; opacity:0.6;">/mo</span></div>
+          <p class="sub" style="max-width:340px;">Floor, not the price — depends on what the system actually needs to stay useful.</p>
         </div>
       </div>
-      <p class="sub" style="margin-top:36px;">Variable / custom pricing available outside this range.</p>
+      <p class="sub" style="margin-top:36px;">Genuinely complex or custom systems are human-priced after a short scoping call, not forced into the standard tiers.</p>
       <div style="margin-top:40px;"><button class="btn" data-go="intake">Start →</button></div>
     </div>
     <div class="footer-bar"><span class="footer-bar-text">Built fast, <em>for real businesses</em><sup>TM</sup></span></div>
@@ -408,9 +414,9 @@ const canonical = new URL('/devshop', site.domain).href;
        screen and flip GENERATION_PAUSED back to false once billing is
        sorted and live generation is verified working again. -->
   <section class="screen" id="illustrative-notice">
-    <div class="eyebrow">HEADS UP</div>
-    <h1 class="hero serif" style="max-width:820px;">Right now, every solution document is for <span class="tint-gold">illustrative purposes only.</span></h1>
-    <p class="sub" style="max-width:600px;">We're between billing cycles on our AI provider, so live generation is paused for a moment. Here's a full, real example of exactly what you'd get — same framework scoring, same interactive walkthrough, same everything.</p>
+    <div class="eyebrow">A REAL ONE FIRST</div>
+    <h1 class="hero serif" style="max-width:820px;">Before we build yours, <span class="tint-gold">here's a real one.</span></h1>
+    <p class="sub" style="max-width:600px;">We start every new relationship the same way — by showing you exactly how this works on a real business problem, end to end: the diagnosis, the framework, the mechanism, and a working walkthrough.</p>
     <div style="margin-top:40px; display:flex; gap:20px; align-items:center; flex-wrap:wrap;">
       <a href="/devshop/demo/illustrative" class="btn">See it now &rarr;</a>
       <a href="#" data-go="landing" class="btn-plain">← Back to start</a>
@@ -524,14 +530,14 @@ const canonical = new URL('/devshop', site.domain).href;
     <div class="eyebrow">BILLING</div>
     <h1 class="hero serif" style="font-size:clamp(32px,4.4vw,52px);">Fast Tech Dev Shop</h1>
     <div class="billing-summary">
-      <div class="item"><div class="l">MONTHLY</div><div class="v">{CURRENCY}{PRICING.retainerMin}</div></div>
+      <div class="item"><div class="l">MONTHLY</div><div class="v">{CURRENCY}{PRICING.careMin}</div></div>
       <div class="item"><div class="l">NEXT BILLING</div><div class="v">04 Oct 2026</div></div>
     </div>
     <table>
       <tr><th>Date</th><th>Amount</th><th>Status</th></tr>
-      <tr><td>04 Sep 2026</td><td>{CURRENCY}{PRICING.retainerMin}</td><td class="status">Paid</td></tr>
-      <tr><td>04 Aug 2026</td><td>{CURRENCY}{PRICING.retainerMin}</td><td class="status">Paid</td></tr>
-      <tr><td>04 Jul 2026</td><td>{CURRENCY}{PRICING.retainerMin}</td><td class="status">Paid</td></tr>
+      <tr><td>04 Sep 2026</td><td>{CURRENCY}{PRICING.careMin}</td><td class="status">Paid</td></tr>
+      <tr><td>04 Aug 2026</td><td>{CURRENCY}{PRICING.careMin}</td><td class="status">Paid</td></tr>
+      <tr><td>04 Jul 2026</td><td>{CURRENCY}{PRICING.careMin}</td><td class="status">Paid</td></tr>
     </table>
   </section>
 
