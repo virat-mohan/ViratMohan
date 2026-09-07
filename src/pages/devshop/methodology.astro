@@ -183,6 +183,27 @@ const ICONS: Record<string, string> = {
         </div>
 
         <p class="case-result">≈32 hrs/month of manual matching recovered, without adding headcount.</p>
+
+        <div class="case-team-block">
+          <p class="case-team-title mono">§08 TEAM — BUILD</p>
+          <div class="case-team-rows">
+            <div class="case-team-row"><span>FDE / Client Lead</span><span>1 person · 18 hrs</span></div>
+            <div class="case-team-row"><span>Solution Architect</span><span>1 person · 14 hrs</span></div>
+            <div class="case-team-row"><span>Software Engineer</span><span>2 people · 62 hrs</span></div>
+            <div class="case-team-row"><span>AI / Automation Engineer</span><span>1 person · 24 hrs</span></div>
+            <div class="case-team-row"><span>QA / UAT</span><span>1 person · 10 hrs</span></div>
+          </div>
+        </div>
+
+        <div class="case-team-block">
+          <p class="case-team-title mono">§09 TEAM — CARE + OPTIMISATION</p>
+          <div class="case-team-rows">
+            <div class="case-team-row"><span>FDE / Client Engagement</span><span>3 hrs/mo</span></div>
+            <div class="case-team-row"><span>Technical (monitoring, maintenance)</span><span>5 hrs/mo</span></div>
+            <div class="case-team-row"><span>AI Optimisation</span><span>2 hrs/mo</span></div>
+          </div>
+        </div>
+        <p class="case-team-note">Illustrative — every proposal shows the real team and hours behind your own build.</p>
       </div>
     </div>
 
@@ -299,6 +320,16 @@ const ICONS: Record<string, string> = {
     margin: 6px 0 0; padding-top: 14px; border-top: 1px solid var(--dev-hair);
     font-size: 14.5px; color: var(--dev-text); font-weight: 600; line-height: 1.5;
   }
+
+  .case-team-block { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--dev-hair); }
+  .case-team-title { font-size: 10.5px; letter-spacing: 0.08em; color: var(--dev-gold); margin: 0 0 8px; }
+  .case-team-rows { display: flex; flex-direction: column; gap: 2px; }
+  .case-team-row {
+    display: flex; justify-content: space-between; gap: 12px;
+    font-size: 12.5px; padding: 5px 0; color: var(--dev-muted1);
+  }
+  .case-team-row span:last-child { font-family: 'JetBrains Mono', SFMono-Regular, Consolas, monospace; color: var(--dev-muted2); font-size: 11.5px; white-space: nowrap; }
+  .case-team-note { font-size: 11.5px; color: var(--dev-muted3); margin: 14px 0 0; font-style: italic; }
 
   .steps-list-eyebrow {
     font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dev-muted3);
