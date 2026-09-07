@@ -233,7 +233,7 @@ const canonical = new URL('/devshop', site.domain).href;
     <div class="steps">
       <div class="step"><div class="num">01</div><div class="rule"></div><h3>Problem in</h3><p>Tell us what's broken.<br />No specs. No decks.</p></div>
       <div class="step"><div class="num">02</div><div class="rule"></div><h3><span class="tint-gold">Instant</span> demo</h3><p>We diagnose and show you<br />a working demo right there.</p></div>
-      <div class="step"><div class="num">03</div><div class="rule"></div><h3>Approve & staff</h3><p>You approve the demo and pay the deposit.<br />We staff your build — an FDE/client lead, a solution architect, engineers, and a <span class="tint-gold">subject matter expert in your industry and business function</span>, not just an engineering team guessing at your domain.</p></div>
+      <div class="step"><div class="num">03</div><div class="rule"></div><h3>Approve & staff</h3><p>You approve the demo and pay the deposit.<br /><br />We staff your build — an FDE/client lead, a solution architect, engineers, and a <span class="tint-gold">subject matter expert in your industry and business function</span>, not just an engineering team guessing at your domain.</p></div>
       <div class="step"><div class="num">04</div><div class="rule"></div><h3>Build & handover</h3><p>We ship within 30 days, walk your team<br />through it live, then DevShop Care + Optimisation starts.</p></div>
     </div>
   </section>
@@ -862,6 +862,7 @@ const canonical = new URL('/devshop', site.domain).href;
   .step:nth-child(1) .rule { background: var(--dev-gold); }
   .step:nth-child(2) .rule { background: var(--dev-muted1); }
   .step:nth-child(3) .rule { background: var(--dev-rose); }
+  .step:nth-child(4) .rule { background: var(--dev-blue); }
 
   .proof-grid {
     margin-top: 56px; max-width: 980px; display: grid;
@@ -888,7 +889,7 @@ const canonical = new URL('/devshop', site.domain).href;
   .proof-card-text .name { font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dev-text); }
   .proof-card-text .result { font-size: 13.5px; color: var(--dev-muted1); line-height: 1.4; }
 
-  .pricing-block { margin-top: auto; margin-bottom: auto; }
+  .pricing-block { margin-top: auto; margin-bottom: auto; display: flex; flex-direction: column; align-items: center; }
   .pricing-tiers { display: flex; gap: 64px; margin-top: 48px; flex-wrap: wrap; justify-content: center; }
 
   .problem-grid {

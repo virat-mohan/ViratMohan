@@ -185,14 +185,15 @@ const navItems = [
   }
   .ds-logo-tag {
     font-family: 'JetBrains Mono', monospace; font-style: normal;
-    font-size: 11px; letter-spacing: 0.22em; color: var(--ds-tag);
+    font-size: 10px; font-weight: 400; letter-spacing: 0.14em; color: var(--ds-badge); opacity: 0.75;
   }
   .ds-logo-mark { display: block; height: 84px; width: auto; }
   @media (max-width: 560px) { .ds-logo-mark { height: 56px; } }
   .ds-industry-badge {
-    font-family: 'Inter', sans-serif; font-size: 10.5px; letter-spacing: 0.05em;
-    color: var(--ds-badge); text-transform: uppercase;
+    font-family: 'Crimson Text', Georgia, serif; font-size: 22px; font-weight: 600; letter-spacing: 0;
+    color: var(--ds-nav-active, var(--ds-logo)); text-transform: none;
   }
+  @media (max-width: 560px) { .ds-industry-badge { font-size: 17px; } }
   .ds-nav { display: flex; align-items: center; width: 100%; gap: 16px; }
   .ds-nav-side { flex: 1; display: flex; align-items: center; }
   .ds-nav-side--left { justify-content: flex-start; }

@@ -36,10 +36,10 @@ const AUTOMATION_LABELS: Record<string, string> = { M: 'Manual', A: 'Automated',
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Crimson+Text:wght@400;600&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 </head>
 <body>
-  <PortalHeader homeHref="/devshop" spa={false} currentSlug={null} />
+  <PortalHeader homeHref="/devshop" spa={false} currentSlug={null} theme="light" />
 
   <main class="wrap">
     <div class="eyebrow">SAMPLE DELIVERABLE — SHIPS AT IMPLEMENTATION, NOT BEFORE</div>
@@ -150,22 +150,23 @@ const AUTOMATION_LABELS: Record<string, string> = { M: 'Manual', A: 'Automated',
 
 <style>
   :root {
-    --dev-bg: #15130f;
-    --dev-text: #f5f5f0;
-    --dev-muted1: #b7b5af;
-    --dev-muted2: #85837e;
-    --dev-muted3: #625f59;
-    --dev-gold: #d4af37;
-    --dev-blue: #91afc0;
-    --dev-green: #6fae6a;
-    --dev-rose: #a66a62;
-    --dev-hair: rgba(245, 245, 240, 0.18);
+    --dev-bg: #f5f2ea;
+    --dev-panel: #ffffff;
+    --dev-text: #1e211a;
+    --dev-muted1: #52564a;
+    --dev-muted2: #767a6c;
+    --dev-muted3: #9a9d90;
+    --dev-gold: #4f5f42;
+    --dev-blue: #b08a63;
+    --dev-green: #3f6b46;
+    --dev-rose: #a3573f;
+    --dev-hair: rgba(30, 33, 26, 0.14);
   }
   *, *::before, *::after { box-sizing: border-box; }
   html, body { width: 100%; margin: 0; }
   body {
     background: var(--dev-bg); color: var(--dev-text);
-    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif; overflow-x: hidden;
+    font-family: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif; overflow-x: hidden;
   }
   a { color: inherit; }
   .serif { font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; }
@@ -173,7 +174,7 @@ const AUTOMATION_LABELS: Record<string, string> = { M: 'Manual', A: 'Automated',
 
   .wrap { max-width: 980px; margin: 0 auto; padding: 64px 64px 80px; }
   .eyebrow { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dev-gold); margin-bottom: 24px; }
-  h1.hero { font-size: clamp(32px, 4.6vw, 52px); line-height: 1.08; letter-spacing: -0.01em; margin: 0 0 20px; }
+  h1.hero { font-family: 'Crimson Text', Georgia, serif; font-weight: 600; font-size: clamp(32px, 4.6vw, 52px); line-height: 1.08; letter-spacing: -0.01em; margin: 0 0 20px; }
   h1.hero .tag { font-size: 16px; color: var(--dev-gold); vertical-align: super; }
   p.sub { font-size: 16px; color: var(--dev-muted1); line-height: 1.65; max-width: 640px; margin: 0 0 56px; }
   p.sub a { color: var(--dev-blue); text-decoration: underline; }
@@ -206,10 +207,10 @@ const AUTOMATION_LABELS: Record<string, string> = { M: 'Manual', A: 'Automated',
     display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600;
     border-radius: 4px; padding: 2px 7px; letter-spacing: 0.02em;
   }
-  .auto-M { background: rgba(166,106,98,0.18); color: var(--dev-rose); }
-  .auto-A { background: rgba(145,175,192,0.18); color: var(--dev-blue); }
-  .auto-SA { background: rgba(212,175,55,0.18); color: var(--dev-gold); }
-  .auto-F { background: rgba(111,174,106,0.18); color: var(--dev-green); }
+  .auto-M { background: rgba(163,87,63,0.14); color: var(--dev-rose); }
+  .auto-A { background: rgba(176,138,99,0.16); color: var(--dev-blue); }
+  .auto-SA { background: rgba(79,95,66,0.14); color: var(--dev-gold); }
+  .auto-F { background: rgba(63,107,70,0.14); color: var(--dev-green); }
 
   .auto-legend { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 16px; }
   .auto-legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--dev-muted2); }
@@ -224,7 +225,7 @@ const AUTOMATION_LABELS: Record<string, string> = { M: 'Manual', A: 'Automated',
   .calc-card { flex: 1; min-width: 160px; border: 1px solid var(--dev-hair); border-radius: 6px; padding: 20px 22px; text-align: center; }
   .calc-card--result { border-color: var(--dev-gold); }
   .calc-num { font-size: 32px; margin: 0 0 6px; }
-  .calc-unit { font-family: 'Inter', sans-serif; font-size: 13px; color: var(--dev-muted2); margin-left: 4px; }
+  .calc-unit { font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--dev-muted2); margin-left: 4px; }
   .calc-cap { font-size: 12px; color: var(--dev-muted2); line-height: 1.5; margin: 0; }
 
   .pt-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
@@ -234,11 +235,11 @@ const AUTOMATION_LABELS: Record<string, string> = { M: 'Manual', A: 'Automated',
   .cta-block { text-align: center; padding: 56px 0 24px; border-top: 1px solid var(--dev-hair); }
   .cta-block h2 { font-size: 24px; margin: 0 0 22px; }
   .btn {
-    display: inline-block; font-size: 14px; letter-spacing: 0.03em; padding: 14px 26px;
-    border: 1px solid var(--dev-gold); color: var(--dev-gold); border-radius: 2px; text-decoration: none;
-    transition: background 0.2s;
+    display: inline-block; font-size: 14px; font-weight: 600; letter-spacing: 0.02em; padding: 13px 28px;
+    border: 1px solid var(--dev-gold); background: var(--dev-gold); color: #fdfcf8; border-radius: 999px; text-decoration: none;
+    transition: filter 0.2s, transform 0.15s;
   }
-  .btn:hover { background: rgba(212, 175, 55, 0.08); }
+  .btn:hover { filter: brightness(0.88); transform: translateY(-1px); }
 
   @media (max-width: 860px) {
     .wrap { padding: 48px 24px 60px; }

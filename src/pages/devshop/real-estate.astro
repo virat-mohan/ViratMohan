@@ -191,13 +191,13 @@ const canonical = new URL('/devshop/real-estate', site.domain).href;
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Crimson+Text:wght@400;600&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap"
     rel="stylesheet"
   />
 </head>
 <body>
 
-<PortalHeader homeHref="/devshop/real-estate" spa={true} currentSlug="real-estate" industryLabel="Real Estate & Property Management" verticalTag="RE">
+<PortalHeader homeHref="/devshop/real-estate" spa={true} currentSlug="real-estate" industryLabel="Real Estate & Property Management" verticalTag="RE" theme="light">
   <a href="#" data-go="landing" slot="extra-nav">Common use cases</a>
 </PortalHeader>
 
@@ -237,7 +237,6 @@ const canonical = new URL('/devshop/real-estate', site.domain).href;
       </form>
     </div>
     <p class="sub">No proposal. No scoping call. Just show us what's broken in your leasing, maintenance, or reporting ops.</p>
-    <div class="footer-bar"><span class="footer-bar-text">Built fast, for landlords, property managers &amp; brokerages<sup>TM</sup></span></div>
   </section>
 
   <!-- floating bar shown once >=1 use case is selected via checkbox-style toggle -->
@@ -256,7 +255,6 @@ const canonical = new URL('/devshop/real-estate', site.domain).href;
       <div class="step"><div class="num">02</div><div class="rule"></div><h3><span class="tint-gold">Instant</span> demo</h3><p>We diagnose and show you<br />a working demo right there.</p></div>
       <div class="step"><div class="num">03</div><div class="rule"></div><h3>30-day build</h3><p>You give feedback, then pay the deposit.<br />We ship within 30 days of that.</p></div>
     </div>
-    <div class="footer-bar"><span class="footer-bar-text">Built fast, for landlords, property managers &amp; brokerages<sup>TM</sup></span></div>
   </section>
 
   <!-- 03 PRICING -->
@@ -279,7 +277,6 @@ const canonical = new URL('/devshop/real-estate', site.domain).href;
       <p class="sub" style="margin-top:36px;">Variable / custom pricing available outside this range. No proposals. No scoping calls.</p>
       <div style="margin-top:40px;"><button class="btn" data-go="intake">Start →</button></div>
     </div>
-    <div class="footer-bar"><span class="footer-bar-text">Built fast, for landlords, property managers &amp; brokerages<sup>TM</sup></span></div>
   </section>
 
   <!-- 05 INTAKE — one question at a time, centered, keyboard-driven -->
@@ -409,7 +406,6 @@ const canonical = new URL('/devshop/real-estate', site.domain).href;
     <h1 class="hero serif" style="max-width:760px;">Got it. <span class="tint-gold">Check your email.</span></h1>
     <p class="sub" style="max-width:560px;">We've emailed you the link to your demo — one round of feedback, then a 30-day build once the deposit's in.</p>
     <div style="margin-top:40px;"><a href="#" data-go="landing" class="btn-plain">← Back to start</a></div>
-    <div class="footer-bar"><span class="footer-bar-text">Built fast, for landlords, property managers &amp; brokerages<sup>TM</sup></span></div>
   </section>
 
   <!-- ILLUSTRATIVE NOTICE — shown instead of a live generation while real
@@ -426,7 +422,6 @@ const canonical = new URL('/devshop/real-estate', site.domain).href;
       <a href="/devshop/demo/illustrative" class="btn">See it now &rarr;</a>
       <a href="#" data-go="landing" class="btn-plain">← Back to start</a>
     </div>
-    <div class="footer-bar"><span class="footer-bar-text">Built fast, for landlords, property managers &amp; brokerages<sup>TM</sup></span></div>
   </section>
 
   <!-- 06 LOGIN (UI-only — no real auth, see script comments) -->
@@ -558,11 +553,12 @@ const canonical = new URL('/devshop/real-estate', site.domain).href;
        and retail's light sand — cosmetic only, see this file's header note.
        Copy this block (and only this block, plus the content sections
        below) when standing up the next industry vertical. */
-    --dev-bg: #e4e8ea;
-    --dev-text: #1c2226;
-    --dev-muted1: #4b555c;
-    --dev-muted2: #6b747a;
-    --dev-muted3: #8b939a;
+    --dev-bg: #eeece7;
+    --dev-panel: #ffffff;
+    --dev-text: #211f18;
+    --dev-muted1: #58544a;
+    --dev-muted2: #7c7767;
+    --dev-muted3: #9a9585;
     --dev-gold: #7a6a52;
     --dev-blue: #35586b;
     --dev-green: #3d5c4a;
@@ -574,7 +570,7 @@ const canonical = new URL('/devshop/real-estate', site.domain).href;
   body {
     background: var(--dev-bg);
     color: var(--dev-text);
-    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-family: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
     overflow-x: hidden;
     position: relative;
     margin: 0;
@@ -621,11 +617,11 @@ const canonical = new URL('/devshop/real-estate', site.domain).href;
   .footer-bar-text sup { font-size: 12px; letter-spacing: 0; margin-left: 2px; color: var(--dev-muted2, #85837e); }
 
   .btn {
-    font-size: 14px; letter-spacing: 0.03em; padding: 16px 28px;
-    border: 1px solid var(--dev-gold); color: var(--dev-gold); border-radius: 2px;
-    transition: background 0.2s; white-space: nowrap;
+    font-size: 14px; font-weight: 600; letter-spacing: 0.02em; padding: 15px 30px;
+    border: 1px solid var(--dev-gold); background: var(--dev-gold); color: #fdfcf8; border-radius: 999px;
+    transition: filter 0.2s, transform 0.15s; white-space: nowrap; display: inline-block;
   }
-  .btn:hover { background: rgba(150, 116, 42, 0.09); }
+  .btn:hover { filter: brightness(0.88); transform: translateY(-1px); }
   .btn-plain { color: var(--dev-muted1); font-size: 14px; }
   .btn-plain:hover { color: var(--dev-text); }
   input[type='text'], input[type='email'], textarea {
