@@ -39,6 +39,18 @@ const PRICING = {
   careMin: '50,000',
 };
 
+// Problem Library — leads every card with the business problem, never the
+// technology behind it, so a visitor can recognize their own situation
+// before knowing anything about how it gets solved.
+const problemLibrary = [
+  { name: 'Marketplace reconciliation', desc: 'Payments come in from five marketplaces, and no one can say what’s actually settled without a spreadsheet marathon.' },
+  { name: 'Missed hotel enquiries', desc: 'Guest enquiries land across email, WhatsApp, and OTAs, and go cold before anyone replies.' },
+  { name: 'Founder reporting', desc: 'Someone loses every Monday morning stitching numbers together for a report the founder still has to read like a detective.' },
+  { name: 'Manual customer follow-up', desc: 'Leads go quiet because no one remembers to follow up until it’s already too late.' },
+  { name: 'Inventory leakage', desc: 'Stock on the shelf drifts from stock on the books, and nobody notices until the audit.' },
+  { name: 'Slow approvals', desc: 'A request sits in someone’s inbox for days because there’s no clear owner or deadline.' },
+];
+
 // TODO: confirm these case studies are cleared for public naming
 // (client sign-off) before treating this copy as final. logo is omitted (not
 // `undefined`-assigned) where no logo file exists yet — India Contemporary,
@@ -226,9 +238,27 @@ const canonical = new URL('/devshop', site.domain).href;
     <div class="footer-bar"><span class="footer-bar-text">Built fast, <em>for real businesses</em><sup>TM</sup></span></div>
   </section>
 
-  <!-- 04 INDUSTRIES — one page per vertical, same architecture, re-skinned
+  <!-- 04 PROBLEM LIBRARY — leads with the business problem, not the
+       technology behind it. Deliberately no "AI use case" framing. -->
+  <section class="screen" id="problems" data-marketing-index="4">
+    <div class="eyebrow">PROBLEMS WE'VE WORKED ON</div>
+    <h1 class="hero serif">Real business problems.<br /><span class="tint-blue">Not</span> <span class="tint-gold">AI use cases.</span></h1>
+    <p class="sub" style="max-width:560px;">If one of these sounds familiar, you already know enough to start — the technology is our problem, not yours.</p>
+    <div class="problem-grid">
+      {problemLibrary.map((p) => (
+        <button type="button" class="problem-card" data-go="intake">
+          <div class="problem-name serif">{p.name}</div>
+          <div class="problem-desc">{p.desc}</div>
+          <div class="problem-cta">Give us this problem →</div>
+        </button>
+      ))}
+    </div>
+    <div class="footer-bar"><span class="footer-bar-text">Built fast, <em>for real businesses</em><sup>TM</sup></span></div>
+  </section>
+
+  <!-- 05 INDUSTRIES — one page per vertical, same architecture, re-skinned
        and re-populated per industry (see verticals config above). -->
-  <section class="screen" id="verticals" data-marketing-index="4">
+  <section class="screen" id="verticals" data-marketing-index="5">
     <div class="eyebrow">INDUSTRIES</div>
     <h1 class="hero serif" style="font-size:clamp(32px,4.4vw,52px);">Same method. <span class="tint-blue">Every</span> <span class="tint-gold">industry.</span></h1>
     <p class="sub" style="max-width:600px;">Each industry gets its own common-problem library and its own starting point — the same diagnosis-first process underneath.</p>
@@ -255,7 +285,7 @@ const canonical = new URL('/devshop', site.domain).href;
   </section>
 
   <!-- 05 PRICING -->
-  <section class="screen" id="pricing" data-marketing-index="5">
+  <section class="screen" id="pricing" data-marketing-index="6">
     <div class="eyebrow">PRICING</div>
     <div class="pricing-block">
       <h1 class="hero serif" style="font-size:clamp(36px,5vw,72px);">Build once.<br />Keep it <span class="tint-gold">running well.</span></h1>
@@ -283,7 +313,7 @@ const canonical = new URL('/devshop', site.domain).href;
   </section>
 
   <!-- 05 INTAKE — one question at a time, centered, keyboard-driven -->
-  <section class="screen wizard-screen" id="intake" data-marketing-index="6">
+  <section class="screen wizard-screen" id="intake" data-marketing-index="7">
     <div class="wizard" id="intakeWizard">
       <div class="wizard-progress" id="wizardProgress" aria-hidden="true"></div>
       <form id="intakeForm" novalidate>
@@ -705,6 +735,21 @@ const canonical = new URL('/devshop', site.domain).href;
 
   .pricing-block { margin-top: auto; margin-bottom: auto; }
 
+  .problem-grid {
+    margin-top: 48px; max-width: 920px; display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;
+  }
+  .problem-card {
+    display: block; text-align: left; width: 100%; background: none; cursor: pointer;
+    border: 1px solid var(--dev-hair); border-radius: 6px; padding: 22px 24px;
+    font-family: inherit; color: inherit; transition: border-color 0.2s;
+  }
+  .problem-card:hover { border-color: var(--dev-gold); }
+  .problem-name { font-size: 21px; margin-bottom: 10px; }
+  .problem-desc { font-size: 13.5px; color: var(--dev-muted1); line-height: 1.55; margin-bottom: 16px; }
+  .problem-cta { font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dev-muted2); }
+  .problem-card:hover .problem-cta { color: var(--dev-gold); }
+
   .vertical-grid {
     margin-top: 48px; max-width: 900px; display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;
@@ -890,7 +935,7 @@ const canonical = new URL('/devshop', site.domain).href;
   // execution layer for the orchestrator, real auth, and a database.
   // ============================================================
 
-  var marketingScreens = ['landing', 'how-it-works', 'proof', 'verticals', 'pricing', 'intake'];
+  var marketingScreens = ['landing', 'how-it-works', 'proof', 'problems', 'verticals', 'pricing', 'intake'];
   var appScreens = ['login', 'dashboard', 'orchestrator', 'integrations', 'activity', 'billing'];
 
   function showScreen(id) {
