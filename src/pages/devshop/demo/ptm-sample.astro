@@ -14,11 +14,11 @@ const description = 'A real example of the PTM (Process, Training, Mapping) oper
 const canonical = new URL('/devshop/demo/ptm-sample', site.domain).href;
 
 const tasks = [
-  { task: 'Pull the incoming payment record from the bank feed', complexity: 'Low', automation: 'F', time: '—', freq: '310 / mo', hours: '0', role: '—', systems: 'Accounting system', priority: 3 },
-  { task: 'Match payment against open invoices', complexity: 'Medium', automation: 'A', time: '—', freq: '310 / mo', hours: '0', role: '—', systems: 'Accounting system', priority: 5 },
-  { task: 'Diagnose the variance on an unmatched payment', complexity: 'Medium–High', automation: 'SA', time: '8 min', freq: '49 / mo', hours: '6.5', role: 'AR Lead', systems: 'Accounting system, Email', priority: 5 },
-  { task: 'Approve the match override or write-off', complexity: 'High (judgement)', automation: 'M', time: '2 min', freq: '49 / mo', hours: '1.6', role: 'AR Lead', systems: 'Accounting system', priority: 4 },
-  { task: 'Post the resolution and close the ledger entry', complexity: 'Low', automation: 'F', time: '—', freq: '359 / mo', hours: '0', role: '—', systems: 'Accounting system', priority: 2 },
+  { task: 'Pull the incoming payment record from the bank feed', complexity: 'Low', automation: 'F', actor: 'Software', techRole: 'Execute', humanRole: '—', time: '—', freq: '310 / mo', hours: '0', role: '—', systems: 'Accounting system', priority: 3 },
+  { task: 'Match payment against open invoices', complexity: 'Medium', automation: 'A', actor: 'Software + AI', techRole: 'Execute', humanRole: '—', time: '—', freq: '310 / mo', hours: '0', role: '—', systems: 'Accounting system', priority: 5 },
+  { task: 'Diagnose the variance on an unmatched payment', complexity: 'Medium–High', automation: 'SA', actor: 'Human + AI', techRole: 'Recommend', humanRole: 'Review', time: '8 min', freq: '49 / mo', hours: '6.5', role: 'AR Lead', systems: 'Accounting system, Email', priority: 5 },
+  { task: 'Approve the match override or write-off', complexity: 'High (judgement)', automation: 'M', actor: 'Human', techRole: 'Assist', humanRole: 'Decide', time: '2 min', freq: '49 / mo', hours: '1.6', role: 'AR Lead', systems: 'Accounting system', priority: 4 },
+  { task: 'Post the resolution and close the ledger entry', complexity: 'Low', automation: 'F', actor: 'Software', techRole: 'Execute', humanRole: '—', time: '—', freq: '359 / mo', hours: '0', role: '—', systems: 'Accounting system', priority: 2 },
 ];
 
 const AUTOMATION_LABELS: Record<string, string> = { M: 'Manual', A: 'Automated', SA: 'Semi-Automated', F: 'Fully AI-driven' };
@@ -62,12 +62,12 @@ const AUTOMATION_LABELS: Record<string, string> = { M: 'Manual', A: 'Automated',
 
     <section class="block">
       <div class="section-head"><span class="section-num mono">02</span><h2>Process → Task → Mapping</h2></div>
-      <p class="section-intro">Process: <strong>Incoming Payment Reconciliation.</strong> Every task below is classified Manual (M), Semi-Automated (SA), Automated (A), or Fully AI-driven (F) — decided task by task, not "automate everything."</p>
+      <p class="section-intro">Process: <strong>Incoming Payment Reconciliation.</strong> Mapping isn't just "who automates this" — for every task it names the Actor (who/what does it), the technology's role, and the human's role, with M/A/SA/F kept as a simple summary tag, not the whole story.</p>
       <div class="task-table-wrap">
         <table class="task-table">
           <thead>
             <tr>
-              <th>Task</th><th>Complexity</th><th>Automation</th><th>Human time</th><th>Frequency</th><th>Monthly hrs</th><th>Role</th><th>Systems</th><th>Priority</th>
+              <th>Task</th><th>Complexity</th><th>Mapping</th><th>Human time</th><th>Frequency</th><th>Monthly hrs</th><th>Role</th><th>Systems</th><th>Priority</th>
             </tr>
           </thead>
           <tbody>
@@ -75,7 +75,11 @@ const AUTOMATION_LABELS: Record<string, string> = { M: 'Manual', A: 'Automated',
               <tr>
                 <td class="t-task">{t.task}</td>
                 <td>{t.complexity}</td>
-                <td><span class={`auto-pill auto-${t.automation}`}>{t.automation}</span></td>
+                <td class="t-mapping">
+                  <div class="mapping-actor">{t.actor}</div>
+                  <div class="mapping-roles"><span>Tech: {t.techRole}</span><span>Human: {t.humanRole}</span></div>
+                  <span class={`auto-pill auto-${t.automation}`}>{t.automation}</span>
+                </td>
                 <td class="mono">{t.time}</td>
                 <td class="mono">{t.freq}</td>
                 <td class="mono">{t.hours}</td>
@@ -88,6 +92,7 @@ const AUTOMATION_LABELS: Record<string, string> = { M: 'Manual', A: 'Automated',
         </table>
       </div>
       <div class="auto-legend">
+        <span class="auto-legend-label">M/A/SA/F summary:</span>
         {Object.entries(AUTOMATION_LABELS).map(([k, v]) => (
           <span class="auto-legend-item"><span class={`auto-pill auto-${k}`}>{k}</span>{v}</span>
         ))}
@@ -126,12 +131,13 @@ const AUTOMATION_LABELS: Record<string, string> = { M: 'Manual', A: 'Automated',
     </section>
 
     <section class="block">
-      <div class="section-head"><span class="section-num mono">05</span><h2>Workload math</h2></div>
+      <div class="section-head"><span class="section-num mono">05</span><h2>Economics — underneath Mapping, not the headline</h2></div>
+      <p class="section-intro">Task time × frequency = monthly workload, computed in three states: what it costs today, what it should cost after the Mapping above, and the gap between them.</p>
       <div class="calc-grid">
         <div class="calc-card"><p class="calc-num serif">≈40<span class="calc-unit">hrs/mo</span></p><p class="calc-cap">Current — fully manual baseline</p></div>
         <div class="calc-arrow">→</div>
-        <div class="calc-card"><p class="calc-num serif">≈8<span class="calc-unit">hrs/mo</span></p><p class="calc-cap">Future — exceptions only</p></div>
-        <div class="calc-card calc-card--result"><p class="calc-num serif">≈32<span class="calc-unit">hrs/mo</span></p><p class="calc-cap">Recovered — ≈0.18 FTE of capacity, without adding headcount</p></div>
+        <div class="calc-card"><p class="calc-num serif">≈8<span class="calc-unit">hrs/mo</span></p><p class="calc-cap">Future — human hours after Mapping (exceptions only)</p></div>
+        <div class="calc-card calc-card--result"><p class="calc-num serif">≈32<span class="calc-unit">hrs/mo</span></p><p class="calc-cap">Capacity released — ≈0.18 FTE, redeployable without adding headcount</p></div>
       </div>
     </section>
 
@@ -227,7 +233,12 @@ const AUTOMATION_LABELS: Record<string, string> = { M: 'Manual', A: 'Automated',
   .auto-SA { background: rgba(79,95,66,0.14); color: var(--dev-gold); }
   .auto-F { background: rgba(63,107,70,0.14); color: var(--dev-green); }
 
-  .auto-legend { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 16px; }
+  .t-mapping { min-width: 150px; }
+  .mapping-actor { font-size: 12.5px; font-weight: 600; color: var(--dev-text); margin-bottom: 3px; }
+  .mapping-roles { display: flex; flex-direction: column; gap: 1px; font-size: 10.5px; color: var(--dev-muted2); margin-bottom: 5px; }
+
+  .auto-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; margin-top: 16px; }
+  .auto-legend-label { font-size: 11px; color: var(--dev-muted3); }
   .auto-legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--dev-muted2); }
 
   .cav-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
