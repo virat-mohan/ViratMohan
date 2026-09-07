@@ -61,9 +61,9 @@ const proof = [
   { name: 'Travaholic Stays', industry: 'Hospitality / Travel', result: 'Direct booking system replacing Airbnb, WhatsApp, and a spreadsheet', href: 'https://travaholicstays.com', logo: travaholicStaysLogo, screenshot: travaholicStaysShot },
   { name: 'The Feeling Co.', industry: 'Events / Hospitality', result: 'Full digital operation — 9 releases, zero external subscriptions', href: 'https://thefeelingco.online', logo: feelingCoLogo, screenshot: feelingCoShot },
   { name: 'India Contemporary', industry: 'Retail / Marketplace', result: 'Two-sided marketplace connecting artists to collectors', href: 'https://indiacontemporary.net', screenshot: indiaContemporaryShot },
-  { name: 'ClarityHQ', industry: 'Marketing / Growth', result: 'AI-native growth agency — acquisition, conversion, and retention run on one shared Brand Intelligence layer', href: site.clarityhq, screenshot: clarityhqShot },
-  { name: 'Content-ment', industry: 'Content / Marketing Tech', result: 'AI content operating system — drafting, approval, and export, entirely in-browser with zero backend', screenshot: contentmentShot },
-  { name: 'Coach Your Psyche', industry: 'Health & Wellness', result: 'AI mental wellness coaching — 4 personality-styled therapists, pay-per-message via Stripe', screenshot: coachYourPsycheShot },
+  { name: 'ClarityHQ', industry: 'Marketing / Growth', result: 'AI-native growth agency — acquisition, conversion, and retention run on one shared Brand Intelligence layer', href: site.clarityhq, screenshot: clarityhqShot, fit: 'contain' },
+  { name: 'Content-ment', industry: 'Content / Marketing Tech', result: 'AI content operating system — drafting, approval, and export, entirely in-browser with zero backend', screenshot: contentmentShot, fit: 'contain' },
+  { name: 'Coach Your Psyche', industry: 'Health & Wellness', result: 'AI mental wellness coaching — 4 personality-styled therapists, pay-per-message via Stripe', screenshot: coachYourPsycheShot, fit: 'contain' },
 ];
 
 // Full-colour icon marks for the Integrations screen only (per instruction —
@@ -249,7 +249,7 @@ const canonical = new URL('/devshop', site.domain).href;
           {...(p.href ? { href: p.href, target: '_blank', rel: 'noopener noreferrer' } : {})}
         >
           {p.screenshot && (
-            <div class="proof-shot">
+            <div class:list={['proof-shot', p.fit === 'contain' && 'proof-shot--contain']}>
               <Image src={p.screenshot} alt={`${p.name} screenshot`} width={960} height={600} />
               {p.industry && <span class="proof-industry-tag">{p.industry}</span>}
             </div>
@@ -297,14 +297,14 @@ const canonical = new URL('/devshop', site.domain).href;
       {devshopVerticals.map((v) => (
         v.status === 'live' ? (
           <a class="vertical-card" href={`/devshop/${v.slug}`} style={`--chip-color:${v.color};`}>
-            <div class="vertical-tag">{v.tag}</div>
+            <div class="vertical-dot"></div>
             <div class="vertical-name">{v.name}</div>
             <div class="vertical-blurb">{v.blurb}</div>
             <div class="vertical-cta">Enter →</div>
           </a>
         ) : (
           <div class="vertical-card vertical-card--soon">
-            <div class="vertical-tag">{v.tag}</div>
+            <div class="vertical-dot"></div>
             <div class="vertical-name">{v.name}</div>
             <div class="vertical-blurb">{v.blurb}</div>
             <div class="vertical-cta">Coming soon</div>
@@ -874,14 +874,16 @@ const canonical = new URL('/devshop', site.domain).href;
   }
   .proof-card:hover { box-shadow: 0 6px 18px rgba(30,33,26,0.1); transform: translateY(-2px); }
   .proof-shot { position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: #000; }
+  .proof-shot--contain { background: var(--dev-panel); }
+  .proof-shot--contain :global(img) { object-fit: contain !important; }
   .proof-industry-tag {
     position: absolute; top: 10px; left: 10px; z-index: 1;
     font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.04em;
     color: #f5f2ea; background: rgba(21,19,15,0.82); border: 1px solid rgba(212,175,140,0.4);
     border-radius: 4px; padding: 4px 9px;
   }
-  .proof-shot :global(img) { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; opacity: 0.88; transition: opacity 0.2s; }
-  .proof-card:hover .proof-shot :global(img) { opacity: 1; }
+  .proof-shot :global(img) { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; transition: transform 0.25s; }
+  .proof-card:hover .proof-shot :global(img) { transform: scale(1.03); }
   .proof-card-body { display: flex; align-items: center; gap: 14px; padding: 18px 20px; }
   .proof-logo-img { flex: none; width: 28px; height: 28px; object-fit: contain; border-radius: 4px; }
   .proof-logo-text { flex: none; font-size: 18px; font-style: italic; color: var(--dev-gold); }
@@ -918,7 +920,7 @@ const canonical = new URL('/devshop', site.domain).href;
   }
   a.vertical-card:hover { box-shadow: 0 6px 18px rgba(30,33,26,0.1); transform: translateY(-2px); border-color: var(--chip-color, var(--dev-gold)); }
   .vertical-card--soon { opacity: 0.55; }
-  .vertical-tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.12em; color: var(--chip-color, var(--dev-gold)); margin-bottom: 10px; }
+  .vertical-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--chip-color, var(--dev-gold)); margin-bottom: 14px; }
   .vertical-name { font-family: 'Instrument Serif', Georgia, serif; font-size: 24px; margin-bottom: 10px; }
   .vertical-blurb { font-size: 13.5px; color: var(--dev-muted1); line-height: 1.55; margin-bottom: 18px; }
   .vertical-cta { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dev-text); }
