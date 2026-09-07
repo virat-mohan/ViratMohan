@@ -372,7 +372,15 @@ const canonical = new URL('/devshop', site.domain).href;
           <div class="module-def-item"><span class="module-def-item-title">Training &amp; handoff</span><span class="module-def-item-body">We walk your team through it directly at launch.</span></div>
         </div>
       </div>
-      <p class="sub" style="margin-top:28px;">Genuinely complex or custom systems are human-priced after a short scoping call, not forced into the standard tiers. The advance payment to start is 25% of the build fee, due before kickoff.</p>
+      <p class="sub" style="margin-top:28px;">Genuinely complex or custom systems are human-priced after a short scoping call, not forced into the standard tiers.</p>
+      <div class="payment-terms">
+        <p class="payment-terms-label">Payment terms</p>
+        <div class="payment-terms-grid">
+          <div class="payment-terms-item"><span class="payment-terms-pct">25%</span><span class="payment-terms-when">On confirmation — secures your build slot, starts the 30-day clock</span></div>
+          <div class="payment-terms-item"><span class="payment-terms-pct">50%</span><span class="payment-terms-when">At the shadow run (Day 26) — once it's built and running against your real data</span></div>
+          <div class="payment-terms-item"><span class="payment-terms-pct">25%</span><span class="payment-terms-when">On go-live (Day 30) — once the full run is live and handed over</span></div>
+        </div>
+      </div>
       <div style="margin-top:40px;"><button class="btn" data-go="intake">Start →</button></div>
     </div>
   </section>
@@ -827,6 +835,17 @@ const canonical = new URL('/devshop', site.domain).href;
   .module-def-item-title { font-size: 13.5px; font-weight: 600; color: var(--dev-text); }
   .module-def-item-body { font-size: 12.5px; color: var(--dev-muted1); line-height: 1.5; }
 
+  .payment-terms {
+    margin-top: 28px; max-width: 720px; background: var(--dev-panel); border: 1px solid var(--dev-hair);
+    border-radius: 14px; padding: 22px 24px; box-shadow: 0 1px 3px rgba(30,33,26,0.06); text-align: left;
+  }
+  .payment-terms-label { font-family: 'Crimson Text', Georgia, serif; font-size: 18px; margin: 0 0 14px; color: var(--dev-text); }
+  .payment-terms-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .payment-terms-item { display: flex; flex-direction: column; gap: 6px; }
+  .payment-terms-pct { font-family: 'Crimson Text', Georgia, serif; font-size: 28px; color: var(--dev-gold); }
+  .payment-terms-when { font-size: 12px; color: var(--dev-muted1); line-height: 1.5; }
+  @media (max-width: 640px) { .payment-terms-grid { grid-template-columns: 1fr; } }
+
   .contact-row { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-top: 48px; max-width: 720px; }
   .contact-card { text-align: left; }
   .contact-card {
@@ -1080,6 +1099,7 @@ const canonical = new URL('/devshop', site.domain).href;
     h1.hero { font-size: clamp(34px, 9vw, 60px); }
     .hero-device-num { font-size: clamp(30px, 8vw, 44px); }
     .module-def { padding: 22px 20px; }
+    .payment-terms { padding: 18px 20px; }
     .module-def-grid { grid-template-columns: 1fr; }
   }
 

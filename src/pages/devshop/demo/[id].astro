@@ -460,7 +460,16 @@ function nextSectionNum() {
           <p class="pricing-label">Each additional module, within 30 days of the first</p>
         </div>
       </div>
-      <p class="pricing-note">A genuinely complex build is custom-quoted after a short scoping call, not fit into the standard price. The 30-day delivery guarantee applies to standard builds, and the clock starts the moment your deposit clears — not at the demo, not at scoping. The advance payment required to start is 25% of the build fee, due before kickoff.</p>
+      <p class="pricing-note">A genuinely complex build is custom-quoted after a short scoping call, not fit into the standard price. The 30-day delivery guarantee applies to standard builds, and the clock starts the moment your deposit clears — not at the demo, not at scoping.</p>
+
+      <div class="payment-terms">
+        <h3 class="team-title">Payment terms</h3>
+        <div class="payment-terms-grid">
+          <div class="payment-terms-item"><span class="payment-terms-pct">25%</span><span class="payment-terms-when">On confirmation — secures your build slot, starts the 30-day clock</span></div>
+          <div class="payment-terms-item"><span class="payment-terms-pct">50%</span><span class="payment-terms-when">At the shadow run (Day 26) — once it's built and running against your real data</span></div>
+          <div class="payment-terms-item"><span class="payment-terms-pct">25%</span><span class="payment-terms-when">On go-live (Day 30) — once the full run is live and handed over</span></div>
+        </div>
+      </div>
 
       {row.implementation_estimate && (
         <div class="team-block">
@@ -841,6 +850,12 @@ function nextSectionNum() {
     .boundaries-grid { grid-template-columns: 1fr; gap: 24px; }
   }
   .team-block { margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--hair); }
+  .payment-terms { margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--hair); }
+  .payment-terms-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 10px; }
+  .payment-terms-item { display: flex; flex-direction: column; gap: 5px; }
+  .payment-terms-pct { font-family: 'Newsreader', Georgia, serif; font-size: 26px; color: var(--gold); }
+  .payment-terms-when { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  @media (max-width: 640px) { .payment-terms-grid { grid-template-columns: 1fr; } }
   .team-title { font-family: 'Newsreader', Georgia, serif; font-size: 15px; font-weight: 600; color: var(--ink); margin: 0 0 4px; display: flex; align-items: center; gap: 8px; }
   .team-intro { font-size: 12.5px; color: var(--muted); margin: 0 0 10px; }
   .team-rows { display: flex; flex-direction: column; gap: 6px; }
