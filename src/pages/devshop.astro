@@ -319,7 +319,7 @@ const canonical = new URL('/devshop', site.domain).href;
     <div class="eyebrow">PRICING</div>
     <div class="pricing-block">
       <h1 class="hero serif" style="font-size:clamp(36px,5vw,72px);">Build once.<br />Keep it <span class="tint-gold">running well.</span></h1>
-      <div style="display:flex; gap:64px; margin-top:48px; flex-wrap:wrap;">
+      <div style="display:flex; gap:64px; margin-top:48px; flex-wrap:wrap; justify-content:center;">
         <div>
           <div class="eyebrow" style="margin-bottom:14px;">BUILD</div>
           <div class="serif" style="font-size:clamp(28px,3.2vw,44px);">{CURRENCY}{PRICING.buildFirst}</div>
@@ -704,7 +704,7 @@ const canonical = new URL('/devshop', site.domain).href;
      flexed regardless of .active, and hidden as a group only while an
      overlay screen (intake wizard, post-submit states, app simulation)
      takes over the whole viewport. */
-  .screen--scroll { display: flex; scroll-margin-top: 132px; }
+  .screen--scroll { display: flex; align-items: center; text-align: center; scroll-margin-top: 132px; }
   body.ds-overlay-active .screen--scroll { display: none; }
   html { scroll-behavior: smooth; }
   .eyebrow { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dev-muted2); margin-bottom: 28px; }
@@ -792,7 +792,7 @@ const canonical = new URL('/devshop', site.domain).href;
 
   .module-def {
     margin-top: 44px; max-width: 720px; background: var(--dev-panel); border: 1px solid var(--dev-hair);
-    border-radius: 14px; padding: 26px 28px; box-shadow: 0 1px 3px rgba(30,33,26,0.06);
+    border-radius: 14px; padding: 26px 28px; box-shadow: 0 1px 3px rgba(30,33,26,0.06); text-align: left;
   }
   .module-def-label { font-family: 'Crimson Text', Georgia, serif; font-size: 20px; margin: 0 0 8px; color: var(--dev-text); }
   .module-def-intro { font-size: 14px; color: var(--dev-muted1); line-height: 1.6; margin: 0 0 20px; max-width: 56ch; }
@@ -801,7 +801,8 @@ const canonical = new URL('/devshop', site.domain).href;
   .module-def-item-title { font-size: 13.5px; font-weight: 600; color: var(--dev-text); }
   .module-def-item-body { font-size: 12.5px; color: var(--dev-muted1); line-height: 1.5; }
 
-  .contact-row { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 48px; max-width: 720px; }
+  .contact-row { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-top: 48px; max-width: 720px; }
+  .contact-card { text-align: left; }
   .contact-card {
     display: flex; align-items: center; gap: 16px; flex: 1; min-width: 260px;
     background: var(--dev-panel); border: 1px solid var(--dev-hair); border-radius: 14px; padding: 20px 22px;
@@ -815,7 +816,7 @@ const canonical = new URL('/devshop', site.domain).href;
 
   .industry-pick { margin-top: 40px; max-width: 900px; }
   .industry-pick-label { font-size: 13.5px; color: var(--dev-muted2); margin: 0 0 16px; }
-  .industry-chips { display: flex; flex-wrap: wrap; gap: 12px; }
+  .industry-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
   .industry-chip {
     display: inline-flex; align-items: center; gap: 10px; font-family: 'DM Sans', sans-serif;
     font-size: 13.5px; font-weight: 500; color: var(--dev-text); text-decoration: none;
@@ -851,7 +852,8 @@ const canonical = new URL('/devshop', site.domain).href;
   .process-more { display: inline-block; margin-top: 24px; font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-size: 19px; color: var(--dev-text); }
   .process-more:hover { text-decoration: underline; }
 
-  .steps { display: flex; gap: 56px; margin-top: 70px; flex-wrap: wrap; }
+  .steps { display: flex; gap: 56px; margin-top: 70px; flex-wrap: wrap; justify-content: center; }
+  .step { text-align: left; }
   .step { flex: 1; min-width: 220px; }
   .step .rule { height: 1px; margin: 10px 0 22px; }
   .step .num { font-size: 13px; color: var(--dev-muted2); }
