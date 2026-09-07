@@ -180,18 +180,7 @@ const canonical = new URL('/devshop', site.domain).href;
 
   <!-- 01 LANDING -->
   <section class="screen screen--scroll active" id="landing" data-marketing-index="1">
-    <div class="hero-industry-pick">
-      <button type="button" class="hero-industry-trigger" id="heroIndustriesTrigger">Industries ▾</button>
-      <div class="hero-industry-menu" id="heroIndustriesMenu">
-        {devshopVerticals.map((v) => (
-          v.status === 'live' ? (
-            <a href={`/devshop/${v.slug}`} style={`--chip-color:${v.color}; --band-color:${v.bg};`}><span class="hero-industry-dot"></span>{v.name}</a>
-          ) : (
-            <span class="hero-industry-soon"><span class="hero-industry-dot"></span>{v.name} <em>(coming soon)</em></span>
-          )
-        ))}
-      </div>
-    </div>
+    <div class="eyebrow">FAST TECH DEV SHOP</div>
     <h1 class="hero serif">Give us a <span class="tint-gold">business&nbsp;problem.</span></h1>
     <p class="sub" style="max-width:560px; margin-top:8px;">We'll figure out what's actually causing it, ground the fix in the right researched framework — real credibility, not a guess — show you the mechanism we'd build, and put a working version in front of you before you buy anything.</p>
     <form class="input-row" id="landingForm">
@@ -745,27 +734,6 @@ const canonical = new URL('/devshop', site.domain).href;
   html { scroll-behavior: smooth; }
   .eyebrow { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dev-muted2); margin-bottom: 28px; }
 
-  .hero-industry-pick { position: relative; margin-bottom: 20px; }
-  .hero-industry-trigger {
-    font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
-    color: var(--dev-muted2); cursor: pointer; transition: color 0.2s;
-  }
-  .hero-industry-trigger:hover { color: var(--dev-gold); }
-  .hero-industry-menu {
-    display: none; position: absolute; top: calc(100% + 10px); left: 0;
-    background: var(--dev-panel); border: 1px solid var(--dev-hair); border-radius: 8px;
-    padding: 8px; min-width: 220px; flex-direction: column; gap: 2px; z-index: 20;
-    box-shadow: 0 10px 26px rgba(30,33,26,0.1);
-  }
-  .hero-industry-menu.open { display: flex; }
-  .hero-industry-menu a, .hero-industry-soon {
-    display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--dev-text);
-    text-decoration: none; padding: 8px 10px; border-radius: 5px; white-space: nowrap;
-  }
-  .hero-industry-menu a:hover { background: rgba(30,33,26,0.05); color: var(--chip-color, var(--dev-gold)); }
-  .hero-industry-soon { color: var(--dev-muted3); }
-  .hero-industry-soon em { font-style: normal; }
-  .hero-industry-dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--band-color, var(--chip-color, var(--dev-muted3))); border: 1px solid var(--dev-hair); }
   .sim-tag { color: var(--dev-muted3); text-transform: none; letter-spacing: 0.02em; font-size: 10px; }
   .serif { font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; }
   .mono { font-family: 'JetBrains Mono', SFMono-Regular, Consolas, monospace; }
@@ -1335,21 +1303,6 @@ const canonical = new URL('/devshop', site.domain).href;
       showScreen(el.dataset.go);
     });
   });
-
-  // Hero "Industries ▾" dropdown — same click-to-toggle pattern as the
-  // header's own Industries menu, just scoped to this hero-local trigger.
-  var heroIndustriesTrigger = document.getElementById('heroIndustriesTrigger');
-  var heroIndustriesMenu = document.getElementById('heroIndustriesMenu');
-  if (heroIndustriesTrigger && heroIndustriesMenu) {
-    heroIndustriesTrigger.addEventListener('click', function (e) {
-      e.stopPropagation();
-      heroIndustriesMenu.classList.toggle('open');
-    });
-    document.addEventListener('click', function () { heroIndustriesMenu.classList.remove('open'); });
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') heroIndustriesMenu.classList.remove('open');
-    });
-  }
 
   // Regional pricing — the page itself stays fully static (fast, CDN-
   // cached); this is the one bit that needs to know where the visitor is,
