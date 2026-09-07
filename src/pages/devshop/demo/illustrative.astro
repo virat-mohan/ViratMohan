@@ -197,6 +197,25 @@ const canonical = new URL('/devshop/demo/illustrative', site.domain).href;
       </div>
     </div>
 
+    <section class="block">
+      <div class="section-head"><span class="section-num">§04</span><h2>Investment</h2></div>
+      <div class="pricing-grid">
+        <div class="pricing-card"><p class="pricing-amount">₹1,50,000</p><p class="pricing-label">First module — standard build</p></div>
+        <div class="pricing-card"><p class="pricing-amount">₹75,000</p><p class="pricing-label">Each additional module, within 30 days of the first</p></div>
+        <div class="pricing-card"><p class="pricing-amount">From ₹50,000<span class="pricing-per">/mo</span></p><p class="pricing-label">DevShop Care + Optimisation, per live module</p></div>
+      </div>
+      <div class="payment-terms">
+        <h3 class="payment-terms-label">Payment terms</h3>
+        <div class="payment-terms-grid">
+          <div class="payment-terms-item"><span class="payment-terms-pct">25%</span><span class="payment-terms-when">On confirmation — secures your build slot, starts the 30-day clock</span></div>
+          <div class="payment-terms-item"><span class="payment-terms-pct">50%</span><span class="payment-terms-when">At the shadow run (Day 26) — once it's built and running against your real data</span></div>
+          <div class="payment-terms-item"><span class="payment-terms-pct">25%</span><span class="payment-terms-when">On go-live (Day 30) — once the full run is live and handed over</span></div>
+        </div>
+        <p class="payment-terms-note"><strong>Ongoing:</strong> DevShop Care + Optimisation is billed monthly in advance — the first payment is due at the end of month 1, covering month 2, not on a delay.</p>
+      </div>
+      <p class="ptm-forward-note">A full PTM<sup>&trade;</sup> (Process, Training, Mapping) operating-model breakdown — task-by-task, human vs. AI — ships as part of implementation, not before. <a href="/devshop/demo/ptm-sample">See a sample PTM document →</a></p>
+    </section>
+
     <div class="appendix-section">
       <h3>The reasoning behind the scores</h3>
       <ul class="bullets flat">
@@ -363,6 +382,28 @@ const canonical = new URL('/devshop/demo/illustrative', site.domain).href;
     display: inline-block; font-size: 14px; font-weight: 600; padding: 12px 26px;
     background: #2c6b47; color: #fff; border-radius: 6px; text-decoration: none;
   }
+
+  .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 20px; }
+  .pricing-card { border: 1px solid var(--hair); border-radius: 8px; padding: 18px 20px; }
+  .pricing-amount { font-family: 'Newsreader', Georgia, serif; font-size: 24px; margin: 0 0 6px; color: var(--ink); }
+  .pricing-per { font-size: 13px; color: var(--muted); }
+  .pricing-label { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin: 0; }
+
+  .payment-terms { margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--hair); }
+  .payment-terms-label { font-family: 'Newsreader', Georgia, serif; font-size: 15px; font-weight: 600; margin: 0 0 12px; color: var(--ink); }
+  .payment-terms-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .payment-terms-item { display: flex; flex-direction: column; gap: 5px; }
+  .payment-terms-pct { font-family: 'Newsreader', Georgia, serif; font-size: 26px; color: var(--gold); }
+  .payment-terms-when { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .payment-terms-note {
+    font-size: 12.5px; color: var(--muted); line-height: 1.5; margin: 16px 0 0;
+    padding-top: 14px; border-top: 1px solid var(--hair);
+  }
+  .payment-terms-note strong { color: var(--gold); }
+  @media (max-width: 640px) { .payment-terms-grid { grid-template-columns: 1fr; } }
+
+  .ptm-forward-note { font-size: 12.5px; color: var(--muted); line-height: 1.6; margin: 20px 0 0; }
+  .ptm-forward-note a { color: var(--blue); text-decoration: underline; }
 
   .appendix-section { margin: 40px 0; }
   .appendix-section h3 { font-family: 'Newsreader', Georgia, serif; font-weight: 600; font-size: 16px; margin: 0 0 14px; color: var(--ink-soft); }
