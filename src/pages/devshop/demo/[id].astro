@@ -25,6 +25,16 @@ if (!row || !row.artefact_html || HIDDEN_STATUSES.includes(row.status)) {
 
 const notes = row.solution_notes;
 const levers = row.pnl_levers ?? [];
+
+// The "Machine" side of the PTM (Process/Task/Machine) split in the
+// Implementation section — every distinct agent across every mechanism,
+// deduped, so the human team and the AI agents read as one Human vs Machine
+// allocation rather than two unrelated lists.
+const mechanismAgents = notes
+  ? [...new Set(
+      notes.solutionMechanisms.flatMap((m) => (m.agentSequence ?? []).map((a) => a.agent_name))
+    )]
+  : [];
 const title = row.company ? `Your demo — ${row.company}` : 'Your demo';
 const canGiveFeedback = shouldProcessFeedback(row);
 
@@ -464,15 +474,30 @@ function nextSectionNum() {
 
       {row.implementation_estimate && (
         <div class="team-block">
-          <h3 class="team-title">Who works on your build</h3>
-          <p class="team-intro">Transparently — the actual team and hours behind the price, not a black box.</p>
-          <div class="team-rows">
-            {row.implementation_estimate.estimates.filter((e) => e.hours > 0).map((e) => (
-              <div class="team-row">
-                <span class="team-role">{IMPLEMENTATION_ROLE_LABELS[e.role]}</span>
-                <span class="team-hours">{e.people} {e.people === 1 ? 'person' : 'people'} · {e.hours} hrs</span>
+          <h3 class="team-title">Who — and what — builds it <span class="ptm-tag mono">PTM<sup>&trade;</sup></span></h3>
+          <p class="team-intro">Human and Machine, decided per task with our Process / Task / Machine framework — not a black box, and not automated by default.</p>
+          <div class="ptm-split">
+            <div class="ptm-col">
+              <p class="ptm-col-label">Human</p>
+              <div class="team-rows">
+                {row.implementation_estimate.estimates.filter((e) => e.hours > 0).map((e) => (
+                  <div class="team-row">
+                    <span class="team-role">{IMPLEMENTATION_ROLE_LABELS[e.role]}</span>
+                    <span class="team-hours">{e.people} {e.people === 1 ? 'person' : 'people'} · {e.hours} hrs</span>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+            {mechanismAgents.length > 0 && (
+              <div class="ptm-col">
+                <p class="ptm-col-label">Machine</p>
+                <div class="team-rows">
+                  {mechanismAgents.map((name) => (
+                    <div class="team-row"><span class="team-role">{name}</span></div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -840,7 +865,12 @@ function nextSectionNum() {
     .boundaries-grid { grid-template-columns: 1fr; gap: 24px; }
   }
   .team-block { margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--hair); }
-  .team-title { font-family: 'Newsreader', Georgia, serif; font-size: 15px; font-weight: 600; color: var(--ink); margin: 0 0 4px; }
+  .team-title { font-family: 'Newsreader', Georgia, serif; font-size: 15px; font-weight: 600; color: var(--ink); margin: 0 0 4px; display: flex; align-items: center; gap: 8px; }
+  .ptm-tag { font-size: 9.5px; letter-spacing: 0.08em; color: var(--gold); border: 1px solid rgba(212,175,55,0.4); border-radius: 3px; padding: 2px 5px; }
+  .ptm-tag sup { font-size: 7px; }
+  .ptm-split { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 10px; }
+  .ptm-col-label { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
+  @media (max-width: 640px) { .ptm-split { grid-template-columns: 1fr; gap: 16px; } }
   .team-intro { font-size: 12.5px; color: var(--muted); margin: 0 0 10px; }
   .team-rows { display: flex; flex-direction: column; gap: 6px; }
   .team-row { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-top: 1px solid var(--hair); }

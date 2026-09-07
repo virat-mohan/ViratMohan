@@ -139,6 +139,11 @@ const ICONS: Record<string, string> = {
     <h1 class="hero serif">How every demo <span class="tint-blue">actually</span> gets built.</h1>
     <p class="sub">The same nine-stage process, every time — which is exactly what makes the output something you can trust and we can stand behind.</p>
 
+    <div class="ptm-mark">
+      <span class="ptm-mark-badge mono">PTM<sup>&trade;</sup></span>
+      <p class="ptm-mark-text">Underneath every stage is <strong>Process / Task / Machine</strong> — our proprietary framework for decomposing a business into its actual functions, processes, and tasks, then determining exactly which piece of work stays human, which gets AI alongside a person, and which the system should own outright. It's the reasoning behind every "who builds it" and "what stays human" answer on this page.</p>
+    </div>
+
     <div class="methodology-grid">
       <div class="diagram">
         {steps.map((s, i) => (
@@ -265,6 +270,18 @@ const ICONS: Record<string, string> = {
   .eyebrow { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dev-muted2); margin-bottom: 24px; }
   h1.hero { font-size: clamp(34px, 5.2vw, 56px); line-height: 1.05; letter-spacing: -0.01em; margin: 0 0 20px; max-width: 760px; }
   p.sub { font-size: 17px; color: var(--dev-muted1); max-width: 560px; line-height: 1.6; margin: 0 0 56px; }
+
+  .ptm-mark {
+    display: flex; align-items: flex-start; gap: 18px; max-width: 800px; margin: 0 0 56px;
+    padding: 20px 22px; border: 1px solid var(--dev-hair); border-radius: 6px;
+  }
+  .ptm-mark-badge {
+    flex: none; font-size: 13px; letter-spacing: 0.1em; color: var(--dev-gold);
+    border: 1px solid rgba(212,175,55,0.4); border-radius: 4px; padding: 6px 10px;
+  }
+  .ptm-mark-badge sup { font-size: 9px; }
+  .ptm-mark-text { font-size: 13.5px; color: var(--dev-muted1); line-height: 1.6; margin: 0; }
+  .ptm-mark-text strong { color: var(--dev-text); font-weight: 600; }
 
   .methodology-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; margin-bottom: 24px; }
   .steps-list, .cta-block { max-width: 760px; }
