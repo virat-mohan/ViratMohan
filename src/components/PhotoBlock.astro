@@ -1,0 +1,92 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  src: ImageMetadata;
+  alt: string;
+  aspect?: string;
+}
+
+const { src, alt, aspect = '4 / 5' } = Astro.props;
+---
+
+<figure class="photo-block" style={`aspect-ratio: ${aspect}`}>
+  <Image
+    class="photo-block__img"
+    src={src}
+    alt={alt}
+    width={900}
+    format="webp"
+    quality={82}
+    decoding="async"
+    loading="lazy"
+  />
+  <div class="photo-block__warm" aria-hidden="true"></div>
+  <svg class="photo-block__grain" aria-hidden="true" preserveAspectRatio="none">
+    <filter id="grain-block">
+      <feTurbulence
+        type="fractalNoise"
+        baseFrequency="0.8"
+        numOctaves="2"
+        stitchTiles="stitch"></feTurbulence>
+      <feColorMatrix type="saturate" values="0"></feColorMatrix>
+    </filter>
+    <rect width="100%" height="100%" filter="url(#grain-block)"></rect>
+  </svg>
+  <span class="photo-block__hair" aria-hidden="true"></span>
+</figure>
+
+<style>
+  .photo-block {
+    position: relative;
+    margin: 0;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 10px;
+    background: var(--portrait-grad);
+    box-shadow: 0 32px 64px -24px rgba(26, 20, 16, 0.4),
+      0 12px 28px -14px rgba(26, 20, 16, 0.28);
+  }
+  :global([data-theme='dark']) .photo-block {
+    box-shadow: 0 32px 64px -24px rgba(0, 0, 0, 0.6),
+      0 12px 28px -14px rgba(0, 0, 0, 0.45);
+  }
+  .photo-block__img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: grayscale(1) contrast(1.08) brightness(1.02);
+    mix-blend-mode: var(--portrait-blend);
+  }
+  .photo-block__warm {
+    position: absolute;
+    inset: 0;
+    background: #d4af37;
+    opacity: 0.06;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+  }
+  .photo-block__grain {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.035;
+    pointer-events: none;
+    mix-blend-mode: multiply;
+  }
+  :global([data-theme='dark']) .photo-block__grain {
+    mix-blend-mode: screen;
+  }
+  .photo-block__hair {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 1px;
+    background: var(--gold);
+    pointer-events: none;
+  }
+</style>

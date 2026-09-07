@@ -1,6 +1,8 @@
 ---
 import Base from '../layouts/Base.astro';
 import { site } from '../data/site';
+import PhotoBlock from '../components/PhotoBlock.astro';
+import vm1 from '../assets/vm1.png';
 ---
 
 <Base
@@ -32,6 +34,10 @@ import { site } from '../data/site';
           layer between capital and execution — and that this layer is built
           from judgment, not from tools.
         </p>
+
+        <div class="about__photo" data-reveal>
+          <PhotoBlock src={vm1} alt="Virat Mohan at his desk" aspect="6 / 5" />
+        </div>
 
         <h2>Education and the first discipline</h2>
         <p>
@@ -191,5 +197,9 @@ import { site } from '../data/site';
   }
   .about__contact {
     margin-top: 2.5rem;
+  }
+  .about__photo {
+    max-width: 32rem;
+    margin: 3rem 0 3.5rem;
   }
 </style>
