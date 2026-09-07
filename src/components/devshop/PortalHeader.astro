@@ -11,7 +11,9 @@
 // "Start") render as `data-go` links intercepted by that page's own script.
 // `spa={false}` pages (methodology.astro) have no screens of their own, so
 // the same nav items render as real links back to `homeHref`'s screens.
+import { Image } from 'astro:assets';
 import { devshopVerticals } from '../../data/devshop-verticals';
+import devshopLogo from '../../assets/screenshots/devshop logo.png';
 
 export interface Props {
   homeHref: string; // the SPA page these nav items' screens belong to, e.g. "/devshop" or "/devshop/restaurants"
@@ -33,8 +35,12 @@ const navItems = [
 <header class="ds-portal-header" data-theme={theme}>
   <div class="ds-header-inner">
     <a class="ds-logo" href="/devshop">
+      {theme === 'light' ? (
+        <Image class="ds-logo-mark" src={devshopLogo} width={devshopLogo.width} height={devshopLogo.height} alt="DevShop — built fast, for real businesses" />
+      ) : (
+        <>DevShop</>
+      )}
       {verticalTag && <span class="ds-logo-tag">{verticalTag}</span>}
-      DevShop
     </a>
     {industryLabel && <div class="ds-industry-badge">Built for {industryLabel}</div>}
 
@@ -151,11 +157,16 @@ const navItems = [
   .ds-portal-header[data-theme='light'] {
     --ds-bg: #f5f2ea; --ds-scheme: light;
     --ds-logo: #4f5f42; --ds-tag: #a3573f; --ds-badge: #82806f;
-    --ds-nav: #52564a; --ds-nav-hover: #1e211a; --ds-nav-active: #4f5f42;
+    --ds-nav: #1e211a; --ds-nav-hover: #4f5f42; --ds-nav-active: #4f5f42;
     --ds-start: #4f5f42; --ds-start-hover-bg: rgba(79, 95, 66, 0.08);
     --ds-dropdown-bg: #ffffff; --ds-dropdown-border: rgba(30,33,26,0.12);
     --ds-dropdown-hover-bg: rgba(30,33,26,0.05); --ds-dropdown-soon: #9a9d90;
     --ds-hair-gradient: linear-gradient(90deg, #b08a63, #82806f, #4f5f42, #a3573f);
+    /* Nav typography per the Figma reference: DM Sans Bold, mixed case,
+       tighter tracking — the dark theme's uppercase mono-spaced look stays
+       the default everywhere else. */
+    --ds-nav-font: 'DM Sans', sans-serif; --ds-nav-weight: 700;
+    --ds-nav-case: none; --ds-nav-spacing: 0; --ds-nav-size: 14px;
   }
   .ds-portal-header {
     position: sticky; top: 0; z-index: 50;
@@ -173,6 +184,8 @@ const navItems = [
     font-family: 'JetBrains Mono', monospace; font-style: normal;
     font-size: 11px; letter-spacing: 0.22em; color: var(--ds-tag);
   }
+  .ds-logo-mark { display: block; height: 46px; width: auto; border-radius: 6px; }
+  @media (max-width: 560px) { .ds-logo-mark { height: 36px; } }
   .ds-industry-badge {
     font-family: 'Inter', sans-serif; font-size: 10.5px; letter-spacing: 0.05em;
     color: var(--ds-badge); text-transform: uppercase;
@@ -183,9 +196,9 @@ const navItems = [
      it (Astro scopes don't cross a slot boundary). Unscope just the nav
      link look so every page's slotted item inherits it too. */
   .ds-nav :global(a), .ds-dropdown-trigger, .ds-plain {
-    font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase;
+    font-size: var(--ds-nav-size, 13px); letter-spacing: var(--ds-nav-spacing, 0.12em); text-transform: var(--ds-nav-case, uppercase);
     color: var(--ds-nav); text-decoration: none; background: none; border: none; cursor: pointer;
-    font-family: inherit; padding: 0;
+    font-family: var(--ds-nav-font, inherit); font-weight: var(--ds-nav-weight, 400); padding: 0;
   }
   .ds-nav :global(a:hover), .ds-dropdown-trigger:hover { color: var(--ds-nav-hover); }
   .ds-nav :global(a.active) { color: var(--ds-nav-active); }

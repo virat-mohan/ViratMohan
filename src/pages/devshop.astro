@@ -136,7 +136,7 @@ const canonical = new URL('/devshop', site.domain).href;
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Newsreader:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Crimson+Text:wght@400;600&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap"
     rel="stylesheet"
   />
 </head>
@@ -151,8 +151,8 @@ const canonical = new URL('/devshop', site.domain).href;
   <!-- 01 LANDING -->
   <section class="screen active" id="landing" data-marketing-index="1">
     <div class="eyebrow">FAST TECH DEV SHOP</div>
-    <h1 class="hero serif">Give us a <span class="tint-gold">business problem.</span></h1>
-    <p class="sub" style="max-width:560px; margin-top:8px;">We'll figure out what's actually causing it, show you the mechanism we'd build, and put a working version in front of you — before you buy anything.</p>
+    <h1 class="hero serif">Give us a <span class="tint-gold">business&nbsp;problem.</span></h1>
+    <p class="sub" style="max-width:560px; margin-top:8px;">We'll figure out what's actually causing it, ground the fix in the right researched framework — real credibility, not a guess — show you the mechanism we'd build, and put a working version in front of you before you buy anything.</p>
     <form class="input-row" id="landingForm">
       <input type="text" id="landingProblem" placeholder="What's the business problem?" />
       <button class="btn" type="submit">Give us a problem →</button>
@@ -216,7 +216,6 @@ const canonical = new URL('/devshop', site.domain).href;
       <a class="process-more" href="/devshop/methodology">See the full methodology &rarr;</a>
     </div>
 
-    <div class="footer-bar"><span class="footer-bar-text">Built fast, <em>for real businesses</em><sup>TM</sup></span></div>
   </section>
 
   <!-- 02 HOW IT WORKS -->
@@ -229,7 +228,6 @@ const canonical = new URL('/devshop', site.domain).href;
       <div class="step"><div class="num">03</div><div class="rule"></div><h3>Approve & staff</h3><p>You approve the demo and pay the deposit.<br />We staff your build — an FDE/client lead, a solution architect, engineers, and a <span class="tint-gold">subject matter expert in your industry and business function</span>, not just an engineering team guessing at your domain.</p></div>
       <div class="step"><div class="num">04</div><div class="rule"></div><h3>Build & handover</h3><p>We ship within 30 days, walk your team<br />through it live, then DevShop Care + Optimisation starts.</p></div>
     </div>
-    <div class="footer-bar"><span class="footer-bar-text">Built fast, <em>for real businesses</em><sup>TM</sup></span></div>
   </section>
 
   <!-- 03 PROOF -->
@@ -244,7 +242,7 @@ const canonical = new URL('/devshop', site.domain).href;
         >
           {p.screenshot && (
             <div class="proof-shot">
-              <Image src={p.screenshot} alt={`${p.name} screenshot`} width={480} height={300} />
+              <Image src={p.screenshot} alt={`${p.name} screenshot`} width={960} height={600} />
               {p.industry && <span class="proof-industry-tag">{p.industry}</span>}
             </div>
           )}
@@ -262,7 +260,6 @@ const canonical = new URL('/devshop', site.domain).href;
         </a>
       ))}
     </div>
-    <div class="footer-bar"><span class="footer-bar-text">Built fast, <em>for real businesses</em><sup>TM</sup></span></div>
   </section>
 
   <!-- 04 PROBLEM LIBRARY — leads with the business problem, not the
@@ -280,7 +277,6 @@ const canonical = new URL('/devshop', site.domain).href;
         </button>
       ))}
     </div>
-    <div class="footer-bar"><span class="footer-bar-text">Built fast, <em>for real businesses</em><sup>TM</sup></span></div>
   </section>
 
   <!-- 05 INDUSTRIES — one page per vertical, same architecture, re-skinned
@@ -308,7 +304,6 @@ const canonical = new URL('/devshop', site.domain).href;
         )
       ))}
     </div>
-    <div class="footer-bar"><span class="footer-bar-text">Built fast, <em>for real businesses</em><sup>TM</sup></span></div>
   </section>
 
   <!-- 05 PRICING -->
@@ -336,7 +331,6 @@ const canonical = new URL('/devshop', site.domain).href;
       <p class="sub" style="margin-top:36px;">Genuinely complex or custom systems are human-priced after a short scoping call, not forced into the standard tiers.</p>
       <div style="margin-top:40px;"><button class="btn" data-go="intake">Start →</button></div>
     </div>
-    <div class="footer-bar"><span class="footer-bar-text">Built fast, <em>for real businesses</em><sup>TM</sup></span></div>
   </section>
 
   <!-- 05 INTAKE — one question at a time, centered, keyboard-driven -->
@@ -462,7 +456,6 @@ const canonical = new URL('/devshop', site.domain).href;
     <h1 class="hero serif" style="max-width:760px;">Got it. <span class="tint-gold">Check your email.</span></h1>
     <p class="sub" style="max-width:560px;">We've emailed you the link to your demo — one round of feedback, then a 30-day build once the deposit's in.</p>
     <div style="margin-top:40px;"><a href="#" data-go="landing" class="btn-plain">← Back to start</a></div>
-    <div class="footer-bar"><span class="footer-bar-text">Built fast, <em>for real businesses</em><sup>TM</sup></span></div>
   </section>
 
   <!-- 05b ILLUSTRATIVE NOTICE — shown instead of a live generation while
@@ -479,7 +472,6 @@ const canonical = new URL('/devshop', site.domain).href;
       <a href="/devshop/demo/illustrative" class="btn">See it now &rarr;</a>
       <a href="#" data-go="landing" class="btn-plain">← Back to start</a>
     </div>
-    <div class="footer-bar"><span class="footer-bar-text">Built fast, <em>for real businesses</em><sup>TM</sup></span></div>
   </section>
 
   <!-- 06 LOGIN (UI-only — no real auth, see script comments) -->
@@ -627,7 +619,7 @@ const canonical = new URL('/devshop', site.domain).href;
   body {
     background: var(--dev-bg);
     color: var(--dev-text);
-    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-family: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
     overflow-x: hidden;
     position: relative;
     margin: 0;
@@ -657,7 +649,7 @@ const canonical = new URL('/devshop', site.domain).href;
   .serif { font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; }
   .mono { font-family: 'JetBrains Mono', SFMono-Regular, Consolas, monospace; }
   h1.hero {
-    font-family: 'Newsreader', Georgia, serif; font-weight: 600;
+    font-family: 'Crimson Text', Georgia, serif; font-weight: 400;
     font-size: clamp(40px, 6.2vw, 100px); line-height: 0.98; letter-spacing: -0.01em; max-width: 920px; margin: 0;
   }
   .tint-blue { color: var(--dev-blue); }
@@ -717,7 +709,7 @@ const canonical = new URL('/devshop', site.domain).href;
   .hero-device-crumb { font-size: 11.5px; letter-spacing: 0.05em; opacity: 0.85; }
   .hero-device-stat { display: flex; align-items: baseline; gap: 16px; margin-top: 18px; flex-wrap: wrap; }
   .hero-device-num { font-size: clamp(36px, 5vw, 56px); line-height: 1; }
-  .hero-device-unit { font-family: 'Inter', sans-serif; font-size: 15px; margin-left: 6px; opacity: 0.85; }
+  .hero-device-unit { font-family: 'DM Sans', sans-serif; font-size: 15px; margin-left: 6px; opacity: 0.85; }
   .hero-device-label { font-size: 14px; opacity: 0.9; max-width: 26ch; }
   .hero-device-chart { margin-top: auto; display: flex; align-items: flex-end; gap: 5%; height: 40%; }
   .hero-device-bar {
@@ -739,7 +731,7 @@ const canonical = new URL('/devshop', site.domain).href;
   .industry-pick-label { font-size: 13.5px; color: var(--dev-muted2); margin: 0 0 16px; }
   .industry-chips { display: flex; flex-wrap: wrap; gap: 12px; }
   .industry-chip {
-    display: inline-flex; align-items: center; gap: 10px; font-family: 'Inter', sans-serif;
+    display: inline-flex; align-items: center; gap: 10px; font-family: 'DM Sans', sans-serif;
     font-size: 13.5px; font-weight: 500; color: var(--dev-text); text-decoration: none;
     background: var(--dev-panel); border: 1px solid var(--dev-hair); border-radius: 999px; padding: 8px 18px 8px 10px;
     box-shadow: 0 1px 3px rgba(30,33,26,0.05); transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
@@ -769,7 +761,7 @@ const canonical = new URL('/devshop', site.domain).href;
   .process-icon { width: 52px; height: 52px; color: var(--rail-color, var(--dev-gold)); position: relative; z-index: 1; background: var(--dev-bg); }
   .process-icon :global(svg) { width: 100%; height: 100%; }
   .process-icon :global(.mech-tip) { color: var(--dev-blue); }
-  .process-label { display: block; margin-top: 14px; font-family: 'Inter', sans-serif; font-weight: 500; font-size: 14px; letter-spacing: 0.01em; color: var(--dev-text); white-space: nowrap; }
+  .process-label { display: block; margin-top: 14px; font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 14px; letter-spacing: 0.01em; color: var(--dev-text); white-space: nowrap; }
   .process-more { display: inline-block; margin-top: 24px; font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-size: 19px; color: var(--dev-text); }
   .process-more:hover { text-decoration: underline; }
 
@@ -799,7 +791,7 @@ const canonical = new URL('/devshop', site.domain).href;
     color: #f5f2ea; background: rgba(21,19,15,0.82); border: 1px solid rgba(212,175,140,0.4);
     border-radius: 4px; padding: 4px 9px;
   }
-  .proof-shot :global(img) { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; opacity: 0.88; transition: opacity 0.2s; }
+  .proof-shot :global(img) { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; opacity: 0.88; transition: opacity 0.2s; }
   .proof-card:hover .proof-shot :global(img) { opacity: 1; }
   .proof-card-body { display: flex; align-items: center; gap: 14px; padding: 18px 20px; }
   .proof-logo-img { flex: none; width: 28px; height: 28px; object-fit: contain; border-radius: 4px; }
@@ -863,10 +855,10 @@ const canonical = new URL('/devshop', site.domain).href;
     padding: 10px 4px 16px; resize: none;
   }
   textarea.wizard-input { font-size: 22px; line-height: 1.5; }
-  .wizard-input::placeholder { font-family: 'Inter', sans-serif; font-size: 15px; color: var(--dev-muted3); }
+  .wizard-input::placeholder { font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--dev-muted3); }
   .wizard-input:focus { outline: none; border-color: var(--dev-gold); }
   .wizard-input--error { border-color: var(--dev-rose); }
-  .wizard-input--secondary { margin-top: 20px; font-family: 'Inter', sans-serif; font-size: 15px; }
+  .wizard-input--secondary { margin-top: 20px; font-family: 'DM Sans', sans-serif; font-size: 15px; }
   .wizard-actions { display: flex; align-items: center; gap: 20px; margin-top: 32px; }
   .wizard-hint { font-size: 12px; color: var(--dev-muted3); letter-spacing: 0.02em; }
   .wizard-error { margin-top: 24px; color: var(--dev-rose); font-size: 14px; }
@@ -894,7 +886,7 @@ const canonical = new URL('/devshop', site.domain).href;
 
   .chip-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 4px; }
   .chip {
-    font-family: 'Inter', sans-serif; font-size: 13px; padding: 9px 16px; border: 1px solid var(--dev-hair);
+    font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 9px 16px; border: 1px solid var(--dev-hair);
     color: var(--dev-muted1); border-radius: 999px; transition: border-color 0.2s, color 0.2s, background 0.2s;
   }
   .chip:hover { border-color: var(--dev-muted1); color: var(--dev-text); }
