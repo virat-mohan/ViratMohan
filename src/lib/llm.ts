@@ -73,6 +73,7 @@ export const ARTEFACT_VALIDATION_TYPES = [
   'uses_real_tools',
   'framework_vocabulary_present',
   'no_bare_zeros',
+  'tabbed_structure_present',
 ] as const;
 export type ArtefactValidationType = (typeof ARTEFACT_VALIDATION_TYPES)[number];
 
@@ -365,7 +366,14 @@ CRITICAL RULE — the before/after numbers in the artefact must be the SAME numb
 
 CRITICAL RULE — interactivity depth: do not collapse a multi-step mechanism into "click one button, see one final result," and do NOT make the visitor manually click "next" through each step either — that reads as a slideshow, not a working system. Instead, build a single "▶ Run the mechanism" (or similarly named) play control that, once pressed, AUTOPLAYS through Step 4's how_it_works_steps on its own timer (roughly 900ms-1.8s per step) with no further clicks needed, visually dramatizing what's actually happening at each one: show the specific tool/system from trigger_or_data_source "connecting" (e.g. a small node/badge for the actual tool named — HubSpot, Shopify, Zendesk, whatever the client's own tools were — lighting up or getting a checkmark), an "agent" or process indicator actively "thinking"/"working" (a pulsing dot, a short animated status line like "Checking order status…" → "Matched: Order #4471" → "Reply sent"), and the step's real output appearing as it completes — not a static diagram, an animated sequence that looks like something is genuinely executing. Let the visitor replay it (a "Run again" control after it finishes) rather than only manual step-by-step navigation. A manual click-through control is acceptable ONLY as a secondary/inspect affordance (e.g. pausing to look closer at one step) — the primary, default way to experience the mechanism must be pressing play and watching it run. Every section from artefact_plan should have at least one genuine interaction, not just the headline section.
 
-CRITICAL RULE — agent status bar: the "agent" or process indicator required above must name the ACTUAL agent from Step 4's agent_sequence for whichever step is currently firing — not a generic "AI is thinking" line. Render it as a small, persistent status bar/strip (not just inline text buried in one card) that updates as the run progresses, e.g. "Agent: Data Extraction Agent — reading invoice fields…" then "Agent: Reconciliation/Matching Agent — checking against PO #4471…". Use the agent's exact curated name every time — this is what makes the vocabulary consistent for a reader who sees more than one FTDS build.
+CRITICAL RULE — agent status bar: the "agent" or process indicator required above must name the ACTUAL agent from Step 4's agent_sequence for whichever step is currently firing — not a generic "AI is thinking" line. Render it as a small, persistent status bar/strip (not just inline text buried in one card) that updates as the run progresses, e.g. "Agent: Data Extraction Agent — reading invoice fields…" then "Agent: Reconciliation/Matching Agent — checking against PO #4471…". Use the agent's exact curated name every time — this is what makes the vocabulary consistent for a reader who sees more than one FTDS build. In addition, list every DISTINCT agent from Step 4's agent_sequence up front, by name, in a small persistent "Agents involved" strip or card visible before Run is ever pressed — a visitor who never presses Run should still be able to see which agents do the work, not only someone who watches the full animation.
+
+CRITICAL RULE — tabbed structure: organize the artefact into real, clickable tabs (one visibly active at a time, not an unlabeled scroll) covering at minimum:
+1. "The problem" — a short restatement of what's broken, grounded in the client's own words from Step 1.
+2. "How it connects" — the specific tools/systems from each step's trigger_or_data_source, shown as a simple flow (tool → agent → tool/output) so it's visually clear how this plugs into what they already run. This is also where the "Agents involved" list from the rule above belongs.
+3. "See it run" — the primary Run control and autoplay sequence per the interactivity-depth rule below.
+4. "Business impact" — the before/after numbers and the specific P&L line from Step 3, shown as the closing payoff, reachable directly without replaying the whole sequence first.
+If there's more than one problem/mechanism, either repeat this same tab structure per mechanism or fold multiple mechanisms into shared tabs — whichever reads as one coherent product per Step 6's plan, not a random ordering.
 
 CRITICAL RULE — the artefact must visibly run on the selected framework: label sections, stages, or metrics using that framework's OWN vocabulary and structure wherever it has one — e.g. Korn Ferry's actual competency categories, DMAIC's Define/Measure/Analyze/Improve/Control phases, AARRR's actual funnel stage names, a Nine-Box's actual grid — not generic labels like "Step 1, Step 2" or "Phase A." If the client can tell which named framework produced this by reading the artefact itself, you've done this right. If the selected framework has no natural structural vocabulary to borrow, at minimum name-check it visibly in the artefact (e.g. a small "Built on [Framework]" mark) rather than leaving no trace of Step 2's work in the thing the client actually interacts with.
 
@@ -388,6 +396,7 @@ STEP 9 — Validate the artefact you just built. Step 5 checked your reasoning; 
 - uses_real_tools: does the artefact reference the ACTUAL tool names the client listed (or a sensible default if none were given), not generic placeholders like "Tool A" or "the CRM"? "warning" if genuinely no tools were given and it had to stay generic.
 - framework_vocabulary_present: does the artefact visibly use the selected framework's own vocabulary/structure per Step 2's rule, or at minimum name-check it? "block" if there's no trace of the selected framework anywhere in the artefact.
 - no_bare_zeros: does every number shown have a real basis (per the no-bare-zeros rule), with nothing rendering as "0", "—", "NaN", or blank where a real result should be?
+- tabbed_structure_present: does the artefact have real clickable tabs covering the problem, how it connects to the client's tools, the run/mechanism, and business impact (per the tabbed-structure rule), with every distinct agent from Step 4's agent_sequence named up front — not only a single continuous scroll, and not only agent names revealed transiently during Run? "block" if there's no tab structure at all, or if no agent is named anywhere outside the Run animation.
 For each: explanation (one specific sentence — quote or describe what you actually see, not "looks fine") and recommended_action ("none" only if status is pass). This is a real self-audit — if you find a genuine problem, fix the artefact_html itself before finalizing your answer rather than just reporting the defect and shipping it anyway; only report a "block" you couldn't fix within this pass.`;
 }
 
@@ -630,7 +639,7 @@ const CLASSIFY_TOOL = {
       artefact_validations: {
         type: 'array',
         description:
-          'Step 9 output — self-audit of the artefact_html you just wrote, exactly the 5 fixed checks: has_run_control, before_after_integrity, uses_real_tools, framework_vocabulary_present, no_bare_zeros. Fix the artefact_html itself if you find a real problem, rather than reporting a defect you could have fixed.',
+          'Step 9 output — self-audit of the artefact_html you just wrote, exactly the 6 fixed checks: has_run_control, before_after_integrity, uses_real_tools, framework_vocabulary_present, no_bare_zeros, tabbed_structure_present. Fix the artefact_html itself if you find a real problem, rather than reporting a defect you could have fixed.',
         items: {
           type: 'object',
           properties: {
