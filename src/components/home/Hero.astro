@@ -1,6 +1,8 @@
 ---
+import { Image } from 'astro:assets';
 import { site } from '../../data/site';
 import Portrait from '../Portrait.astro';
+import devshopLogo from '../../assets/screenshots/devshop logo.png';
 ---
 
 <section class="hero" aria-labelledby="hero-name">
@@ -13,6 +15,23 @@ import Portrait from '../Portrait.astro';
       <p class="hero__line dim" data-reveal style="--reveal-delay: 160ms">
         {site.positioning}
       </p>
+      <a
+        class="hero__devshop"
+        href="/devshop"
+        data-reveal
+        style="--reveal-delay: 220ms"
+      >
+        <Image
+          class="hero__devshop-logo"
+          src={devshopLogo}
+          width={devshopLogo.width}
+          height={devshopLogo.height}
+          alt="DevShop — built fast, for real businesses"
+        />
+        <span class="hero__devshop-text link-underline"
+          >Latest — describe a problem, get a demo →</span
+        >
+      </a>
     </div>
     <div class="hero__portrait">
       <div class="hero__portrait-reveal" data-reveal style="--reveal-delay: 120ms">
@@ -51,6 +70,24 @@ import Portrait from '../Portrait.astro';
     line-height: 1.4;
     max-width: 30ch;
     margin: 0;
+  }
+  .hero__devshop {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin-top: 2.25rem;
+    text-decoration: none;
+  }
+  .hero__devshop-logo {
+    display: block;
+    height: 1.5rem;
+    width: auto;
+    border-radius: 4px;
+  }
+  .hero__devshop-text {
+    font-family: var(--sans);
+    font-size: 0.9375rem;
+    color: var(--fg);
   }
 
   /* Portrait sits inset as a smaller, softly framed card. */
