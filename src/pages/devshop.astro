@@ -380,6 +380,7 @@ const canonical = new URL('/devshop', site.domain).href;
           <div class="payment-terms-item"><span class="payment-terms-pct">50%</span><span class="payment-terms-when">At the shadow run (Day 26) — once it's built and running against your real data</span></div>
           <div class="payment-terms-item"><span class="payment-terms-pct">25%</span><span class="payment-terms-when">On go-live (Day 30) — once the full run is live and handed over</span></div>
         </div>
+        <p class="payment-terms-note"><strong>Ongoing:</strong> DevShop Care + Optimisation is billed monthly in advance — the first payment is due at the end of month 1, covering month 2, not on a delay.</p>
       </div>
       <div style="margin-top:40px;"><button class="btn" data-go="intake">Start →</button></div>
     </div>
@@ -844,6 +845,11 @@ const canonical = new URL('/devshop', site.domain).href;
   .payment-terms-item { display: flex; flex-direction: column; gap: 6px; }
   .payment-terms-pct { font-family: 'Crimson Text', Georgia, serif; font-size: 28px; color: var(--dev-gold); }
   .payment-terms-when { font-size: 12px; color: var(--dev-muted1); line-height: 1.5; }
+  .payment-terms-note {
+    font-size: 12.5px; color: var(--dev-muted1); line-height: 1.5; margin: 18px 0 0;
+    padding-top: 14px; border-top: 1px solid var(--dev-hair);
+  }
+  .payment-terms-note strong { color: var(--dev-gold); }
   @media (max-width: 640px) { .payment-terms-grid { grid-template-columns: 1fr; } }
 
   .contact-row { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-top: 48px; max-width: 720px; }
