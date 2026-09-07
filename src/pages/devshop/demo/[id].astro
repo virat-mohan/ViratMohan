@@ -269,10 +269,11 @@ function nextSectionNum() {
     <section class="block">
       <div class="section-head"><span class="section-num">{nextSectionNum()}</span><h2>Implementation roadmap</h2></div>
       <div class="roadmap">
+        <div class="roadmap-step"><span class="roadmap-phase">Day 0 · Deposit clears</span><p>The domain expert on your build gets looped in first — they sit with the actual problem and framework this brief describes, not just a ticket, before any code gets written.</p></div>
         <div class="roadmap-step"><span class="roadmap-phase">Days 1–2 · Kickoff</span><p>Confirm the scope this demo represents, get access to the systems named above, and lock the exact numbers your team gave us in place of the assumptions.</p></div>
-        <div class="roadmap-step"><span class="roadmap-phase">Days 3–25 · Build</span><p>Build the mechanism against your real data, wire up the integrations, and run it internally before your team ever sees it.</p></div>
-        <div class="roadmap-step"><span class="roadmap-phase">Days 26–28 · UAT</span><p>Your team runs it alongside their normal work for a few days — we're watching and fixing in real time, not waiting for a bug report.</p></div>
-        <div class="roadmap-step"><span class="roadmap-phase">Days 29–30 · Launch</span><p>Go live, walk your team through it directly, and DevShop Care + Optimisation starts.</p></div>
+        <div class="roadmap-step"><span class="roadmap-phase">Days 3–25 · Build</span><p>The domain expert and engineers build the mechanism together against your real data and wire up the integrations, running it internally before your team ever sees it.</p></div>
+        <div class="roadmap-step"><span class="roadmap-phase">Days 26–28 · Shadow run</span><p>Your FDE sits with your team and runs it alongside their normal work, watching and fixing in real time — a supervised shadow run, not a bug report waiting to happen.</p></div>
+        <div class="roadmap-step"><span class="roadmap-phase">Days 29–30 · Full run &amp; launch</span><p>Once the shadow run holds up, we switch it to a full run, walk your team through it directly, and DevShop Care + Optimisation starts.</p></div>
       </div>
     </section>
 
@@ -488,7 +489,7 @@ function nextSectionNum() {
 
       <div class="team-block">
         <h3 class="team-title">Acceptance criteria</h3>
-        <p class="team-intro">Built and demoed against the same mechanism spec this brief describes. Sign-off happens during the UAT window (Days 26–28 of the roadmap below), when your team confirms it against the workflow and numbers agreed in your one revision round — then we go live.</p>
+        <p class="team-intro">Built and demoed against the same mechanism spec this brief describes. Sign-off happens during the shadow run (Days 26–28 of the roadmap below), when your team confirms it against the workflow and numbers agreed in your one revision round — then we switch to a full run and go live.</p>
       </div>
     </section>
 
