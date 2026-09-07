@@ -39,6 +39,28 @@ const PRICING = {
   careMin: '50,000',
 };
 
+// Regional pricing — deliberately NOT a raw FX conversion of the INR price
+// (which would read as suspiciously cheap and undersell the work). Each
+// region is benchmarked against real comparable-service market rates in
+// that country, landing near that market's own entry point. Additional
+// module stays exactly 50% of first module in every currency, same ratio
+// as the INR price; Care + Optimisation floor uses the same multiple the
+// first-module price represents over a direct FX conversion.
+// US: $5,000 / UK: £3,500 / UAE: AED 15,000 — set by the user directly;
+// AMC figures derived by applying each region's own multiple to the INR
+// AMC floor (₹50,000/mo), then rounded to a clean number.
+const REGION_PRICING: Record<string, { currency: string; buildFirst: string; buildAdditional: string; careMin: string }> = {
+  US: { currency: '$', buildFirst: '5,000', buildAdditional: '2,500', careMin: '1,700' },
+  UK: { currency: '£', buildFirst: '3,500', buildAdditional: '1,750', careMin: '1,200' },
+  UAE: { currency: 'AED ', buildFirst: '15,000', buildAdditional: '7,500', careMin: '5,000' },
+};
+// Vercel's x-vercel-ip-country ISO code -> which region config to use.
+const COUNTRY_TO_REGION: Record<string, keyof typeof REGION_PRICING> = {
+  US: 'US',
+  GB: 'UK',
+  AE: 'UAE',
+};
+
 // Problem Library — leads every card with the business problem, never the
 // technology behind it, so a visitor can recognize their own situation
 // before knowing anything about how it gets solved.
@@ -331,23 +353,25 @@ const canonical = new URL('/devshop', site.domain).href;
     <div class="eyebrow">PRICING</div>
     <div class="pricing-block">
       <h1 class="hero serif" style="font-size:clamp(36px,5vw,72px);">Build once.<br />Keep it <span class="tint-gold">running well.</span></h1>
+      <script type="application/json" id="regionPricingData" set:html={JSON.stringify({ regions: REGION_PRICING, countryMap: COUNTRY_TO_REGION })} />
       <div class="pricing-tiers">
         <div>
           <div class="eyebrow" style="margin-bottom:14px;">BUILD</div>
-          <div class="serif" style="font-size:clamp(28px,3.2vw,44px);">{CURRENCY}{PRICING.buildFirst}</div>
+          <div class="serif" style="font-size:clamp(28px,3.2vw,44px);"><span id="priceBuildFirst">{CURRENCY}{PRICING.buildFirst}</span></div>
           <p class="sub" style="max-width:340px;">First module. 30-calendar-day working-build commitment from deposit.</p>
         </div>
         <div>
           <div class="eyebrow" style="margin-bottom:14px;">ADDITIONAL MODULE</div>
-          <div class="serif" style="font-size:clamp(28px,3.2vw,44px);">{CURRENCY}{PRICING.buildAdditional}</div>
+          <div class="serif" style="font-size:clamp(28px,3.2vw,44px);"><span id="priceBuildAdditional">{CURRENCY}{PRICING.buildAdditional}</span></div>
           <p class="sub" style="max-width:340px;">Each additional module, within the same 30-day window.</p>
         </div>
         <div>
           <div class="eyebrow" style="margin-bottom:14px;">DEVSHOP CARE + OPTIMISATION</div>
-          <div class="serif" style="font-size:clamp(28px,3.2vw,44px);">{CURRENCY}{PRICING.careMin}<span style="font-size:16px; opacity:0.6;">/mo</span></div>
+          <div class="serif" style="font-size:clamp(28px,3.2vw,44px);"><span id="priceCareMin">{CURRENCY}{PRICING.careMin}</span><span style="font-size:16px; opacity:0.6;">/mo</span></div>
           <p class="sub" style="max-width:340px;">Floor, not the price — depends on what the system actually needs to stay useful.</p>
         </div>
       </div>
+      <p class="sub region-price-note" id="regionPriceNote" hidden style="margin-top:6px; font-size:12.5px;">Priced for your region — not a currency conversion, benchmarked against comparable local rates.</p>
       <div class="module-def">
         <p class="module-def-label">What's a module?</p>
         <p class="module-def-intro">One priced unit of work — a defined function of your business, decomposed to its actual tasks using PTM<sup>&trade;</sup>, our Process, Training, Mapping framework, and mapped to a working mechanism. Every module includes:</p>
@@ -1326,6 +1350,35 @@ const canonical = new URL('/devshop', site.domain).href;
       if (e.key === 'Escape') heroIndustriesMenu.classList.remove('open');
     });
   }
+
+  // Regional pricing — the page itself stays fully static (fast, CDN-
+  // cached); this is the one bit that needs to know where the visitor is,
+  // so it asks a tiny dedicated endpoint rather than making the whole page
+  // server-rendered. Fails silently to the default INR pricing already
+  // rendered in the HTML if the fetch fails or the visitor isn't in a
+  // mapped region — nothing ever flashes an error at them.
+  (function () {
+    var dataEl = document.getElementById('regionPricingData');
+    if (!dataEl) return;
+    var data;
+    try { data = JSON.parse(dataEl.textContent); } catch (e) { return; }
+
+    fetch('/devshop/api/geo').then(function (r) { return r.json(); }).then(function (geo) {
+      var regionKey = data.countryMap[geo.country];
+      if (!regionKey) return;
+      var region = data.regions[regionKey];
+      if (!region) return;
+
+      var elFirst = document.getElementById('priceBuildFirst');
+      var elAdditional = document.getElementById('priceBuildAdditional');
+      var elCare = document.getElementById('priceCareMin');
+      var note = document.getElementById('regionPriceNote');
+      if (elFirst) elFirst.textContent = region.currency + region.buildFirst;
+      if (elAdditional) elAdditional.textContent = region.currency + region.buildAdditional;
+      if (elCare) elCare.textContent = region.currency + region.careMin;
+      if (note) note.hidden = false;
+    }).catch(function () { /* keep default INR pricing already rendered */ });
+  })();
 
   var landingForm = document.getElementById('landingForm');
   if (landingForm) {
