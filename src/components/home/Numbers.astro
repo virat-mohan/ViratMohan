@@ -59,18 +59,19 @@ import { stats } from '../../data/site';
   }
   .stat__num {
     display: block;
-    font-family: var(--serif);
-    font-size: clamp(4rem, 10vw, 9rem);
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(3.4rem, 9vw, 7.5rem);
     line-height: 0.82;
-    letter-spacing: -0.05em;
+    letter-spacing: -0.01em;
     font-feature-settings: 'tnum' 1, 'lnum' 1;
     font-variant-numeric: tabular-nums lining-nums;
-    color: var(--ink);
     white-space: nowrap;
   }
-  :global([data-theme='dark']) .stat__num {
-    color: var(--paper);
-  }
+  .stat:nth-child(1) .stat__num { color: var(--terracotta); }
+  .stat:nth-child(2) .stat__num { color: var(--cobalt); }
+  .stat:nth-child(3) .stat__num { color: var(--magenta); }
+  .stat:nth-child(4) .stat__num { color: var(--bronze); }
   .stat__context {
     margin: 0;
     font-size: 0.9375rem;

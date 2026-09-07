@@ -4,12 +4,16 @@ import SocialButtons from '../SocialButtons.astro';
 ---
 
 <section class="contact section" aria-labelledby="contact-h" id="contact">
+  <div class="halftone" aria-hidden="true"></div>
   <div class="container">
-    <p class="eyebrow" data-reveal>Contact</p>
+    <p class="eyebrow contact__eyebrow" data-reveal>Contact</p>
     <h2 id="contact-h" class="contact__line" data-reveal style="--reveal-delay: 60ms">
+      Let's build.
+    </h2>
+    <p class="contact__sub" data-reveal style="--reveal-delay: 100ms">
       If you are placing capital, or executing on it —
       <a class="link-underline" href={`mailto:${site.email}`}>{site.email}</a>
-    </h2>
+    </p>
     <div class="contact__social" data-reveal style="--reveal-delay: 120ms">
       <SocialButtons />
     </div>
@@ -18,21 +22,52 @@ import SocialButtons from '../SocialButtons.astro';
 
 <style>
   .contact {
-    padding-block: 12rem;
+    position: relative;
+    padding-block: 8rem;
+    background: var(--terracotta);
+    color: var(--poster-cream);
+    overflow: hidden;
+  }
+  .contact__eyebrow {
+    color: var(--poster-cream);
+    opacity: 0.85;
   }
   .contact__line {
-    max-width: 20ch;
-    margin: 1rem 0 0;
+    position: relative;
+    z-index: 2;
+    font-family: var(--display);
+    font-weight: 400;
+    text-transform: uppercase;
+    font-size: clamp(2.6rem, 8vw, 5.5rem);
+    line-height: 0.9;
+    max-width: 14ch;
+    margin: 1rem 0 1.5rem;
   }
-  .contact__line a {
+  .contact__sub {
+    position: relative;
+    z-index: 2;
+    max-width: 26ch;
+    margin: 0;
+    font-size: 1.0625rem;
+  }
+  .contact__sub a.link-underline {
+    background-image: linear-gradient(var(--poster-cream), var(--poster-cream));
     white-space: nowrap;
   }
   .contact__social {
+    position: relative;
+    z-index: 2;
     margin-top: 3rem;
+    /* Override the shared button tokens locally so SocialButtons reads
+       legibly against this section's terracotta ground. */
+    --fg: var(--poster-cream);
+    --rule: rgba(244, 234, 212, 0.4);
+    --muted: rgba(244, 234, 212, 0.75);
+    --gold: var(--poster-cream);
   }
   @media (max-width: 768px) {
     .contact {
-      padding-block: 6rem;
+      padding-block: 5rem;
     }
   }
 </style>

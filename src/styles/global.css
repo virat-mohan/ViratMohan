@@ -3,6 +3,7 @@
 /* ---- Self-hosted fonts (subset via fontsource, font-display: swap) ---- */
 @import '@fontsource/instrument-serif/400.css';
 @import '@fontsource-variable/inter';
+@import '@fontsource/anton';
 
 /* =========================================================================
    DESIGN TOKENS
@@ -18,6 +19,19 @@
      elsewhere. Used only as a dark-mode background undertone, never as a
      fill or a competing accent alongside gold. */
   --indigo: #241454;
+
+  /* Poster palette — the same accent colors already used per-project on
+     /work, promoted to a site-wide identity system. Used boldly (full
+     fills, color-blocked bands) only in high-identity moments — hero,
+     stats, footer CTA — never as body-copy background on reading pages. */
+  --terracotta: #d9714b;
+  --cobalt: #3e6fa6;
+  --magenta: #e91e8c;
+  --bronze: #9c7a4a;
+  --poster-cream: #f4ead4;
+  --poster-ink: #17130f;
+
+  --display: 'Anton', 'Arial Narrow', sans-serif;
 
   /* semantic — flip in dark mode */
   --bg: var(--paper);
@@ -133,11 +147,26 @@ a {
 .eyebrow {
   font-family: var(--sans);
   font-size: 0.6875rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.18em;
   color: var(--muted);
   margin: 0;
+}
+
+/* Poster texture — a faint halftone dot field, used only inside a
+   color-filled band (hero, footer CTA), never on the paper background. */
+.halftone {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    circle,
+    rgba(23, 19, 15, 0.14) 1.5px,
+    transparent 1.5px
+  );
+  background-size: 12px 12px;
+  mix-blend-mode: multiply;
+  pointer-events: none;
 }
 
 .dim {

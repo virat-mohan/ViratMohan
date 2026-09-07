@@ -31,6 +31,7 @@ const projects = (await getCollection('work'))
         projects.map((p) => (
           <li class="work-teaser__item" data-reveal>
             <a class="work-teaser__link" href={`/work/${p.id}`}>
+              <span class="work-teaser__swatch" style={`background:${p.data.accent}`}></span>
               <span class="eyebrow work-teaser__category">
                 {p.data.category}
               </span>
@@ -80,6 +81,12 @@ const projects = (await getCollection('work'))
   .work-teaser__link:hover,
   .work-teaser__link:focus-visible {
     background: color-mix(in srgb, var(--gold) 6%, var(--bg));
+  }
+  .work-teaser__swatch {
+    display: block;
+    width: 2rem;
+    height: 6px;
+    margin-bottom: 0.25rem;
   }
   .work-teaser__category {
     margin: 0;

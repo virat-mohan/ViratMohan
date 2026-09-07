@@ -1,18 +1,29 @@
 ---
 import { Image } from 'astro:assets';
 import { site } from '../../data/site';
-import Portrait from '../Portrait.astro';
+import DuotonePhoto from '../DuotonePhoto.astro';
 import devshopLogo from '../../assets/devshop-logo.png';
+import virat from '../../assets/virat.png';
 ---
 
 <section class="hero" aria-labelledby="hero-name">
+  <div class="halftone" aria-hidden="true"></div>
   <div class="hero__grid container">
     <div class="hero__copy">
-      <p class="eyebrow" data-reveal>Virat Mohan</p>
-      <h1 id="hero-name" data-reveal style="--reveal-delay: 80ms">
-        Virat<br />Mohan
+      <p class="eyebrow hero__eyebrow" data-reveal>Virat Mohan</p>
+      <h1 id="hero-name" data-reveal style="--reveal-delay: 60ms">
+        <span class="hero__name-line">
+          Virat
+          <span class="hero__ghost" aria-hidden="true">Virat</span>
+        </span>
+        <span class="hero__name-line hero__name-line--two">
+          Mohan
+          <span class="hero__ghost hero__ghost--two" aria-hidden="true"
+            >Mohan</span
+          >
+        </span>
       </h1>
-      <p class="hero__line dim" data-reveal style="--reveal-delay: 160ms">
+      <p class="hero__sash" data-reveal style="--reveal-delay: 140ms">
         {site.positioning}
       </p>
       <a
@@ -36,42 +47,81 @@ import devshopLogo from '../../assets/devshop-logo.png';
     </div>
     <div class="hero__portrait">
       <div class="hero__portrait-reveal" data-reveal style="--reveal-delay: 120ms">
-        <Portrait />
+        <DuotonePhoto src={virat} alt="Virat Mohan" />
       </div>
     </div>
   </div>
-  <hr class="rule-gold hero__hair" />
+  <div class="hero__swatches" aria-hidden="true">
+    <span class="hero__swatch" style="--c: var(--terracotta)"></span>
+    <span class="hero__swatch" style="--c: var(--cobalt)"></span>
+    <span class="hero__swatch" style="--c: var(--magenta)"></span>
+    <span class="hero__swatch" style="--c: var(--bronze)"></span>
+  </div>
 </section>
 
 <style>
   .hero {
     position: relative;
-    min-height: 100svh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    background: var(--terracotta);
+    color: var(--poster-cream);
     overflow: hidden;
   }
   .hero__grid {
+    position: relative;
+    z-index: 2;
     display: grid;
     grid-template-columns: 60% 40%;
     align-items: center;
     gap: clamp(1.5rem, 4vw, 3rem);
     width: 100%;
-    padding-block: 6rem 4rem;
+    padding-block: 7rem 4rem;
   }
   .hero__copy {
-    max-width: 40ch;
+    max-width: 42ch;
   }
+  .hero__eyebrow {
+    color: var(--poster-cream);
+    opacity: 0.85;
+  }
+
   .hero h1 {
-    margin: 0.5rem 0 1.75rem;
+    font-family: var(--display);
+    font-weight: 400;
+    text-transform: uppercase;
+    line-height: 0.86;
+    letter-spacing: 0.005em;
+    font-size: clamp(3.4rem, 8vw, 6.2rem);
+    margin: 0.6rem 0 2rem;
   }
-  .hero__line {
-    font-size: clamp(1.125rem, 1.8vw, 1.4rem);
+  .hero__name-line {
+    position: relative;
+    display: block;
+  }
+  .hero__name-line--two {
+    color: var(--poster-ink);
+  }
+  .hero__ghost {
+    position: absolute;
+    inset: 0;
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--cobalt);
+    transform: translate(5px, 5px);
+    z-index: -1;
+    opacity: 0.8;
+  }
+  .hero__ghost--two {
+    -webkit-text-stroke: 1.5px var(--magenta);
+  }
+
+  .hero__sash {
+    font-size: clamp(1.0625rem, 1.7vw, 1.3rem);
     line-height: 1.4;
     max-width: 30ch;
     margin: 0;
+    color: var(--poster-cream);
+    opacity: 0.94;
   }
+
   .hero__devshop {
     display: inline-flex;
     flex-direction: column;
@@ -88,51 +138,49 @@ import devshopLogo from '../../assets/devshop-logo.png';
   .hero__devshop-text {
     font-family: var(--sans);
     font-size: 0.9375rem;
-    color: var(--fg);
+    color: var(--poster-cream);
+  }
+  .hero__devshop-text.link-underline {
+    background-image: linear-gradient(var(--poster-cream), var(--poster-cream));
   }
 
-  /* Portrait sits inset as a smaller, softly framed card. */
   .hero__portrait {
-    position: absolute;
-    top: 3.5rem;
-    right: 3.5rem;
-    bottom: 3.5rem;
-    width: min(36vw, 540px);
+    position: relative;
+    aspect-ratio: 4 / 5;
+    width: 100%;
+    box-shadow: 0 24px 48px -20px rgba(23, 19, 15, 0.5);
   }
   .hero__portrait-reveal {
     width: 100%;
     height: 100%;
   }
 
-  .hero__hair {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
+  .hero__swatches {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .hero__swatch {
+    height: 10px;
+    background: var(--c);
   }
 
   @media (max-width: 860px) {
-    .hero {
-      min-height: auto;
-    }
     .hero__grid {
       grid-template-columns: 1fr;
-      padding-block: 0 3rem;
+      padding-block: 3rem 3rem;
     }
-    /* Portrait moves above the name, inset within the container as a card. */
     .hero__portrait {
-      position: relative;
-      top: auto;
-      right: auto;
-      bottom: auto;
-      width: 100%;
-      height: auto;
-      aspect-ratio: 16 / 10;
       order: -1;
+      aspect-ratio: 16 / 11;
       margin-bottom: 2.5rem;
     }
     .hero__copy {
       max-width: none;
+    }
+    .hero h1 {
+      font-size: clamp(3rem, 15vw, 4.5rem);
     }
   }
 </style>
