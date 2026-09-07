@@ -159,7 +159,7 @@ function nextSectionNum() {
     {frameworkEvaluations.some((e) => e.candidates.length > 1) && (
       <section class="block eval-block">
         <div class="section-head"><span class="section-num">{nextSectionNum()}</span><h2>How we compared approaches</h2></div>
-        <p class="eval-intro">We don't just pick the first framework that sounds relevant — every candidate below was scored on the same 9 points before we chose. Higher is better on every column; the approach we went with isn't always the highest scorer on every single point, but it's the best overall fit.</p>
+        <p class="eval-intro">We scored every approach we considered on the same 9 points before picking one — so this isn't the first idea that sounded right, it's the one that scored best overall.</p>
         {frameworkEvaluations.map((evaln) => evaln.candidates.length > 1 && (
           <div class="eval-table-wrap">
             <table class="eval-table">
@@ -249,8 +249,8 @@ function nextSectionNum() {
       <section class="block">
         <div class="section-head"><span class="section-num">{nextSectionNum()}</span><h2>Bringing your team along</h2></div>
         <div class="card">
-          <p class="plain-copy">This isn't a system your team has to learn from scratch — it's built to sit inside the workflow whoever currently owns {[...new Set(notes.problemBreakdown.map((p) => p.business_function))].join(' and ')} already runs, not replace it. They get one new step to check, not a new job.</p>
-          <p class="plain-copy" style="margin-top:10px;">At handoff, we walk your team through it directly — not a manual to read on their own. Anything that doesn't fit how they actually work day to day gets folded into the one revision round, before the 30-day clock starts.</p>
+          <p class="plain-copy">Nobody has to learn a new system. This slots into how {[...new Set(notes.problemBreakdown.map((p) => p.business_function))].join(' and ')} already works — one new step to check, not a new job.</p>
+          <p class="plain-copy" style="margin-top:10px;">We walk your team through it in person at handoff. Anything that doesn't fit how they actually work gets fixed in the one revision round, before the 30-day clock starts.</p>
         </div>
       </section>
     )}
@@ -259,9 +259,9 @@ function nextSectionNum() {
       <section class="block">
         <div class="section-head"><span class="section-num">{nextSectionNum()}</span><h2>Connecting to what you already run</h2></div>
         <div class="card">
-          <p class="plain-copy">No rip-and-replace — this connects directly to what you told us you're already running:</p>
+          <p class="plain-copy">No rip-and-replace. This connects directly to what you already run:</p>
           <p class="plain-copy" style="margin-top:8px; font-weight:600;">{row.tools}</p>
-          <p class="plain-copy" style="margin-top:10px;">We read what's already there (sales, purchase, and usage records) and write back only where the mechanism needs to — a flag, an alert, a report — nothing that changes how your existing systems work for anyone else on the team.</p>
+          <p class="plain-copy" style="margin-top:10px;">We read what's already there and write back only where it's needed — a flag, an alert, a report. Nothing changes for anyone else on the team.</p>
         </div>
       </section>
     )}
@@ -269,11 +269,11 @@ function nextSectionNum() {
     <section class="block">
       <div class="section-head"><span class="section-num">{nextSectionNum()}</span><h2>Implementation roadmap</h2></div>
       <div class="roadmap">
-        <div class="roadmap-step"><span class="roadmap-phase">Day 0 · Deposit clears</span><p>The subject matter expert on your build — someone who actually knows your industry and this business function, not just an engineer — gets looped in first. They sit with the actual problem and framework this brief describes before any code gets written.</p></div>
-        <div class="roadmap-step"><span class="roadmap-phase">Days 1–2 · Kickoff</span><p>Confirm the scope this demo represents, get access to the systems named above, and lock the exact numbers your team gave us in place of the assumptions.</p></div>
-        <div class="roadmap-step"><span class="roadmap-phase">Days 3–25 · Build</span><p>The subject matter expert and engineers build the mechanism together against your real data and wire up the integrations, running it internally before your team ever sees it.</p></div>
-        <div class="roadmap-step"><span class="roadmap-phase">Days 26–28 · Shadow run</span><p>Your FDE sits with your team and runs it alongside their normal work, watching and fixing in real time — a supervised shadow run, not a bug report waiting to happen.</p></div>
-        <div class="roadmap-step"><span class="roadmap-phase">Days 29–30 · Full run &amp; launch</span><p>Once the shadow run holds up, we switch it to a full run, walk your team through it directly, and DevShop Care + Optimisation starts.</p></div>
+        <div class="roadmap-step"><span class="roadmap-phase">Day 0 · Deposit clears</span><p>Someone who actually knows your industry — not just an engineer — gets looped in first, and sits with this exact problem before any code gets written.</p></div>
+        <div class="roadmap-step"><span class="roadmap-phase">Days 1–2 · Kickoff</span><p>We confirm scope, get access to the systems named above, and swap the assumptions for your real numbers.</p></div>
+        <div class="roadmap-step"><span class="roadmap-phase">Days 3–25 · Build</span><p>We build against your real data, wire up the integrations, and run it internally before your team ever sees it.</p></div>
+        <div class="roadmap-step"><span class="roadmap-phase">Days 26–28 · Shadow run</span><p>It runs alongside your team's normal work while we watch and fix in real time — a supervised trial, not a bug report waiting to happen.</p></div>
+        <div class="roadmap-step"><span class="roadmap-phase">Days 29–30 · Full run &amp; launch</span><p>Once the shadow run holds up, we switch it live, walk your team through it, and DevShop Care + Optimisation starts.</p></div>
       </div>
     </section>
 
@@ -290,7 +290,7 @@ function nextSectionNum() {
     )}
 
     <p class="feedback-note">
-      Have a change or a correction? Use the feedback form below — we'll fold it into one revised version, and that's the scope we build to. The 30-day clock starts once your deposit is in, not before.
+      Have a change or correction? Use the form below — we'll fold it into one revised version, and that's what we build to. The 30-day clock starts once your deposit is in, not before.
     </p>
 
     {notes && (
@@ -449,7 +449,7 @@ function nextSectionNum() {
 
     <section class="block pricing-block">
       <div class="section-head"><span class="section-num">{nextSectionNum()}</span><h2>Implementation</h2></div>
-      <p class="pricing-note" style="margin-bottom:18px;">The one-time build — a fixed team, a fixed window, done and hosted over to you. Nothing here recurs.</p>
+      <p class="pricing-note" style="margin-bottom:18px;">A fixed team, a fixed 30-day window, handed over when it's done. Nothing here recurs.</p>
       <div class="pricing-grid">
         <div class="pricing-card">
           <p class="pricing-amount">₹1,50,000</p>
@@ -460,7 +460,7 @@ function nextSectionNum() {
           <p class="pricing-label">Each additional module, within 30 days of the first</p>
         </div>
       </div>
-      <p class="pricing-note">A genuinely complex build is custom-quoted after a short scoping call, not fit into the standard price. The 30-day delivery guarantee applies to standard builds, and the clock starts the moment your deposit clears — not at the demo, not at scoping.</p>
+      <p class="pricing-note">A genuinely complex build gets its own quote after a short scoping call. Otherwise, the 30-day clock starts the moment your deposit clears — not at the demo, not at scoping.</p>
 
       <div class="payment-terms">
         <h3 class="team-title">Payment terms</h3>
@@ -475,7 +475,7 @@ function nextSectionNum() {
       {row.implementation_estimate && (
         <div class="team-block">
           <h3 class="team-title">Who works on your build</h3>
-          <p class="team-intro">Transparently — the actual team and hours behind the price, not a black box.</p>
+          <p class="team-intro">The actual team and hours behind the price — not a black box.</p>
           <div class="team-rows">
             {row.implementation_estimate.estimates.filter((e) => e.hours > 0).map((e) => (
               <div class="team-row">
@@ -500,13 +500,13 @@ function nextSectionNum() {
 
       <div class="team-block">
         <h3 class="team-title">Acceptance criteria</h3>
-        <p class="team-intro">Built and demoed against the same mechanism spec this brief describes. Sign-off happens during the shadow run (Days 26–28 of the roadmap below), when your team confirms it against the workflow and numbers agreed in your one revision round — then we switch to a full run and go live.</p>
+        <p class="team-intro">Sign-off happens during the shadow run (Days 26–28), when your team confirms it matches the workflow and numbers agreed in your one revision round. Then we go live.</p>
       </div>
     </section>
 
     <section class="block pricing-block">
       <div class="section-head"><span class="section-num">{nextSectionNum()}</span><h2>Ongoing — DevShop Care + Optimisation</h2></div>
-      <p class="pricing-note" style="margin-bottom:18px;">What keeps the build running well after handover. Priced and staffed separately from the build — never bundled into it.</p>
+      <p class="pricing-note" style="margin-bottom:18px;">Keeps the build running well after handover — priced and staffed separately, never bundled into the build fee.</p>
       <div class="pricing-grid">
         <div class="pricing-card">
           <p class="pricing-amount">From ₹50,000<span class="pricing-per">/mo</span></p>
@@ -531,7 +531,7 @@ function nextSectionNum() {
 
       <div class="team-block">
         <h3 class="team-title">Direct technology costs</h3>
-        <p class="team-intro">Model usage, hosting, and any third-party tool subscriptions your build needs are passed through at cost, itemized separately from the build and Care + Optimisation fees. We don't mark up infrastructure.</p>
+        <p class="team-intro">Model usage, hosting, and any third-party subscriptions your build needs are passed through at cost, itemized separately. We don't mark up infrastructure.</p>
       </div>
 
       <div class="boundaries-grid" style="margin-top:24px;">
@@ -560,7 +560,7 @@ function nextSectionNum() {
           </ul>
         </div>
       </div>
-      <p class="pricing-note" style="margin-top:16px;">Genuinely new scope gets its own proposal and price — Care + Optimisation keeps what you already have running well, it isn't a blank-check retainer.</p>
+      <p class="pricing-note" style="margin-top:16px;">Genuinely new scope gets its own proposal and price. Care + Optimisation keeps what you already have running well — it isn't a blank-check retainer.</p>
     </section>
 
     <section class="block move-forward-block">

@@ -9,7 +9,7 @@ import PortalHeader from '../../components/devshop/PortalHeader.astro';
 import { site } from '../../data/site';
 
 const title = 'Our methodology — Fast Tech Dev Shop';
-const description = 'How every demo gets built: diagnosis, a proven framework scored against alternatives, a P&L-mapped mechanism, and two rounds of validation before you ever see it.';
+const description = 'How every demo gets built: the real problem, a proven method, the exact number it moves, and a working demo checked twice before you ever see it.';
 const canonical = new URL('/devshop/methodology', site.domain).href;
 
 const steps = [
@@ -17,73 +17,73 @@ const steps = [
     n: '01',
     key: 'diagnose',
     label: 'DIAGNOSE',
-    title: 'Diagnose the real problem',
-    subline: 'Root cause, not the symptom — confidence-rated, not asserted.',
-    body: "We start by naming which part of the business actually owns the problem, then dig past the symptom to the root cause. Every diagnosis is tagged with how confident we actually are — strongly supported, a reasonable inference, or a preliminary hypothesis — so you can see exactly which parts are grounded in what you told us and which are our best working assumption.",
+    title: 'Find the real problem',
+    subline: "The actual cause, not just the symptom you're feeling.",
+    body: "We dig past the symptom to what's actually causing it, and tell you plainly how sure we are — proven, likely, or a working guess. No fact and no guess ever look the same.",
   },
   {
     n: '02',
     key: 'framework',
     label: 'FRAMEWORK',
-    title: 'Apply a proven framework, not a guess',
-    subline: 'Scored across 9 dimensions against real alternatives — you see the table.',
-    body: "Every recommendation is grounded in an established methodology with a real track record — Six Sigma, Lean, Theory of Constraints, and others — never an invented framework. We score every framework we seriously considered across 9 dimensions (problem fit, evidence strength, industry track record, and more) and show you the comparison table, not just the winner.",
+    title: 'Use a proven method',
+    subline: 'A real track record, not a fresh guess for your pitch.',
+    body: "We match your problem to an approach that's already worked elsewhere — Six Sigma, Lean, and others — and show you why it beat the alternatives, not just hand you the winner.",
   },
   {
     n: '03',
     key: 'pnl',
     label: 'P&L MAP',
-    title: 'Map it to your P&L, in numbers',
-    subline: 'One specific line, from baseline to target — the arithmetic shown, not hidden.',
-    body: "We name the specific revenue or cost line the fix moves — not “improves efficiency,” but which line, from what baseline, to what target. The arithmetic behind that number is shown as a simple table you can check yourself, and every figure is tagged as something you told us or an industry-grounded assumption — never presented as fact when it isn't.",
+    title: 'Show the number it moves',
+    subline: 'One line on your P&L, start to finish, math included.',
+    body: "We name the exact cost or revenue line this fixes — not \"efficiency,\" a real number — and show the arithmetic so you can check it yourself.",
   },
   {
     n: '04',
     key: 'mechanism',
     label: 'MECHANISM',
-    title: 'Design the actual mechanism',
-    subline: 'Built from one fixed library of AI agent roles — never invented per pitch.',
-    body: "We design the specific workflow that fixes the root cause — what triggers it, what data it acts on, what happens at each step — built from a fixed, curated library of AI agent roles (data extraction, classification, decision-making, action-taking, and more). That consistency means what we propose is something we've actually built the pattern for before, not a one-off idea invented for your pitch.",
+    title: 'Design the actual fix',
+    subline: "Built from patterns we've already used, not improvised.",
+    body: "We design exactly what it does and when, using AI building blocks we've built before — never a one-off idea invented for your demo.",
   },
   {
     n: '05',
     key: 'validate',
     label: 'VALIDATE',
-    title: 'Validate it before you ever see it',
-    subline: 'Two independent self-audits — a flagged issue holds the release, automatically.',
-    body: "Before a demo reaches you, it goes through two rounds of self-audit: one checking the reasoning itself (does the evidence really support this confidence level, does the framework genuinely fit, is the economics plausible), and a second checking the actual working demo (does it use real tools, do the before/after numbers actually change, is there a control you can press). A flagged issue holds the demo back for our review instead of shipping automatically.",
+    title: 'Check it before you see it',
+    subline: 'Two reviews before anything reaches you.',
+    body: "Every demo gets checked twice — the reasoning, then the actual working product. If something's off, we fix it first, not after.",
   },
   {
     n: '06',
     key: 'demo',
     label: 'DEMO',
-    title: 'See it work, not a slide deck',
-    subline: 'A live, interactive walkthrough using your own tools and your own numbers.',
-    body: "You get a working, interactive walkthrough of the mechanism — press Run and watch it move through the same steps it would in production, using your own tools and your own numbers. No mockups standing in for a real product.",
+    title: 'See it actually work',
+    subline: 'Your numbers, your tools, not a slide deck.',
+    body: "Press Run and watch it move, using your own numbers and the tools you already use. Something you can click through, not imagine.",
   },
   {
     n: '07',
     key: 'feedback',
     label: 'FEEDBACK',
-    title: 'One round of feedback, then we build',
-    subline: 'Every point directly incorporated — not a cosmetic pass.',
-    body: "Answer the clarifying questions, add anything else that needs to change, and we revise once — directly incorporating every point, not a cosmetic pass. From there, the build runs on a fixed 30-day timeline from deposit.",
+    title: 'One round, then we build',
+    subline: 'Tell us what to change — we make it, once.',
+    body: "You give feedback, we incorporate every point, no back-and-forth. From there: 30 fixed days to done.",
   },
   {
     n: '08',
     key: 'build',
     label: 'BUILD',
-    title: 'Staffed like a team, not a project',
-    subline: 'FDE/client lead, solution architect, engineers, and a subject matter expert in your industry and business function.',
-    body: "The one-time build is estimated role by role against the same mechanism spec the demo was built from — an FDE/client lead, a solution architect, software engineers, an AI/automation engineer, QA, and a subject matter expert in your industry and the specific business function the problem lives in. That's the person who knows what a genuinely correct outcome looks like, not just what code compiles. You see who's staffed and how many hours, not a bare price. We ship within 30 days of deposit.",
+    title: 'A named team, not a black box',
+    subline: 'An engineer, an architect, and an expert in your industry.',
+    body: "You see exactly who's staffed on your build and how many hours — including someone who actually knows your industry, not just the code.",
   },
   {
     n: '09',
     key: 'support',
     label: 'SUPPORT',
-    title: 'Go live, then we stay on it',
-    subline: 'A walkthrough at handover, then DevShop Care + Optimisation — priced the same transparent way.',
-    body: "At handover, we walk your team through the build directly — not a link and a goodbye. From there, DevShop Care + Optimisation covers monitoring, updates, and ongoing support, estimated the same way as the build: a resource breakdown by category, not a black-box retainer.",
+    title: "We stay on it after launch",
+    subline: 'A real walkthrough, then ongoing support, priced the same honest way.',
+    body: "We walk your team through it at handover — not a link and a goodbye — then keep it running: monitoring, updates, and support.",
   },
 ];
 
@@ -137,11 +137,11 @@ const ICONS: Record<string, string> = {
   <main class="wrap">
     <div class="eyebrow">METHODOLOGY</div>
     <h1 class="hero serif">How every demo <span class="tint-blue">actually</span> gets built.</h1>
-    <p class="sub">The same nine-stage process, every time — which is exactly what makes the output something you can trust and we can stand behind.</p>
+    <p class="sub">The same nine steps, every time — so you know exactly what you're getting before you pay for it.</p>
 
     <div class="ptm-mark">
       <span class="ptm-mark-badge mono">PTM<sup>&trade;</sup></span>
-      <p class="ptm-mark-text">Stages 01–07 above are how we diagnose and design the demo you're looking at — grounded in established frameworks like Six Sigma and DMAIC. Once you move forward, implementation runs on <strong>Process, Training, Mapping</strong>, our proprietary framework: what work actually happens, what a person needs to know to do their part of it well, and who — human, AI, software, or some combination — does each part. <a href="/devshop/demo/ptm-sample" class="ptm-mark-link">See a full sample PTM document →</a></p>
+      <p class="ptm-mark-text">Once you move forward, we run on <strong>Process, Training, Mapping</strong> — our own framework for exactly what work happens, what your team needs to know, and who does each part: human, AI, or both. <a href="/devshop/demo/ptm-sample" class="ptm-mark-link">See a sample →</a></p>
     </div>
 
     <div class="methodology-grid">
