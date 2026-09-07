@@ -1,6 +1,6 @@
 ---
 import { Image } from 'astro:assets';
-import devshopLogo from '../../assets/screenshots/devshop logo.png';
+import devshopLogo from '../../assets/devshop-logo.png';
 ---
 
 <section class="devshop-teaser section" aria-labelledby="devshop-teaser-h">
@@ -50,9 +50,6 @@ import devshopLogo from '../../assets/screenshots/devshop logo.png';
   .devshop-teaser__logo-link {
     display: inline-block;
     margin: 0.75rem 0 1.75rem;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 16px 32px -18px rgba(26, 20, 16, 0.4);
     transition: transform 0.3s ease;
   }
   .devshop-teaser__logo-link:hover,
@@ -61,7 +58,7 @@ import devshopLogo from '../../assets/screenshots/devshop logo.png';
   }
   .devshop-teaser__logo {
     display: block;
-    height: 3.25rem;
+    height: clamp(4.5rem, 9vw, 6.5rem);
     width: auto;
   }
   .devshop-teaser__h {

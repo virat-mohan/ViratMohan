@@ -2,7 +2,7 @@
 import { Image } from 'astro:assets';
 import { site } from '../../data/site';
 import Portrait from '../Portrait.astro';
-import devshopLogo from '../../assets/screenshots/devshop logo.png';
+import devshopLogo from '../../assets/devshop-logo.png';
 ---
 
 <section class="hero" aria-labelledby="hero-name">
@@ -20,6 +20,7 @@ import devshopLogo from '../../assets/screenshots/devshop logo.png';
         href="/devshop"
         data-reveal
         style="--reveal-delay: 220ms"
+        aria-label="DevShop — built fast, for real businesses. Describe a problem, get a demo."
       >
         <Image
           class="hero__devshop-logo"
@@ -73,16 +74,16 @@ import devshopLogo from '../../assets/screenshots/devshop logo.png';
   }
   .hero__devshop {
     display: inline-flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
     gap: 0.85rem;
-    margin-top: 2.25rem;
+    margin-top: 2.5rem;
     text-decoration: none;
   }
   .hero__devshop-logo {
     display: block;
-    height: 1.5rem;
+    height: clamp(3.25rem, 6vw, 4.5rem);
     width: auto;
-    border-radius: 4px;
   }
   .hero__devshop-text {
     font-family: var(--sans);
