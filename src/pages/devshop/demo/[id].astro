@@ -447,7 +447,8 @@ function nextSectionNum() {
     </section>
 
     <section class="block pricing-block">
-      <div class="section-head"><span class="section-num">{nextSectionNum()}</span><h2>Investment</h2></div>
+      <div class="section-head"><span class="section-num">{nextSectionNum()}</span><h2>Implementation</h2></div>
+      <p class="pricing-note" style="margin-bottom:18px;">The one-time build — a fixed team, a fixed window, done and hosted over to you. Nothing here recurs.</p>
       <div class="pricing-grid">
         <div class="pricing-card">
           <p class="pricing-amount">₹1,50,000</p>
@@ -456,10 +457,6 @@ function nextSectionNum() {
         <div class="pricing-card">
           <p class="pricing-amount">₹75,000</p>
           <p class="pricing-label">Each additional module, within 30 days of the first</p>
-        </div>
-        <div class="pricing-card">
-          <p class="pricing-amount">From ₹50,000<span class="pricing-per">/mo</span></p>
-          <p class="pricing-label">DevShop Care + Optimisation, per live module — ongoing updates, monitoring, and support</p>
         </div>
       </div>
       <p class="pricing-note">A genuinely complex build is custom-quoted after a short scoping call, not fit into the standard price. The 30-day delivery guarantee applies to standard builds, and the clock starts the moment your deposit clears — not at the demo, not at scoping.</p>
@@ -478,6 +475,32 @@ function nextSectionNum() {
           </div>
         </div>
       )}
+
+      <div class="team-block">
+        <h3 class="team-title">Client responsibilities</h3>
+        <ul class="bullets">
+          <li>Grant access to the tools and systems named in scope, within a few days of kickoff</li>
+          <li>Name one point of contact who can answer questions during the build</li>
+          <li>Give feedback within the single revision round — changes after that reset the clock</li>
+          <li>Confirm the real numbers behind any assumption we've flagged as unverified</li>
+        </ul>
+      </div>
+
+      <div class="team-block">
+        <h3 class="team-title">Acceptance criteria</h3>
+        <p class="team-intro">Built and demoed against the same mechanism spec this brief describes. Sign-off happens during the UAT window (Days 26–28 of the roadmap below), when your team confirms it against the workflow and numbers agreed in your one revision round — then we go live.</p>
+      </div>
+    </section>
+
+    <section class="block pricing-block">
+      <div class="section-head"><span class="section-num">{nextSectionNum()}</span><h2>Ongoing — DevShop Care + Optimisation</h2></div>
+      <p class="pricing-note" style="margin-bottom:18px;">What keeps the build running well after handover. Priced and staffed separately from the build — never bundled into it.</p>
+      <div class="pricing-grid">
+        <div class="pricing-card">
+          <p class="pricing-amount">From ₹50,000<span class="pricing-per">/mo</span></p>
+          <p class="pricing-label">DevShop Care + Optimisation, per live module — ongoing updates, monitoring, and support</p>
+        </div>
+      </div>
 
       {row.amc_resource_estimate && row.amc_pricing_decision && (
         <div class="team-block">
@@ -498,11 +521,8 @@ function nextSectionNum() {
         <h3 class="team-title">Direct technology costs</h3>
         <p class="team-intro">Model usage, hosting, and any third-party tool subscriptions your build needs are passed through at cost, itemized separately from the build and Care + Optimisation fees. We don't mark up infrastructure.</p>
       </div>
-    </section>
 
-    <section class="block boundaries-block">
-      <div class="section-head"><span class="section-num">{nextSectionNum()}</span><h2>What's included, and what isn't</h2></div>
-      <div class="boundaries-grid">
+      <div class="boundaries-grid" style="margin-top:24px;">
         <div class="boundaries-col">
           <h3 class="boundaries-title boundaries-title--in">Included, every month</h3>
           <ul class="bullets">
@@ -528,18 +548,7 @@ function nextSectionNum() {
           </ul>
         </div>
       </div>
-      <p class="pricing-note">Genuinely new scope gets its own proposal and price — Care + Optimisation keeps what you already have running well, it isn't a blank-check retainer.</p>
-    </section>
-
-    <section class="block boundaries-block">
-      <div class="section-head"><span class="section-num">{nextSectionNum()}</span><h2>What we need from you</h2></div>
-      <ul class="bullets">
-        <li>Grant access to the tools and systems named in scope, within a few days of kickoff</li>
-        <li>Name one point of contact who can answer questions during the build</li>
-        <li>Give feedback within the single revision round — changes after that reset the clock</li>
-        <li>Confirm the real numbers behind any assumption we've flagged as unverified</li>
-        <li>Show up for the handoff walkthrough when the build is ready</li>
-      </ul>
+      <p class="pricing-note" style="margin-top:16px;">Genuinely new scope gets its own proposal and price — Care + Optimisation keeps what you already have running well, it isn't a blank-check retainer.</p>
     </section>
 
     <section class="block move-forward-block">
