@@ -843,13 +843,12 @@ const canonical = new URL('/devshop/retail', site.domain).href;
      input and lays an animated label over it that pans back and forth so
      the full text is readable. Untouched (and un-clipped) inputs are left
      exactly as-is. */
-  :global(.scroll-ph-wrap) { position: relative; display: block; }
   :global(.scroll-ph-label) {
-    position: absolute; top: 0; bottom: 0; display: flex; align-items: center;
+    position: absolute; display: flex; align-items: center;
     overflow: hidden; white-space: nowrap; pointer-events: none;
     animation: scroll-ph-move var(--scroll-ph-duration, 8s) ease-in-out infinite;
   }
-  :global(.scroll-ph-wrap.scroll-ph-hide .scroll-ph-label) { display: none; }
+  :global(.scroll-ph-label.scroll-ph-hide) { display: none; }
   @keyframes scroll-ph-move {
     0%, 10% { transform: translateX(0); }
     45%, 55% { transform: translateX(calc(-1 * var(--scroll-ph-dist, 0px))); }
@@ -1481,13 +1480,22 @@ const canonical = new URL('/devshop/retail', site.domain).href;
 
         var paddingLeft = parseFloat(cs.paddingLeft) || 0;
         var paddingRight = parseFloat(cs.paddingRight) || 0;
+        var borderLeft = parseFloat(cs.borderLeftWidth) || 0;
         var available = input.clientWidth - paddingLeft - paddingRight;
         if (available <= 0 || textWidth <= available) return;
 
-        var wrap = document.createElement('span');
-        wrap.className = 'scroll-ph-wrap';
-        input.parentNode.insertBefore(wrap, input);
-        wrap.appendChild(input);
+        // Position the label directly over the input's own padding box,
+        // using its real on-page offsets — instead of wrapping the input
+        // in a new element, which would silently drop whatever flex/grid
+        // sizing rules targeted the input's original class (e.g. a wizard
+        // field sized by `.wizard-input { flex: 1 }`) and let the label
+        // spill outside the visible field. Force the immediate parent to
+        // be the positioning context *before* reading offsetLeft/offsetTop,
+        // so those offsets are guaranteed relative to it, not to whatever
+        // positioned ancestor happened to be nearest before this.
+        var parent = input.parentElement;
+        if (!parent) return;
+        if (getComputedStyle(parent).position === 'static') parent.style.position = 'relative';
 
         var label = document.createElement('span');
         label.className = 'scroll-ph-label';
@@ -1495,19 +1503,21 @@ const canonical = new URL('/devshop/retail', site.domain).href;
         label.textContent = text;
         var phColor;
         try { phColor = getComputedStyle(input, '::placeholder').color; } catch (e) {}
-        label.style.left = paddingLeft + 'px';
-        label.style.right = paddingRight + 'px';
+        label.style.left = (input.offsetLeft + borderLeft + paddingLeft) + 'px';
+        label.style.top = input.offsetTop + 'px';
+        label.style.width = available + 'px';
+        label.style.height = input.offsetHeight + 'px';
         label.style.font = cs.font;
         label.style.color = phColor && phColor !== 'rgba(0, 0, 0, 0)' ? phColor : cs.color;
         label.style.setProperty('--scroll-ph-dist', (textWidth - available) + 'px');
         label.style.setProperty('--scroll-ph-duration', Math.max(6, (textWidth - available) / 20) + 's');
-        wrap.appendChild(label);
+        parent.insertBefore(label, input.nextSibling);
 
         input.removeAttribute('placeholder');
         if (!input.getAttribute('aria-label')) input.setAttribute('aria-label', text);
 
         var sync = function () {
-          wrap.classList.toggle('scroll-ph-hide', !!input.value || document.activeElement === input);
+          label.classList.toggle('scroll-ph-hide', !!input.value || document.activeElement === input);
         };
         input.addEventListener('focus', sync);
         input.addEventListener('blur', sync);
