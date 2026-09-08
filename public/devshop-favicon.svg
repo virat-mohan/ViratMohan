@@ -1,5 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" fill="#F5F2EA"/>
-  <text x="16" y="23" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-size="20" fill="#4F5F42" text-anchor="middle">D</text>
-  <rect x="0" y="30" width="32" height="2" fill="#B08A63"/>
+  <rect width="32" height="32" rx="6" fill="#F5F2EA"/>
+  <text x="16" y="20" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-weight="700" font-size="17" text-anchor="middle">
+    <tspan fill="#D4AF37">D</tspan><tspan fill="#4F5F42">s</tspan>
+  </text>
+  <text x="16" y="28" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="5" letter-spacing="0.6" fill="#a3573f" text-anchor="middle">DEV SHOP</text>
 </svg>
