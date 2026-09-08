@@ -113,6 +113,11 @@ const graph = {
           return;
         }
 
+        // Only now — once we know JS ran and IntersectionObserver exists —
+        // switch the CSS into "start hidden, animate in" mode. If this
+        // script never runs at all, content simply stays visible.
+        document.documentElement.classList.add('js-reveal');
+
         var io = new IntersectionObserver(
           function (entries) {
             entries.forEach(function (entry) {

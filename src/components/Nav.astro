@@ -54,10 +54,10 @@ const here = Astro.url.pathname.replace(/\/$/, '') || '/';
   .nav__mark {
     font-family: var(--display);
     font-weight: 400;
-    font-size: 1.75rem;
+    font-size: 2.5rem;
     letter-spacing: 0.01em;
     text-decoration: none;
-    color: var(--fg);
+    color: var(--terracotta);
     line-height: 1;
   }
   nav {
@@ -73,19 +73,18 @@ const here = Astro.url.pathname.replace(/\/$/, '') || '/';
   .nav__link {
     position: relative;
     font-family: var(--sans);
-    font-size: 1rem;
+    font-size: 1.1875rem;
     font-weight: 800;
     letter-spacing: 0.01em;
-    color: var(--fg);
+    color: var(--c);
     text-decoration: none;
     padding-bottom: 4px;
     border-bottom: 3px solid transparent;
-    transition: border-color 0.25s ease, color 0.25s ease;
+    transition: border-color 0.25s ease, opacity 0.25s ease;
   }
   .nav__link:hover,
   .nav__link:focus-visible,
   .nav__link[aria-current='page'] {
-    color: var(--c);
     border-bottom-color: var(--c);
   }
   .nav__bar {
@@ -115,7 +114,10 @@ const here = Astro.url.pathname.replace(/\/$/, '') || '/';
       gap: 0.9rem 1.25rem;
     }
     .nav__link {
-      font-size: 0.9rem;
+      font-size: 1rem;
+    }
+    .nav__mark {
+      font-size: 2rem;
     }
   }
 </style>

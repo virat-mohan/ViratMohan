@@ -242,7 +242,12 @@ a {
 /* =========================================================================
    MOTION — fade + 12px rise, once only
    ========================================================================= */
-[data-reveal] {
+/* Progressive enhancement: content is visible by default. Only hide it
+   for the reveal animation once JS has actually run and confirmed it can
+   drive the effect — if the script is ever blocked, slow, or fails (as
+   happened once already, under Vercel's bot-challenge intercepting
+   assets), content stays visible instead of stuck invisible forever. */
+html.js-reveal [data-reveal] {
   opacity: 0;
   transform: translateY(12px);
   transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
@@ -251,13 +256,13 @@ a {
   will-change: opacity, transform;
 }
 
-[data-reveal].is-visible {
+html.js-reveal [data-reveal].is-visible {
   opacity: 1;
   transform: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  [data-reveal] {
+  html.js-reveal [data-reveal] {
     opacity: 1;
     transform: none;
     transition: none;

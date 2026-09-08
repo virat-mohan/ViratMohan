@@ -1,7 +1,7 @@
 ---
 category: "Booking & Property Management"
 brand: "Travaholic Stays"
-tagline: "A direct booking system for a boutique villa business — replacing Airbnb, WhatsApp, and a spreadsheet with one system."
+tagline: "The villas booking platform with dynamic benchmark pricing and a central reservation system."
 domain: "https://travaholicstays.com"
 order: 2
 accent: "#3E6FA6"

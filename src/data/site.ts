@@ -101,19 +101,19 @@ export const arc: ArcBlock[] = [
     body: 'Ran a tile manufacturing unit producing concrete pavers for the Commonwealth Games.',
   },
   {
-    range: '2015–2020',
+    range: '2013–2020',
     title: 'The Operator',
-    body: 'Pita Pit, regional director to CEO across India, the UK, the UAE, KSA and Singapore. 6 to 21 units, revenue quadrupled.',
+    body: 'Pita Pit — regional director, then India CEO. Also the UK, the UAE, KSA and Singapore. Revenue quadrupled.',
   },
   {
     range: '2020–2022',
     title: 'The Scale',
-    body: 'CloudKitchens®. 122 kitchens, three cities, under 24 months. APAC customer success for 1,000+ brands.',
+    body: 'Kitchen Plus India (CloudKitchens®) — Country GM. APAC customer success across the portfolio.',
   },
   {
     range: '2022–2025',
     title: 'The Capital',
-    body: 'Daryaganj — $2M raised, ₹150 Cr valuation. Then Chief of Staff at Foodlink through a pre-IPO round.',
+    body: 'Daryaganj — CBO and CFO. Then Chief of Staff at Foodlink through a pre-IPO round.',
   },
   {
     range: '2024–now',
@@ -130,28 +130,28 @@ export type Facet = {
 // OFF THE RÉSUMÉ — the parts that don't fit a career timeline.
 export const facets: Facet[] = [
   {
-    title: 'Keyboardist',
-    body: 'Playing since age four. National competitions, and a band — Anachronox.',
-  },
-  {
-    title: 'Learning to DJ',
-    body: 'Deep house and minimal techno — Boris Brejcha, Deadmau5.',
-  },
-  {
-    title: 'Marathoner',
-    body: 'Prepared for Vienna, but never made it to the start.',
+    title: 'Community',
+    body: 'Ex-President, Shri Ram Alumni Society.',
   },
   {
     title: 'Longevity',
     body: 'Studying the Bryan Johnson school of it.',
   },
   {
-    title: 'Community',
-    body: 'Ex-President, Shri Ram Alumni Society.',
+    title: 'Keyboardist',
+    body: 'Playing since age four. National competitions, and a band — Anachronox.',
+  },
+  {
+    title: 'Learning to DJ',
+    body: 'Deep house and minimal techno.',
   },
   {
     title: 'Fitness',
     body: 'Ongoing, not for show.',
+  },
+  {
+    title: 'Marathoner',
+    body: 'Prepared for Vienna, but never made it to the start.',
   },
 ];
 
