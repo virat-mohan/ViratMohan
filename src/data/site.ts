@@ -73,7 +73,7 @@ export const arc: ArcBlock[] = [
   {
     range: '2002',
     title: 'The Trade',
-    body: 'Traded computer hardware between the UAE and India — cabinets, mice, keyboards. The first business.',
+    body: 'Praxis Technologies — traded computer hardware between the UAE and India: cabinets, mice, keyboards. The first business.',
   },
   {
     range: '~2005',
@@ -93,12 +93,12 @@ export const arc: ArcBlock[] = [
   {
     range: '2010',
     title: 'The Daily',
-    body: 'Started a free daily newspaper for metro commuters — content, print and distribution, on advertising alone.',
+    body: 'Delhi on the Go — a free daily newspaper for metro commuters. Content, print and distribution, on advertising alone.',
   },
   {
     range: '~2010',
     title: 'The Pavers',
-    body: 'Ran a tile manufacturing unit producing concrete pavers for the Commonwealth Games.',
+    body: 'Marblex India — a tile manufacturing unit producing concrete pavers for the Commonwealth Games.',
   },
   {
     range: '2013–2020',
