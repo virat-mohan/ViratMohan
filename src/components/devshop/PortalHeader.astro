@@ -232,13 +232,23 @@ const navItems = [
     padding: 8px; min-width: 260px; flex-direction: column; gap: 2px; z-index: 60;
   }
   .ds-dropdown-menu.open { display: flex; }
-  .ds-dropdown-menu a, .ds-dropdown-menu .ds-dropdown-soon {
+  .ds-dropdown-menu .ds-dropdown-soon {
     display: flex; align-items: center; gap: 9px; font-size: 12.5px; letter-spacing: 0.02em; text-transform: none;
     color: var(--ds-nav); text-decoration: none; padding: 9px 12px; border-radius: 4px; white-space: nowrap;
   }
-  .ds-dropdown-dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--band-color, var(--chip-color, currentColor)); border: 1px solid rgba(30,33,26,0.15); opacity: 1; }
-  .ds-dropdown-menu a:hover { background: var(--ds-dropdown-hover-bg); color: var(--chip-color, var(--ds-nav-hover)); }
-  .ds-dropdown-menu a.active { color: var(--chip-color, var(--ds-nav-active)); }
+  /* Live verticals get their own page's actual background tint as a full
+     row color, not just a dot — the color you see here is literally the
+     color of the page you're about to land on. These tints are always
+     pale, so text stays a fixed dark ink regardless of the dropdown's own
+     light/dark theme. */
+  .ds-dropdown-menu a {
+    display: flex; align-items: center; gap: 9px; font-size: 12.5px; letter-spacing: 0.02em; text-transform: none;
+    text-decoration: none; padding: 9px 12px; border-radius: 4px; white-space: nowrap;
+    background: var(--band-color, transparent); color: #1a1410;
+  }
+  .ds-dropdown-dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--chip-color, currentColor); border: 1px solid rgba(30,33,26,0.15); opacity: 1; }
+  .ds-dropdown-menu a:hover { filter: brightness(0.95); color: var(--chip-color, #1a1410); }
+  .ds-dropdown-menu a.active { color: var(--chip-color, #1a1410); font-weight: 600; }
   .ds-dropdown-soon { color: var(--ds-dropdown-soon); cursor: default; }
   .ds-dropdown-soon .ds-dropdown-dot { opacity: 0.4; }
   .ds-dropdown-soon em { font-style: normal; }
