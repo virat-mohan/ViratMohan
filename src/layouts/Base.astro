@@ -140,6 +140,20 @@ const graph = {
           .forEach(function (el) {
             io.observe(el);
           });
+
+        // Hard safety net: IntersectionObserver can silently fail to ever
+        // fire in some browser/tab states (confirmed happening at least
+        // once in the wild — content stuck invisible with no error). After
+        // a short delay, force-reveal anything still hidden so a flaky
+        // observer can never permanently hide real content.
+        setTimeout(function () {
+          document
+            .querySelectorAll('[data-reveal]:not(.is-visible)')
+            .forEach(function (el) {
+              el.classList.add('is-visible');
+              if (el.hasAttribute('data-count')) countUp(el);
+            });
+        }, 1200);
       })();
     </script>
   </body>

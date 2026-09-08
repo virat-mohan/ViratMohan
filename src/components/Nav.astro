@@ -95,7 +95,7 @@ const here = Astro.url.pathname.replace(/\/$/, '') || '/';
   @media (max-width: 620px) {
     .nav__inner {
       flex-wrap: wrap;
-      justify-content: space-between;
+      justify-content: center;
       height: auto;
       padding-top: 1.25rem;
       padding-bottom: 1.25rem;
@@ -103,6 +103,9 @@ const here = Astro.url.pathname.replace(/\/$/, '') || '/';
     }
     .nav__mark {
       order: 1;
+      flex: 1 0 100%;
+      text-align: center;
+      font-size: 2rem;
     }
     nav {
       order: 2;
@@ -111,13 +114,17 @@ const here = Astro.url.pathname.replace(/\/$/, '') || '/';
     }
     .nav__list {
       flex-wrap: wrap;
+      justify-content: space-between;
+      width: 100%;
       gap: 0.9rem 1.25rem;
+    }
+    .nav__list li:last-child {
+      flex: 1 0 100%;
+      display: flex;
+      justify-content: center;
     }
     .nav__link {
       font-size: 1rem;
-    }
-    .nav__mark {
-      font-size: 2rem;
     }
   }
 </style>
