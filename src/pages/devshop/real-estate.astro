@@ -841,6 +841,28 @@ const canonical = new URL('/devshop/real-estate', site.domain).href;
     .wizard-actions { justify-content: center; }
     textarea.wizard-input { font-size: 17px; }
   }
+
+  /* Scrolling placeholder — on a narrow input, long placeholder copy gets
+     clipped instead of wrapped. JS below measures each input's placeholder
+     against its own width and, only where it actually overflows, wraps the
+     input and lays an animated label over it that pans back and forth so
+     the full text is readable. Untouched (and un-clipped) inputs are left
+     exactly as-is. */
+  :global(.scroll-ph-wrap) { position: relative; display: block; }
+  :global(.scroll-ph-label) {
+    position: absolute; top: 0; bottom: 0; display: flex; align-items: center;
+    overflow: hidden; white-space: nowrap; pointer-events: none;
+    animation: scroll-ph-move var(--scroll-ph-duration, 8s) ease-in-out infinite;
+  }
+  :global(.scroll-ph-wrap.scroll-ph-hide .scroll-ph-label) { display: none; }
+  @keyframes scroll-ph-move {
+    0%, 10% { transform: translateX(0); }
+    45%, 55% { transform: translateX(calc(-1 * var(--scroll-ph-dist, 0px))); }
+    90%, 100% { transform: translateX(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :global(.scroll-ph-label) { animation: none; }
+  }
 </style>
 
 <script is:inline>
@@ -1438,6 +1460,68 @@ const canonical = new URL('/devshop/real-estate', site.domain).href;
   // Deep-link support — see the matching comment in devshop.astro.
   var initialScreen = location.hash.replace('#', '');
   showScreen(marketingScreens.indexOf(initialScreen) !== -1 ? initialScreen : 'landing');
+
+  /* ---- scrolling placeholders (see .scroll-ph-* in <style> above) ---- */
+  (function () {
+    function setupScrollingPlaceholders() {
+      document.querySelectorAll('input[placeholder]').forEach(function (input) {
+        if (input.dataset.scrollPhInit) return;
+        input.dataset.scrollPhInit = '1';
+        var text = input.getAttribute('placeholder');
+        if (!text) return;
+
+        var cs = getComputedStyle(input);
+        var probe = document.createElement('span');
+        probe.style.cssText = 'position:absolute; visibility:hidden; white-space:nowrap; left:-9999px; top:-9999px;';
+        probe.style.font = cs.font;
+        probe.style.letterSpacing = cs.letterSpacing;
+        probe.textContent = text;
+        document.body.appendChild(probe);
+        var textWidth = probe.offsetWidth;
+        document.body.removeChild(probe);
+
+        var paddingLeft = parseFloat(cs.paddingLeft) || 0;
+        var paddingRight = parseFloat(cs.paddingRight) || 0;
+        var available = input.clientWidth - paddingLeft - paddingRight;
+        if (available <= 0 || textWidth <= available) return;
+
+        var wrap = document.createElement('span');
+        wrap.className = 'scroll-ph-wrap';
+        input.parentNode.insertBefore(wrap, input);
+        wrap.appendChild(input);
+
+        var label = document.createElement('span');
+        label.className = 'scroll-ph-label';
+        label.setAttribute('aria-hidden', 'true');
+        label.textContent = text;
+        var phColor;
+        try { phColor = getComputedStyle(input, '::placeholder').color; } catch (e) {}
+        label.style.left = paddingLeft + 'px';
+        label.style.right = paddingRight + 'px';
+        label.style.font = cs.font;
+        label.style.color = phColor && phColor !== 'rgba(0, 0, 0, 0)' ? phColor : cs.color;
+        label.style.setProperty('--scroll-ph-dist', (textWidth - available) + 'px');
+        label.style.setProperty('--scroll-ph-duration', Math.max(6, (textWidth - available) / 20) + 's');
+        wrap.appendChild(label);
+
+        input.removeAttribute('placeholder');
+        if (!input.getAttribute('aria-label')) input.setAttribute('aria-label', text);
+
+        var sync = function () {
+          wrap.classList.toggle('scroll-ph-hide', !!input.value || document.activeElement === input);
+        };
+        input.addEventListener('focus', sync);
+        input.addEventListener('blur', sync);
+        input.addEventListener('input', sync);
+        sync();
+      });
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setupScrollingPlaceholders);
+    } else {
+      setupScrollingPlaceholders();
+    }
+  })();
 </script>
 
 </body>
