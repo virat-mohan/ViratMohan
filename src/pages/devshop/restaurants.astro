@@ -62,106 +62,42 @@ const TYPES = [
   { slug: 'multi-outlet', label: 'Multi-outlet chains' },
 ] as const;
 
+// Trimmed to the 5 most common, most AI-implementable problems in F&B —
+// the ones where an automation layer (data matching, forecasting,
+// scheduling, sentiment triage) does the actual work, not a physical or
+// compliance fix a person still has to carry out. Selection grounded in
+// the same categories showing up across 2026 retail/hospitality AI-ROI
+// research: reconciliation, demand forecasting, loss/shrinkage,
+// review/sentiment triage, and workforce scheduling.
 const useCases = [
-  {
-    fn: 'Inventory & Supply Chain',
-    items: [
-      { id: 'wastage-unexplained', label: 'Unexplained wastage', problem: "Our wastage numbers are high every week and we can't tell how much is spoilage, over-production, or just bad prep — nobody's ever broken it down." },
-      { id: 'stock-count-mismatch', label: 'Stock count never matches', problem: 'Every month our physical stock count is off from what the system says we should have used, and we never find out why before the next count.' },
-      { id: 'par-level-stockouts', label: 'Par-level stockouts', problem: 'Our best-selling dish keeps selling out on Friday and Saturday nights right when demand peaks, and we only find out from a frustrated server.' },
-      { id: 'vendor-invoice-mismatch', label: 'Vendor invoice mismatches', problem: 'We get billed for quantities that don’t match what actually got delivered, and right now someone just eyeballs the invoice against a paper delivery slip.' },
-      { id: 'fifo-shelf-life-violations', label: 'FIFO / shelf-life violations', problem: 'Older stock isn’t always used first, so we lose perishables to expiry even when total inventory looks fine on paper.' },
-      { id: 'procurement-price-leakage', label: 'No multi-vendor price comparison', problem: 'We reorder from the same vendor out of habit and have never systematically compared prices across suppliers for our top ingredients.' },
-      { id: 'commissary-outlet-allocation', label: 'Central kitchen ↔ outlet allocation gaps', types: ['cloud-kitchen', 'multi-outlet'], problem: 'Our central commissary sends stock to outlets on a rough estimate, and outlets either run short or sit on excess with no real allocation logic.' },
-    ],
-  },
   {
     fn: 'Finance & Reconciliation',
     items: [
       { id: 'aggregator-payout-mismatch', label: 'Delivery-platform payouts don’t match POS', problem: "Our Swiggy and Zomato payouts never match what the POS says we sold, and we just accept whatever lands in the bank account." },
-      { id: 'cash-register-shrinkage', label: 'Cash register shrinkage', problem: 'We suspect void and discount abuse at the register but have no way to flag which staff member or which shift it’s actually coming from.' },
-      { id: 'prime-cost-drift', label: 'Prime cost drifting', problem: 'Our combined food and labor cost has been creeping up as a percentage of sales and we only notice a full quarter after it happened.' },
-      { id: 'multi-outlet-pnl-rollup', label: 'Multi-outlet P&L rollup', types: ['multi-outlet'], problem: 'Every one of our outlets closes their books on a different day in a different format, so we can never get one clean consolidated P&L.' },
-      { id: 'void-discount-audit-trail', label: 'No audit trail on voids & discounts', problem: 'Any staff member can void a line or apply a discount at the POS with no manager approval step or after-the-fact audit trail.' },
-      { id: 'petty-cash-reconciliation', label: 'Petty cash never reconciles cleanly', problem: 'Our outlet petty cash for small supplier top-ups and repairs rarely reconciles at month-end, and receipts go missing.' },
-      { id: 'input-tax-credit-mismatch', label: 'GST input credit mismatches', problem: 'The GST input credit we claim on purchases doesn’t always match what our vendors have actually filed, and we find out months later.' },
     ],
   },
   {
-    fn: 'Kitchen & Floor Operations',
+    fn: 'Inventory & Supply Chain',
     items: [
-      { id: 'ticket-time-blowouts', label: 'Ticket times blow out at peak', problem: 'Ticket times fall apart the moment we hit a Friday-night rush and we can’t tell which station is actually the bottleneck.' },
-      { id: 'order-accuracy-remakes', label: 'Order accuracy & remakes', problem: 'We’re remaking too many orders and nobody’s tracking whether it’s a kitchen error, a POS entry error, or a recipe that’s inconsistent by shift.' },
-      { id: 'recipe-drift-outlets', label: 'Recipe drift across outlets', types: ['multi-outlet'], problem: 'The same dish tastes noticeably different depending on which of our outlets you order it from, and there’s no real SOP compliance check.' },
-      { id: 'table-turnover-wait-times', label: 'Table turnover & wait times', types: ['casual-dining', 'fast-casual'], problem: 'We don’t know which part of the dine-in journey — seating, ordering, kitchen, or payment — is actually slowing down our table turns.' },
-      { id: 'modifier-allergen-errors', label: 'Modifier & allergen substitution errors', problem: 'Custom order modifiers and allergen substitutions don’t always make it from the POS to the kitchen display cleanly, and we’ve had near-misses.' },
-      { id: 'seating-kitchen-capacity-mismatch', label: 'Seating capacity outruns kitchen throughput', types: ['casual-dining', 'fast-casual', 'qsr'], problem: 'We can seat more covers than our kitchen can actually turn around at peak, and nobody’s modeled what our real bottleneck capacity is.' },
-      { id: 'equipment-downtime', label: 'Equipment breakdowns with no preventive schedule', problem: 'Our fryers, ovens, and refrigeration units go down unpredictably because maintenance happens reactively, not on a preventive schedule.' },
+      { id: 'wastage-unexplained', label: 'Unexplained wastage', problem: "Our wastage numbers are high every week and we can't tell how much is spoilage, over-production, or just bad prep — nobody's ever broken it down." },
+    ],
+  },
+  {
+    fn: 'Revenue & Menu Strategy',
+    items: [
+      { id: 'demand-forecasting-gaps', label: 'Demand forecasting gaps', problem: 'We staff and prep off gut feel, not off the actual weekday, weather, or local-event demand pattern, and it shows in both waste and stockouts.' },
     ],
   },
   {
     fn: 'Guest Experience & Reputation',
     items: [
       { id: 'reviews-unmanaged', label: 'Reviews nobody’s reading', problem: 'We get a steady stream of Google and Zomato reviews but nobody owns responding to them or feeding the complaints back into operations.' },
-      { id: 'reservation-no-shows', label: 'Reservation no-shows', types: ['casual-dining'], problem: 'We hold tables for reservations that no-show with no deposit or overbooking logic, and it costs us covers every weekend.' },
-      { id: 'loyalty-declining-repeat', label: 'Loyalty program, declining repeat visits', problem: 'We have a loyalty points program but redemption and repeat visits have been sliding and we don’t have a re-engagement flow for lapsed regulars.' },
-      { id: 'complaint-resolution-no-sla', label: 'Complaints have no resolution SLA', problem: 'A guest complaint gets handled however the shift manager on duty feels like handling it, with no consistent process or time-to-resolution target.' },
-      { id: 'social-ugc-monitoring-gap', label: 'Social media & UGC go unmonitored', problem: 'Guests tag us and post about us on Instagram constantly but nobody’s tracking sentiment or responding, so we miss both praise and warning signs.' },
-    ],
-  },
-  {
-    fn: 'Revenue & Menu Strategy',
-    items: [
-      { id: 'menu-bloat', label: 'Menu bloat', problem: 'Our menu has grown to the point where we suspect several dishes aren’t earning their shelf space, but we’ve never actually run the numbers.' },
-      { id: 'demand-forecasting-gaps', label: 'Demand forecasting gaps', problem: 'We staff and prep off gut feel, not off the actual weekday, weather, or local-event demand pattern, and it shows in both waste and stockouts.' },
-      { id: 'channel-cannibalization', label: 'Aggregator channel cannibalizing dine-in', problem: 'Our delivery orders have grown but we suspect it’s just pulling dine-in covers onto a lower-margin channel, and we can’t prove it either way.' },
-      { id: 'new-dish-no-tracking', label: 'New dish launches aren’t tracked', problem: 'We launch new dishes on gut feel and never systematically check whether they’re actually selling or profitable a month in.' },
-      { id: 'upsell-attach-rate-untracked', label: 'Upsell & combo attach rate untracked', problem: 'We have no idea what percentage of orders actually take the upsell or combo our staff are supposed to be pitching.' },
-      { id: 'no-dynamic-peak-pricing', label: 'No peak-hour or surge pricing', problem: 'We charge the same price at 1pm on a Tuesday as we do at 8pm on a Saturday, and have never tested whether peak-hour pricing would work for us.' },
     ],
   },
   {
     fn: 'People & Labor',
     items: [
-      { id: 'foh-boh-turnover', label: 'High front/back-of-house turnover', problem: 'We’re constantly rehiring and retraining front-of-house staff and have never actually costed what that churn is doing to us.' },
       { id: 'labor-demand-misalignment', label: 'Labor cost misaligned to demand', problem: 'We’re fully staffed on slow weeknights and understaffed on our busiest weekend shifts, and the schedule is still built by habit, not by demand.' },
-      { id: 'tip-pool-disputes', label: 'Tip-pool & shift-swap disputes', problem: 'Tip-pool splits and shift swaps get argued over almost every week because there’s no consistent, transparent policy anyone can point to.' },
-      { id: 'onboarding-productivity-lag', label: 'New hires take too long to become productive', problem: 'A new server or line cook takes weeks longer than they should to hit a normal productivity level, and our onboarding is whatever the shift lead has time for.' },
-    ],
-  },
-  {
-    fn: 'Compliance & Food Safety',
-    items: [
-      { id: 'license-audit-gaps', label: 'License & audit-trail gaps', problem: 'Our FSSAI and local health department renewals live in someone’s inbox and we’ve had at least one close call with a lapsed license.' },
-      { id: 'cold-chain-logs', label: 'Cold-chain temperature logs', problem: 'Our fridge and freezer temperature logs are paper-based and exist to be filled in, not to actually catch a breach before it becomes a food-safety incident.' },
-      { id: 'allergen-labeling-drift', label: 'Allergen labeling falls out of date', problem: 'Every time we change a recipe or supplier, the allergen information on our menu doesn’t automatically get re-checked, and it’s fallen out of date before.' },
-      { id: 'fire-safety-cert-renewals', label: 'Fire safety & equipment certifications lapse', problem: 'Fire safety and kitchen equipment certifications get renewed reactively, usually right after someone notices they’ve already expired.' },
-    ],
-  },
-  {
-    fn: 'Bar & Beverage Program',
-    items: [
-      { id: 'pour-cost-drift', label: 'Pour-cost drift', types: ['bar-nightlife'], problem: 'Our bar’s pour cost keeps drifting and we suspect over-pouring and uncomfortable comps, but nothing ties a poured drink back to a POS line.' },
-      { id: 'liquor-inventory-shrinkage', label: 'Liquor inventory shrinkage', types: ['bar-nightlife'], problem: 'We reconcile our liquor inventory by weight and estimate instead of by actual measure, and the shrinkage number never quite adds up.' },
-      { id: 'happy-hour-pricing-inconsistency', label: 'Happy-hour pricing isn’t enforced consistently', types: ['bar-nightlife'], problem: 'Happy-hour and promo pricing at the bar depends on which bartender is on shift and whether they remember to apply it correctly at the POS.' },
-      { id: 'draft-beer-yield-untracked', label: 'Draft beer yield isn’t tracked', types: ['bar-nightlife'], problem: 'We don’t track actual pours per keg against theoretical yield, so we can’t tell how much draft beer we’re losing to foam, waste, or over-pour.' },
-    ],
-  },
-  {
-    fn: 'Hotel F&B',
-    items: [
-      { id: 'banquet-costing-drift', label: 'Banquet costing drift', types: ['hotel'], problem: 'Our banquet event orders are quoted one way and the actual consumption almost always comes in different, and we’ve never closed that gap.' },
-      { id: 'room-service-pms-gaps', label: 'Room-service ↔ PMS gaps', types: ['hotel'], problem: 'Room-service and minibar charges post late, post wrong, or don’t post at all against the guest folio in our PMS.' },
-      { id: 'group-fnb-forecasting', label: 'Group/conference F&B attach-rate forecasting', types: ['hotel'], problem: 'We consistently over- or under-prep for conference and group F&B packages because we’re not forecasting off actual historical attach rates.' },
-      { id: 'multi-outlet-hotel-inventory', label: 'Restaurant, bar & room-service inventory not unified', types: ['hotel'], problem: 'Our in-house restaurant, bar, and room-service kitchen each track inventory separately, so we can’t see a single true stock position for shared ingredients.' },
-    ],
-  },
-  {
-    fn: 'Marketing & Local Visibility',
-    items: [
-      { id: 'local-seo-neglected', label: 'Google Business Profile & local SEO neglected', problem: 'Our Google Business listing has outdated hours, old photos, and unanswered questions, and nobody owns keeping it current.' },
-      { id: 'promotions-no-roi-tracking', label: 'Promotions run with no ROI tracking', problem: 'We run discounts and promotions fairly often but never actually measure whether a given promotion made us money or just gave away margin.' },
-      { id: 'ugc-influencer-adhoc', label: 'Influencer & UGC outreach is ad hoc', problem: 'We occasionally host an influencer or repost user content, but it’s whoever remembers to do it that week, not a real repeatable process.' },
     ],
   },
 ];
@@ -865,19 +801,28 @@ const canonical = new URL('/devshop/restaurants', site.domain).href;
      input and lays an animated label over it that pans back and forth so
      the full text is readable. Untouched (and un-clipped) inputs are left
      exactly as-is. */
+  /* Two layers on purpose: .scroll-ph-label is the fixed-size clipping
+     window (sized and positioned to exactly match the input's padding
+     box, never moves); .scroll-ph-text is the actual placeholder string,
+     wider than the window, and is what the animation slides — animating
+     the window itself instead would drag its own clip boundary along
+     with it, letting the text spill out past the input's edge. */
   :global(.scroll-ph-label) {
     position: absolute; display: flex; align-items: center;
-    overflow: hidden; white-space: nowrap; pointer-events: none;
-    animation: scroll-ph-move var(--scroll-ph-duration, 8s) ease-in-out infinite;
+    overflow: hidden; pointer-events: none;
   }
   :global(.scroll-ph-label.scroll-ph-hide) { display: none; }
+  :global(.scroll-ph-text) {
+    display: inline-block; white-space: nowrap;
+    animation: scroll-ph-move var(--scroll-ph-duration, 8s) ease-in-out infinite;
+  }
   @keyframes scroll-ph-move {
     0%, 10% { transform: translateX(0); }
     45%, 55% { transform: translateX(calc(-1 * var(--scroll-ph-dist, 0px))); }
     90%, 100% { transform: translateX(0); }
   }
   @media (prefers-reduced-motion: reduce) {
-    :global(.scroll-ph-label) { animation: none; }
+    :global(.scroll-ph-text) { animation: none; }
   }
 </style>
 
@@ -1505,20 +1450,27 @@ const canonical = new URL('/devshop/restaurants', site.domain).href;
         if (!parent) return;
         if (getComputedStyle(parent).position === 'static') parent.style.position = 'relative';
 
+        // Outer window: fixed size/position, clips, never animates.
         var label = document.createElement('span');
         label.className = 'scroll-ph-label';
         label.setAttribute('aria-hidden', 'true');
-        label.textContent = text;
-        var phColor;
-        try { phColor = getComputedStyle(input, '::placeholder').color; } catch (e) {}
         label.style.left = (input.offsetLeft + borderLeft + paddingLeft) + 'px';
         label.style.top = input.offsetTop + 'px';
         label.style.width = available + 'px';
         label.style.height = input.offsetHeight + 'px';
-        label.style.font = cs.font;
-        label.style.color = phColor && phColor !== 'rgba(0, 0, 0, 0)' ? phColor : cs.color;
-        label.style.setProperty('--scroll-ph-dist', (textWidth - available) + 'px');
-        label.style.setProperty('--scroll-ph-duration', Math.max(6, (textWidth - available) / 20) + 's');
+
+        // Inner text: full placeholder width, this is what actually pans.
+        var textEl = document.createElement('span');
+        textEl.className = 'scroll-ph-text';
+        textEl.textContent = text;
+        var phColor;
+        try { phColor = getComputedStyle(input, '::placeholder').color; } catch (e) {}
+        textEl.style.font = cs.font;
+        textEl.style.letterSpacing = cs.letterSpacing;
+        textEl.style.color = phColor && phColor !== 'rgba(0, 0, 0, 0)' ? phColor : cs.color;
+        textEl.style.setProperty('--scroll-ph-dist', (textWidth - available) + 'px');
+        textEl.style.setProperty('--scroll-ph-duration', Math.max(6, (textWidth - available) / 20) + 's');
+        label.appendChild(textEl);
         parent.insertBefore(label, input.nextSibling);
 
         input.removeAttribute('placeholder');

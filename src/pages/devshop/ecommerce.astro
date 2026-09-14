@@ -61,95 +61,42 @@ const TYPES = [
   { slug: 'subscription-box', label: 'Subscription boxes' },
 ] as const;
 
+// Trimmed to the 5 most common, most AI-implementable problems in D2C
+// e-commerce — the ones an automation layer (recovery flows, reconciliation,
+// forecasting, support deflection) actually fixes, not a physical or
+// compliance issue a person still has to resolve. Selection grounded in
+// the same categories showing up across 2026 retail/e-commerce AI-ROI
+// research: cart-recovery/conversion, logistics loss (RTO), reconciliation,
+// support-ticket deflection, and demand forecasting.
 const useCases = [
   {
     fn: 'Checkout & Conversion',
     items: [
       { id: 'cart-abandonment-recovery', label: 'Cart abandonment recovery', problem: 'Most of our visitors add to cart and just vanish, and we don’t have any real recovery flow beyond a single generic reminder email.' },
-      { id: 'payment-failure-retries', label: 'Payment failures aren’t retried', problem: 'A chunk of our orders fail at payment for silly reasons — expired OTP, bank timeout — and we just lose that sale instead of prompting a retry.' },
-      { id: 'cod-to-prepaid-conversion', label: 'COD-to-prepaid conversion', problem: 'Cash-on-delivery makes up most of our orders and we’ve never systematically tried to nudge customers toward prepaid, even though COD costs us more in RTO.' },
-      { id: 'checkout-drop-off-by-device', label: 'Checkout drop-off by device', problem: 'Our checkout conversion drops noticeably on mobile versus desktop and we’ve never actually diagnosed which step is losing people.' },
     ],
   },
   {
     fn: 'Fulfillment & Logistics',
     items: [
-      { id: 'order-to-ship-sla-breaches', label: 'Order-to-ship SLA breaches', problem: 'We promise a ship time on the product page but a growing share of orders miss it and nobody’s tracking why.' },
       { id: 'courier-rto-rates', label: 'Courier RTO rates climbing', problem: 'Our return-to-origin rate from certain courier partners and certain pin codes keeps climbing and we’ve never broken it down by courier to hold anyone accountable.' },
-      { id: 'multi-warehouse-allocation', label: 'Multi-warehouse inventory allocation', problem: 'We ship from more than one warehouse now but orders still get routed to whichever one is fastest to pack, not whichever one is actually closest or cheapest to ship from.' },
-      { id: 'shipping-cost-creep', label: 'Shipping cost creep', problem: 'Our per-order shipping cost has crept up over the last few months and we can’t tell whether it’s courier rate changes, package weight, or something else.' },
-      { id: 'failed-delivery-attempts', label: 'Failed delivery attempts', problem: 'A meaningful share of our shipments come back as failed delivery attempts and we don’t have a system for catching and re-engaging those before they RTO.' },
-    ],
-  },
-  {
-    fn: 'Returns & Reverse Logistics',
-    items: [
-      { id: 'size-fit-return-rate', label: 'Size & fit return rate', types: ['fashion-apparel'], problem: 'Our return rate is highest on categories where fit and sizing matter most, and we suspect it’s costing us more than any other return reason combined.' },
-      { id: 'refund-processing-delays', label: 'Refund processing delays', problem: 'Once a return is picked up it can take us over a week to actually process the refund, and customers are noticing.' },
-      { id: 'exchange-vs-refund-friction', label: 'Exchange vs. refund friction', problem: 'Customers who want a straightforward size or color exchange end up going through the full refund-and-reorder flow because we don’t have a real exchange path.' },
-      { id: 'wardrobing-fraud', label: 'Wardrobing & return fraud', types: ['fashion-apparel'], problem: 'We suspect a share of our "returns" are actually worn-and-returned items, but we have no way of flagging repeat offenders or visible-wear patterns.' },
-    ],
-  },
-  {
-    fn: 'Inventory & Supply Chain',
-    items: [
-      { id: 'stockouts-bestsellers', label: 'Stockouts on bestsellers', problem: 'Our best-selling SKUs go out of stock at the worst times and we’re always reacting instead of forecasting the reorder point.' },
-      { id: 'overstock-dead-stock', label: 'Overstock & dead stock', problem: 'We’re sitting on inventory that hasn’t moved in months and nobody’s proactively flagging it for markdown or liquidation before it ties up more cash.' },
-      { id: 'size-curve-mismatch', label: 'Size-curve mismatches', types: ['fashion-apparel'], problem: 'We keep ordering the same size distribution regardless of what actually sells, so we’re overstocked in some sizes and chronically out in others.' },
-      { id: 'vendor-lead-time-variance', label: 'Vendor lead-time variance', problem: 'Our suppliers’ lead times swing wildly from order to order and we’re not tracking it, so our reorder timing is basically a guess.' },
-      { id: 'expiry-dated-stock', label: 'Expiry-dated stock write-offs', types: ['food-grocery', 'beauty-personal-care'], problem: 'We carry stock with a shelf life and a chunk of it expires on the shelf because nothing’s tracking FIFO or flagging it before it’s too late.' },
-    ],
-  },
-  {
-    fn: 'Marketing & Ad Spend Efficiency',
-    items: [
-      { id: 'rising-cac', label: 'Rising customer acquisition cost', problem: 'Our cost to acquire a new customer has been climbing steadily and we don’t have a clean read on which channel or campaign is actually driving it.' },
-      { id: 'roas-decline-by-channel', label: 'ROAS decline by channel', problem: 'Our return on ad spend has been sliding on at least one major channel and we can’t tell if it’s creative fatigue, audience saturation, or something else.' },
-      { id: 'attribution-blind-spots', label: 'Attribution blind spots', problem: 'We run ads across several platforms plus influencers and have no real way to tell which touchpoint actually drove a given sale.' },
-      { id: 'discount-code-abuse', label: 'Discount-code abuse & margin leakage', problem: 'Our promo codes get shared outside their intended audience and stacked with other offers, and we’ve never actually measured how much margin that’s costing us.' },
-    ],
-  },
-  {
-    fn: 'Customer Retention & LTV',
-    items: [
-      { id: 'repeat-purchase-decline', label: 'Repeat purchase rate decline', problem: 'Our repeat purchase rate has been sliding and we don’t have a structured way to understand why customers aren’t coming back.' },
-      { id: 'subscription-churn', label: 'Subscription churn', types: ['subscription-box'], problem: 'Subscribers cancel at a rate we’ve never actually modeled, and we don’t have a win-back flow for anyone who churns.' },
-      { id: 'post-purchase-engagement-gap', label: 'Post-purchase engagement gap', problem: 'Once someone’s bought, they mostly go quiet until the next sale event — we don’t have a real post-purchase journey keeping them engaged.' },
-      { id: 'review-ugc-collection', label: 'Review & UGC collection is ad hoc', problem: 'We get almost no reviews or user photos unless someone happens to post on their own, and we’ve never built a systematic way to ask.' },
-      { id: 'personalized-recommendation-gap', label: 'No personalized recommendations', types: ['beauty-personal-care', 'jewelry-accessories'], problem: 'Our best customers expect a curated, personal recommendation experience but we’re sending everyone the exact same generic emails and product suggestions.' },
     ],
   },
   {
     fn: 'Finance & Reconciliation',
     items: [
       { id: 'gateway-settlement-mismatch', label: 'Payment gateway settlement mismatches', problem: 'What our payment gateway settles to our bank account doesn’t always match what our order system says we should have received, and nobody reconciles it line by line.' },
-      { id: 'cod-collection-recon', label: 'COD collection reconciliation', problem: 'Cash collected by our courier partners for COD orders doesn’t always match what gets remitted to us, and we mostly just trust the number that lands.' },
-      { id: 'marketplace-payout-recon', label: 'Marketplace payout reconciliation', problem: 'We also sell on a couple of marketplaces and their payouts, commissions, and penalty deductions rarely reconcile cleanly against what we actually shipped.' },
-      { id: 'multi-sku-margin-visibility', label: 'Multi-SKU margin visibility', problem: 'We know our overall margin but not our real per-SKU margin once you account for returns, ad spend, and shipping cost — so we can’t tell what’s actually profitable.' },
     ],
   },
   {
     fn: 'Customer Support & Experience',
     items: [
       { id: 'wismo-ticket-volume', label: '"Where is my order" ticket volume', problem: 'A huge share of our support tickets are just customers asking where their order is, and we’re answering each one manually instead of deflecting it.' },
-      { id: 'support-response-time', label: 'Support response time SLA', problem: 'Our response time to customer queries varies wildly depending on volume and nobody’s tracking it against any real SLA.' },
-      { id: 'complaint-escalation-gap', label: 'Complaint escalation has no clear path', problem: 'A frustrated customer’s complaint gets handled however the support agent on shift feels like handling it, with no consistent escalation path.' },
     ],
   },
   {
-    fn: 'Website & Catalog Ops',
+    fn: 'Inventory & Supply Chain',
     items: [
-      { id: 'phantom-inventory', label: 'Out-of-stock items still shown as buyable', problem: 'Products that are actually out of stock still show as available on the site sometimes, and customers only find out after they’ve placed the order.' },
-      { id: 'catalog-data-quality', label: 'Catalog data quality gaps', problem: 'Our product listings have inconsistent attributes — missing sizes, wrong categories, incomplete specs — and it’s never been systematically audited.' },
-      { id: 'site-search-relevance', label: 'Site search relevance is poor', problem: 'Customers search for products on our site and get irrelevant results or nothing at all, and we don’t know how much revenue that’s costing us.' },
-    ],
-  },
-  {
-    fn: 'People & Operations',
-    items: [
-      { id: 'warehouse-labor-scheduling', label: 'Warehouse labor scheduling', problem: 'We staff our warehouse off gut feel rather than actual order-volume forecasts, so we’re overstaffed on quiet days and scrambling during sales.' },
-      { id: 'seasonal-peak-staffing', label: 'Seasonal peak staffing', problem: 'During big sale events our order volume spikes far beyond what our regular team can pack and ship on time, and we plan for it reactively every single time.' },
-      { id: 'packing-error-rate', label: 'Packing error rate', problem: 'Wrong items or incomplete orders go out the door more than they should, and we’ve never tracked which shift or which packer it’s coming from.' },
+      { id: 'stockouts-bestsellers', label: 'Stockouts on bestsellers', problem: 'Our best-selling SKUs go out of stock at the worst times and we’re always reacting instead of forecasting the reorder point.' },
     ],
   },
 ];
@@ -854,19 +801,28 @@ const canonical = new URL('/devshop/ecommerce', site.domain).href;
      input and lays an animated label over it that pans back and forth so
      the full text is readable. Untouched (and un-clipped) inputs are left
      exactly as-is. */
+  /* Two layers on purpose: .scroll-ph-label is the fixed-size clipping
+     window (sized and positioned to exactly match the input's padding
+     box, never moves); .scroll-ph-text is the actual placeholder string,
+     wider than the window, and is what the animation slides — animating
+     the window itself instead would drag its own clip boundary along
+     with it, letting the text spill out past the input's edge. */
   :global(.scroll-ph-label) {
     position: absolute; display: flex; align-items: center;
-    overflow: hidden; white-space: nowrap; pointer-events: none;
-    animation: scroll-ph-move var(--scroll-ph-duration, 8s) ease-in-out infinite;
+    overflow: hidden; pointer-events: none;
   }
   :global(.scroll-ph-label.scroll-ph-hide) { display: none; }
+  :global(.scroll-ph-text) {
+    display: inline-block; white-space: nowrap;
+    animation: scroll-ph-move var(--scroll-ph-duration, 8s) ease-in-out infinite;
+  }
   @keyframes scroll-ph-move {
     0%, 10% { transform: translateX(0); }
     45%, 55% { transform: translateX(calc(-1 * var(--scroll-ph-dist, 0px))); }
     90%, 100% { transform: translateX(0); }
   }
   @media (prefers-reduced-motion: reduce) {
-    :global(.scroll-ph-label) { animation: none; }
+    :global(.scroll-ph-text) { animation: none; }
   }
 </style>
 
@@ -1494,20 +1450,27 @@ const canonical = new URL('/devshop/ecommerce', site.domain).href;
         if (!parent) return;
         if (getComputedStyle(parent).position === 'static') parent.style.position = 'relative';
 
+        // Outer window: fixed size/position, clips, never animates.
         var label = document.createElement('span');
         label.className = 'scroll-ph-label';
         label.setAttribute('aria-hidden', 'true');
-        label.textContent = text;
-        var phColor;
-        try { phColor = getComputedStyle(input, '::placeholder').color; } catch (e) {}
         label.style.left = (input.offsetLeft + borderLeft + paddingLeft) + 'px';
         label.style.top = input.offsetTop + 'px';
         label.style.width = available + 'px';
         label.style.height = input.offsetHeight + 'px';
-        label.style.font = cs.font;
-        label.style.color = phColor && phColor !== 'rgba(0, 0, 0, 0)' ? phColor : cs.color;
-        label.style.setProperty('--scroll-ph-dist', (textWidth - available) + 'px');
-        label.style.setProperty('--scroll-ph-duration', Math.max(6, (textWidth - available) / 20) + 's');
+
+        // Inner text: full placeholder width, this is what actually pans.
+        var textEl = document.createElement('span');
+        textEl.className = 'scroll-ph-text';
+        textEl.textContent = text;
+        var phColor;
+        try { phColor = getComputedStyle(input, '::placeholder').color; } catch (e) {}
+        textEl.style.font = cs.font;
+        textEl.style.letterSpacing = cs.letterSpacing;
+        textEl.style.color = phColor && phColor !== 'rgba(0, 0, 0, 0)' ? phColor : cs.color;
+        textEl.style.setProperty('--scroll-ph-dist', (textWidth - available) + 'px');
+        textEl.style.setProperty('--scroll-ph-duration', Math.max(6, (textWidth - available) / 20) + 's');
+        label.appendChild(textEl);
         parent.insertBefore(label, input.nextSibling);
 
         input.removeAttribute('placeholder');

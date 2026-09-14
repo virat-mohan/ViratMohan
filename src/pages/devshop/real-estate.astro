@@ -60,90 +60,43 @@ const TYPES = [
   { slug: 'mixed-use', label: 'Mixed-use / multi-property' },
 ] as const;
 
+// Trimmed to the 5 most common, most AI-implementable problems in real
+// estate/property management — the ones an automation layer (tracking,
+// triage, forecasting, document extraction, lead response) actually
+// fixes, not a physical repair or legal action a person still has to
+// carry out. Selection grounded in the same categories showing up across
+// 2026 AI-ROI research: reconciliation/arrears tracking, ticket triage,
+// demand-based pricing/vacancy, document/clause extraction, and lead
+// response automation.
 const useCases = [
   {
     fn: 'Rent & Financial Reconciliation',
     items: [
       { id: 'rent-collection-delays', label: 'Rent collection delays & arrears tracking', problem: 'Our rent collection has no consistent tracking — we find out a tenant is in arrears whenever someone happens to check the bank statement, not when it first goes overdue.' },
-      { id: 'security-deposit-recon', label: 'Security deposit reconciliation', types: ['residential', 'short-let'], problem: 'Security deposits sit in a spreadsheet nobody updates in real time, so at move-out we’re often arguing over deductions with numbers neither side fully trusts.' },
-      { id: 'cam-charge-recon', label: 'CAM charge reconciliation', types: ['commercial', 'retail-property', 'mixed-use'], problem: 'Our common-area-maintenance charges are estimated once a year and reconciled against actual spend so late that tenants dispute the true-up by the time we send it.' },
-      { id: 'multi-property-pnl', label: 'Multi-property consolidated P&L', types: ['mixed-use'], problem: 'Every property in our portfolio tracks income and expenses in its own format, so we can never get one clean consolidated P&L without someone manually rebuilding it each month.' },
-      { id: 'late-fee-inconsistency', label: 'Late-fee enforcement inconsistency', types: ['residential'], problem: 'Late fees on overdue rent get waived or enforced depending on which property manager is handling the tenant, with no consistent policy anyone can point to.' },
-      { id: 'rent-escalation-tracking', label: 'Rent escalation clause tracking', types: ['commercial'], problem: 'We have annual rent escalation clauses baked into our commercial leases but nobody’s systematically tracking when each one kicks in, so we routinely under-bill for months before catching it.' },
     ],
   },
   {
     fn: 'Maintenance & Facilities',
     items: [
       { id: 'maintenance-sla', label: 'Maintenance ticket response SLA', problem: 'Maintenance requests come in over calls, WhatsApp, and email with no shared queue, so we have no real idea how long a ticket actually sits before someone acts on it.' },
-      { id: 'vendor-scheduling-conflicts', label: 'Vendor & contractor scheduling conflicts', problem: 'We book plumbers, electricians, and cleaning crews on an ad hoc basis and regularly double-book a unit or miss a scheduled visit entirely.' },
-      { id: 'preventive-vs-reactive', label: 'Preventive maintenance vs. reactive breakdowns', problem: 'Almost all our maintenance spend goes to fixing things after they break instead of a preventive schedule, and we’ve never actually modeled what that reactive pattern is costing us.' },
-      { id: 'recurring-issue-units', label: 'Recurring-issue units with no root-cause tracking', problem: 'The same handful of units generate repeat maintenance tickets every few months and nobody’s ever traced whether it’s a structural issue, a tenant behavior pattern, or a vendor doing a poor repair job.' },
     ],
   },
   {
     fn: 'Leasing & Occupancy',
     items: [
       { id: 'vacancy-duration', label: 'Vacancy duration / time-to-lease', problem: 'Units sit empty for weeks longer than they should and we don’t have a clear read on whether it’s pricing, marketing, or the leasing process itself that’s slow.' },
-      { id: 'lead-to-signed-conversion', label: 'Lead-to-tour-to-signed-lease conversion tracking', problem: 'We get plenty of inbound leads on our listings but have no idea what percentage actually convert to a tour, and what percentage of tours convert to a signed lease.' },
-      { id: 'renewal-rate-decline', label: 'Renewal rate decline', problem: 'Our lease renewal rate has been sliding and we don’t have a system that flags at-risk tenants early enough to actually do something about it.' },
-      { id: 'rent-roll-accuracy', label: 'Rent-roll accuracy', problem: 'Our rent roll doesn’t always match what’s actually being collected — a lease amendment or a move-out updates one system but not the others, and discrepancies pile up.' },
-      { id: 'occupancy-dynamic-pricing', label: 'Occupancy-based dynamic pricing', types: ['coworking', 'short-let'], problem: 'We charge the same rate regardless of how full the building is running, and have never tested occupancy-based dynamic pricing the way hotels or airlines do.' },
-      { id: 'broker-commission-tracking', label: 'Broker commission & deal pipeline tracking', types: ['brokerage'], problem: 'We track our brokerage deal pipeline and commission splits across spreadsheets and memory, and deals regularly fall through the cracks between showing and closing.' },
-    ],
-  },
-  {
-    fn: 'Tenant Experience & Retention',
-    items: [
-      { id: 'complaint-resolution-sla', label: 'Tenant complaints have no resolution SLA', problem: 'A tenant complaint gets handled however the on-site manager feels like handling it that day, with no consistent process or time-to-resolution target.' },
-      { id: 'move-in-out-disputes', label: 'Move-in / move-out inspection disputes', types: ['residential'], problem: 'Our move-in and move-out condition reports are inconsistent paper checklists, so almost every deposit deduction turns into a dispute over what was already damaged versus what happened during the tenancy.' },
-      { id: 'communication-scattered', label: 'Tenant communication scattered across channels', problem: 'Tenant conversations happen across email, WhatsApp, and phone calls with no single record, so a new property manager has to reconstruct history from scratch every time someone leaves.' },
-      { id: 'tenant-turnover-deposit-disputes', label: 'Tenant turnover & security deposit disputes', types: ['residential'], problem: 'Every time a tenant moves out we end up in some form of dispute over the security deposit, and it’s becoming a real driver of bad reviews and repeat vacancy.' },
-      { id: 'guest-experience-short-let', label: 'Guest experience & review management', types: ['short-let'], problem: 'Our short-let reviews are slipping and nobody’s systematically tracking which complaints — cleanliness, check-in, noise — are actually recurring across listings.' },
     ],
   },
   {
     fn: 'Compliance & Risk',
     items: [
       { id: 'lease-clause-tracking', label: 'Lease clause & renewal-date tracking', problem: 'Our lease terms, break clauses, and renewal dates live across individual PDF contracts, so we routinely find out a lease is about to auto-renew or expire only when it’s almost too late to act.' },
-      { id: 'fire-safety-cert-renewals', label: 'Fire-safety & building-code certification renewals', problem: 'Fire safety and building-code certifications across our properties get renewed reactively, usually right after someone notices one has already lapsed.' },
-      { id: 'insurance-cert-expiry', label: 'Insurance certificate expiry tracking', problem: 'We rely on tenants and vendors to keep their liability insurance current, but nobody’s actually tracking expiry dates, so we find out a certificate lapsed only after something goes wrong.' },
-      { id: 'legal-notice-tracking', label: 'Eviction & legal notice process tracking', types: ['residential'], problem: 'When we do need to issue a legal notice on a tenant, the process and required documentation depend on whoever’s handling it that week, and we’ve had notices thrown out on a technicality before.' },
-      { id: 'zoning-permit-compliance', label: 'Zoning & permit compliance for mixed-use conversions', types: ['mixed-use'], problem: 'As we convert or repurpose space across our mixed-use properties, zoning and permit compliance gets checked inconsistently, and we’ve been caught out by a requirement we missed.' },
     ],
   },
   {
     fn: 'Marketing & Lead Generation',
     items: [
-      { id: 'listing-syndication', label: 'Listing syndication inconsistency across portals', problem: 'The same unit shows different photos, prices, or availability across our listing portals because nobody’s syndicating updates consistently, and it costs us credibility with prospects.' },
       { id: 'lead-response-time', label: 'Lead response time', problem: 'Inbound leads from our listings sit unanswered for hours because there’s no consistent owner for first response, and we suspect we’re losing serious prospects to whoever answers first.' },
-      { id: 'empty-unit-marketing', label: 'Empty-unit marketing has no consistent playbook', problem: 'When a unit goes vacant, marketing it is whatever the property manager remembers to do that week — there’s no repeatable playbook for photos, pricing, and where it gets posted.' },
-      { id: 'short-let-channel-management', label: 'Short-let channel manager & OTA pricing parity', types: ['short-let'], problem: 'We list our short-let units across multiple OTAs and our pricing and availability regularly go out of sync between them, which has caused real double-bookings.' },
-    ],
-  },
-  {
-    fn: 'Vendor & Procurement',
-    items: [
-      { id: 'vendor-price-comparison', label: 'No multi-vendor price comparison for repeat services', problem: 'We reorder cleaning, security, and landscaping services from the same vendors out of habit and have never systematically compared prices across the market for our recurring spend.' },
-      { id: 'vendor-invoice-mismatch', label: 'Vendor invoice-vs-work-order mismatches', problem: 'Vendor invoices regularly don’t match the actual work order or the quote we approved, and right now someone just eyeballs them against a paper trail.' },
-      { id: 'contractor-vetting', label: 'Contractor vetting & compliance documentation gaps', problem: 'We don’t have a consistent process for vetting a new contractor’s licenses, insurance, and past work before putting them on a property, and it’s bitten us at least once.' },
-    ],
-  },
-  {
-    fn: 'People & Operations',
-    items: [
-      { id: 'staff-turnover', label: 'Property manager & on-site staff turnover', problem: 'We’re constantly rehiring and retraining on-site property managers and have never actually costed what that churn is doing to tenant retention and maintenance response times.' },
-      { id: 'workload-imbalance', label: 'Workload imbalance across a growing portfolio', problem: 'As we’ve added properties, workload across our property managers has gotten badly uneven, and we’re still assigning new units by habit instead of any real capacity model.' },
-      { id: 'onsite-staff-scheduling', label: 'On-site staff & security scheduling gaps', types: ['commercial', 'retail-property'], problem: 'On-site staff and security coverage across our commercial and retail properties gets scheduled manually and we’ve had gaps where a shift simply wasn’t covered.' },
-    ],
-  },
-  {
-    fn: 'Portfolio & Investment Reporting',
-    items: [
-      { id: 'owner-reporting-delays', label: 'Owner / investor reporting delays', problem: 'Our owners and investors expect a monthly performance report and we’re consistently late putting it together because the underlying numbers live across too many disconnected sources.' },
-      { id: 'noi-visibility-lag', label: 'NOI visibility lag', problem: 'We don’t have real-time visibility into net operating income across our properties — it’s a number we reconstruct after the fact each month, not one we can check any given week.' },
-      { id: 'capex-opex-tracking', label: 'Capex vs. opex tracking', problem: 'We don’t cleanly separate capital expenditure from operating expenditure across properties, which makes it hard to tell owners what’s actually driving a cost increase.' },
-      { id: 'portfolio-benchmarking', label: 'Cross-property performance benchmarking', types: ['mixed-use'], problem: 'We have no consistent way to benchmark one property against another in our portfolio, so underperformance often goes unnoticed until it’s a much bigger problem.' },
     ],
   },
 ];
@@ -848,19 +801,28 @@ const canonical = new URL('/devshop/real-estate', site.domain).href;
      input and lays an animated label over it that pans back and forth so
      the full text is readable. Untouched (and un-clipped) inputs are left
      exactly as-is. */
+  /* Two layers on purpose: .scroll-ph-label is the fixed-size clipping
+     window (sized and positioned to exactly match the input's padding
+     box, never moves); .scroll-ph-text is the actual placeholder string,
+     wider than the window, and is what the animation slides — animating
+     the window itself instead would drag its own clip boundary along
+     with it, letting the text spill out past the input's edge. */
   :global(.scroll-ph-label) {
     position: absolute; display: flex; align-items: center;
-    overflow: hidden; white-space: nowrap; pointer-events: none;
-    animation: scroll-ph-move var(--scroll-ph-duration, 8s) ease-in-out infinite;
+    overflow: hidden; pointer-events: none;
   }
   :global(.scroll-ph-label.scroll-ph-hide) { display: none; }
+  :global(.scroll-ph-text) {
+    display: inline-block; white-space: nowrap;
+    animation: scroll-ph-move var(--scroll-ph-duration, 8s) ease-in-out infinite;
+  }
   @keyframes scroll-ph-move {
     0%, 10% { transform: translateX(0); }
     45%, 55% { transform: translateX(calc(-1 * var(--scroll-ph-dist, 0px))); }
     90%, 100% { transform: translateX(0); }
   }
   @media (prefers-reduced-motion: reduce) {
-    :global(.scroll-ph-label) { animation: none; }
+    :global(.scroll-ph-text) { animation: none; }
   }
 </style>
 
@@ -1498,20 +1460,27 @@ const canonical = new URL('/devshop/real-estate', site.domain).href;
         if (!parent) return;
         if (getComputedStyle(parent).position === 'static') parent.style.position = 'relative';
 
+        // Outer window: fixed size/position, clips, never animates.
         var label = document.createElement('span');
         label.className = 'scroll-ph-label';
         label.setAttribute('aria-hidden', 'true');
-        label.textContent = text;
-        var phColor;
-        try { phColor = getComputedStyle(input, '::placeholder').color; } catch (e) {}
         label.style.left = (input.offsetLeft + borderLeft + paddingLeft) + 'px';
         label.style.top = input.offsetTop + 'px';
         label.style.width = available + 'px';
         label.style.height = input.offsetHeight + 'px';
-        label.style.font = cs.font;
-        label.style.color = phColor && phColor !== 'rgba(0, 0, 0, 0)' ? phColor : cs.color;
-        label.style.setProperty('--scroll-ph-dist', (textWidth - available) + 'px');
-        label.style.setProperty('--scroll-ph-duration', Math.max(6, (textWidth - available) / 20) + 's');
+
+        // Inner text: full placeholder width, this is what actually pans.
+        var textEl = document.createElement('span');
+        textEl.className = 'scroll-ph-text';
+        textEl.textContent = text;
+        var phColor;
+        try { phColor = getComputedStyle(input, '::placeholder').color; } catch (e) {}
+        textEl.style.font = cs.font;
+        textEl.style.letterSpacing = cs.letterSpacing;
+        textEl.style.color = phColor && phColor !== 'rgba(0, 0, 0, 0)' ? phColor : cs.color;
+        textEl.style.setProperty('--scroll-ph-dist', (textWidth - available) + 'px');
+        textEl.style.setProperty('--scroll-ph-duration', Math.max(6, (textWidth - available) / 20) + 's');
+        label.appendChild(textEl);
         parent.insertBefore(label, input.nextSibling);
 
         input.removeAttribute('placeholder');

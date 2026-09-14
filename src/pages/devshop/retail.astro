@@ -62,87 +62,42 @@ const TYPES = [
   { slug: 'multi-store-chain', label: 'Multi-store chains' },
 ] as const;
 
+// Trimmed to the 5 most common, most AI-implementable problems in retail —
+// the ones an automation layer (forecasting, reconciliation, scheduling,
+// sync, personalization) actually fixes, not a physical or compliance
+// issue a person still has to resolve. Selection grounded in the same
+// categories showing up across 2026 retail AI-ROI research: demand
+// forecasting/stock balancing, reconciliation, workforce scheduling,
+// omnichannel inventory sync, and personalization.
 const useCases = [
   {
     fn: 'Inventory & Merchandising',
     items: [
-      { id: 'inventory-count-mismatch', label: 'Stock counts never match the system', problem: 'Every physical stock count we run comes up different from what the system says we should have, and shrinkage just gets written off instead of investigated.' },
-      { id: 'perishable-shrinkage', label: 'Perishable shrinkage', types: ['grocery-supermarket'], problem: 'We lose a meaningful chunk of produce, dairy, and bakery stock to expiry every week, and nobody\'s broken down how much is over-ordering versus poor rotation.' },
       { id: 'bestseller-stockouts', label: 'Bestsellers stock out, slow movers pile up', problem: 'Our top-selling SKUs run out constantly while slow movers sit on the shelf tying up capital, and reordering is still done on gut feel per store.' },
-      { id: 'size-curve-stockouts', label: 'Size-curve stockouts', types: ['fashion-apparel'], problem: 'We keep selling out of the middle sizes on our best styles within days while the extreme sizes sit unsold, and our buying never accounts for the real size curve.' },
-      { id: 'planogram-compliance', label: 'Planogram / shelf-space compliance', types: ['multi-store-chain', 'department-store'], problem: 'Head office sends a planogram for how the floor should be merchandised, but we have no real way to check whether individual stores are actually following it.' },
-      { id: 'seasonal-buy-planning', label: 'Seasonal buy-planning misses', problem: 'We consistently over-buy on some seasonal lines and under-buy on others because the buy plan is built off last year\'s gut feel, not actual sell-through data.' },
-    ],
-  },
-  {
-    fn: 'Store Operations',
-    items: [
-      { id: 'checkout-queue-times', label: 'Checkout queue times at peak', problem: 'Billing queues back up badly on weekends and evenings and we can never tell if it\'s a staffing problem, a POS problem, or both.' },
-      { id: 'pos-system-downtime', label: 'POS downtime losing sales', problem: 'Our POS system goes down or lags at the worst possible moments and we have no visibility into how often it happens or what it\'s actually costing us in walked-away customers.' },
-      { id: 'staff-scheduling-footfall', label: 'Staff scheduling vs. footfall demand', problem: 'We staff the same headcount every day regardless of how busy the store actually gets, so we\'re overstaffed on slow days and short-handed during our real peak hours.' },
-      { id: 'loss-prevention-theft', label: 'Loss prevention & theft', problem: 'We suspect a meaningful part of our shrinkage is theft — staff or customer — but we have no systematic way to flag suspicious transactions or patterns.' },
-      { id: 'sop-drift-multistore', label: 'Store-to-store SOP drift', types: ['multi-store-chain'], problem: 'The same standard operating procedures play out differently at every one of our stores depending on which store manager is running the shift, with no real compliance check.' },
     ],
   },
   {
     fn: 'Finance & Reconciliation',
     items: [
-      { id: 'daily-cash-reconciliation', label: 'Daily cash reconciliation gaps', problem: 'Our daily cash-drawer reconciliation rarely ties out cleanly across shifts, and small discrepancies just get absorbed instead of traced back to a cause.' },
       { id: 'marketplace-payout-mismatch', label: 'Marketplace/online payouts don\'t match orders', problem: 'What our marketplace and online-channel payouts land as almost never matches what our order records say we sold, and we just accept whatever hits the account.' },
-      { id: 'vendor-invoice-mismatch', label: 'Vendor invoice mismatches', problem: 'We get billed for quantities that don\'t match what actually got delivered to the store, and someone just eyeballs the invoice against a paper delivery note.' },
-      { id: 'multistore-pnl-consolidation', label: 'Multi-store consolidated P&L', types: ['multi-store-chain'], problem: 'Every one of our stores closes its books in a slightly different format on a different schedule, so we can never get one clean consolidated P&L across the chain.' },
     ],
   },
   {
-    fn: 'Customer Experience & Loyalty',
+    fn: 'Store Operations',
     items: [
-      { id: 'loyalty-redemption-decline', label: 'Loyalty-program redemption decline', problem: 'We have a loyalty points program but redemption and repeat visits have been sliding and we don\'t have any re-engagement flow for lapsed members.' },
-      { id: 'review-complaint-handling', label: 'In-store reviews & complaints unmanaged', problem: 'We get a steady stream of Google and marketplace reviews and in-store complaints but nobody owns responding to them or feeding the pattern back into operations.' },
-      { id: 'returns-exchange-friction', label: 'Returns & exchange friction', problem: 'Our returns and exchange process takes far too long at the counter and every store seems to apply the policy a little differently, which frustrates customers.' },
-      { id: 'personalized-offers-missing', label: 'Personalized offers aren\'t happening', problem: 'We send the same blanket discount to every customer regardless of what they\'ve actually bought before, even though we have the purchase history sitting right there.' },
-      { id: 'warranty-claim-tracking', label: 'Warranty claim tracking', types: ['electronics'], problem: 'Customers file warranty claims with us and then have no way to check status, and internally we track claims on a spreadsheet that regularly goes stale.' },
+      { id: 'staff-scheduling-footfall', label: 'Staff scheduling vs. footfall demand', problem: 'We staff the same headcount every day regardless of how busy the store actually gets, so we\'re overstaffed on slow days and short-handed during our real peak hours.' },
     ],
   },
   {
     fn: 'Omnichannel & Fulfillment',
     items: [
-      { id: 'bopis-gaps', label: 'Buy-online-pickup-in-store gaps', problem: 'Items show as available for in-store pickup on our website that the store actually doesn\'t have, and the customer only finds out when they arrive to collect.' },
-      { id: 'click-collect-delays', label: 'Click-and-collect delays', problem: 'Click-and-collect orders routinely take much longer to get ready than the confirmation email promises, and we don\'t have visibility into where the delay is happening.' },
       { id: 'channel-inventory-sync', label: 'Store ↔ e-commerce inventory sync', problem: 'Our in-store and online inventory counts drift out of sync constantly, so we oversell items online that already sold out in the physical store.' },
-      { id: 'ship-from-store-errors', label: 'Ship-from-store errors', problem: 'When we fulfill online orders directly from a store\'s stock, we get a disproportionate number of wrong-item or delayed shipments compared to warehouse fulfillment.' },
     ],
   },
   {
-    fn: 'Marketing & Local Visibility',
+    fn: 'Customer Experience & Loyalty',
     items: [
-      { id: 'footfall-conversion-tracking', label: 'Footfall-to-conversion untracked', problem: 'We have a rough sense of how many people walk into the store each day but no real idea what percentage actually convert to a sale, or why the rest walk out.' },
-      { id: 'promo-roi-untracked', label: 'Promo/discount ROI untracked', problem: 'We run discounts and promotions fairly often but never actually measure whether a given promotion made us money or just gave away margin.' },
-      { id: 'local-ad-spend-efficiency', label: 'Local ad spend efficiency unclear', problem: 'We spend on local ads and flyers every month with no clean way to tell which channel is actually driving footfall versus just burning budget.' },
-      { id: 'gbp-neglected-multilocation', label: 'Google Business Profile neglected across locations', types: ['multi-store-chain'], problem: 'Half our store listings on Google have outdated hours, old photos, or unanswered questions, and nobody owns keeping every location current.' },
-    ],
-  },
-  {
-    fn: 'People & Labor',
-    items: [
-      { id: 'frontline-turnover', label: 'High front-line staff turnover', problem: 'We\'re constantly rehiring and retraining sales associates and cashiers and have never actually costed what that churn is doing to us.' },
-      { id: 'commission-incentive-disputes', label: 'Commission & incentive disputes', problem: 'Commission and incentive payouts get argued over almost every pay cycle because there\'s no consistent, transparent way sales are attributed to a specific staff member.' },
-      { id: 'seasonal-hire-onboarding-lag', label: 'Onboarding lag for seasonal hires', problem: 'Our seasonal and festive-period hires take far too long to become productive on the floor, and onboarding is whatever the store manager has time for that week.' },
-    ],
-  },
-  {
-    fn: 'Vendor & Supply Chain',
-    items: [
-      { id: 'vendor-price-comparison-gap', label: 'No multi-vendor price comparison', problem: 'We reorder from the same suppliers out of habit and have never systematically compared prices across vendors for our top-selling categories.' },
-      { id: 'delivery-leadtime-variance', label: 'Delivery lead-time variance', problem: 'Our supplier delivery times swing wildly week to week with no warning, so we either understock waiting for a delayed shipment or overstock to compensate.' },
-      { id: 'private-label-quality-issues', label: 'Private-label / vendor quality issues', problem: 'We get periodic quality complaints on private-label or vendor-supplied goods but have no systematic way to track which vendor or batch it\'s actually coming from.' },
-    ],
-  },
-  {
-    fn: 'Compliance & Safety',
-    items: [
-      { id: 'product-recall-tracking', label: 'Product recall tracking', problem: 'When a supplier issues a recall, we have no reliable way to identify which stores received the affected batch or confirm it actually got pulled from shelves.' },
-      { id: 'expiry-date-compliance', label: 'Expiry-date compliance', types: ['grocery-supermarket'], problem: 'Expired stock still turns up on our shelves occasionally because date-checking depends entirely on staff remembering to do a manual sweep.' },
-      { id: 'safety-cert-renewals', label: 'Safety & fire-code certification renewals', types: ['multi-store-chain'], problem: 'Fire-safety and electrical certifications across our stores get renewed reactively, usually right after someone notices one has already lapsed.' },
+      { id: 'personalized-offers-missing', label: 'Personalized offers aren\'t happening', problem: 'We send the same blanket discount to every customer regardless of what they\'ve actually bought before, even though we have the purchase history sitting right there.' },
     ],
   },
 ];
@@ -843,19 +798,28 @@ const canonical = new URL('/devshop/retail', site.domain).href;
      input and lays an animated label over it that pans back and forth so
      the full text is readable. Untouched (and un-clipped) inputs are left
      exactly as-is. */
+  /* Two layers on purpose: .scroll-ph-label is the fixed-size clipping
+     window (sized and positioned to exactly match the input's padding
+     box, never moves); .scroll-ph-text is the actual placeholder string,
+     wider than the window, and is what the animation slides — animating
+     the window itself instead would drag its own clip boundary along
+     with it, letting the text spill out past the input's edge. */
   :global(.scroll-ph-label) {
     position: absolute; display: flex; align-items: center;
-    overflow: hidden; white-space: nowrap; pointer-events: none;
-    animation: scroll-ph-move var(--scroll-ph-duration, 8s) ease-in-out infinite;
+    overflow: hidden; pointer-events: none;
   }
   :global(.scroll-ph-label.scroll-ph-hide) { display: none; }
+  :global(.scroll-ph-text) {
+    display: inline-block; white-space: nowrap;
+    animation: scroll-ph-move var(--scroll-ph-duration, 8s) ease-in-out infinite;
+  }
   @keyframes scroll-ph-move {
     0%, 10% { transform: translateX(0); }
     45%, 55% { transform: translateX(calc(-1 * var(--scroll-ph-dist, 0px))); }
     90%, 100% { transform: translateX(0); }
   }
   @media (prefers-reduced-motion: reduce) {
-    :global(.scroll-ph-label) { animation: none; }
+    :global(.scroll-ph-text) { animation: none; }
   }
 </style>
 
@@ -1497,20 +1461,27 @@ const canonical = new URL('/devshop/retail', site.domain).href;
         if (!parent) return;
         if (getComputedStyle(parent).position === 'static') parent.style.position = 'relative';
 
+        // Outer window: fixed size/position, clips, never animates.
         var label = document.createElement('span');
         label.className = 'scroll-ph-label';
         label.setAttribute('aria-hidden', 'true');
-        label.textContent = text;
-        var phColor;
-        try { phColor = getComputedStyle(input, '::placeholder').color; } catch (e) {}
         label.style.left = (input.offsetLeft + borderLeft + paddingLeft) + 'px';
         label.style.top = input.offsetTop + 'px';
         label.style.width = available + 'px';
         label.style.height = input.offsetHeight + 'px';
-        label.style.font = cs.font;
-        label.style.color = phColor && phColor !== 'rgba(0, 0, 0, 0)' ? phColor : cs.color;
-        label.style.setProperty('--scroll-ph-dist', (textWidth - available) + 'px');
-        label.style.setProperty('--scroll-ph-duration', Math.max(6, (textWidth - available) / 20) + 's');
+
+        // Inner text: full placeholder width, this is what actually pans.
+        var textEl = document.createElement('span');
+        textEl.className = 'scroll-ph-text';
+        textEl.textContent = text;
+        var phColor;
+        try { phColor = getComputedStyle(input, '::placeholder').color; } catch (e) {}
+        textEl.style.font = cs.font;
+        textEl.style.letterSpacing = cs.letterSpacing;
+        textEl.style.color = phColor && phColor !== 'rgba(0, 0, 0, 0)' ? phColor : cs.color;
+        textEl.style.setProperty('--scroll-ph-dist', (textWidth - available) + 'px');
+        textEl.style.setProperty('--scroll-ph-duration', Math.max(6, (textWidth - available) / 20) + 's');
+        label.appendChild(textEl);
         parent.insertBefore(label, input.nextSibling);
 
         input.removeAttribute('placeholder');
