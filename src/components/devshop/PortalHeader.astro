@@ -34,6 +34,14 @@ const navItems = [
 ---
 
 <header class="ds-portal-header" data-theme={theme}>
+  <div class="ds-alpha-banner" id="dsAlphaBanner" hidden>
+    <p class="ds-alpha-text">
+      <span class="ds-alpha-tag">ALPHA</span>
+      DevShop is early &mdash; still being built in the open. If this is the kind of thing that interests you,
+      <a href={site.linkedin} target="_blank" rel="noopener noreferrer">DM me &rarr;</a>
+    </p>
+    <button type="button" class="ds-alpha-close" id="dsAlphaClose" aria-label="Dismiss">&times;</button>
+  </div>
   <div class="ds-header-inner">
     <a class="ds-logo" href="/devshop">
       {verticalTag && <span class="ds-logo-tag">{verticalTag}</span>}
@@ -116,6 +124,23 @@ const navItems = [
 </a>
 
 <script>
+  // Alpha banner — dismissible, remembered per browser via localStorage so
+  // a repeat visitor doesn't see it re-appear on every page. Starts
+  // `hidden` in the markup and only gets shown here (rather than the
+  // reverse: visible-by-default, hidden by script) so a returning visitor
+  // who already dismissed it never sees a flash of it before JS removes it.
+  const alphaBanner = document.getElementById('dsAlphaBanner');
+  const alphaClose = document.getElementById('dsAlphaClose');
+  if (alphaBanner && alphaClose) {
+    let dismissed = false;
+    try { dismissed = localStorage.getItem('ds-alpha-dismissed') === '1'; } catch (e) {}
+    if (!dismissed) alphaBanner.hidden = false;
+    alphaClose.addEventListener('click', () => {
+      alphaBanner.hidden = true;
+      try { localStorage.setItem('ds-alpha-dismissed', '1'); } catch (e) {}
+    });
+  }
+
   // Industries dropdown — click-to-toggle, closes on outside click or Escape.
   // Scoped to this component's own ids so it can't collide with any host
   // page's own script (each host page's `data-go` handlers still see these
@@ -195,6 +220,33 @@ const navItems = [
     background: var(--ds-bg); color-scheme: var(--ds-scheme);
     font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   }
+  /* Alpha banner — one thin strip, distinct from the portal chrome's own
+     palette (a warm gold-on-ink band) so it reads as a notice rather than
+     part of the nav, in either theme. */
+  .ds-alpha-banner {
+    display: flex; align-items: center; justify-content: center; gap: 14px;
+    background: #15130f; color: #d4af37; padding: 9px 48px;
+    text-align: center;
+  }
+  .ds-alpha-text { margin: 0; font-size: 12.5px; line-height: 1.5; font-family: 'Inter', system-ui, sans-serif; color: #d9c9a3; }
+  .ds-alpha-tag {
+    display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+    color: #15130f; background: #d4af37; border-radius: 3px; padding: 1px 6px; margin-right: 8px;
+    vertical-align: middle;
+  }
+  .ds-alpha-text a { color: #f5e6c3; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; margin-left: 2px; }
+  .ds-alpha-text a:hover { color: #fff; }
+  .ds-alpha-close {
+    flex: none; background: none; border: none; color: #85837e; font-size: 18px; line-height: 1;
+    cursor: pointer; padding: 2px 4px;
+  }
+  .ds-alpha-close:hover { color: #f5f5f0; }
+  @media (max-width: 640px) {
+    .ds-alpha-banner { padding: 8px 14px; gap: 8px; }
+    .ds-alpha-text { font-size: 11px; text-align: left; }
+    .ds-alpha-tag { display: block; width: max-content; margin: 0 0 3px; }
+  }
+
   .ds-header-inner { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 20px 64px; }
   .ds-logo {
     display: flex; align-items: baseline; gap: 4px;
