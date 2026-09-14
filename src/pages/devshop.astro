@@ -1206,9 +1206,10 @@ const canonical = new URL('/devshop', site.domain).href;
     });
   }
 
-  function showScreen(id) {
+  function showScreen(id, opts) {
     var el = document.getElementById(id);
     if (!el) return;
+    var shouldScroll = !opts || opts.scroll !== false;
 
     if (scrollScreens.indexOf(id) !== -1) {
       // Jump back into the scrollable page (e.g. from the intake wizard's
@@ -1219,7 +1220,12 @@ const canonical = new URL('/devshop', site.domain).href;
       document.getElementById('marketingNav').style.display = 'flex';
       document.getElementById('appNav').style.display = 'none';
       updateNavActiveState(id);
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Skip on the plain, hash-less initial load: the landing screen is
+      // already sitting at the top of the page, so scrollIntoView's
+      // scroll-margin-top math (reserving space for the sticky header)
+      // would scroll the page *down* into it unnecessarily, tucking the
+      // hero behind the header instead of leaving it where it already is.
+      if (shouldScroll) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
 
@@ -1711,7 +1717,8 @@ const canonical = new URL('/devshop', site.domain).href;
   // here as /devshop#pricing — honor that instead of always defaulting to
   // the landing screen.
   var initialScreen = location.hash.replace('#', '');
-  showScreen(marketingScreens.indexOf(initialScreen) !== -1 ? initialScreen : 'landing');
+  var hasExplicitInitialTarget = marketingScreens.indexOf(initialScreen) !== -1;
+  showScreen(hasExplicitInitialTarget ? initialScreen : 'landing', { scroll: hasExplicitInitialTarget });
 
   /* ---- scrolling placeholders (see .scroll-ph-* in <style> above) ---- */
   (function () {
