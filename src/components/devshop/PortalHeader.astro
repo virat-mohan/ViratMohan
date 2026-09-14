@@ -138,7 +138,26 @@ const navItems = [
     alphaClose.addEventListener('click', () => {
       alphaBanner.hidden = true;
       try { localStorage.setItem('ds-alpha-dismissed', '1'); } catch (e) {}
+      syncHeaderHeight();
     });
+  }
+
+  // Publish the header's real rendered height as a CSS variable so any
+  // page using an anchor-scroll layout (devshop.astro's `.screen--scroll`,
+  // scroll-margin-top) can offset against the *actual* sticky header —
+  // including the alpha banner, which changes height depending on
+  // whether it's shown, dismissed, or wrapped to two lines on mobile.
+  // A hardcoded px offset silently goes stale the moment the header's
+  // own content changes (exactly what happened when the banner was added).
+  const dsHeaderEl = document.querySelector('.ds-portal-header');
+  function syncHeaderHeight() {
+    if (!dsHeaderEl) return;
+    document.documentElement.style.setProperty('--ds-header-h', dsHeaderEl.offsetHeight + 'px');
+  }
+  syncHeaderHeight();
+  window.addEventListener('resize', syncHeaderHeight);
+  if (dsHeaderEl && 'ResizeObserver' in window) {
+    new ResizeObserver(syncHeaderHeight).observe(dsHeaderEl);
   }
 
   // Industries dropdown — click-to-toggle, closes on outside click or Escape.

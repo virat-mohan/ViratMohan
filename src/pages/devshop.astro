@@ -180,7 +180,6 @@ const canonical = new URL('/devshop', site.domain).href;
 
   <!-- 01 LANDING -->
   <section class="screen screen--scroll active" id="landing" data-marketing-index="1">
-    <div class="eyebrow">FAST TECH DEV SHOP</div>
     <h1 class="hero serif">Give us a <span class="tint-gold">business&nbsp;problem.</span></h1>
     <p class="sub" style="max-width:560px; margin-top:8px;">We'll figure out what's actually causing it, ground the fix in the right researched framework — real credibility, not a guess — show you the mechanism we'd build, and put a working version in front of you before you buy anything.</p>
     <form class="input-row" id="landingForm">
@@ -738,7 +737,12 @@ const canonical = new URL('/devshop', site.domain).href;
      flexed regardless of .active, and hidden as a group only while an
      overlay screen (intake wizard, post-submit states, app simulation)
      takes over the whole viewport. */
-  .screen--scroll { display: flex; align-items: center; text-align: center; scroll-margin-top: 132px; }
+  /* --ds-header-h is measured live by PortalHeader (its actual rendered
+     height, banner included) — a hardcoded px offset goes stale the
+     moment the header's own content changes height, which is exactly
+     what tucked section headings behind the sticky header when the
+     alpha banner shipped. +16px is just breathing room below the hairline. */
+  .screen--scroll { display: flex; align-items: center; text-align: center; scroll-margin-top: calc(var(--ds-header-h, 132px) + 16px); }
   body.ds-overlay-active .screen--scroll { display: none; }
   html { scroll-behavior: smooth; }
   .eyebrow { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dev-muted2); margin-bottom: 28px; }
@@ -748,7 +752,7 @@ const canonical = new URL('/devshop', site.domain).href;
   .mono { font-family: 'JetBrains Mono', SFMono-Regular, Consolas, monospace; }
   h1.hero {
     font-family: 'Crimson Text', Georgia, serif; font-weight: 400;
-    font-size: clamp(40px, 6.2vw, 100px); line-height: 0.98; letter-spacing: -0.01em; max-width: 920px; margin: 0;
+    font-size: clamp(40px, 6.2vw, 100px); line-height: 1.08; letter-spacing: -0.01em; max-width: 920px; margin: 0;
   }
   .tint-blue { color: var(--dev-blue); }
   .tint-gold { color: var(--dev-gold); }
@@ -1135,19 +1139,28 @@ const canonical = new URL('/devshop', site.domain).href;
      only where it actually overflows, wraps the input and lays an
      animated label over it that pans back and forth so the full text is
      readable. Untouched (and un-clipped) inputs are left exactly as-is. */
+  /* Two layers on purpose: .scroll-ph-label is the fixed-size clipping
+     window (sized and positioned to exactly match the input's padding
+     box, never moves); .scroll-ph-text is the actual placeholder string,
+     wider than the window, and is what the animation slides — animating
+     the window itself instead would drag its own clip boundary along
+     with it, letting the text spill out past the input's edge. */
   :global(.scroll-ph-label) {
     position: absolute; display: flex; align-items: center;
-    overflow: hidden; white-space: nowrap; pointer-events: none;
-    animation: scroll-ph-move var(--scroll-ph-duration, 8s) ease-in-out infinite;
+    overflow: hidden; pointer-events: none;
   }
   :global(.scroll-ph-label.scroll-ph-hide) { display: none; }
+  :global(.scroll-ph-text) {
+    display: inline-block; white-space: nowrap;
+    animation: scroll-ph-move var(--scroll-ph-duration, 8s) ease-in-out infinite;
+  }
   @keyframes scroll-ph-move {
     0%, 10% { transform: translateX(0); }
     45%, 55% { transform: translateX(calc(-1 * var(--scroll-ph-dist, 0px))); }
     90%, 100% { transform: translateX(0); }
   }
   @media (prefers-reduced-motion: reduce) {
-    :global(.scroll-ph-label) { animation: none; }
+    :global(.scroll-ph-text) { animation: none; }
   }
 </style>
 
@@ -1738,20 +1751,27 @@ const canonical = new URL('/devshop', site.domain).href;
         if (!parent) return;
         if (getComputedStyle(parent).position === 'static') parent.style.position = 'relative';
 
+        // Outer window: fixed size/position, clips, never animates.
         var label = document.createElement('span');
         label.className = 'scroll-ph-label';
         label.setAttribute('aria-hidden', 'true');
-        label.textContent = text;
-        var phColor;
-        try { phColor = getComputedStyle(input, '::placeholder').color; } catch (e) {}
         label.style.left = (input.offsetLeft + borderLeft + paddingLeft) + 'px';
         label.style.top = input.offsetTop + 'px';
         label.style.width = available + 'px';
         label.style.height = input.offsetHeight + 'px';
-        label.style.font = cs.font;
-        label.style.color = phColor && phColor !== 'rgba(0, 0, 0, 0)' ? phColor : cs.color;
-        label.style.setProperty('--scroll-ph-dist', (textWidth - available) + 'px');
-        label.style.setProperty('--scroll-ph-duration', Math.max(6, (textWidth - available) / 20) + 's');
+
+        // Inner text: full placeholder width, this is what actually pans.
+        var textEl = document.createElement('span');
+        textEl.className = 'scroll-ph-text';
+        textEl.textContent = text;
+        var phColor;
+        try { phColor = getComputedStyle(input, '::placeholder').color; } catch (e) {}
+        textEl.style.font = cs.font;
+        textEl.style.letterSpacing = cs.letterSpacing;
+        textEl.style.color = phColor && phColor !== 'rgba(0, 0, 0, 0)' ? phColor : cs.color;
+        textEl.style.setProperty('--scroll-ph-dist', (textWidth - available) + 'px');
+        textEl.style.setProperty('--scroll-ph-duration', Math.max(6, (textWidth - available) / 20) + 's');
+        label.appendChild(textEl);
         parent.insertBefore(label, input.nextSibling);
 
         input.removeAttribute('placeholder');
