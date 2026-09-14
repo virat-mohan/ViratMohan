@@ -1,6 +1,6 @@
 ---
 title: "Everything the Résumé Leaves Out"
-standfirst: "The keyboard, the alumni society, the marathon I never ran. None of it fits a career timeline. All of it is real."
+standfirst: "The keyboard, the alumni society, the marathon in training. None of it fits a career timeline. All of it is real."
 order: 8
 pubDate: 2026-09-08
 ---
@@ -9,7 +9,7 @@ I've been playing keyboards since I was four. Competed nationally as a kid, was 
 
 I'm ex-President of the Shri Ram Alumni Society. Seven-odd years of trying to keep a few thousand people who went to the same school loosely connected to each other, for no reason except that it seemed worth doing. It's the closest thing I have to civic work, and it taught me more about getting people to show up for something than most of my actual jobs did.
 
-I trained for a marathon in Vienna. Never made it to the start line — long story, not an interesting one. I'm not precious about it. I'll probably do another one at some point, or I won't. Either way it's on the list of things I've attempted and not finished, which is a shorter list than the things I've finished, but not as short as I'd like.
+I've been training for a marathon in Vienna. Long runs on weekends, the whole build-up. It's not glamorous and I don't talk about it much, but it's on the list of things I'm working toward outside of work, which is a shorter list than I'd like.
 
 I read about longevity the way some people follow a sports league — Bryan Johnson and the rest of that world, protocols, blood panels, the whole apparatus. I don't do half of what the serious people do. But I like the underlying premise: that most of what determines how you feel at fifty is decided by boring, repeatable choices made well before then. It's the same instinct that shows up in my actual work — distrust of anything that looks impressive and isn't repeatable.
 

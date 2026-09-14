@@ -151,7 +151,7 @@ export const facets: Facet[] = [
   },
   {
     title: 'Marathoner',
-    body: 'Prepared for Vienna, but never made it to the start.',
+    body: 'Trained for the Vienna marathon.',
   },
 ];
 
