@@ -71,6 +71,10 @@ const problemLibrary = [
   { name: 'Manual customer follow-up', desc: 'Leads go quiet because no one remembers to follow up until it’s already too late.' },
   { name: 'Inventory leakage', desc: 'Stock on the shelf drifts from stock on the books, and nobody notices until the audit.' },
   { name: 'Slow approvals', desc: 'A request sits in someone’s inbox for days because there’s no clear owner or deadline.' },
+  { name: 'Delivery-platform payout mismatch', desc: 'Swiggy and Zomato payouts never match what the POS says was sold, and everyone just accepts whatever lands in the bank account.' },
+  { name: 'Rent collection & arrears tracking', desc: 'A tenant is in arrears and nobody finds out until someone happens to check the bank statement.' },
+  { name: 'Demand forecasting gaps', desc: 'Staffing and prep run on gut feel instead of actual demand patterns, and it shows up in both waste and stockouts.' },
+  { name: 'Vacancy duration / time-to-lease', desc: 'Units sit empty for weeks longer than they should, with no clear read on whether it’s pricing, marketing, or the leasing process itself.' },
 ];
 
 // TODO: confirm these case studies are cleared for public naming
@@ -732,6 +736,7 @@ const canonical = new URL('/devshop', site.domain).href;
 
   .wrap { max-width: 1360px; margin: 0 auto; padding: 0 64px; position: relative; z-index: 1; }
   .screen { display: none; min-height: calc(100vh - 78px); flex-direction: column; padding-top: 64px; }
+  #landing { min-height: calc(88vh - 78px); padding-top: 32px; }
   .screen.active { display: flex; }
   /* Marketing sections render as one continuous scrollable page — always
      flexed regardless of .active, and hidden as a group only while an
