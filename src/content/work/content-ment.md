@@ -1,5 +1,5 @@
 ---
-category: "AI Content Operating Platform"
+category: "Social Content Operations Platform"
 brand: "Content-ment"
 tagline: "Drafting, approval, and export in one integrated workflow — not three disconnected tools."
 order: 6
