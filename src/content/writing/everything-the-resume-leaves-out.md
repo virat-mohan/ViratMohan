@@ -7,7 +7,7 @@ pubDate: 2026-09-08
 
 I've been playing keyboards since I was four. Competed nationally as a kid, was in a band called Anachronox for years after. Nobody asks about this in a business meeting, and I never bring it up, but it's probably the longest-running thing I've ever done — longer than any job on this site.
 
-I'm ex-President of the Shri Ram Alumni Society. Seven-odd years of trying to keep a few thousand people who went to the same school loosely connected to each other, for no reason except that it seemed worth doing. It's the closest thing I have to civic work, and it taught me more about getting people to show up for something than most of my actual jobs did.
+I'm ex-President of The Shri Ram School Alumni Society, 2016 to 2023. Seven years of trying to keep a few thousand people who went to the same school loosely connected to each other, for no reason except that it seemed worth doing. It's the closest thing I have to civic work, and it taught me more about getting people to show up for something than most of my actual jobs did.
 
 I've been training for a marathon in Vienna. Long runs on weekends, the whole build-up. It's not glamorous and I don't talk about it much, but it's on the list of things I'm working toward outside of work, which is a shorter list than I'd like.
 

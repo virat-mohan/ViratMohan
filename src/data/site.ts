@@ -131,7 +131,7 @@ export type Facet = {
 export const facets: Facet[] = [
   {
     title: 'Community',
-    body: 'Ex-President, Shri Ram Alumni Society.',
+    body: 'Ex-President, The Shri Ram School Alumni Society (2016–2023).',
   },
   {
     title: 'Longevity',
