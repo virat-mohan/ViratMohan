@@ -222,7 +222,25 @@ const MAX_TOKENS = 16000;
 // schema changes meaningfully — it's stamped on every generation row so a
 // bad output can be traced back to the exact prompt version that produced
 // it (brief §23-24). Plain "YYYY-MM-DD.N" is enough; no need for real semver.
-const PROMPT_VERSION = '2026-09-05.1';
+const PROMPT_VERSION = '2026-09-17.1';
+
+// Defense against a real failure mode observed in production: the model's
+// own Step 9 self-audit is not a reliable backstop — a run can self-report
+// "pass" on every check while artefact_html is actually just a placeholder
+// token (e.g. the literal string "<UNKNOWN>REPLACE_WITH_HTML") instead of
+// real markup. Never trust the field at face value; check it deterministically
+// before a demo is allowed to ship.
+const MIN_PLAUSIBLE_ARTEFACT_HTML_LENGTH = 2000;
+const ARTEFACT_PLACEHOLDER_PATTERNS = [/REPLACE_WITH_HTML/i, /<UNKNOWN>/i, /^\s*$/, /lorem ipsum/i];
+function isArtefactHtmlPlausible(html: string | null | undefined): boolean {
+  if (!html || html.length < MIN_PLAUSIBLE_ARTEFACT_HTML_LENGTH) return false;
+  if (ARTEFACT_PLACEHOLDER_PATTERNS.some((p) => p.test(html))) return false;
+  // Step 8 requires a self-contained artefact with an inline <style> block —
+  // its absence is itself a strong signal the generation went wrong, on top
+  // of being the exact defect the visual_design_quality check exists to catch.
+  if (!/<style[\s>]/i.test(html)) return false;
+  return true;
+}
 // Just under astro.config.mjs's maxDuration (300s) so a hung request fails
 // with a clear timeout status instead of the platform silently killing the
 // function with no diagnostic.
@@ -780,6 +798,33 @@ async function callClaudeTool(
   throw err;
 }
 
+// Wraps callClaudeTool with one extra full re-generation attempt if the
+// artefact_html that comes back fails the deterministic plausibility check
+// above — callClaudeTool's own retry only covers transient network/HTTP
+// failures, not "the call succeeded but the content is garbage." Two bad
+// artefacts in a row surfaces as a hard failure (status: 'failed') rather
+// than silently shipping a broken demo, which is what happened before this
+// existed.
+async function callClaudeToolWithArtefactRetry(
+  system: string,
+  userMessage: string,
+  apiKey: string
+): Promise<{ output: ToolOutput; meta: GenerationMeta }> {
+  let last: { output: ToolOutput; meta: GenerationMeta } | null = null;
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const result = await callClaudeTool(system, userMessage, apiKey);
+    if (isArtefactHtmlPlausible(result.output.artefact_html)) return result;
+    last = result;
+    console.error(
+      `classifyAndBuild: artefact_html failed plausibility check on attempt ${attempt} (length ${result.output.artefact_html?.length ?? 0}) — ${attempt < 2 ? 're-generating once more' : 'giving up'}`
+    );
+  }
+  const meta: GenerationMeta = { ...last!.meta, status: 'error', errorMessage: 'artefact_html failed plausibility check twice (too short, missing <style>, or a known placeholder marker) — refusing to ship a broken demo' };
+  const err = new Error(meta.errorMessage!) as Error & { generationMeta?: GenerationMeta };
+  err.generationMeta = meta;
+  throw err;
+}
+
 function toResult(out: ToolOutput, meta: GenerationMeta): ClassifyAndBuildResult {
   return {
     problemBreakdown: out.problem_breakdown,
@@ -814,7 +859,7 @@ export async function classifyAndBuild(
     .filter(Boolean)
     .join('\n\n');
 
-  const { output, meta } = await callClaudeTool(system, userMessage, apiKey);
+  const { output, meta } = await callClaudeToolWithArtefactRetry(system, userMessage, apiKey);
   return toResult(output, meta);
 }
 
@@ -861,7 +906,7 @@ Return your answer using the classify_and_build tool, with every step's output f
     .filter(Boolean)
     .join('\n\n');
 
-  const { output, meta } = await callClaudeTool(system, userMessage, apiKey);
+  const { output, meta } = await callClaudeToolWithArtefactRetry(system, userMessage, apiKey);
   return toResult(output, meta);
 }
 
