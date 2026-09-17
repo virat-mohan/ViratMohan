@@ -222,7 +222,7 @@ const MAX_TOKENS = 16000;
 // schema changes meaningfully — it's stamped on every generation row so a
 // bad output can be traced back to the exact prompt version that produced
 // it (brief §23-24). Plain "YYYY-MM-DD.N" is enough; no need for real semver.
-const PROMPT_VERSION = '2026-09-17.1';
+const PROMPT_VERSION = '2026-09-17.2';
 
 // Defense against a real failure mode observed in production: the model's
 // own Step 9 self-audit is not a reliable backstop — a run can self-report
@@ -235,6 +235,16 @@ const ARTEFACT_PLACEHOLDER_PATTERNS = [/REPLACE_WITH_HTML/i, /<UNKNOWN>/i, /^\s*
 function isArtefactHtmlPlausible(html: string | null | undefined): boolean {
   if (!html || html.length < MIN_PLAUSIBLE_ARTEFACT_HTML_LENGTH) return false;
   if (ARTEFACT_PLACEHOLDER_PATTERNS.some((p) => p.test(html))) return false;
+  // A real HTML fragment must actually start with a tag. A second failure
+  // mode observed alongside the placeholder-token one: the model (or some
+  // serialization step) wraps the whole artefact in an extra layer of
+  // JSON-string encoding — the field is technically ~17KB of "real-looking"
+  // content (long enough, contains the literal text "<style", so the checks
+  // above don't catch it), but it's actually one big JSON-stringified blob:
+  // a leading stray `"`, and every real quote inside it turned into a
+  // literal `\"` two-character sequence. A browser renders that as broken
+  // text with zero styling applied, not as a designed page.
+  if (!html.trim().startsWith('<')) return false;
   // Step 8 requires a self-contained artefact with an inline <style> block —
   // its absence is itself a strong signal the generation went wrong, on top
   // of being the exact defect the visual_design_quality check exists to catch.
@@ -407,6 +417,7 @@ CRITICAL RULE — visual craft: this must look like a real, designed product, no
 Rules for the artefact itself:
 - It is a demo, not a mockup — real interactive elements (buttons, inputs, tabs, toggles) that respond to clicks, backed by representative/assumed sample data consistent with the assumptions you stated in Step 3. It does NOT need real client data or a real backend.
 - Single self-contained HTML fragment: inline <style> and <script> only, no external requests, no external libraries, no images (use inline SVG only if needed).
+- CRITICAL: artefact_html's value is the raw HTML text itself — a string of real markup starting with a tag like <div...>. It is NOT a JSON-encoded representation of that markup. Never wrap it in an extra pair of quotes, and never escape the quote characters inside your own class="..." attributes or CSS/JS string literals with a backslash (\") — write real, unescaped double quotes exactly as they'd appear in a normal .html file. If you find yourself writing \" anywhere in this field, stop — that's a sign you've started encoding the string as if it were a JSON value instead of writing plain HTML.
 - It must visibly tie back to the specific P&L lever(s) and show the before/after number from Step 3.
 - Keep it focused and legible — someone should grasp the whole thing in under two minutes, even though it now has real depth to explore.
 
