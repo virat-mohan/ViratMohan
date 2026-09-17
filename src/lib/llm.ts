@@ -74,6 +74,7 @@ export const ARTEFACT_VALIDATION_TYPES = [
   'framework_vocabulary_present',
   'no_bare_zeros',
   'tabbed_structure_present',
+  'visual_design_quality',
 ] as const;
 export type ArtefactValidationType = (typeof ARTEFACT_VALIDATION_TYPES)[number];
 
@@ -403,6 +404,7 @@ STEP 9 — Validate the artefact you just built. Step 5 checked your reasoning; 
 - framework_vocabulary_present: does the artefact visibly use the selected framework's own vocabulary/structure per Step 2's rule, or at minimum name-check it? "block" if there's no trace of the selected framework anywhere in the artefact.
 - no_bare_zeros: does every number shown have a real basis (per the no-bare-zeros rule), with nothing rendering as "0", "—", "NaN", or blank where a real result should be?
 - tabbed_structure_present: does the artefact have real clickable tabs covering the problem, how it connects to the client's tools, the run/mechanism, and business impact (per the tabbed-structure rule), with a separate, persistent Agent activity pane during Run and every distinct agent from Step 4's agent_sequence named up front — not only a single continuous scroll, and not only agent names buried inline during Run? "block" if there's no tab structure at all, no separate agent pane, or no agent named anywhere outside the Run animation.
+- visual_design_quality: re-read your own <style> block, not just the HTML structure. Is there an actual typographic scale (headings, labels, and body text are visibly different sizes/weights, not all one size)? Real colors beyond browser defaults (a background fill, a deliberate text color, an accent color used on 2-3 things that matter — not black text on white with default blue links and default gray buttons)? Deliberate spacing (padding/margin/gap set intentionally, not just browser default block spacing)? Any polish at all (rounded corners, hover states, a pill/badge, a card with a border or shadow)? "block" if the artefact would visibly read as unstyled browser-default HTML to someone looking at it — this is the single most common way a technically-correct artefact still fails the client's actual expectation, so check it as rigorously as the functional criteria above, not as an afterthought.
 For each: explanation (one specific sentence — quote or describe what you actually see, not "looks fine") and recommended_action ("none" only if status is pass). This is a real self-audit — if you find a genuine problem, fix the artefact_html itself before finalizing your answer rather than just reporting the defect and shipping it anyway; only report a "block" you couldn't fix within this pass.`;
 }
 
@@ -645,7 +647,7 @@ const CLASSIFY_TOOL = {
       artefact_validations: {
         type: 'array',
         description:
-          'Step 9 output — self-audit of the artefact_html you just wrote, exactly the 6 fixed checks: has_run_control, before_after_integrity, uses_real_tools, framework_vocabulary_present, no_bare_zeros, tabbed_structure_present. Fix the artefact_html itself if you find a real problem, rather than reporting a defect you could have fixed.',
+          'Step 9 output — self-audit of the artefact_html you just wrote, exactly the 7 fixed checks: has_run_control, before_after_integrity, uses_real_tools, framework_vocabulary_present, no_bare_zeros, tabbed_structure_present, visual_design_quality. Fix the artefact_html itself if you find a real problem, rather than reporting a defect you could have fixed.',
         items: {
           type: 'object',
           properties: {
