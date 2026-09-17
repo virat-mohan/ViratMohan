@@ -1126,11 +1126,18 @@ const canonical = new URL('/devshop', site.domain).href;
     .wizard-hint { display: none; }
     .wizard-actions { justify-content: center; }
     textarea.wizard-input { font-size: 17px; }
-    .process-strip { justify-content: flex-start; }
-    .process-item { min-width: 100px; }
-    .process-icon { width: 40px; height: 40px; }
-    .process-item::before { top: 20px; }
-    .process-label { font-size: 12px; }
+    /* A single horizontally-scrolling row of 8 items has no room to
+       breathe on a phone-width screen — items end up cut off at both
+       edges with no affordance telling a visitor there's more to swipe
+       to. Wrap into a 4x2 grid instead, so every step is visible at
+       once with nothing sliding out of view. The connecting rail line
+       is drawn for a single row, so it's dropped here — it doesn't
+       carry over sensibly across a wrap. */
+    .process-strip { flex-wrap: wrap; overflow-x: visible; justify-content: center; gap: 26px 6px; }
+    .process-item { flex: 0 0 25%; min-width: 0; padding: 0 4px; }
+    .process-item::before { display: none; }
+    .process-icon { width: 34px; height: 34px; }
+    .process-label { font-size: 10.5px; margin-top: 8px; white-space: normal; line-height: 1.25; }
     .contact-row { flex-direction: column; }
     .contact-card { min-width: 0; width: 100%; }
     .industry-chip { width: 100%; }
