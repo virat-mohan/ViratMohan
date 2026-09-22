@@ -44,6 +44,7 @@ if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
   .stage-row label{font-weight:600;}
   select.stage-status{font-family:'IBM Plex Mono'; font-size:11px; border:1.5px solid var(--ink); padding:4px 6px; background:#fff;}
   .track-link{font-size:11px; color:var(--terracotta); text-decoration:none; font-weight:600;}
+  .delete-link{color:#a33;}
   .empty{padding-block:60px; text-align:center; color:var(--ink-soft);}
   .save-msg{font-size:11px; color:var(--terracotta); margin-left:8px;}
 </style>
@@ -73,6 +74,11 @@ if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
         <div><span>Meta / WhatsApp</span>{app.meta_bm === 'yes' ? 'Has BM' : 'Needs BM'} · {app.wa_number || '—'}</div>
         <div><span>Pay with a Post</span>{app.post_ack ? 'Requested' : 'Not requested'}</div>
         <div><a class="track-link" href={`/retail-os/track/${app.id}`} target="_blank">View founder status page →</a></div>
+        <div>
+          <a class="track-link resend-link" href="#" data-resend={app.id} data-email={app.founder_email}>Resend link to founder</a>
+          {' · '}
+          <a class="track-link delete-link" href="#" data-delete={app.id} data-brand={app.brand_name}>Delete</a>
+        </div>
       </div>
       <div class="stages" style="padding:0 18px 16px;">
         {app.stages.map((s) => (
@@ -110,6 +116,43 @@ if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
         if (msg) { msg.textContent = 'Saved'; setTimeout(function(){ msg.textContent = ''; }, 1500); }
       } catch (e) {
         if (msg) msg.textContent = 'Failed to save';
+      }
+    });
+  });
+
+  document.querySelectorAll('a.resend-link').forEach(function (el) {
+    el.addEventListener('click', async function (e) {
+      e.preventDefault();
+      var email = el.getAttribute('data-email');
+      el.textContent = 'Sending…';
+      try {
+        await fetch('/retail-os/api/resend-link', {
+          method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: email })
+        });
+        el.textContent = 'Sent';
+        setTimeout(function () { el.textContent = 'Resend link to founder'; }, 2000);
+      } catch (err) {
+        el.textContent = 'Failed';
+      }
+    });
+  });
+
+  document.querySelectorAll('a.delete-link').forEach(function (el) {
+    el.addEventListener('click', async function (e) {
+      e.preventDefault();
+      var id = el.getAttribute('data-delete');
+      var brand = el.getAttribute('data-brand');
+      if (!confirm('Delete "' + brand + '" permanently? This cannot be undone.')) return;
+      el.textContent = 'Deleting…';
+      try {
+        var res = await fetch('/retail-os/api/admin/delete', {
+          method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: id })
+        });
+        if (!res.ok) throw new Error('failed');
+        var card = document.querySelector('[data-app-id="' + id + '"]');
+        if (card) card.remove();
+      } catch (err) {
+        el.textContent = 'Failed to delete';
       }
     });
   });

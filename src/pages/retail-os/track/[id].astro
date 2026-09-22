@@ -58,6 +58,12 @@ if (id && env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
   .pipeline-note{font-size:11.5px; color:var(--ink-soft); font-weight:500; margin-top:2px;}
   .notfound{padding-block:60px; text-align:center;}
   .notfound p{color:var(--ink-soft); font-weight:500; max-width:44ch; margin:14px auto 0;}
+  .lookup{margin-top:32px; padding-top:28px; border-top:1.5px solid var(--line);}
+  .lookup-label{font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-bottom:10px;}
+  .lookup form{display:flex; gap:8px; justify-content:center; flex-wrap:wrap;}
+  .lookup input{border:1.5px solid var(--ink); padding:10px 12px; font-family:'Inter'; font-size:13.5px; min-width:220px;}
+  .lookup button{border:2px solid var(--ink); background:var(--ink); color:var(--cream); padding:10px 16px; font-family:'Inter'; font-weight:700; font-size:13.5px; cursor:pointer;}
+  .lookup-msg{font-size:12px; color:var(--terracotta); font-weight:600; margin-top:10px; min-height:16px;}
   footer{padding-block:24px; text-align:center;}
   footer p{margin:0; font-size:10.5px; font-weight:700; letter-spacing:0.03em; color:var(--ink-soft);}
 </style>
@@ -93,10 +99,37 @@ if (id && env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
       <h2>{loadError ? 'Status temporarily unavailable' : "Can't find that application"}</h2>
       <p>{loadError
         ? "There's a hiccup reaching the backend right now — try again shortly, or email viratmohan@gmail.com."
-        : "This link doesn't match an application on file. If you just applied, use the link your confirmation gave you."}</p>
+        : "This link doesn't match an application on file."}</p>
+      {!loadError && (
+        <div class="lookup">
+          <p class="lookup-label">Lost your link? Enter the email you applied with:</p>
+          <form id="lookupForm">
+            <input type="email" id="lookupEmail" placeholder="you@brand.com" required />
+            <button type="submit">Resend link →</button>
+          </form>
+          <p class="lookup-msg" id="lookupMsg"></p>
+        </div>
+      )}
     </div>
   )}
 </div>
 <footer><p>DEVSHOP RETAIL OS™ — REAL-TIME ONBOARDING STATUS</p></footer>
+<script>
+  var form = document.getElementById('lookupForm');
+  if (form) {
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var email = document.getElementById('lookupEmail').value;
+      var msg = document.getElementById('lookupMsg');
+      msg.textContent = 'Sending…';
+      try {
+        await fetch('/retail-os/api/resend-link', {
+          method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: email })
+        });
+      } catch (e) {}
+      msg.textContent = "If that email has an application, we've sent the link.";
+    });
+  }
+</script>
 </body>
 </html>

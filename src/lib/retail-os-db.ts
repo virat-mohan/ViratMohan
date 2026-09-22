@@ -106,6 +106,23 @@ export function getRetailOsDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE
       return (data ?? []) as RetailOsApplication[];
     },
 
+    async deleteById(id: string) {
+      const { error } = await supabase.from('retail_os_applications').delete().eq('id', id);
+      if (error) throw new Error(`supabase retail_os_applications delete failed: ${error.message}`);
+    },
+
+    async findLatestByEmail(email: string): Promise<RetailOsApplication | null> {
+      const { data, error } = await supabase
+        .from('retail_os_applications')
+        .select('*')
+        .ilike('founder_email', email.trim())
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw new Error(`supabase retail_os_applications email lookup failed: ${error.message}`);
+      return (data as RetailOsApplication | null) ?? null;
+    },
+
     async setStageStatus(id: string, stageKey: string, status: StageStatus) {
       const app = await this.getById(id);
       if (!app) throw new Error('setStageStatus: application not found');
