@@ -11,6 +11,8 @@ export const PROTECTED_PREFIXES = [
   '/devshop/api/ai-agents',
   '/devshop/api/delete-submission',
   '/devshop/api/usecase-templates',
+  '/retail-os/admin',
+  '/retail-os/api/admin',
 ];
 
 export function isProtectedPath(pathname: string): boolean {

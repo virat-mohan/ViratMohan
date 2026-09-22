@@ -1,0 +1,118 @@
+---
+export const prerender = false;
+import { getRetailOsDb } from '../../../lib/retail-os-db';
+import { getEnv } from '../../../lib/env';
+
+const env = getEnv();
+let apps: Awaited<ReturnType<ReturnType<typeof getRetailOsDb>['listRecent']>> = [];
+let loadError = false;
+if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
+  try {
+    const db = getRetailOsDb(env);
+    apps = await db.listRecent();
+  } catch (err) {
+    console.error('retail-os admin list failed', err);
+    loadError = true;
+  }
+}
+---
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Applications — DevShop Retail OS Admin</title>
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{ --cream:#F4EAD4; --ink:#1A1410; --ink-soft:#4A4038; --gold:#D4AF37; --terracotta:#D9714B; --line: rgba(26,20,16,0.14); }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--cream); color:var(--ink); font-family:'Inter',system-ui,sans-serif; font-size:14px; }
+  h1,h2{font-family:'Anton','Arial Narrow',sans-serif; font-weight:400; text-transform:uppercase; margin:0;}
+  a{color:inherit;}
+  .wrap{max-width:1040px; margin-inline:auto; padding:28px 24px 60px;}
+  .mono{font-family:'IBM Plex Mono';}
+  .app-card{border:2px solid var(--ink); margin-bottom:20px;}
+  .app-head{display:flex; justify-content:space-between; align-items:center; padding:14px 18px; background:var(--ink); color:var(--cream); flex-wrap:wrap; gap:8px;}
+  .app-head h2{font-size:1.1rem; color:var(--cream);}
+  .app-head .meta{font-size:11px; color:rgba(244,234,212,0.75);}
+  .app-body{padding:16px 18px; display:grid; grid-template-columns:1fr 1fr; gap:8px 24px; font-size:12.5px;}
+  .app-body div span:first-child{color:var(--ink-soft); font-weight:600; margin-right:4px;}
+  .stages{border-top:1.5px solid var(--line); margin-top:12px; padding-top:12px;}
+  .stage-row{display:flex; align-items:center; justify-content:space-between; gap:10px; padding-block:6px; font-size:12.5px;}
+  .stage-row label{font-weight:600;}
+  select.stage-status{font-family:'IBM Plex Mono'; font-size:11px; border:1.5px solid var(--ink); padding:4px 6px; background:#fff;}
+  .track-link{font-size:11px; color:var(--terracotta); text-decoration:none; font-weight:600;}
+  .empty{padding-block:60px; text-align:center; color:var(--ink-soft);}
+  .save-msg{font-size:11px; color:var(--terracotta); margin-left:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 style="margin-bottom:4px;">Retail OS — Applications</h1>
+  <p class="mono" style="color:var(--ink-soft); font-size:12px; margin-bottom:28px;">{apps.length} on file</p>
+
+  {loadError && <p style="color:var(--terracotta);">Couldn't load applications — check SUPABASE env vars.</p>}
+  {!loadError && apps.length === 0 && <div class="empty">No applications yet.</div>}
+
+  {apps.map((app) => (
+    <div class="app-card" data-app-id={app.id}>
+      <div class="app-head">
+        <h2>{app.brand_name}</h2>
+        <span class="meta mono">{app.id.slice(0,8).toUpperCase()} · {new Date(app.created_at).toLocaleDateString()}</span>
+      </div>
+      <div class="app-body">
+        <div><span>Founder</span>{app.founder_name} ({app.founder_email}{app.founder_phone ? `, ${app.founder_phone}` : ''})</div>
+        <div><span>Category / Format</span>{app.category || '—'} / {app.format || '—'}</div>
+        <div><span>Existing revenue</span>{app.has_revenue === 'yes' ? (app.revenue_range || 'Yes') : 'No — AI-Enabler track'}</div>
+        <div><span>Following</span>{app.following || '—'}</div>
+        <div><span>Catalog</span>{app.catalog_mode === 'shopify' ? `Shopify — ${app.shopify_url || ''}` : 'Manual'}</div>
+        <div><span>Payments</span>{app.payment_mode === 'own' ? 'Own gateway' : 'DevShop-managed'}</div>
+        <div><span>Shipping</span>Pincode {app.pincode || '—'} · {app.carrier === 'own' ? 'Own carrier' : 'DevShop aggregator'}</div>
+        <div><span>Meta / WhatsApp</span>{app.meta_bm === 'yes' ? 'Has BM' : 'Needs BM'} · {app.wa_number || '—'}</div>
+        <div><span>Pay with a Post</span>{app.post_ack ? 'Requested' : 'Not requested'}</div>
+        <div><a class="track-link" href={`/retail-os/track/${app.id}`} target="_blank">View founder status page →</a></div>
+      </div>
+      <div class="stages" style="padding:0 18px 16px;">
+        {app.stages.map((s) => (
+          <div class="stage-row">
+            <label>{s.label}</label>
+            <span>
+              <select class="stage-status" data-app={app.id} data-stage={s.key}>
+                <option value="pending" selected={s.status === 'pending'}>Pending</option>
+                <option value="done" selected={s.status === 'done'}>Done</option>
+                <option value="skipped" selected={s.status === 'skipped'}>Skipped</option>
+              </select>
+              <span class="save-msg" data-msg-for={`${app.id}:${s.key}`}></span>
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  ))}
+</div>
+<script>
+  document.querySelectorAll('select.stage-status').forEach(function (el) {
+    el.addEventListener('change', async function () {
+      var appId = el.getAttribute('data-app');
+      var stageKey = el.getAttribute('data-stage');
+      var status = el.value;
+      var msg = document.querySelector('[data-msg-for="' + appId + ':' + stageKey + '"]');
+      if (msg) msg.textContent = 'Saving…';
+      try {
+        var res = await fetch('/retail-os/api/admin/update-stage', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ id: appId, stageKey: stageKey, status: status }),
+        });
+        if (!res.ok) throw new Error('failed');
+        if (msg) { msg.textContent = 'Saved'; setTimeout(function(){ msg.textContent = ''; }, 1500); }
+      } catch (e) {
+        if (msg) msg.textContent = 'Failed to save';
+      }
+    });
+  });
+</script>
+</body>
+</html>

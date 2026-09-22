@@ -638,8 +638,55 @@
     renderPipeline(record);
   }
 
-  document.getElementById("nextBtn").addEventListener("click", function(){
+  function splitRangeFromData(){
+    if (data.hasRevenue === "no") return { lo: null, hi: null };
+    var score = 0;
+    if (data.following === "50K–250K") score += 1;
+    if (data.following === "250K+") score += 2;
+    var lo = 25 + score*3, hi = 50 - score*5;
+    if (hi < lo) hi = lo + 5;
+    return { lo: lo, hi: hi };
+  }
+
+  async function submitApplication(){
+    save();
+    var range = splitRangeFromData();
+    var payload = {
+      brandName: data.brandName, founderName: data.founderName, founderEmail: data.founderEmail,
+      founderPhone: data.founderPhone, category: data.category, format: data.format, handle: data.handle,
+      hasRevenue: data.hasRevenue, revenueRange: data.revenueRange, following: data.following,
+      catalogMode: data.catalogMode, shopifyUrl: data.shopifyUrl, productCount: data.productCount,
+      paymentMode: data.paymentMode, pincode: data.pincode, carrier: data.carrier, metaBm: data.metaBm,
+      adBudget: data.adBudget, waNumber: data.waNumber, postAck: !!data.postAck,
+      splitRangeLo: range.lo, splitRangeHi: range.hi
+    };
+    try {
+      var res = await fetch("/retail-os/api/apply", {
+        method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error("apply failed: " + res.status);
+      var out = await res.json();
+      try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+      window.location.href = "/retail-os/track/" + out.id;
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  document.getElementById("nextBtn").addEventListener("click", async function(){
     if (steps[current] === "review") {
+      var submitBtn = document.getElementById("nextBtn");
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Submitting…";
+      var ok = await submitApplication();
+      if (ok) return; // navigating away to /retail-os/track/{id}
+
+      // Backend unreachable — fall back to the local-only flow so the
+      // founder is never blocked: draft the email and show a local status
+      // view instead of a real server-backed one.
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Submit application →";
       var link = buildMailto();
       document.getElementById("resendLink").href = link;
       window.location.href = link;

@@ -1,0 +1,102 @@
+---
+export const prerender = false;
+import { getRetailOsDb } from '../../../lib/retail-os-db';
+import { getEnv } from '../../../lib/env';
+
+const { id } = Astro.params;
+const env = getEnv();
+let app = null;
+let loadError = false;
+if (id && env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
+  try {
+    const db = getRetailOsDb(env);
+    app = await db.getById(id);
+  } catch (err) {
+    console.error('track page lookup failed', err);
+    loadError = true;
+  }
+}
+---
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Onboarding status — DevShop Retail OS</title>
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{ --cream:#F4EAD4; --ink:#1A1410; --ink-soft:#4A4038; --gold:#D4AF37; --gold-deep:#C99A3D;
+    --terracotta:#D9714B; --line: rgba(26,20,16,0.14); }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--cream); color:var(--ink); font-family:'Inter',system-ui,sans-serif;
+    font-size:15px; line-height:1.55; }
+  h1,h2,h3{font-family:'Anton','Arial Narrow',sans-serif; font-weight:400; text-transform:uppercase; margin:0;}
+  a{color:inherit;}
+  .wrap{max-width:720px; margin-inline:auto; padding-inline:24px; padding-block:32px 60px;}
+  .stripe{display:flex; height:6px;} .stripe span{flex:1;}
+  .stripe span:nth-child(1){background:var(--gold);} .stripe span:nth-child(2){background:#3E6FA6;}
+  .stripe span:nth-child(3){background:#E91E8C;} .stripe span:nth-child(4){background:#9C7A4A;}
+  nav{display:flex; justify-content:space-between; align-items:center; padding-block:16px 28px;}
+  .wordmark{display:flex; align-items:baseline; gap:2px; font-family:'Anton'; font-size:20px; text-transform:uppercase;}
+  .wordmark .w1{color:var(--gold-deep);} .wordmark .w2{color:var(--ink);}
+  .wordmark small{font-family:'Inter'; font-style:italic; font-weight:500; font-size:10.5px; color:var(--ink-soft); text-transform:none; margin-left:8px;}
+  nav a.back{font-size:13px; font-weight:600; text-decoration:none; color:var(--ink-soft);}
+  .appid{font-family:'IBM Plex Mono'; font-size:11px; color:var(--ink-soft);}
+  .pipeline-head{display:flex; justify-content:space-between; align-items:flex-end; gap:14px; margin-bottom:16px; flex-wrap:wrap;}
+  .pipeline{display:flex; flex-direction:column; border:2px solid var(--ink);}
+  .pipeline-row{display:flex; align-items:center; gap:14px; padding:14px 18px; border-bottom:1.5px solid var(--ink);}
+  .pipeline-row:last-child{border-bottom:none;}
+  .pipeline-badge{font-family:'IBM Plex Mono'; font-size:10px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase;
+    padding:4px 10px; border:1.5px solid currentColor; flex:none; min-width:84px; text-align:center;}
+  .pipeline-badge.done{background:var(--ink); color:var(--cream); border-color:var(--ink);}
+  .pipeline-badge.pending{color:var(--ink-soft); border-color:var(--line);}
+  .pipeline-badge.skipped{color:var(--line); border-color:var(--line);}
+  .pipeline-label{font-weight:700; font-size:13.5px;}
+  .pipeline-note{font-size:11.5px; color:var(--ink-soft); font-weight:500; margin-top:2px;}
+  .notfound{padding-block:60px; text-align:center;}
+  .notfound p{color:var(--ink-soft); font-weight:500; max-width:44ch; margin:14px auto 0;}
+  footer{padding-block:24px; text-align:center;}
+  footer p{margin:0; font-size:10.5px; font-weight:700; letter-spacing:0.03em; color:var(--ink-soft);}
+</style>
+</head>
+<body>
+<div class="stripe"><span></span><span></span><span></span><span></span></div>
+<div class="wrap">
+  <nav>
+    <div class="wordmark"><span class="w1">Dev</span><span class="w2">Shop</span><small>Retail OS™</small></div>
+    <a class="back" href="/retail-os">← Back to Retail OS</a>
+  </nav>
+
+  {app ? (
+    <>
+      <div class="pipeline-head">
+        <h1 style="font-size:1.8rem;">Onboarding status</h1>
+        <span class="appid">{app.id.slice(0,8).toUpperCase()} · {app.brand_name}</span>
+      </div>
+      <div class="pipeline">
+        {app.stages.map((s) => (
+          <div class="pipeline-row">
+            <span class={`pipeline-badge ${s.status}`}>{s.status === 'done' ? 'Done' : s.status === 'skipped' ? 'Skipped' : 'Pending'}</span>
+            <div>
+              <div class="pipeline-label">{s.label}</div>
+              {s.note && <div class="pipeline-note">{s.note}</div>}
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  ) : (
+    <div class="notfound">
+      <h2>{loadError ? 'Status temporarily unavailable' : "Can't find that application"}</h2>
+      <p>{loadError
+        ? "There's a hiccup reaching the backend right now — try again shortly, or email viratmohan@gmail.com."
+        : "This link doesn't match an application on file. If you just applied, use the link your confirmation gave you."}</p>
+    </div>
+  )}
+</div>
+<footer><p>DEVSHOP RETAIL OS™ — REAL-TIME ONBOARDING STATUS</p></footer>
+</body>
+</html>
