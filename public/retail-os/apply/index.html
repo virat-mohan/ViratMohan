@@ -97,9 +97,43 @@
   .checkline{display:flex; gap:10px; align-items:flex-start; font-size:13.5px; font-weight:600;}
   .checkline input{margin-top:3px;}
 
-  #doneScreen{text-align:center; padding-block:60px;}
-  #doneScreen h2{font-size:2.2rem; margin-bottom:14px;}
-  #doneScreen p{max-width:46ch; margin:0 auto 24px; color:var(--ink-soft); font-weight:500;}
+  #doneScreen{text-align:left; padding-block:20px;}
+  #doneScreen .intro{text-align:center; padding-block:20px 8px;}
+  #doneScreen h2{font-size:2.2rem; margin-bottom:14px; text-align:center;}
+  #doneScreen p{max-width:46ch; margin:0 auto 24px; color:var(--ink-soft); font-weight:500; text-align:center;}
+  #doneScreen .ctarow{display:flex; justify-content:center; margin-bottom:36px;}
+
+  /* step checklist — breadcrumb trail, always visible, wraps at any width */
+  .checklist{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:28px;}
+  .checklist-item{
+    display:flex; align-items:center; gap:6px; font-size:11px; font-weight:700; white-space:nowrap;
+    color:var(--ink-soft); padding:5px 11px 5px 6px; border:1.5px solid var(--line); border-radius:20px;
+  }
+  .checklist-item.done{background:var(--ink-soft); color:var(--cream); border-color:var(--ink-soft);}
+  .checklist-item.current{color:var(--ink); border-color:var(--terracotta); background:var(--cream);}
+  .checklist-icon{
+    width:15px; height:15px; border:1.5px solid currentColor; border-radius:50%; flex:none;
+    display:flex; align-items:center; justify-content:center; font-size:8.5px; font-weight:800;
+  }
+  .checklist-item.done .checklist-icon{background:var(--cream); color:var(--ink-soft); border-color:var(--cream);}
+  .checklist-item.current .checklist-icon{border-color:var(--terracotta); color:var(--terracotta);}
+  @media (max-width:520px){ .checklist-item span:last-child{display:none;} .checklist-item{padding:5px; border-radius:50%;} }
+
+  /* pipeline status (post-submit) */
+  .pipeline-head{display:flex; justify-content:space-between; align-items:flex-end; gap:14px; margin-bottom:16px; flex-wrap:wrap;}
+  .pipeline-head h3{font-size:1.3rem;}
+  .pipeline-head .appid{font-family:'IBM Plex Mono'; font-size:11px; color:var(--ink-soft);}
+  .pipeline{display:flex; flex-direction:column; border:2px solid var(--ink); margin-bottom:20px;}
+  .pipeline-row{display:flex; align-items:center; gap:14px; padding:14px 18px; border-bottom:1.5px solid var(--ink);}
+  .pipeline-row:last-child{border-bottom:none;}
+  .pipeline-badge{font-family:'IBM Plex Mono'; font-size:10px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase; padding:4px 10px; border:1.5px solid currentColor; flex:none; min-width:84px; text-align:center;}
+  .pipeline-badge.done{background:var(--ink); color:var(--cream); border-color:var(--ink);}
+  .pipeline-badge.pending{color:var(--ink-soft); border-color:var(--line);}
+  .pipeline-badge.skipped{color:var(--line); border-color:var(--line);}
+  .pipeline-text{flex:1;}
+  .pipeline-label{font-weight:700; font-size:13.5px;}
+  .pipeline-note{font-size:11.5px; color:var(--ink-soft); font-weight:500; margin-top:2px;}
+  .pipeline-footnote{border:1.5px dashed var(--ink); padding:16px 18px; font-size:12px; color:var(--ink-soft); font-weight:500; margin-bottom:24px;}
 
   footer{padding-block:28px; text-align:center;}
   footer p{margin:0; font-size:10.5px; font-weight:700; letter-spacing:0.03em; color:var(--ink-soft);}
@@ -115,6 +149,7 @@
   </nav>
 
   <div class="progress" id="progressBar"></div>
+  <div class="checklist" id="stepChecklist"></div>
 
   <form id="wizard">
 
@@ -322,10 +357,21 @@
     </section>
 
     <div id="doneScreen" hidden>
-      <div class="eyebrow mono" style="color:var(--terracotta); font-weight:700; letter-spacing:0.08em; font-size:12px;">APPLICATION READY</div>
-      <h2>Your email is drafted.</h2>
-      <p>Your mail app should have opened with everything filled in — just hit send. I read every application myself and reply within the week.</p>
-      <a class="btn btn-primary" href="mailto:viratmohan@gmail.com" id="resendLink">Open email again →</a>
+      <div class="intro">
+        <div class="eyebrow mono" style="color:var(--terracotta); font-weight:700; letter-spacing:0.08em; font-size:12px;">APPLICATION READY</div>
+        <h2>Your email is drafted.</h2>
+        <p>Your mail app should have opened with everything filled in — just hit send. I read every application myself and reply within the week.</p>
+      </div>
+      <div class="ctarow"><a class="btn btn-primary" href="mailto:viratmohan@gmail.com" id="resendLink">Open email again →</a></div>
+
+      <div class="pipeline-head">
+        <div>
+          <h3>Onboarding status</h3>
+        </div>
+        <span class="appid" id="appIdText"></span>
+      </div>
+      <div class="pipeline" id="pipelineList"></div>
+      <div class="pipeline-footnote">This tracker lives on this device for now — a real backend status page (where DevShop marks each stage complete and you can check in anytime) is coming. Bookmark this page to check back; it'll remember where things stand.</div>
     </div>
 
     <div class="nav-row" id="navRow">
@@ -340,8 +386,13 @@
 <script>
 (function(){
   var steps = ["1","2","3","4","5","6","7","8","review"];
+  var stepLabels = {
+    "1": "Brand identity", "2": "Catalog", "3": "Commercial terms", "4": "Payments",
+    "5": "Shipping", "6": "Meta", "7": "WhatsApp", "8": "Pay with a Post", "review": "Review & submit"
+  };
   var current = 0;
   var STORAGE_KEY = "retailOsApplication";
+  var PIPELINE_KEY = "retailOsPipeline";
 
   var data = {};
   try { data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch(e) { data = {}; }
@@ -449,6 +500,16 @@
       else if (i === current) el.className = "current";
       bar.appendChild(el);
     });
+    renderChecklist();
+  }
+
+  function renderChecklist(){
+    var list = document.getElementById("stepChecklist");
+    list.innerHTML = steps.map(function(s, i){
+      var state = i < current ? "done" : (i === current ? "current" : "");
+      var icon = i < current ? "✓" : (i + 1);
+      return '<div class="checklist-item ' + state + '"><span class="checklist-icon">' + icon + '</span><span>' + stepLabels[s] + '</span></div>';
+    }).join("");
   }
 
   function showStep(i){
@@ -531,14 +592,59 @@
     return "mailto:viratmohan@gmail.com?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
   }
 
+  var PIPELINE_STAGES = [
+    { key: "submitted", label: "Application submitted", note: "You just did this." },
+    { key: "agreement", label: "Commercial agreement signed", note: "Master Brand Partnership Agreement (or AI-Enabler™ Agreement) sent for signature." },
+    { key: "catalog", label: "Catalog connected", note: "Shopify import or manual catalog build." },
+    { key: "payments", label: "Payments configured", note: "Gateway KYC and settlement account linked." },
+    { key: "shipping", label: "Shipping configured", note: "Carrier account or DevShop aggregator wired in." },
+    { key: "meta", label: "Meta linked", note: "Business Manager, catalog and pixel connected." },
+    { key: "whatsapp", label: "WhatsApp provisioned", note: "Business API number live for orders and catalog checkout." },
+    { key: "postbarter", label: "Pay with a Post activated", note: "" },
+    { key: "golive", label: "Go-live review", note: "Final checklist before the storefront goes public." },
+    { key: "live", label: "Live & selling", note: "Storefront public, ads running." }
+  ];
+
+  function buildPipeline(){
+    var appId = "RO-" + new Date().getFullYear() + "-" + Math.random().toString(36).slice(2, 7).toUpperCase();
+    var stages = PIPELINE_STAGES.map(function(s, i){
+      var note = s.note;
+      if (s.key === "postbarter") note = data.postAck ? "Requested — activates once you're live." : "Not requested for launch.";
+      return { key: s.key, label: s.label, note: note, status: i === 0 ? "done" : (s.key === "postbarter" && !data.postAck ? "skipped" : "pending") };
+    });
+    var record = { appId: appId, brandName: data.brandName || "Your brand", submittedAt: new Date().toISOString(), stages: stages };
+    try { localStorage.setItem(PIPELINE_KEY, JSON.stringify(record)); } catch(e) {}
+    return record;
+  }
+
+  function renderPipeline(record){
+    document.getElementById("appIdText").textContent = record.appId + " · " + record.brandName;
+    document.getElementById("pipelineList").innerHTML = record.stages.map(function(s){
+      var badge = s.status === "done" ? "Done" : (s.status === "skipped" ? "Skipped" : "Pending");
+      return '<div class="pipeline-row">' +
+        '<span class="pipeline-badge ' + s.status + '">' + badge + '</span>' +
+        '<div class="pipeline-text"><div class="pipeline-label">' + s.label + '</div>' +
+        (s.note ? '<div class="pipeline-note">' + s.note + '</div>' : '') + '</div>' +
+        '</div>';
+    }).join("");
+  }
+
+  function showDoneScreen(record){
+    document.querySelectorAll(".step").forEach(function(s){ s.hidden = true; });
+    document.getElementById("navRow").hidden = true;
+    document.getElementById("progressBar").hidden = true;
+    document.getElementById("stepChecklist").hidden = true;
+    document.getElementById("doneScreen").hidden = false;
+    renderPipeline(record);
+  }
+
   document.getElementById("nextBtn").addEventListener("click", function(){
     if (steps[current] === "review") {
       var link = buildMailto();
       document.getElementById("resendLink").href = link;
       window.location.href = link;
-      document.querySelectorAll(".step").forEach(function(s){ s.hidden = true; });
-      document.getElementById("navRow").hidden = true;
-      document.getElementById("doneScreen").hidden = false;
+      var record = buildPipeline();
+      showDoneScreen(record);
       try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
       return;
     }
@@ -551,8 +657,26 @@
     if (current > 0) { current--; showStep(current); }
   });
 
-  restore();
-  showStep(current);
+  var existingPipeline = null;
+  try { existingPipeline = JSON.parse(localStorage.getItem(PIPELINE_KEY) || "null"); } catch(e) { existingPipeline = null; }
+  if (existingPipeline) {
+    showDoneScreen(existingPipeline);
+    document.getElementById("resendLink").hidden = true;
+    var startOver = document.createElement("a");
+    startOver.href = "#";
+    startOver.className = "btn";
+    startOver.style.marginTop = "0";
+    startOver.textContent = "Start a new application →";
+    startOver.addEventListener("click", function(e){
+      e.preventDefault();
+      try { localStorage.removeItem(PIPELINE_KEY); } catch(err) {}
+      location.reload();
+    });
+    document.querySelector("#doneScreen .ctarow").appendChild(startOver);
+  } else {
+    restore();
+    showStep(current);
+  }
 })();
 </script>
 </body>
