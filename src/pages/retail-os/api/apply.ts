@@ -65,11 +65,11 @@ export const POST: APIRoute = async ({ request }) => {
       ai_enabler_track: aiEnablerTrack,
     });
 
-    // Best-effort notification — a failure here must never block the
+    // Best-effort notifications — a failure here must never block the
     // application that was already saved (same pattern as generations/
     // stage_transitions logging elsewhere in this codebase).
+    const trackUrl = `${origin}/retail-os/track/${id}`;
     if (env.RESEND_API_KEY && env.RESEND_FROM_EMAIL && env.ADMIN_NOTIFY_EMAIL) {
-      const trackUrl = `${origin}/retail-os/track/${id}`;
       sendEmail(
         {
           to: env.ADMIN_NOTIFY_EMAIL,
@@ -82,7 +82,24 @@ export const POST: APIRoute = async ({ request }) => {
 <p><a href="${trackUrl}">Founder status page →</a> · <a href="${origin}/retail-os/admin">Admin dashboard →</a></p>`,
         },
         env
-      ).catch((err) => console.error('retail-os apply notification email failed', err));
+      ).catch((err) => console.error('retail-os apply admin notification email failed', err));
+    }
+    // Founder's own confirmation — the track link doubles as their "login":
+    // no password, the URL itself is the bearer token (same pattern as
+    // /devshop/demo/[id]).
+    if (env.RESEND_API_KEY && env.RESEND_FROM_EMAIL) {
+      sendEmail(
+        {
+          to: founderEmail,
+          subject: `${brandName} — your DevShop Retail OS application`,
+          html: `<p>Hi ${escapeHtml(founderName)},</p>
+<p>Got your application for <b>${escapeHtml(brandName)}</b>. I read every one myself and reply within the week.</p>
+<p>You can check where things stand any time — bookmark this link, no login needed:</p>
+<p><a href="${trackUrl}">${trackUrl}</a></p>
+<p>— Virat</p>`,
+        },
+        env
+      ).catch((err) => console.error('retail-os apply founder confirmation email failed', err));
     }
 
     return json({ id }, 201);
