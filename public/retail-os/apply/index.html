@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Apply — DevShop Retail OS</title>
+<meta name="description" content="Onboarding wizard for DevShop Retail OS — brand intake, catalog, commercial terms, and provisioning setup." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#F4EAD4; --ink:#1A1410; --ink-soft:#4A4038;
+    --gold:#D4AF37; --gold-deep:#C99A3D; --terracotta:#D9714B;
+    --blue:#3E6FA6; --pink:#E91E8C; --olive:#9C7A4A; --teal:#2B8C86; --purple:#7C5CBF;
+    --line: rgba(26,20,16,0.14);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--cream); color:var(--ink);
+    font-family:'Inter', system-ui, -apple-system, sans-serif;
+    font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:'Anton','Arial Narrow',sans-serif; font-weight:400; text-transform:uppercase; margin:0; line-height:1; text-wrap:balance;}
+  a{color:inherit;}
+  [hidden]{display:none!important;}
+  .wrap{max-width:760px; margin-inline:auto; padding-inline:24px;}
+  .mono{font-family:'IBM Plex Mono'; font-variant-numeric:tabular-nums;}
+
+  .stripe{display:flex; height:6px;}
+  .stripe span{flex:1;}
+  .stripe span:nth-child(1){background:var(--gold);} .stripe span:nth-child(2){background:var(--blue);}
+  .stripe span:nth-child(3){background:var(--pink);} .stripe span:nth-child(4){background:var(--olive);}
+
+  nav{display:flex; align-items:center; justify-content:space-between; padding-block:18px; gap:16px; flex-wrap:wrap;}
+  .wordmark{display:flex; align-items:baseline; gap:2px; font-family:'Anton'; font-size:20px; text-transform:uppercase;}
+  .wordmark .w1{color:var(--gold-deep);} .wordmark .w2{color:var(--ink);}
+  .wordmark small{font-family:'Inter'; font-style:italic; font-weight:500; font-size:10.5px; color:var(--ink-soft); text-transform:none; margin-left:8px;}
+  nav a.back{font-size:13px; font-weight:600; text-decoration:none; color:var(--ink-soft);}
+  nav a.back:hover{color:var(--terracotta);}
+
+  .progress{display:flex; gap:4px; margin-top:6px; margin-bottom:36px;}
+  .progress i{flex:1; height:4px; background:var(--line);}
+  .progress i.done{background:var(--terracotta);}
+  .progress i.current{background:var(--ink);}
+  .step-meta{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;}
+  .step-count{font-family:'IBM Plex Mono'; font-size:11.5px; color:var(--ink-soft); letter-spacing:0.04em;}
+
+  .card{border:2px solid var(--ink); background:var(--cream); padding:30px 28px; margin-bottom:28px;}
+  .card h2{font-size:1.7rem; margin-bottom:8px;}
+  .card .sub{font-size:13.5px; color:var(--ink-soft); font-weight:500; margin-bottom:24px; max-width:52ch;}
+
+  .field{margin-bottom:18px;}
+  .field label{display:block; font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-soft); margin-bottom:7px;}
+  .field .hint{font-size:12px; color:var(--ink-soft); font-weight:500; margin-top:5px;}
+  input[type=text], input[type=email], input[type=tel], input[type=url], select, textarea{
+    width:100%; border:1.5px solid var(--ink); background:#fff; padding:11px 12px;
+    font-family:'Inter'; font-size:14px; color:var(--ink); border-radius:0;
+  }
+  textarea{resize:vertical; min-height:72px;}
+  input:focus, select:focus, textarea:focus{outline:2px solid var(--terracotta); outline-offset:1px;}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:600px){ .row2{grid-template-columns:1fr;} }
+
+  .choice-group{display:flex; gap:10px; flex-wrap:wrap;}
+  .choice{
+    border:1.5px solid var(--ink); padding:10px 16px; cursor:pointer; font-size:13.5px; font-weight:600;
+    background:#fff; user-select:none;
+  }
+  .choice.active{background:var(--ink); color:var(--cream);}
+  .choice input{display:none;}
+
+  fieldset{border:none; padding:0; margin:0;}
+
+  .btn{
+    display:inline-flex; align-items:center; gap:8px; padding:13px 22px;
+    font-family:'Inter'; font-weight:700; font-size:14px; text-decoration:none;
+    border:2px solid var(--ink); cursor:pointer; background:transparent; color:var(--ink);
+  }
+  .btn-primary{background:var(--ink); color:var(--cream);}
+  .btn:disabled{opacity:0.4; cursor:not-allowed;}
+  .nav-row{display:flex; justify-content:space-between; align-items:center; margin-top:8px;}
+
+  .split-preview{border:2px solid var(--ink); background:var(--gold); padding:20px 22px; margin-bottom:20px;}
+  .split-preview .range{font-family:'Anton'; font-size:2.1rem; line-height:1;}
+  .split-preview p{margin:8px 0 0; font-size:13px; font-weight:500;}
+  .split-preview.enabler{background:var(--purple); color:var(--cream);}
+
+  .summary-block{border:1.5px solid var(--ink); padding:16px 18px; margin-bottom:12px;}
+  .summary-block h4{font-family:'Anton'; font-size:13px; text-transform:uppercase; color:var(--terracotta); margin-bottom:10px;}
+  .summary-row{display:flex; justify-content:space-between; gap:12px; font-size:13px; padding-block:5px; border-top:1px solid var(--line);}
+  .summary-row:first-of-type{border-top:none;}
+  .summary-row span:first-child{color:var(--ink-soft); font-weight:600;}
+  .summary-row span:last-child{font-weight:600; text-align:right;}
+
+  .terms-box{border:1.5px dashed var(--ink); padding:16px 18px; margin-bottom:18px; font-size:12.5px; font-weight:500; color:var(--ink-soft);}
+  .checkline{display:flex; gap:10px; align-items:flex-start; font-size:13.5px; font-weight:600;}
+  .checkline input{margin-top:3px;}
+
+  #doneScreen{text-align:center; padding-block:60px;}
+  #doneScreen h2{font-size:2.2rem; margin-bottom:14px;}
+  #doneScreen p{max-width:46ch; margin:0 auto 24px; color:var(--ink-soft); font-weight:500;}
+
+  footer{padding-block:28px; text-align:center;}
+  footer p{margin:0; font-size:10.5px; font-weight:700; letter-spacing:0.03em; color:var(--ink-soft);}
+</style>
+</head>
+<body>
+
+<div class="stripe"><span></span><span></span><span></span><span></span></div>
+<div class="wrap">
+  <nav>
+    <div class="wordmark"><span class="w1">Dev</span><span class="w2">Shop</span><small>Retail OS™</small></div>
+    <a class="back" href="../index.html">← Back to Retail OS</a>
+  </nav>
+
+  <div class="progress" id="progressBar"></div>
+
+  <form id="wizard">
+
+    <!-- STEP 1 — Brand identity -->
+    <section class="step" data-step="1">
+      <div class="step-meta"><span class="step-count mono">STEP 01 / 08</span></div>
+      <div class="card">
+        <h2>Brand identity</h2>
+        <p class="sub">Who's applying, and what's the brand.</p>
+        <div class="row2">
+          <div class="field"><label for="brandName">Brand name *</label><input type="text" id="brandName" required></div>
+          <div class="field"><label for="founderName">Founder name *</label><input type="text" id="founderName" required></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="founderEmail">Email *</label><input type="email" id="founderEmail" required></div>
+          <div class="field"><label for="founderPhone">Phone</label><input type="tel" id="founderPhone"></div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="category">Category *</label>
+            <select id="category" required>
+              <option value="">Select…</option>
+              <optgroup label="Live categories">
+                <option>Eyewear</option><option>Travel & Headwear</option><option>Marketplace (multi-category)</option><option>Gifting & Subscription</option>
+              </optgroup>
+              <optgroup label="Open — first 10">
+                <option>Fashion Jewellery</option><option>Beauty & Skincare</option><option>Men's Grooming</option>
+                <option>Pet Accessories</option><option>Home Décor & Lifestyle</option><option>Apparel</option>
+              </optgroup>
+              <optgroup label="Also scouting">
+                <option>Fragrance & Perfume</option><option>FMCG — Snacks & Beverages</option><option>CBD Wellness</option>
+              </optgroup>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="format">Format *</label>
+            <select id="format" required>
+              <option value="">Select…</option>
+              <option>D2C Direct</option><option>Marketplace</option><option>Subscription</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label for="handle">Instagram / website</label><input type="text" id="handle" placeholder="@handle or url"></div>
+        <div class="field">
+          <label>Existing revenue?</label>
+          <div class="choice-group" id="hasRevenueGroup">
+            <label class="choice"><input type="radio" name="hasRevenue" value="yes"> Yes, already selling</label>
+            <label class="choice"><input type="radio" name="hasRevenue" value="no"> No, starting from zero</label>
+          </div>
+        </div>
+        <div class="field" id="revenueRangeField" hidden>
+          <label for="revenueRange">Approx. monthly revenue</label>
+          <select id="revenueRange">
+            <option value="">Select…</option>
+            <option>Under ₹1L / month</option><option>₹1L–5L / month</option><option>₹5L–20L / month</option><option>₹20L+ / month</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="following">Combined social following (rough)</label>
+          <select id="following">
+            <option value="">Select…</option>
+            <option>Under 5K</option><option>5K–50K</option><option>50K–250K</option><option>250K+</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 2 — Catalog -->
+    <section class="step" data-step="2" hidden>
+      <div class="step-meta"><span class="step-count mono">STEP 02 / 08</span></div>
+      <div class="card">
+        <h2>Catalog</h2>
+        <p class="sub">Bring an existing store over, or start fresh.</p>
+        <div class="choice-group" id="catalogModeGroup">
+          <label class="choice"><input type="radio" name="catalogMode" value="shopify"> Import from Shopify</label>
+          <label class="choice"><input type="radio" name="catalogMode" value="manual"> Manual / not decided yet</label>
+        </div>
+        <div class="field" id="shopifyUrlField" style="margin-top:18px;" hidden>
+          <label for="shopifyUrl">Shopify store URL</label>
+          <input type="url" id="shopifyUrl" placeholder="https://yourstore.myshopify.com">
+          <div class="hint">We'll request read-access API credentials separately once the agreement is signed — nothing connects yet.</div>
+        </div>
+        <div class="field" id="productCountField" style="margin-top:18px;">
+          <label for="productCount">Roughly how many SKUs?</label>
+          <select id="productCount">
+            <option value="">Select…</option>
+            <option>Under 10</option><option>10–50</option><option>50–200</option><option>200+</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 3 — Commercial terms -->
+    <section class="step" data-step="3" hidden>
+      <div class="step-meta"><span class="step-count mono">STEP 03 / 08</span></div>
+      <div class="card">
+        <h2>Commercial terms</h2>
+        <p class="sub">An indicative range based on what you've told us so far — final terms are set in the Master Brand Partnership Agreement.</p>
+        <div id="splitPreview" class="split-preview">
+          <div class="range" id="splitRangeText">25%–50%</div>
+          <p id="splitExplainText">Fill in Step 1 to see your indicative range.</p>
+        </div>
+        <div class="terms-box">
+          12-month term · 30-day break clause · paid only once you're earning · Pay with a Post™ carries a separate 1% GMV fee, charged only once payment is received.
+        </div>
+        <label class="checkline">
+          <input type="checkbox" id="termsAck" required>
+          <span>I understand these are indicative terms, and final terms are confirmed in writing before onboarding begins.</span>
+        </label>
+      </div>
+    </section>
+
+    <!-- STEP 4 — Payments -->
+    <section class="step" data-step="4" hidden>
+      <div class="step-meta"><span class="step-count mono">STEP 04 / 08</span></div>
+      <div class="card">
+        <h2>Payments</h2>
+        <p class="sub">How checkout gets funded.</p>
+        <div class="choice-group" id="paymentModeGroup">
+          <label class="choice"><input type="radio" name="paymentMode" value="own"> I have my own gateway account</label>
+          <label class="choice"><input type="radio" name="paymentMode" value="managed"> Set me up on a DevShop-managed account</label>
+        </div>
+        <div class="hint" style="margin-top:14px;">Full KYC (PAN, GST, cancelled cheque, incorporation proof) is collected after the agreement is signed — nothing needed here yet.</div>
+      </div>
+    </section>
+
+    <!-- STEP 5 — Shipping -->
+    <section class="step" data-step="5" hidden>
+      <div class="step-meta"><span class="step-count mono">STEP 05 / 08</span></div>
+      <div class="card">
+        <h2>Shipping</h2>
+        <p class="sub">Where orders ship from, and how they're carried.</p>
+        <div class="row2">
+          <div class="field"><label for="pincode">Warehouse / pickup pincode</label><input type="text" id="pincode"></div>
+          <div class="field">
+            <label>Existing carrier account?</label>
+            <div class="choice-group" id="carrierGroup">
+              <label class="choice"><input type="radio" name="carrier" value="own"> Yes, I have one</label>
+              <label class="choice"><input type="radio" name="carrier" value="none"> No, use DevShop's aggregator</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 6 — Meta -->
+    <section class="step" data-step="6" hidden>
+      <div class="step-meta"><span class="step-count mono">STEP 06 / 08</span></div>
+      <div class="card">
+        <h2>Meta</h2>
+        <p class="sub">Ads, catalog and pixel run through Meta Business Manager.</p>
+        <div class="field">
+          <label>Do you already have a Business Manager?</label>
+          <div class="choice-group" id="metaBmGroup">
+            <label class="choice"><input type="radio" name="metaBm" value="yes"> Yes</label>
+            <label class="choice"><input type="radio" name="metaBm" value="no"> No, help me set one up</label>
+          </div>
+        </div>
+        <div class="field">
+          <label for="adBudget">Starting ad budget (monthly)</label>
+          <select id="adBudget">
+            <option value="">Select…</option>
+            <option>Under ₹25K</option><option>₹25K–1L</option><option>₹1L–5L</option><option>₹5L+</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 7 — WhatsApp -->
+    <section class="step" data-step="7" hidden>
+      <div class="step-meta"><span class="step-count mono">STEP 07 / 08</span></div>
+      <div class="card">
+        <h2>WhatsApp</h2>
+        <p class="sub">The number order updates, OTPs and catalog checkout run through.</p>
+        <div class="field"><label for="waNumber">WhatsApp Business number</label><input type="tel" id="waNumber" placeholder="+91"></div>
+        <label class="checkline">
+          <input type="checkbox" id="waAck">
+          <span>I consent to provisioning a WhatsApp Business API connection for this number.</span>
+        </label>
+      </div>
+    </section>
+
+    <!-- STEP 8 — Pay with a Post -->
+    <section class="step" data-step="8" hidden>
+      <div class="step-meta"><span class="step-count mono">STEP 08 / 08</span></div>
+      <div class="card">
+        <h2>Pay with a Post™</h2>
+        <p class="sub">A buyer posts about the product, unlocks a perk at checkout. DevShop takes 1% of the GMV that flow generates — only once payment is received.</p>
+        <label class="checkline">
+          <input type="checkbox" id="postAck">
+          <span>Turn on Pay with a Post™ for this storefront (recommended — you can disable it later).</span>
+        </label>
+      </div>
+    </section>
+
+    <!-- REVIEW -->
+    <section class="step" data-step="review" hidden>
+      <div class="step-meta"><span class="step-count mono">REVIEW</span></div>
+      <div class="card">
+        <h2>Review & submit</h2>
+        <p class="sub">Nothing is sent until you hit submit.</p>
+        <div id="summaryOutput"></div>
+      </div>
+    </section>
+
+    <div id="doneScreen" hidden>
+      <div class="eyebrow mono" style="color:var(--terracotta); font-weight:700; letter-spacing:0.08em; font-size:12px;">APPLICATION READY</div>
+      <h2>Your email is drafted.</h2>
+      <p>Your mail app should have opened with everything filled in — just hit send. I read every application myself and reply within the week.</p>
+      <a class="btn btn-primary" href="mailto:viratmohan@gmail.com" id="resendLink">Open email again →</a>
+    </div>
+
+    <div class="nav-row" id="navRow">
+      <button type="button" class="btn" id="backBtn">← Back</button>
+      <button type="button" class="btn btn-primary" id="nextBtn">Continue →</button>
+    </div>
+  </form>
+</div>
+
+<footer><p>DEVSHOP RETAIL OS™ — APPLICATION SAVES AS YOU GO, ON THIS DEVICE ONLY</p></footer>
+
+<script>
+(function(){
+  var steps = ["1","2","3","4","5","6","7","8","review"];
+  var current = 0;
+  var STORAGE_KEY = "retailOsApplication";
+
+  var data = {};
+  try { data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch(e) { data = {}; }
+
+  var fieldIds = ["brandName","founderName","founderEmail","founderPhone","category","format","handle",
+    "revenueRange","following","shopifyUrl","productCount","pincode","adBudget","waNumber"];
+  var radioGroups = ["hasRevenue","catalogMode","paymentMode","carrier","metaBm"];
+  var checkboxIds = ["termsAck","waAck","postAck"];
+
+  function restore(){
+    fieldIds.forEach(function(id){
+      var el = document.getElementById(id);
+      if (el && data[id] !== undefined) el.value = data[id];
+    });
+    radioGroups.forEach(function(name){
+      if (data[name]) {
+        var el = document.querySelector('input[name="'+name+'"][value="'+data[name]+'"]');
+        if (el) { el.checked = true; el.closest(".choice").classList.add("active"); }
+      }
+    });
+    checkboxIds.forEach(function(id){
+      var el = document.getElementById(id);
+      if (el && data[id]) el.checked = true;
+    });
+    document.getElementById("revenueRangeField").hidden = data.hasRevenue !== "yes";
+    document.getElementById("shopifyUrlField").hidden = data.catalogMode !== "shopify";
+  }
+
+  function save(){
+    fieldIds.forEach(function(id){
+      var el = document.getElementById(id);
+      if (el) data[id] = el.value;
+    });
+    radioGroups.forEach(function(name){
+      var el = document.querySelector('input[name="'+name+'"]:checked');
+      data[name] = el ? el.value : "";
+    });
+    checkboxIds.forEach(function(id){
+      var el = document.getElementById(id);
+      if (el) data[id] = el.checked;
+    });
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
+  }
+
+  document.querySelectorAll(".choice-group").forEach(function(group){
+    group.addEventListener("click", function(e){
+      var label = e.target.closest(".choice");
+      if (!label) return;
+      group.querySelectorAll(".choice").forEach(function(c){ c.classList.remove("active"); });
+      label.classList.add("active");
+      var input = label.querySelector("input");
+      input.checked = true;
+      save();
+      document.getElementById("revenueRangeField").hidden = document.querySelector('input[name="hasRevenue"]:checked') === null || document.querySelector('input[name="hasRevenue"]:checked').value !== "yes";
+      document.getElementById("shopifyUrlField").hidden = document.querySelector('input[name="catalogMode"]:checked') === null || document.querySelector('input[name="catalogMode"]:checked').value !== "shopify";
+      updateSplitPreview();
+    });
+  });
+
+  function updateSplitPreview(){
+    var hasRevenue = data.hasRevenue || (document.querySelector('input[name="hasRevenue"]:checked') || {}).value;
+    var following = document.getElementById("following").value;
+    var rangeEl = document.getElementById("splitRangeText");
+    var explainEl = document.getElementById("splitExplainText");
+    var previewEl = document.getElementById("splitPreview");
+
+    if (!hasRevenue) {
+      rangeEl.textContent = "25%–50%";
+      explainEl.textContent = "Fill in Step 1 to see your indicative range.";
+      previewEl.classList.remove("enabler");
+      return;
+    }
+    if (hasRevenue === "no") {
+      rangeEl.textContent = "50% brand IP";
+      explainEl.textContent = "No existing revenue — this puts you on the AI-Enabler™ / Co-Founder track: DevShop builds the brand with you from zero, in exchange for 50% of the brand IP itself, not a profit-pool split.";
+      previewEl.classList.add("enabler");
+      return;
+    }
+    var score = 0;
+    if (following === "50K–250K") score += 1;
+    if (following === "250K+") score += 2;
+    var lo = 25 + score*3, hi = 50 - score*5;
+    if (hi < lo) hi = lo + 5;
+    rangeEl.textContent = lo + "%–" + hi + "%";
+    explainEl.textContent = "Based on existing revenue and following — narrows further once category and brand strength are reviewed. Balance of the 40% profit pool is yours.";
+    previewEl.classList.remove("enabler");
+  }
+
+  document.getElementById("following").addEventListener("change", function(){ save(); updateSplitPreview(); });
+
+  document.querySelectorAll("input[type=checkbox]").forEach(function(cb){
+    cb.addEventListener("change", save);
+  });
+  document.querySelectorAll("input[type=text],input[type=email],input[type=tel],input[type=url],select").forEach(function(el){
+    el.addEventListener("input", save);
+    el.addEventListener("change", save);
+  });
+
+  function renderProgress(){
+    var bar = document.getElementById("progressBar");
+    bar.innerHTML = "";
+    steps.forEach(function(s, i){
+      var el = document.createElement("i");
+      if (i < current) el.className = "done";
+      else if (i === current) el.className = "current";
+      bar.appendChild(el);
+    });
+  }
+
+  function showStep(i){
+    document.querySelectorAll(".step").forEach(function(s){ s.hidden = true; });
+    var target = document.querySelector('.step[data-step="' + steps[i] + '"]');
+    if (target) target.hidden = false;
+    document.getElementById("backBtn").hidden = (i === 0);
+    document.getElementById("navRow").hidden = false;
+    document.getElementById("doneScreen").hidden = true;
+    document.getElementById("nextBtn").textContent = (steps[i] === "review") ? "Submit application →" : "Continue →";
+    if (steps[i] === "3") updateSplitPreview();
+    if (steps[i] === "review") renderSummary();
+    renderProgress();
+    window.scrollTo({top:0, behavior:"smooth"});
+  }
+
+  function validateStep(i){
+    var s = steps[i];
+    if (s === "1") {
+      if (!document.getElementById("brandName").value || !document.getElementById("founderName").value ||
+          !document.getElementById("founderEmail").value || !document.getElementById("category").value ||
+          !document.getElementById("format").value) {
+        alert("Please fill in brand name, founder name, email, category and format.");
+        return false;
+      }
+    }
+    if (s === "3" && !document.getElementById("termsAck").checked) {
+      alert("Please acknowledge the terms note to continue.");
+      return false;
+    }
+    return true;
+  }
+
+  function renderSummary(){
+    save();
+    var out = document.getElementById("summaryOutput");
+    var blocks = [
+      ["Brand", [["Brand name", data.brandName], ["Founder", data.founderName], ["Email", data.founderEmail],
+                 ["Phone", data.founderPhone], ["Category", data.category], ["Format", data.format],
+                 ["Handle / site", data.handle], ["Existing revenue", data.hasRevenue === "yes" ? (data.revenueRange || "Yes") : "No — AI-Enabler track"],
+                 ["Following", data.following]]],
+      ["Catalog", [["Mode", data.catalogMode === "shopify" ? "Shopify import" : "Manual"],
+                   ["Shopify URL", data.shopifyUrl], ["SKU count", data.productCount]]],
+      ["Payments & Shipping", [["Payment setup", data.paymentMode === "own" ? "Own gateway account" : "DevShop-managed"],
+                   ["Pickup pincode", data.pincode], ["Carrier", data.carrier === "own" ? "Own account" : "DevShop aggregator"]]],
+      ["Meta & WhatsApp", [["Business Manager", data.metaBm === "yes" ? "Have one" : "Needs setup"],
+                   ["Ad budget", data.adBudget], ["WhatsApp number", data.waNumber],
+                   ["Pay with a Post™", data.postAck ? "Enabled" : "Not enabled"]]]
+    ];
+    out.innerHTML = blocks.map(function(b){
+      var rows = b[1].filter(function(r){ return r[1]; }).map(function(r){
+        return '<div class="summary-row"><span>'+r[0]+'</span><span>'+ (r[1] || "—") +'</span></div>';
+      }).join("");
+      return '<div class="summary-block"><h4>'+b[0]+'</h4>' + (rows || '<div class="summary-row"><span>—</span><span>—</span></div>') + '</div>';
+    }).join("");
+  }
+
+  function buildMailto(){
+    save();
+    var lines = [
+      "Brand name: " + (data.brandName||""),
+      "Founder: " + (data.founderName||"") + " / " + (data.founderEmail||"") + " / " + (data.founderPhone||""),
+      "Category: " + (data.category||"") + " — Format: " + (data.format||""),
+      "Instagram/site: " + (data.handle||""),
+      "Existing revenue: " + (data.hasRevenue === "yes" ? (data.revenueRange||"yes") : "No — AI-Enabler track requested"),
+      "Following: " + (data.following||""),
+      "",
+      "Catalog: " + (data.catalogMode === "shopify" ? "Shopify import — " + (data.shopifyUrl||"") : "Manual"),
+      "SKU count: " + (data.productCount||""),
+      "",
+      "Payments: " + (data.paymentMode === "own" ? "Own gateway account" : "DevShop-managed"),
+      "Shipping pincode: " + (data.pincode||"") + " — Carrier: " + (data.carrier === "own" ? "Own account" : "DevShop aggregator"),
+      "Meta Business Manager: " + (data.metaBm === "yes" ? "Already have one" : "Needs setup"),
+      "Ad budget: " + (data.adBudget||""),
+      "WhatsApp number: " + (data.waNumber||""),
+      "Pay with a Post: " + (data.postAck ? "Enabled" : "Not enabled")
+    ];
+    var subject = "Retail OS Application — " + (data.brandName || "New brand");
+    var body = lines.join("\n");
+    return "mailto:viratmohan@gmail.com?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+  }
+
+  document.getElementById("nextBtn").addEventListener("click", function(){
+    if (steps[current] === "review") {
+      var link = buildMailto();
+      document.getElementById("resendLink").href = link;
+      window.location.href = link;
+      document.querySelectorAll(".step").forEach(function(s){ s.hidden = true; });
+      document.getElementById("navRow").hidden = true;
+      document.getElementById("doneScreen").hidden = false;
+      try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+      return;
+    }
+    if (!validateStep(current)) return;
+    save();
+    if (current < steps.length - 1) { current++; showStep(current); }
+  });
+
+  document.getElementById("backBtn").addEventListener("click", function(){
+    if (current > 0) { current--; showStep(current); }
+  });
+
+  restore();
+  showStep(current);
+})();
+</script>
+</body>
+</html>
