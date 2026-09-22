@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Retail OS</title>
+<title>DevShop Retail OS</title>
 <meta name="description" content="DevShop Retail OS — plug your brand into the same stack behind Travaholic Caps, Moonglasses, India Contemporary and Flowerbasket. Live in under 7 days." />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -141,6 +141,29 @@
     .mgroup{border-right:none!important;}
   }
 
+  /* pay with a post */
+  .post-hero{
+    background:var(--pink); color:var(--cream); border-top:2px solid var(--ink); border-bottom:2px solid var(--ink);
+    background-image: radial-gradient(rgba(244,234,212,0.28) 1.4px, transparent 1.4px);
+    background-size: 16px 16px;
+  }
+  .post-hero-inner{padding-block:60px; display:flex; flex-direction:column; gap:22px;}
+  .post-h{font-size:clamp(2.4rem, 6vw, 4rem); color:var(--cream); max-width:16ch;}
+  .post-lede{max-width:62ch; font-size:16.5px; font-family:'Inter'; font-weight:500; color:rgba(244,234,212,0.95); line-height:1.65; margin:0;}
+  .post-steps{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:10px;}
+  .post-step{background:rgba(26,20,16,0.18); border:1.5px solid rgba(244,234,212,0.4); padding:20px;}
+  .post-step-num{font-family:'Anton'; font-size:13px; color:rgba(244,234,212,0.75); display:block; margin-bottom:8px;}
+  .post-step-label{font-family:'Anton'; font-size:17px; text-transform:uppercase; color:var(--cream); display:block; margin-bottom:6px;}
+  .post-step p{margin:0; font-size:12.8px; font-weight:500; color:rgba(244,234,212,0.9);}
+  @media (max-width:760px){ .post-steps{grid-template-columns:1fr;} }
+  .post-fee{
+    display:flex; align-items:center; gap:20px; margin-top:14px; padding:20px 22px;
+    background:var(--ink); border:2px solid var(--ink); flex-wrap:wrap;
+  }
+  .post-fee-num{font-family:'Anton'; font-size:2.8rem; color:var(--gold); line-height:1;}
+  .post-fee-text{font-size:13.5px; font-weight:500; color:rgba(244,234,212,0.92); max-width:44ch;}
+  .post-fee-text b{color:var(--cream); font-weight:800;}
+
   /* economics */
   .econ-grid{display:grid; grid-template-columns:1.1fr 1fr; gap:40px; align-items:start;}
   @media (max-width:860px){ .econ-grid{grid-template-columns:1fr; gap:32px;} }
@@ -169,6 +192,34 @@
   .enabler{margin-top:20px; padding:18px; border:2px dashed var(--ink); display:flex; gap:12px;}
   .enabler p{margin:0; font-size:13px; font-weight:500;}
   .enabler b{font-weight:800;}
+
+  /* settlement */
+  .week-strip{display:flex; border:2px solid var(--ink); margin-top:8px;}
+  .week-day{
+    flex:1; text-align:center; padding:16px 6px; font-family:'Anton'; font-size:13px; text-transform:uppercase;
+    border-right:2px solid var(--ink); color:var(--ink-soft);
+  }
+  .week-day:last-child{border-right:none;}
+  .week-day-end{color:var(--ink);}
+  .week-day-settle{
+    background:var(--teal); color:var(--cream); flex:1.3; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:4px;
+  }
+  .week-day-settle span{font-family:'Inter'; font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.03em; line-height:1.3;}
+  .week-caption{font-size:12.5px; font-weight:500; color:var(--ink-soft); margin:12px 0 0;}
+  @media (max-width:640px){ .week-strip{flex-wrap:wrap;} .week-day, .week-day-settle{flex:1 1 22%; border-bottom:2px solid var(--ink);} }
+
+  .settle-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:28px;}
+  @media (max-width:760px){ .settle-grid{grid-template-columns:1fr;} }
+  .settle-report{border:2px solid var(--ink); padding:22px;}
+  .settle-report h4{font-family:'Anton'; font-size:15px; text-transform:uppercase; margin-bottom:12px; color:var(--terracotta);}
+  .settle-report ul{margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:8px;}
+  .settle-report li{font-size:13px; font-weight:500; color:var(--ink-soft); padding-left:16px; position:relative;}
+  .settle-report li::before{content:"—"; position:absolute; left:0; color:var(--ink);}
+  .settle-report li b{color:var(--ink); font-weight:800;}
+  .settle-access{background:var(--gold); border:2px solid var(--ink); padding:22px;}
+  .settle-access h4{font-family:'Anton'; font-size:15px; text-transform:uppercase; margin-bottom:12px;}
+  .settle-access p{margin:0; font-size:13px; font-weight:500; line-height:1.6;}
 
   /* categories */
   .cat-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:12px;}
@@ -209,7 +260,9 @@
     <div class="navlinks">
       <a href="#segments">Segments</a>
       <a href="#modules">What you get</a>
+      <a href="#post">Pay with a Post</a>
       <a href="#economics">The deal</a>
+      <a href="#settlement">Settlement</a>
       <a href="#categories">Categories</a>
     </div>
   </nav>
@@ -241,7 +294,7 @@
         <div class="eyebrow">How you sell</div>
         <h2>Pick the shape your business already has</h2>
       </div>
-      <p>I didn't build one storefront template and force every brand into it. Retail OS runs three different ways of selling, because that's what the four brands I already run actually needed.</p>
+      <p>I didn't build one storefront template and force every brand into it. DevShop Retail OS runs three different ways of selling, because that's what the four brands I already run actually needed.</p>
     </div>
     <div class="segments">
       <div class="segment">
@@ -271,7 +324,7 @@
         <div class="eyebrow">What you actually get</div>
         <h2>The stuff that's genuinely hard to build alone</h2>
       </div>
-      <p>Any solo founder can spin up a Shopify store in an afternoon. What they can't do alone is what's below — this is the part that normally needs a dev team, an ad manager, and a photographer.</p>
+      <p>This is the part that normally needs a dev team, an ad manager, and a photographer.</p>
     </div>
 
     <div class="flagship-grid">
@@ -290,7 +343,7 @@
       <div class="flag f3">
         <span class="tag">Checkout</span>
         <h4>Pay with a Post™</h4>
-        <p>A buyer posts about your product and unlocks a perk at checkout. It's a built-in acquisition loop — every order has a shot at becoming someone else's discovery post. Exclusive to Retail OS brands.</p>
+        <p>A buyer posts about your product and unlocks a perk at checkout. It's a built-in acquisition loop — every order has a shot at becoming someone else's discovery post. Exclusive to DevShop Retail OS brands.</p>
       </div>
       <div class="flag f4">
         <span class="tag">WhatsApp</span>
@@ -304,8 +357,8 @@
       </div>
       <div class="flag f6">
         <span class="tag">Growth Engine</span>
-        <h4>Ads that draft themselves</h4>
-        <p>When a product starts selling fast — or starts cooling off — the system drafts the ad brief and builds the campaign for you, paused, waiting for your yes. You approve the spend; nothing launches on its own.</p>
+        <h4>Ads and content that draft themselves</h4>
+        <p>When a product starts selling fast — or starts cooling off — the system drafts the ad brief, builds the campaign, and queues Instagram posts, paused and waiting for your yes. A recommendation engine running underneath surfaces the strategy to try next, pulled from your own sales data — you approve the spend; nothing launches on its own.</p>
       </div>
     </div>
 
@@ -358,13 +411,34 @@
         <h5>Numbers, honestly</h5>
         <ul>
           <li>Full funnel tracking — view, cart, checkout, purchase — by traffic source</li>
-          <li>Ad pixel plus a server-side mirror, so a purchase is counted once, not twice</li>
+          <li>Meta-side analytics view alongside your own — pixel plus a server-side mirror, so a purchase is counted once, not twice</li>
+          <li>Loyalty points balance and redemption tracked per customer, right in the same dashboard</li>
           <li>Day-by-day ROAS, a real monthly P&L, and a daily digest in your inbox</li>
           <li>Session recordings to see exactly where checkout friction actually happens</li>
         </ul>
       </div>
     </div>
   </section>
+</div>
+
+<section id="post" class="post-hero">
+  <div class="wrap post-hero-inner">
+    <div class="eyebrow" style="color:rgba(244,234,212,0.85);">The mechanic nobody else has</div>
+    <h2 class="post-h">Pay with a Post™</h2>
+    <p class="post-lede">A buyer posts about your product. The post unlocks a real perk at checkout — a discount, early access, a free add-on. Every order now has a shot at becoming someone else's discovery moment. Acquisition that compounds instead of resetting to zero on every campaign.</p>
+    <div class="post-steps">
+      <div class="post-step"><span class="post-step-num">01</span><span class="post-step-label">Buyer posts</span><p>Tags the product, before or after checkout.</p></div>
+      <div class="post-step"><span class="post-step-num">02</span><span class="post-step-label">Perk unlocks</span><p>A discount, early access, or a free add-on — automatic, no code.</p></div>
+      <div class="post-step"><span class="post-step-num">03</span><span class="post-step-label">Reach compounds</span><p>Their post becomes the next buyer's discovery moment. Repeat.</p></div>
+    </div>
+    <div class="post-fee">
+      <div class="post-fee-num">1%</div>
+      <div class="post-fee-text"><b>of GMV generated through Pay with a Post.</b> Charged only once payment actually lands — never on a placed order, never on COD still in transit — same pay-on-revenue logic as everything else on DevShop Retail OS.</div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
 
   <section id="economics">
     <div class="section-head">
@@ -394,6 +468,7 @@
           <div class="term"><div class="k">Break clause</div><div class="v">30 days + fee</div></div>
           <div class="term"><div class="k">Brand IP</div><div class="v">Stays yours</div></div>
           <div class="term"><div class="k">You pay</div><div class="v">Only once you earn</div></div>
+          <div class="term"><div class="k">Pay with a Post</div><div class="v">1% of its GMV</div></div>
         </div>
       </div>
       <div>
@@ -411,6 +486,46 @@
         <div class="enabler">
           <p><b>Starting from zero, no revenue yet?</b> I come in as AI-Enabler™ / Co-Founder and build the brand with you from the ground up, AI-first — the name, the catalog, the first customers. In that case, I hold 50% of the brand IP itself, not just a share of the profit pool, because I'm building the brand, not just enabling it.</p>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="settlement">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">How you get paid</div>
+        <h2>Settled every Monday. Visible every day.</h2>
+      </div>
+      <p>The split isn't a mystery at the end of the month — it's a report, on a fixed schedule, itemised down to the line.</p>
+    </div>
+    <div class="week-strip">
+      <div class="week-day">Mon</div>
+      <div class="week-day">Tue</div>
+      <div class="week-day">Wed</div>
+      <div class="week-day">Thu</div>
+      <div class="week-day">Fri</div>
+      <div class="week-day">Sat</div>
+      <div class="week-day week-day-end">Sun</div>
+      <div class="week-day week-day-settle">Mon<span>Settled<br>by 1 PM</span></div>
+    </div>
+    <p class="week-caption">The week runs Monday 12:00 AM to Sunday 11:59 PM. Settlement for that week lands the following Monday, before 1 PM — every week, no exceptions.</p>
+
+    <div class="settle-grid">
+      <div class="settle-report">
+        <h4>What's in the report</h4>
+        <ul>
+          <li>Revenue</li>
+          <li>Cost of goods + packaging</li>
+          <li>Shipping</li>
+          <li>Tech / admin subscriptions</li>
+          <li>Marketing spend</li>
+          <li>Pay with a Post™ fee (1% of its GMV)</li>
+          <li><b>Profit, split per your agreed range</b></li>
+        </ul>
+      </div>
+      <div class="settle-access">
+        <h4>Always visible, not just on Mondays</h4>
+        <p>The full statement is emailed the moment it's settled. But you don't have to wait for it — log into the backend any time and see the complete history: every order, every line item, every past settlement.</p>
       </div>
     </div>
   </section>
