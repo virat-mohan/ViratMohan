@@ -2,7 +2,7 @@
 category: "AI Mental Wellness Platform"
 brand: "Coach Your Psyche"
 tagline: "Four personality-styled AI therapists, full session history, and pay-per-message billing — built for real, ongoing use."
-order: 7
+order: 8
 accent: "#7C5CBF"
 ---
 

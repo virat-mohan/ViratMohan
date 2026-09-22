@@ -3,7 +3,7 @@ category: "Info & Enquiry Platform"
 brand: "The Feeling Co."
 tagline: "A complete digital operation for a boutique wedding-planning business — a brand site, lead capture, internal tools, and content, running without a single external subscription."
 domain: "https://thefeelingco.online"
-order: 3
+order: 4
 accent: "#E91E8C"
 logo: "../../assets/logos/thefeelingco.png"
 ---

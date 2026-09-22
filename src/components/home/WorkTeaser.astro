@@ -39,6 +39,9 @@ const projects = (await getCollection('work')).sort(
         projects.map((p) => (
           <li class="work-teaser__item" data-reveal style={`--c: ${p.data.accent}`}>
             <a class="work-teaser__link" href={`/work/${p.id}`}>
+              {p.data.badge && (
+                <span class="work-teaser__badge">{p.data.badge}</span>
+              )}
               <span class="eyebrow work-teaser__category">
                 {p.data.category}
               </span>
@@ -84,7 +87,22 @@ const projects = (await getCollection('work')).sort(
     padding: 2.25rem 1.75rem 2.5rem;
     height: 100%;
     min-height: 11rem;
+    position: relative;
     transition: filter 0.3s ease;
+  }
+  .work-teaser__badge {
+    position: absolute;
+    top: 1.1rem;
+    right: 1.1rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--poster-cream);
+    background: rgba(0, 0, 0, 0.28);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    padding: 0.25rem 0.55rem;
+    border-radius: 999px;
   }
   .work-teaser__link:hover,
   .work-teaser__link:focus-visible {

@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Retail OS</title>
+<meta name="description" content="DevShop Retail OS — plug your brand into the same stack behind Travaholic Caps, Moonglasses, India Contemporary and Flowerbasket. Live in under 7 days." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#F4EAD4;
+    --ink:#1A1410;
+    --ink-soft:#4A4038;
+    --gold:#D4AF37;
+    --gold-deep:#C99A3D;
+    --terracotta:#D9714B;
+    --blue:#3E6FA6;
+    --pink:#E91E8C;
+    --olive:#9C7A4A;
+    --teal:#2B8C86;
+    --purple:#7C5CBF;
+    --line: rgba(26,20,16,0.14);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--cream); color:var(--ink);
+    font-family:'Inter', system-ui, -apple-system, sans-serif;
+    font-size:15.5px; line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{
+    font-family:'Anton', 'Arial Narrow', sans-serif; font-weight:400;
+    text-transform:uppercase; margin:0; line-height:0.98; letter-spacing:0.2px;
+    text-wrap:balance;
+  }
+  a{color:inherit;}
+  img{max-width:100%;}
+  [hidden]{display:none!important;}
+  .wrap{max-width:1160px; margin-inline:auto; padding-inline:24px;}
+
+  .eyebrow{
+    font-family:'Inter'; font-weight:700; font-size:11.5px; letter-spacing:0.14em;
+    text-transform:uppercase; color:var(--ink-soft);
+  }
+
+  /* stripe */
+  .stripe{display:flex; height:7px;}
+  .stripe span{flex:1;}
+  .stripe span:nth-child(1){background:var(--gold);}
+  .stripe span:nth-child(2){background:var(--blue);}
+  .stripe span:nth-child(3){background:var(--pink);}
+  .stripe span:nth-child(4){background:var(--olive);}
+
+  /* nav */
+  nav{
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    padding-block:18px; flex-wrap:wrap;
+  }
+  .wordmark{display:flex; align-items:baseline; gap:2px; font-family:'Anton'; font-size:22px; text-transform:uppercase;}
+  .wordmark .w1{color:var(--gold-deep);}
+  .wordmark .w2{color:var(--ink);}
+  .wordmark small{font-family:'Inter'; font-style:italic; font-weight:500; font-size:11px; color:var(--ink-soft); text-transform:none; margin-left:8px;}
+  .navlinks{display:flex; gap:26px; font-size:13.5px; font-weight:600;}
+  .navlinks a{text-decoration:none;}
+  .navlinks a:hover{color:var(--terracotta);}
+  @media (max-width:760px){ .navlinks{display:none;} }
+
+  /* hero */
+  .hero{
+    background:var(--terracotta); color:var(--cream); position:relative; overflow:hidden;
+    background-image: radial-gradient(rgba(244,234,212,0.28) 1.4px, transparent 1.4px);
+    background-size: 16px 16px;
+  }
+  .hero-inner{padding-block:68px 56px; display:flex; flex-direction:column; gap:26px;}
+  .hero .eyebrow{color:rgba(244,234,212,0.85);}
+  .hero h1{font-size:clamp(2.5rem, 6vw, 4.6rem); color:var(--cream); max-width:14ch;}
+  .hero h1 span{color:var(--ink); -webkit-text-stroke:0;}
+  .hero p.lede{max-width:58ch; font-size:17px; font-family:'Inter'; font-weight:500; color:rgba(244,234,212,0.94); line-height:1.65;}
+  .cta-row{display:flex; gap:14px; flex-wrap:wrap; margin-top:4px;}
+  .btn{
+    display:inline-flex; align-items:center; gap:8px; padding:14px 24px;
+    font-family:'Inter'; font-weight:700; font-size:14.5px; text-decoration:none;
+    border:2px solid var(--ink); cursor:pointer; transition:transform .12s;
+  }
+  .btn:hover{transform:translateY(-2px);}
+  .btn-primary{background:var(--ink); color:var(--cream); border-color:var(--ink);}
+  .btn-ghost{background:transparent; color:var(--ink); border-color:var(--ink);}
+  .hero .btn-ghost{color:var(--cream); border-color:var(--cream);}
+  .hero .btn-primary{background:var(--ink); color:var(--cream);}
+
+  .proof-strip{display:flex; gap:1px; background:rgba(26,20,16,0.4); border:1px solid rgba(26,20,16,0.4); margin-top:10px; flex-wrap:wrap;}
+  .proof-chip{background:rgba(244,234,212,0.94); color:var(--ink); padding:12px 16px; flex:1 1 200px; display:flex; flex-direction:column; gap:2px;}
+  .proof-chip b{font-family:'Anton'; font-size:15px; text-transform:uppercase;}
+  .proof-chip span{font-size:11px; font-weight:600; color:var(--ink-soft); letter-spacing:0.04em; text-transform:uppercase;}
+
+  /* section shell */
+  section{padding-block:64px; border-top:2px solid var(--ink);}
+  .section-head{display:flex; justify-content:space-between; align-items:flex-end; gap:24px; margin-bottom:34px; flex-wrap:wrap;}
+  .section-head h2{font-size:clamp(1.9rem, 4vw, 2.7rem); margin-top:10px; max-width:16ch;}
+  .section-head p{font-size:14.5px; color:var(--ink-soft); max-width:40ch; font-weight:500;}
+
+  /* segments */
+  .segments{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
+  .segment{padding:26px 22px; color:var(--cream); display:flex; flex-direction:column; gap:12px; min-height:230px;}
+  .segment:nth-child(1){background:var(--terracotta);}
+  .segment:nth-child(2){background:var(--blue);}
+  .segment:nth-child(3){background:var(--purple);}
+  .segment .eyebrow{color:rgba(244,234,212,0.8);}
+  .segment h3{font-size:1.5rem; color:var(--cream);}
+  .segment p{margin:0; font-size:13.8px; font-weight:500; color:rgba(244,234,212,0.94);}
+  .segment .eg{margin-top:auto; padding-top:12px; border-top:1px solid rgba(244,234,212,0.35); font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em;}
+  @media (max-width:860px){ .segments{grid-template-columns:1fr;} }
+
+  /* flagship modules */
+  .flagship-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
+  .flag{padding:24px; color:var(--cream); display:flex; flex-direction:column; gap:10px; min-height:240px; position:relative;}
+  .flag .tag{font-size:11px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase; opacity:0.85;}
+  .flag h4{font-size:1.35rem; color:var(--cream); margin-top:4px;}
+  .flag p{margin:0; font-size:13.3px; font-weight:500; line-height:1.55; color:rgba(244,234,212,0.95);}
+  .flag .badge{
+    position:absolute; top:20px; right:20px; font-size:10px; font-weight:800; letter-spacing:0.05em;
+    background:rgba(244,234,212,0.2); border:1px solid rgba(244,234,212,0.5); padding:3px 8px;
+  }
+  .f1{background:var(--olive);} .f2{background:var(--terracotta);} .f3{background:var(--pink);}
+  .f4{background:var(--teal);} .f5{background:var(--blue);} .f6{background:var(--purple);}
+  @media (max-width:860px){ .flagship-grid{grid-template-columns:1fr 1fr;} }
+  @media (max-width:560px){ .flagship-grid{grid-template-columns:1fr;} }
+
+  /* dense module list */
+  .module-groups{display:grid; grid-template-columns:1fr 1fr; gap:0; border:2px solid var(--ink); margin-top:40px;}
+  .mgroup{padding:24px; border-right:2px solid var(--ink); border-bottom:2px solid var(--ink);}
+  .mgroup:nth-child(2n){border-right:none;}
+  .mgroup h5{font-family:'Anton'; font-size:16px; text-transform:uppercase; margin-bottom:12px; color:var(--terracotta);}
+  .mgroup ul{margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:7px;}
+  .mgroup li{font-size:13.2px; font-weight:500; color:var(--ink-soft); padding-left:14px; position:relative;}
+  .mgroup li::before{content:"—"; position:absolute; left:0; color:var(--ink);}
+  .mgroup li b{color:var(--ink); font-weight:700;}
+  @media (max-width:760px){
+    .module-groups{grid-template-columns:1fr;}
+    .mgroup{border-right:none!important;}
+  }
+
+  /* economics */
+  .econ-grid{display:grid; grid-template-columns:1.1fr 1fr; gap:40px; align-items:start;}
+  @media (max-width:860px){ .econ-grid{grid-template-columns:1fr; gap:32px;} }
+  .barviz{display:flex; width:100%; height:52px; border:2px solid var(--ink); margin-bottom:16px;}
+  .barviz div{height:100%; display:flex; align-items:center; justify-content:center; font-family:'Anton'; font-size:14px; color:var(--ink);}
+  .b-cogs{background:var(--gold); width:25%;}
+  .b-cac{background:var(--terracotta); width:25%; color:var(--cream)!important;}
+  .b-admin{background:var(--olive); width:10%; color:var(--cream)!important; font-size:0;}
+  .b-profit{background:var(--teal); width:40%; color:var(--cream)!important;}
+  .legend{display:flex; gap:16px; flex-wrap:wrap; font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-bottom:30px;}
+  .legend span{display:flex; align-items:center; gap:6px;}
+  .sw{width:10px; height:10px; display:inline-block;}
+  .terms{display:flex; border:2px solid var(--ink); margin-top:8px;}
+  .term{flex:1; padding:16px 18px; border-right:2px solid var(--ink);}
+  .term:last-child{border-right:none;}
+  .term .k{font-size:10.5px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:6px;}
+  .term .v{font-family:'Anton'; font-size:16px;}
+  @media (max-width:640px){ .terms{flex-direction:column;} .term{border-right:none; border-bottom:2px solid var(--ink);} .term:last-child{border-bottom:none;} }
+
+  .split-card{border:2px solid var(--ink); background:var(--gold); padding:26px;}
+  .split-card h4{font-family:'Anton'; font-size:17px; margin-bottom:8px;}
+  .split-card .range{font-family:'Anton'; font-size:34px; margin:10px 0;}
+  .split-card p{font-size:13.5px; font-weight:500; margin:0 0 12px; max-width:40ch;}
+  .factors{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;}
+  .factor{font-size:11px; font-weight:700; background:var(--cream); border:1px solid var(--ink); padding:5px 10px;}
+  .enabler{margin-top:20px; padding:18px; border:2px dashed var(--ink); display:flex; gap:12px;}
+  .enabler p{margin:0; font-size:13px; font-weight:500;}
+  .enabler b{font-weight:800;}
+
+  /* categories */
+  .cat-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:12px;}
+  @media (max-width:900px){ .cat-grid{grid-template-columns:repeat(3,1fr);} }
+  @media (max-width:560px){ .cat-grid{grid-template-columns:1fr 1fr;} }
+  .cat{border:2px solid var(--ink); padding:16px; min-height:150px; display:flex; flex-direction:column; gap:8px; background:var(--cream);}
+  .cat.live{background:var(--ink); color:var(--cream);}
+  .cat .st{font-size:10px; font-weight:800; letter-spacing:0.06em; text-transform:uppercase;}
+  .cat.live .st{color:var(--gold);}
+  .cat:not(.live):not(.scout) .st{color:var(--teal);}
+  .cat.scout .st{color:var(--purple);}
+  .cat h5{font-family:'Anton'; font-size:15px; text-transform:uppercase; margin-top:2px;}
+  .cat .brand{font-size:11.5px; font-weight:700; opacity:0.85;}
+  .cat .meta{margin-top:auto; font-size:10.5px; font-weight:600; opacity:0.75; padding-top:8px; border-top:1px solid var(--line);}
+  .cat.live .meta{border-top-color:rgba(244,234,212,0.3);}
+
+  /* apply */
+  .apply{display:grid; grid-template-columns:1fr 1fr; gap:40px; align-items:center;}
+  @media (max-width:860px){ .apply{grid-template-columns:1fr; gap:26px;} }
+  .apply h2{font-size:clamp(2rem,4vw,2.8rem); max-width:14ch;}
+  .apply p{font-size:14.5px; font-weight:500; color:var(--ink-soft); max-width:44ch; margin-top:12px;}
+  .apply-panel{border:2px solid var(--ink); background:var(--gold); padding:26px;}
+  .apply-panel .row{display:flex; justify-content:space-between; gap:12px; padding-block:11px; border-bottom:1.5px solid var(--ink); font-size:13px; font-weight:600;}
+  .apply-panel .row:last-of-type{border-bottom:none;}
+  .apply-panel .row span:first-child{font-weight:700; text-transform:uppercase; font-size:11px; letter-spacing:0.04em;}
+  .apply-panel .btn{width:100%; justify-content:center; margin-top:18px; background:var(--ink); color:var(--cream); border-color:var(--ink);}
+
+  footer{padding-block:28px; border-top:2px solid var(--ink); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+  footer p{margin:0; font-size:11px; font-weight:700; letter-spacing:0.03em; color:var(--ink-soft);}
+</style>
+</head>
+<body>
+
+<div class="stripe"><span></span><span></span><span></span><span></span></div>
+<div class="wrap">
+  <nav>
+    <div class="wordmark"><span class="w1">Dev</span><span class="w2">Shop</span><small>Retail OS™</small></div>
+    <div class="navlinks">
+      <a href="#segments">Segments</a>
+      <a href="#modules">What you get</a>
+      <a href="#economics">The deal</a>
+      <a href="#categories">Categories</a>
+    </div>
+  </nav>
+</div>
+
+<header class="hero">
+  <div class="wrap hero-inner">
+    <div class="eyebrow">DevShop Retail OS™</div>
+    <h1>I've built this <span style="color:var(--cream);-webkit-text-stroke:2px var(--ink);">myself,</span><br>more than once. Yours could be next.</h1>
+    <p class="lede">Travaholic Caps, Moonglasses, India Contemporary, Flowerbasket — four different businesses, one stack underneath: storefront, payments, shipping, WhatsApp, Meta, abandoned-cart recovery, and an AI content engine that shoots your product photos for you. Zero capex to start, whether you're scaling an existing brand or launching solo with nothing but a product. I'm not pitching you a theory — it's live, it's making money, and I can plug your brand into it this week.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="mailto:viratmohan@gmail.com?subject=Retail%20OS%20%E2%80%94%20Let%27s%20talk&body=Brand%20name%3A%0AFounder%20name%3A%0ACategory%3A%0ACurrent%20revenue%20(if%20any)%3A%0AInstagram%20%2F%20website%3A%0A">Plug in — zero capex, live in 7 days →</a>
+      <a class="btn btn-ghost" href="#modules">See what's inside</a>
+    </div>
+    <div class="proof-strip">
+      <div class="proof-chip"><b>Travaholic Caps</b><span>D2C · Live</span></div>
+      <div class="proof-chip"><b>Moonglasses</b><span>D2C · Live</span></div>
+      <div class="proof-chip"><b>India Contemporary</b><span>Marketplace · Live</span></div>
+      <div class="proof-chip"><b>Flowerbasket</b><span>Subscription · Live</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section id="segments">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">How you sell</div>
+        <h2>Pick the shape your business already has</h2>
+      </div>
+      <p>I didn't build one storefront template and force every brand into it. Retail OS runs three different ways of selling, because that's what the four brands I already run actually needed.</p>
+    </div>
+    <div class="segments">
+      <div class="segment">
+        <div class="eyebrow">Format A</div>
+        <h3>D2C Direct</h3>
+        <p>Your own storefront, your own name on it. Meta and WhatsApp run acquisition, abandoned-cart recovery chases the ones who almost bought, and the content engine keeps your feed fed without you sitting for a shoot every month.</p>
+        <div class="eg">Running this now → Travaholic Caps, Moonglasses</div>
+      </div>
+      <div class="segment">
+        <div class="eyebrow">Format B</div>
+        <h3>Marketplace</h3>
+        <p>Several brands, one shopfront, shared logistics and payment rails underneath. Good when the discovery story is bigger than any single brand's ad budget.</p>
+        <div class="eg">Running this now → India Contemporary</div>
+      </div>
+      <div class="segment">
+        <div class="eyebrow">Format C</div>
+        <h3>Subscription</h3>
+        <p>Recurring billing, delivery-cycle logistics, and retention flows built for anything people buy again and again — not a one-off purchase.</p>
+        <div class="eg">Running this now → Flowerbasket</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="modules">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">What you actually get</div>
+        <h2>The stuff that's genuinely hard to build alone</h2>
+      </div>
+      <p>Any solo founder can spin up a Shopify store in an afternoon. What they can't do alone is what's below — this is the part that normally needs a dev team, an ad manager, and a photographer.</p>
+    </div>
+
+    <div class="flagship-grid">
+      <div class="flag f1">
+        <span class="tag">Migration</span>
+        <span class="badge">New</span>
+        <h4>Shopify, imported</h4>
+        <p>Already selling on Shopify? Give us the store URL. Your whole catalog — products, variants, images, order history, customers — moves over. No re-listing every SKU by hand, no starting your reviews from zero.</p>
+      </div>
+      <div class="flag f2">
+        <span class="tag">AI Content</span>
+        <span class="badge">New</span>
+        <h4>One photo in, a full shoot out</h4>
+        <p>Take one picture of the product on your kitchen table. We generate the on-model shots, the lifestyle scenes, even short video — styled and ad-ready. This is exactly how Moonglasses gets new creative every week without booking a studio or a model.</p>
+      </div>
+      <div class="flag f3">
+        <span class="tag">Checkout</span>
+        <h4>Pay with a Post™</h4>
+        <p>A buyer posts about your product and unlocks a perk at checkout. It's a built-in acquisition loop — every order has a shot at becoming someone else's discovery post. Exclusive to Retail OS brands.</p>
+      </div>
+      <div class="flag f4">
+        <span class="tag">WhatsApp</span>
+        <h4>Catalog to checkout, one tap</h4>
+        <p>A product in a WhatsApp catalog message opens straight into a pre-filled cart on your real checkout — plus order updates, OTPs, and a shared inbox so you're not juggling a phone and a laptop to answer customers.</p>
+      </div>
+      <div class="flag f5">
+        <span class="tag">Recovery</span>
+        <h4>The cart isn't lost, it's just idle</h4>
+        <p>The moment someone starts typing at checkout and vanishes, we've already got their name, number and cart. A WhatsApp-first, two-stage sequence — a nudge, then a coupon — brings a real share of them back.</p>
+      </div>
+      <div class="flag f6">
+        <span class="tag">Growth Engine</span>
+        <h4>Ads that draft themselves</h4>
+        <p>When a product starts selling fast — or starts cooling off — the system drafts the ad brief and builds the campaign for you, paused, waiting for your yes. You approve the spend; nothing launches on its own.</p>
+      </div>
+    </div>
+
+    <div class="module-groups">
+      <div class="mgroup">
+        <h5>Your storefront</h5>
+        <ul>
+          <li><b>Homepage that updates itself</b> — a "trending now" strip pulled from yesterday's real traffic</li>
+          <li><b>Full product & collection pages</b>, brand story and lookbook pages, a journal you can publish to with no redeploy</li>
+          <li><b>UGC wall</b> — customers submit photos, you approve, they go live tagged to the product</li>
+          <li><b>Mobile-first</b> across the whole site, built to load fast and rank — sitemap, metadata, structured data all handled</li>
+        </ul>
+      </div>
+      <div class="mgroup">
+        <h5>Cart & checkout</h5>
+        <ul>
+          <li>Guest checkout, no forced account</li>
+          <li>Postal-code autofill and <b>live shipping rates</b> before payment</li>
+          <li>Prepaid or COD with a small advance, gift notes, bundle discounts, referral codes</li>
+          <li>Shareable cart links — the thing that makes WhatsApp selling actually work</li>
+        </ul>
+      </div>
+      <div class="mgroup">
+        <h5>Payments & money</h5>
+        <ul>
+          <li>Cards, UPI, netbanking, wallets on a hosted checkout</li>
+          <li><b>Never lose an order</b> because a customer's UPI app didn't switch back — reconciled server-side either way</li>
+          <li>Full and partial refunds, synced from the gateway automatically</li>
+        </ul>
+      </div>
+      <div class="mgroup">
+        <h5>Shipping & fulfilment</h5>
+        <ul>
+          <li>Shipment created and courier assigned the second an order confirms</li>
+          <li>Failed-delivery nudges before a parcel gets sent back, <b>auto-refund and restock</b> once it's confirmed returned</li>
+          <li>Labels batched and duplicated to a single A4 sheet — one for you, one for the parcel</li>
+          <li>Your warehouse gets the invoice and label on WhatsApp the moment a shipment is made</li>
+        </ul>
+      </div>
+      <div class="mgroup">
+        <h5>Loyalty, returns & retention</h5>
+        <ul>
+          <li>Points program and a referral code per customer, both configurable by you</li>
+          <li>Return requests, eligibility windows, and auto-refund once the return's confirmed back</li>
+          <li>Automatic post-delivery review request over WhatsApp</li>
+          <li>Customers auto-flagged VIP or at-risk from what they've actually spent</li>
+        </ul>
+      </div>
+      <div class="mgroup">
+        <h5>Numbers, honestly</h5>
+        <ul>
+          <li>Full funnel tracking — view, cart, checkout, purchase — by traffic source</li>
+          <li>Ad pixel plus a server-side mirror, so a purchase is counted once, not twice</li>
+          <li>Day-by-day ROAS, a real monthly P&L, and a daily digest in your inbox</li>
+          <li>Session recordings to see exactly where checkout friction actually happens</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="economics">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">The deal</div>
+        <h2>Your brand. Your IP. My infrastructure.</h2>
+      </div>
+      <p>You're not selling the brand to me. You're renting the machinery that gets it to revenue faster than building it yourself would.</p>
+    </div>
+
+    <div class="econ-grid">
+      <div>
+        <div class="barviz">
+          <div class="b-cogs">25%</div>
+          <div class="b-cac">25%</div>
+          <div class="b-admin"></div>
+          <div class="b-profit">40%</div>
+        </div>
+        <div class="legend">
+          <span><i class="sw" style="background:var(--gold)"></i>Product + packaging</span>
+          <span><i class="sw" style="background:var(--terracotta)"></i>CAC, online or offline</span>
+          <span><i class="sw" style="background:var(--olive)"></i>Admin + tech (10%)</span>
+          <span><i class="sw" style="background:var(--teal)"></i>Profit pool</span>
+        </div>
+        <div class="terms">
+          <div class="term"><div class="k">Contract</div><div class="v">12 months</div></div>
+          <div class="term"><div class="k">Break clause</div><div class="v">30 days + fee</div></div>
+          <div class="term"><div class="k">Brand IP</div><div class="v">Stays yours</div></div>
+          <div class="term"><div class="k">You pay</div><div class="v">Only once you earn</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="split-card">
+          <h4>What I take from the profit pool</h4>
+          <div class="range">25%–50%</div>
+          <p>The rest is yours. Where you land in that range depends on category, how strong the brand already is, existing revenue, and how much of an audience you're walking in with — we work it out together, not off a fixed formula.</p>
+          <div class="factors">
+            <span class="factor">Category</span>
+            <span class="factor">Brand strength</span>
+            <span class="factor">Existing revenue</span>
+            <span class="factor">Following</span>
+          </div>
+        </div>
+        <div class="enabler">
+          <p><b>Starting from zero, no revenue yet?</b> I come in as AI-Enabler™ / Co-Founder and build the brand with you from the ground up, AI-first — the name, the catalog, the first customers. In that case, I hold 50% of the brand IP itself, not just a share of the profit pool, because I'm building the brand, not just enabling it.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="categories">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">The first 10</div>
+        <h2>Four brands are live. Six slots are open.</h2>
+      </div>
+      <p>Based on real India D2C margin and creator-fit data — not a hunch. Highest priority: high gross margin, low return rate, easy to shoot and demo, easy to gift.</p>
+    </div>
+    <div class="cat-grid">
+      <div class="cat live"><div class="st">Live</div><h5>Eyewear</h5><div class="brand">Moonglasses</div><div class="meta">55–75%+ margin · low returns</div></div>
+      <div class="cat live"><div class="st">Live</div><h5>Travel & Headwear</h5><div class="brand">Travaholic Caps</div><div class="meta">Low ship weight · high creator fit</div></div>
+      <div class="cat live"><div class="st">Live</div><h5>Marketplace</h5><div class="brand">India Contemporary</div><div class="meta">Multi-brand fashion & lifestyle</div></div>
+      <div class="cat live"><div class="st">Live</div><h5>Gifting & Subscription</h5><div class="brand">Flowerbasket</div><div class="meta">Recurring · high repeat</div></div>
+      <div class="cat"><div class="st">Open</div><h5>Fashion Jewellery</h5><div class="brand">Looking for a brand</div><div class="meta">50–70% margin · ★★★★★ creator fit</div></div>
+      <div class="cat"><div class="st">Open</div><h5>Beauty & Skincare</h5><div class="brand">Looking for a brand</div><div class="meta">60–80% margin · very high repeat</div></div>
+      <div class="cat"><div class="st">Open</div><h5>Men's Grooming</h5><div class="brand">Looking for a brand</div><div class="meta">55–70% margin · very low returns</div></div>
+      <div class="cat"><div class="st">Open</div><h5>Pet Accessories</h5><div class="brand">Looking for a brand</div><div class="meta">40–60% margin · highly shareable</div></div>
+      <div class="cat"><div class="st">Open</div><h5>Home Décor & Lifestyle</h5><div class="brand">Looking for a brand</div><div class="meta">40–60% margin · gifting-led</div></div>
+      <div class="cat"><div class="st">Open</div><h5>Apparel</h5><div class="brand">Looking for a brand</div><div class="meta">50–70% margin · ★★★★★ creator fit</div></div>
+    </div>
+
+    <div class="section-head" style="margin-top:44px;">
+      <div>
+        <div class="eyebrow">Also scouting</div>
+        <h2>Three more under evaluation</h2>
+      </div>
+      <p>Bigger markets, different trade-offs — added after a follow-up read of the numbers. Full notes in the category roadmap.</p>
+    </div>
+    <div class="cat-grid">
+      <div class="cat scout"><div class="st">Scouting</div><h5>Fragrance & Perfume</h5><div class="brand">Looking for a brand</div><div class="meta">40–75% margin · ★★★★★ creator fit</div></div>
+      <div class="cat scout"><div class="st">Scouting</div><h5>FMCG · Snacks &amp; Beverages</h5><div class="brand">Looking for a brand</div><div class="meta">35–55% margin · heavier logistics</div></div>
+      <div class="cat scout"><div class="st">Scouting</div><h5>CBD Wellness</h5><div class="brand">Looking for a brand</div><div class="meta">AYUSH-licensed lane only, not edibles</div></div>
+    </div>
+  </section>
+
+  <section id="apply">
+    <div class="apply">
+      <div>
+        <h2>Bring the brand. I'll bring the enablement.</h2>
+        <p>Tell me what it is, what category, where it stands today. If it's a fit, you'll have a straight answer within the week and a live storefront not long after that.</p>
+      </div>
+      <div class="apply-panel">
+        <div class="row"><span>Who this fits</span><span>Founder-owned, any stage</span></div>
+        <div class="row"><span>Time to live</span><span>3–7 days post-signature</span></div>
+        <div class="row"><span>What you keep</span><span>Full brand IP</span></div>
+        <div class="row"><span>Commitment</span><span>12 mo · 30-day break clause</span></div>
+        <div class="row"><span>When you pay</span><span>Only once you're earning</span></div>
+        <a class="btn" href="mailto:viratmohan@gmail.com?subject=Retail%20OS%20%E2%80%94%20Let%27s%20talk&body=Brand%20name%3A%0AFounder%20name%3A%0ACategory%3A%0ACurrent%20revenue%20(if%20any)%3A%0AInstagram%20%2F%20website%3A%0A">Plug in — zero capex, live in 7 days →</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>DEVSHOP RETAIL OS — BUILT FAST, FOR REAL BUSINESSES</p>
+    <p>PAY WITH A POST™, RETAIL OS™ AND AI-ENABLER™ ARE TRADEMARKS OF DEVSHOP</p>
+  </footer>
+</div>
+
+</body>
+</html>

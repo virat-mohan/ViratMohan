@@ -2,7 +2,7 @@
 category: "Social Content Operations Platform"
 brand: "Content-ment"
 tagline: "Drafting, approval, and export in one integrated workflow — not three disconnected tools."
-order: 6
+order: 7
 accent: "#2B8C86"
 ---
 

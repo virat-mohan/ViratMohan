@@ -3,7 +3,7 @@ category: "Booking & Property Management"
 brand: "Travaholic Stays"
 tagline: "The villas booking platform with dynamic benchmark pricing and a central reservation system."
 domain: "https://travaholicstays.com"
-order: 2
+order: 3
 accent: "#3E6FA6"
 logo: "../../assets/logos/travaholic-stays.png"
 ---

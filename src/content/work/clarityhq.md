@@ -3,7 +3,7 @@ category: "AI-Native Growth Platform"
 brand: "ClarityHQ"
 tagline: "Acquisition, conversion, and retention run on one shared Brand Intelligence layer and database — not three disconnected tools."
 domain: "https://clarityhq.ai"
-order: 5
+order: 6
 accent: "#C99A3D"
 ---
 

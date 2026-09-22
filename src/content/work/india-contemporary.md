@@ -3,7 +3,7 @@ category: "Marketplace Platform"
 brand: "India Contemporary"
 tagline: "A curated marketplace connecting India's leading contemporary artists directly to European collectors."
 domain: "https://indiacontemporary.net"
-order: 4
+order: 5
 accent: "#9C7A4A"
 founder: "Vijit Veer Hooda"
 ---

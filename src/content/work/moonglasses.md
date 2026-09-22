@@ -3,8 +3,9 @@ category: "AI-Run D2C Commerce"
 brand: "Moonglasses"
 tagline: "An eyewear brand that shoots its own product photography and chases its own abandoned carts."
 domain: "https://moon-glasses.store"
-order: 8
+order: 1
 accent: "#2B2F63"
+badge: "New Launch"
 ---
 
 This exact system can be licensed and running for your business, too — it's the backbone of **DevShop Retail OS**, the plug-in commerce platform built from what runs here. Own the build, go fully managed, or start now and pay only once you're earning — scope negotiable on a call.

@@ -31,6 +31,9 @@ const work = defineCollection({
       // for brands whose real mark is a wordmark (no fetchable logo
       // image) — recreated as real text, e.g. "by Vijit Veer Hooda".
       founder: z.string().optional(),
+      // a short pill shown on the tile itself, e.g. "New Launch" — for a
+      // brand that just went live and should stand out from the rest.
+      badge: z.string().optional(),
     }),
 });
 

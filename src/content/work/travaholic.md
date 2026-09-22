@@ -3,7 +3,7 @@ category: "E-Commerce Infrastructure"
 brand: "Travaholic"
 tagline: "A complete D2C commerce backbone — live in two days, not two months."
 domain: "https://travaholic.in"
-order: 1
+order: 2
 accent: "#D9714B"
 logo: "../../assets/logos/travaholic.png"
 ---

@@ -295,6 +295,11 @@ const canonical = new URL('/devshop', site.domain).href;
         </a>
       ))}
     </div>
+
+    <div class="post-callout">
+      <p class="post-callout-eyebrow">Pay with a Post<sup>™</sup></p>
+      <p class="post-callout-body">A checkout mechanic built into every Retail OS storefront: a buyer posts about the product and unlocks a perk at checkout — a discount, early access, a free add-on. Every real order carries a shot at becoming someone else's discovery post, so acquisition compounds instead of resetting to zero on every campaign. Exclusive to brands running on DevShop Retail OS.</p>
+    </div>
   </section>
 
   <!-- 04 PROBLEM LIBRARY — leads with the business problem, not the
@@ -762,6 +767,15 @@ const canonical = new URL('/devshop', site.domain).href;
   }
   .tint-blue { color: var(--dev-blue); }
   .tint-gold { color: var(--dev-gold); }
+  .post-callout {
+    margin-top: 28px; padding: 22px 24px; border: 1px solid var(--dev-border, rgba(30,33,26,0.14));
+    background: var(--dev-panel); max-width: 640px;
+  }
+  .post-callout-eyebrow {
+    margin: 0 0 8px; font-family: 'JetBrains Mono', SFMono-Regular, Consolas, monospace;
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dev-gold);
+  }
+  .post-callout-body { margin: 0; font-size: 13.5px; line-height: 1.6; color: var(--dev-muted1); }
   .tint-rose { color: var(--dev-rose); }
   p.sub { font-size: 17px; color: var(--dev-muted1); max-width: 520px; margin-top: 20px; line-height: 1.6; }
 
