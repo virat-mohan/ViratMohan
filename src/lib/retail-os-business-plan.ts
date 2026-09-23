@@ -1,47 +1,55 @@
 // Quarterly business-plan / benchmark P&L generator for DevShop Retail OS
-// applications. Mirrors the call pattern in src/lib/llm.ts (direct fetch,
-// forced tool_choice for structured output) rather than importing that
-// file, because the system prompt and schema here are purpose-built and
-// have nothing to do with the classify+build pipeline.
+// applications.
 //
-// DELIBERATE DESIGN CHOICE: this is a two-stage flow, not one LLM call that
-// "does research." Stage 1 is a human (the admin) supplying real market
-// research — industry sizing, city-level consumer spend, category
-// benchmarks, competitor pricing, customer behaviour — with sources, via
-// the admin UI. Stage 2 (this file) is Claude SYNTHESIZING that supplied
-// research plus the brand's own intake data into a structured plan. The
-// model is explicitly forbidden from inventing a number with no basis in
-// what it was given — see the system prompt below. This avoids the two
-// realistic failure modes of "just ask the LLM for a business plan":
-// confidently invented statistics, and no way to trace a number back to
-// where it came from.
+// ARCHITECTURE (v2 — see the "Business Plan Module Guide" artifact for the
+// full writeup this mirrors):
+// 1. Server-side, deterministic: if the brand has a Shopify store, fetch
+//    its real public catalog (`{url}/products.json`) before calling Claude
+//    at all — this is ground truth, no reason to make the model guess or
+//    search for data we can just fetch.
+// 2. Claude does its own market research via the native web_search server
+//    tool — industry sizing, competitor pricing, city-level spend, and
+//    (when no Shopify catalog exists) the brand's own website/Instagram if
+//    it has one — then calls the quarterly_business_plan tool with a small
+//    set of DRIVERS (orders/month, AOV, COGS%, CAC%, admin/tech%), not
+//    final rupee figures.
+// 3. Revenue/COGS/CAC/admin-tech per month, and profit-pool/share totals,
+//    are computed from those drivers in computePlanFromDrivers() below —
+//    server-side, deterministic, every time. This is what makes the plan
+//    "connected": editing a driver later (from the admin page) re-runs the
+//    exact same function and overwrites the plan in place, formulas intact.
+//
+// VERIFY BEFORE FIRST REAL RUN: the native web_search tool's exact type
+// string / beta header requirement can change as Anthropic's API evolves.
+// The values below (`web_search_20250305`, no beta header) are what's
+// current as of this file's prompt_version — if the first real call 4xxs
+// on the tool definition, check the current Anthropic API docs for the
+// tool's current type string and whether an `anthropic-beta` header is
+// still required, and update ANTHROPIC_VERSION / WEB_SEARCH_TOOL_TYPE here.
 
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
 const ANTHROPIC_VERSION = '2023-06-01';
+const WEB_SEARCH_TOOL_TYPE = 'web_search_20250305';
 const MODEL = 'claude-sonnet-5';
 const MAX_TOKENS = 8000;
-export const BUSINESS_PLAN_PROMPT_VERSION = '2026-09-23.1';
-const CLAUDE_TIMEOUT_MS = 120_000;
+export const BUSINESS_PLAN_PROMPT_VERSION = '2026-09-23.2-native-search-drivers';
+const CLAUDE_TIMEOUT_MS = 170_000; // native search takes longer than a plain call
 
 export type PlanAssumption = { label: string; value: string; rationale: string; basis: 'supplied_research' | 'brand_data' | 'industry_benchmark_general_knowledge' };
+export type PlanDrivers = {
+  ordersM1: number; ordersM2: number; ordersM3: number;
+  aovInr: number; cogsPct: number; cacPct: number; adminTechPct: number;
+};
 export type PlanMonth = {
-  label: string;
-  orders: number;
-  revenueInr: number;
-  cogsInr: number;
-  cacInr: number;
-  adminTechInr: number;
-  rationale: string;
-  // Computed server-side after the call, never by the model — see computeShares().
-  profitPoolInr?: number;
-  devshopShareInr?: number;
-  founderShareInr?: number;
+  label: string; orders: number; revenueInr: number; cogsInr: number; cacInr: number; adminTechInr: number;
+  profitPoolInr: number; devshopShareInr: number; founderShareInr: number;
 };
 export type PlanCity = { city: string; revenueSharePct: number; rationale: string };
 
 export type BusinessPlanOutput = {
   assumptions: PlanAssumption[];
-  months: PlanMonth[];
+  drivers: PlanDrivers;
+  driverRationale: { aov: string; orders: string; cogsPct: string; cacPct: string; adminTechPct: string };
   cityBreakdown: PlanCity[];
   risks: string[];
   sourcesCited: string[];
@@ -49,91 +57,77 @@ export type BusinessPlanOutput = {
 
 const PLAN_TOOL = {
   name: 'quarterly_business_plan',
-  description: 'A grounded 3-month benchmark P&L for a D2C brand, with a cited rationale for every assumption.',
+  description: 'A grounded 3-month benchmark P&L for a D2C brand, expressed as editable drivers (not fixed totals) plus a cited rationale for each.',
   input_schema: {
     type: 'object',
     properties: {
       assumptions: {
         type: 'array',
-        description: 'Every material assumption behind the plan — AOV, orders/month, COGS%, CAC%, admin/tech%, etc. One entry per assumption.',
+        description: 'Qualitative or supporting assumptions that do not map directly to a numeric driver — target segment, positioning, seasonality notes, etc.',
         items: {
           type: 'object',
           properties: {
             label: { type: 'string' },
             value: { type: 'string' },
-            rationale: { type: 'string', description: 'Why this number — must reference the supplied research or brand data it comes from.' },
+            rationale: { type: 'string' },
             basis: { type: 'string', enum: ['supplied_research', 'brand_data', 'industry_benchmark_general_knowledge'] },
           },
           required: ['label', 'value', 'rationale', 'basis'],
         },
       },
-      months: {
-        type: 'array', minItems: 3, maxItems: 3,
-        items: {
-          type: 'object',
-          properties: {
-            label: { type: 'string', description: 'e.g. "Month 1"' },
-            orders: { type: 'number' },
-            revenueInr: { type: 'number' },
-            cogsInr: { type: 'number' },
-            cacInr: { type: 'number' },
-            adminTechInr: { type: 'number' },
-            rationale: { type: 'string' },
-          },
-          required: ['label', 'orders', 'revenueInr', 'cogsInr', 'cacInr', 'adminTechInr', 'rationale'],
+      drivers: {
+        type: 'object',
+        description: 'The numeric drivers the whole plan is computed from.',
+        properties: {
+          ordersM1: { type: 'number', description: 'Orders in month 1' },
+          ordersM2: { type: 'number', description: 'Orders in month 2' },
+          ordersM3: { type: 'number', description: 'Orders in month 3' },
+          aovInr: { type: 'number', description: 'Average order value in INR, held constant across the quarter' },
+          cogsPct: { type: 'number', description: 'Cost of goods + packaging as a percent of revenue' },
+          cacPct: { type: 'number', description: 'Customer acquisition cost as a percent of revenue' },
+          adminTechPct: { type: 'number', description: 'Admin + tech subscriptions as a percent of revenue' },
         },
+        required: ['ordersM1', 'ordersM2', 'ordersM3', 'aovInr', 'cogsPct', 'cacPct', 'adminTechPct'],
+      },
+      driverRationale: {
+        type: 'object',
+        description: 'One rationale per driver (or driver group), citing what it is grounded in — this is what a founder will read to trust the number.',
+        properties: {
+          orders: { type: 'string' },
+          aov: { type: 'string' },
+          cogsPct: { type: 'string' },
+          cacPct: { type: 'string' },
+          adminTechPct: { type: 'string' },
+        },
+        required: ['orders', 'aov', 'cogsPct', 'cacPct', 'adminTechPct'],
       },
       cityBreakdown: {
         type: 'array',
         items: {
           type: 'object',
-          properties: {
-            city: { type: 'string' },
-            revenueSharePct: { type: 'number' },
-            rationale: { type: 'string' },
-          },
+          properties: { city: { type: 'string' }, revenueSharePct: { type: 'number' }, rationale: { type: 'string' } },
           required: ['city', 'revenueSharePct', 'rationale'],
         },
       },
-      risks: { type: 'array', items: { type: 'string' }, description: 'What could make actuals miss this plan, in plain language.' },
-      sourcesCited: { type: 'array', items: { type: 'string' }, description: 'Which of the supplied research sources were actually used, by name.' },
+      risks: { type: 'array', items: { type: 'string' } },
+      sourcesCited: { type: 'array', items: { type: 'string' }, description: 'URLs or named sources actually found and used via web search.' },
     },
-    required: ['assumptions', 'months', 'cityBreakdown', 'risks', 'sourcesCited'],
+    required: ['assumptions', 'drivers', 'driverRationale', 'cityBreakdown', 'risks', 'sourcesCited'],
   },
 } as const;
 
 const SYSTEM_PROMPT = `You are a senior D2C e-commerce financial analyst building a quarterly business plan and benchmark P&L for one brand on DevShop Retail OS.
 
-You will be given (1) the brand's own intake data, and (2) market research notes supplied by the operator — industry sizing, city-level consumer spend, category price benchmarks, competitor pricing, customer behaviour, or sales data, each ideally with a source.
+You have a native web search tool. Use it to actually research: category market size in India, city-level consumer spend or online-shopping behaviour for the brand's target cities, competitor pricing, customer behaviour and return-rate benchmarks for this category. If the brand has no live website or Shopify catalog supplied to you directly, also search for its Instagram handle or any public presence to understand its actual product offering and positioning before estimating anything.
 
 Hard rules:
-- Ground every numeric assumption in the supplied research or the brand's own data. Never invent a precise statistic with no basis.
-- Where the supplied research doesn't cover something you need, say so explicitly in that assumption's rationale ("no research supplied on X — using a general industry benchmark") and mark basis as "industry_benchmark_general_knowledge" rather than passing it off as researched.
-- Build monthly revenue bottom-up: orders per month × average order value, broken down by target city where the research supports it, not a single top-down guess.
+- Ground every driver in what you actually found — cite it in that driver's rationale. Where you can't find something specific, say so explicitly ("no city-level data found for X — using a general India D2C benchmark") and mark that assumption's basis as industry_benchmark_general_knowledge rather than passing a guess off as researched.
+- Express the plan as DRIVERS, not final totals: orders per month (a realistic ramp across 3 months, not identical numbers), average order value, COGS%, CAC%, admin/tech% of revenue. You are not asked to compute revenue or profit — that happens outside this tool, deterministically, from the drivers you give.
 - Use conservative, defensible estimates appropriate for an early-stage or scaling D2C brand — not best-case numbers.
-- COGS%, CAC%, and admin/tech% should reflect the category and city mix given, not a generic 25/25/10 default unless the research or brand data actually supports that split for this brand.
-- Every assumption needs a rationale a skeptical founder would accept, in one or two sentences.
+- COGS%, CAC%, and admin/tech% should reflect the actual category and city mix, not a generic default unless research genuinely supports that split for this brand.
+- Every driver's rationale should be something a skeptical founder would accept, in one or two sentences, naming what you found.
 
 Output only through the quarterly_business_plan tool.`;
-
-function buildUserMessage(app: BrandContext, researchNotes: string): string {
-  return `BRAND INTAKE DATA
-Brand: ${app.brandName}
-Category: ${app.category ?? 'not specified'}
-Format: ${app.format ?? 'not specified'}
-Existing revenue: ${app.hasRevenue === 'yes' ? (app.revenueRange ?? 'yes, range not specified') : 'none — pre-revenue'}
-Following: ${app.following ?? 'not specified'}
-Catalog size: ${app.productCount ?? 'not specified'}
-Target cities (brand-supplied): ${app.targetCities ?? 'not specified'}
-Payment methods: ${app.paymentMethods ?? 'not specified'}
-Shipping model: ${app.shippingChargeModel ?? 'not specified'}
-Return window: ${app.returnWindow ?? 'not specified'}
-
-SUPPLIED MARKET RESEARCH (ground every assumption in this where it applies)
-${researchNotes}
-
-Build the 3-month benchmark P&L now.`;
-}
 
 export type BrandContext = {
   brandName: string;
@@ -144,16 +138,48 @@ export type BrandContext = {
   following: string | null;
   productCount: string | null;
   targetCities: string | null;
-  paymentMethods: string | null;
-  shippingChargeModel: string | null;
-  returnWindow: string | null;
+  handle: string | null;
+  shopifyUrl: string | null;
 };
 
-export async function generateBusinessPlan(
-  app: BrandContext,
-  researchNotes: string,
-  apiKey: string
-): Promise<BusinessPlanOutput> {
+async function fetchShopifyCatalogSummary(shopifyUrl: string): Promise<string | null> {
+  try {
+    const base = shopifyUrl.replace(/\/$/, '');
+    const res = await fetch(`${base}/products.json?limit=50`, { signal: AbortSignal.timeout(10_000) });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { products?: Array<{ title: string; variants?: Array<{ price: string }> }> };
+    const products = data.products ?? [];
+    if (products.length === 0) return null;
+    const prices = products.flatMap((p) => (p.variants ?? []).map((v) => parseFloat(v.price)).filter((n) => !isNaN(n)));
+    const min = prices.length ? Math.min(...prices) : null;
+    const max = prices.length ? Math.max(...prices) : null;
+    const sample = products.slice(0, 12).map((p) => p.title).join(', ');
+    return `Fetched live from the brand's own Shopify store (${products.length} products found). Price range: ${min != null ? `₹${min}–₹${max}` : 'not available'}. Sample products: ${sample}.`;
+  } catch {
+    return null; // network/parse failure — not fatal, the model falls back to search
+  }
+}
+
+function buildUserMessage(app: BrandContext, catalogSummary: string | null): string {
+  return `BRAND CONTEXT
+Brand: ${app.brandName}
+Category: ${app.category ?? 'not specified'}
+Format: ${app.format ?? 'not specified'}
+Existing revenue: ${app.hasRevenue === 'yes' ? (app.revenueRange ?? 'yes, range not specified') : 'none — pre-revenue'}
+Following: ${app.following ?? 'not specified'}
+Catalog size (self-reported): ${app.productCount ?? 'not specified'}
+Target cities: ${app.targetCities ?? 'not specified — research general India D2C city patterns for this category'}
+Instagram / handle: ${app.handle ?? 'not provided'}
+Shopify store: ${app.shopifyUrl ?? 'not provided'}
+
+${catalogSummary ? `BRAND'S OWN CATALOG (fetched directly — treat as ground truth, do not search for this)\n${catalogSummary}\n` : "No live catalog was fetchable. Search for the brand's website or Instagram if either was given above, to understand its actual product offering before estimating.\n"}
+
+Research the category and these target cities, then build the 3-month benchmark P&L as drivers.`;
+}
+
+export async function generateBusinessPlan(app: BrandContext, apiKey: string): Promise<BusinessPlanOutput> {
+  const catalogSummary = app.shopifyUrl ? await fetchShopifyCatalogSummary(app.shopifyUrl) : null;
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS);
   try {
@@ -168,9 +194,9 @@ export async function generateBusinessPlan(
         model: MODEL,
         max_tokens: MAX_TOKENS,
         system: SYSTEM_PROMPT,
-        messages: [{ role: 'user', content: buildUserMessage(app, researchNotes) }],
-        tools: [PLAN_TOOL],
-        tool_choice: { type: 'tool', name: PLAN_TOOL.name },
+        messages: [{ role: 'user', content: buildUserMessage(app, catalogSummary) }],
+        tools: [{ type: WEB_SEARCH_TOOL_TYPE, name: 'web_search' }, PLAN_TOOL],
+        tool_choice: { type: 'auto' },
       }),
       signal: controller.signal,
     });
@@ -180,38 +206,47 @@ export async function generateBusinessPlan(
       throw new Error(`Anthropic API error ${res.status}: ${body.slice(0, 500)}`);
     }
 
-    const data = (await res.json()) as { content: Array<{ type: string; input?: Record<string, unknown> }> };
-    const toolUse = data.content.find((b) => b.type === 'tool_use');
-    if (!toolUse?.input) throw new Error('Anthropic response did not include a tool_use block');
+    const data = (await res.json()) as { content: Array<{ type: string; name?: string; input?: Record<string, unknown> }> };
+    const toolUse = data.content.find((b) => b.type === 'tool_use' && b.name === PLAN_TOOL.name);
+    if (!toolUse?.input) {
+      throw new Error('Model did not call quarterly_business_plan — it may have stopped mid-research. Try again.');
+    }
     return toolUse.input as unknown as BusinessPlanOutput;
   } finally {
     clearTimeout(timeout);
   }
 }
 
-// Deterministic — never trust the model's own arithmetic for money that
-// feeds a real settlement comparison. splitPct is DevShop's share of the
-// profit pool (e.g. from the application's stored split_range midpoint).
-export function computeShares(months: PlanMonth[], splitPct: number): PlanMonth[] {
-  return months.map((m) => {
-    const profitPoolInr = m.revenueInr - m.cogsInr - m.cacInr - m.adminTechInr;
+// The one place monthly figures and shares are ever computed — called on
+// initial generation AND on every human edit to the drivers, so "editing a
+// number updates the plan" and "the LLM's plan" are always the same code
+// path, never two.
+export function computePlanFromDrivers(drivers: PlanDrivers, splitPct: number): { months: PlanMonth[]; quarterTotals: Record<string, number> } {
+  const orders = [drivers.ordersM1, drivers.ordersM2, drivers.ordersM3];
+  const months: PlanMonth[] = orders.map((o, i) => {
+    const revenueInr = Math.round(o * drivers.aovInr);
+    const cogsInr = Math.round(revenueInr * (drivers.cogsPct / 100));
+    const cacInr = Math.round(revenueInr * (drivers.cacPct / 100));
+    const adminTechInr = Math.round(revenueInr * (drivers.adminTechPct / 100));
+    const profitPoolInr = revenueInr - cogsInr - cacInr - adminTechInr;
     const devshopShareInr = Math.round(profitPoolInr * (splitPct / 100));
-    return { ...m, profitPoolInr, devshopShareInr, founderShareInr: profitPoolInr - devshopShareInr };
+    return {
+      label: `Month ${i + 1}`, orders: o, revenueInr, cogsInr, cacInr, adminTechInr,
+      profitPoolInr, devshopShareInr, founderShareInr: profitPoolInr - devshopShareInr,
+    };
   });
-}
-
-export function sumQuarterTotals(months: PlanMonth[]) {
-  return months.reduce(
+  const quarterTotals = months.reduce(
     (acc, m) => ({
       ordersTotal: acc.ordersTotal + m.orders,
       revenueInr: acc.revenueInr + m.revenueInr,
       cogsInr: acc.cogsInr + m.cogsInr,
       cacInr: acc.cacInr + m.cacInr,
       adminTechInr: acc.adminTechInr + m.adminTechInr,
-      profitPoolInr: acc.profitPoolInr + (m.profitPoolInr ?? 0),
-      devshopShareInr: acc.devshopShareInr + (m.devshopShareInr ?? 0),
-      founderShareInr: acc.founderShareInr + (m.founderShareInr ?? 0),
+      profitPoolInr: acc.profitPoolInr + m.profitPoolInr,
+      devshopShareInr: acc.devshopShareInr + m.devshopShareInr,
+      founderShareInr: acc.founderShareInr + m.founderShareInr,
     }),
     { ordersTotal: 0, revenueInr: 0, cogsInr: 0, cacInr: 0, adminTechInr: 0, profitPoolInr: 0, devshopShareInr: 0, founderShareInr: 0 }
   );
+  return { months, quarterTotals };
 }

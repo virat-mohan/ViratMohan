@@ -22,6 +22,15 @@ function monthLabel(offset: number) {
   return { key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`, label: fmt.format(d) };
 }
 const nextThreeMonths = [monthLabel(1), monthLabel(2), monthLabel(3)];
+
+// DevShop's split %, mirrored from the API routes — only used client-side
+// to preview the effect of an edit before saving; the server recomputes
+// authoritatively on save regardless.
+const splitPct = app?.ai_enabler_track
+  ? 0
+  : app?.split_range_lo != null && app?.split_range_hi != null
+    ? (app.split_range_lo + app.split_range_hi) / 2
+    : 37.5;
 ---
 <!doctype html>
 <html lang="en">
@@ -42,9 +51,10 @@ const nextThreeMonths = [monthLabel(1), monthLabel(2), monthLabel(3)];
   .mono{font-family:'IBM Plex Mono';}
   .back{font-size:12px; color:var(--ink-soft); text-decoration:none; font-weight:600;}
   .panel{border:2px solid var(--ink); margin-bottom:24px; padding:20px;}
-  textarea.research{width:100%; min-height:140px; border:1.5px solid var(--ink); padding:12px; font-family:'Inter'; font-size:13px;}
+  textarea.notes{width:100%; min-height:70px; border:1.5px solid var(--ink); padding:10px; font-family:'Inter'; font-size:13px;}
   .btn{border:2px solid var(--ink); background:var(--ink); color:var(--cream); padding:11px 18px; font-family:'Inter'; font-weight:700; font-size:13.5px; cursor:pointer;}
   .btn:disabled{opacity:0.5;}
+  .btn-outline{background:transparent; color:var(--ink);}
   table{width:100%; border-collapse:collapse; font-size:12.5px;}
   th, td{border:1px solid var(--line); padding:8px 10px; text-align:right;}
   th:first-child, td:first-child{text-align:left;}
@@ -55,11 +65,16 @@ const nextThreeMonths = [monthLabel(1), monthLabel(2), monthLabel(3)];
   .assumption .value{font-family:'IBM Plex Mono'; color:var(--terracotta); font-size:12.5px;}
   .assumption .rationale{color:var(--ink-soft); font-size:12px; margin-top:3px;}
   .basis-tag{font-size:9.5px; font-weight:700; text-transform:uppercase; padding:2px 6px; border:1px solid var(--line); margin-left:6px;}
+  .driver-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:16px;}
+  .driver-field label{display:block; font-size:10.5px; font-weight:700; text-transform:uppercase; color:var(--ink-soft); margin-bottom:5px;}
+  .driver-field input{width:100%; border:1.5px solid var(--ink); padding:8px; font-family:'IBM Plex Mono'; font-size:13px;}
+  .driver-field .driver-rationale{font-size:10.5px; color:var(--ink-soft); margin-top:4px;}
   .actual-row{display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap;}
   .actual-row input{border:1.5px solid var(--ink); padding:6px 8px; font-size:12px; width:110px;}
   .variance-pos{color:var(--teal); font-weight:700;}
   .variance-neg{color:var(--terracotta); font-weight:700;}
   .empty{color:var(--ink-soft); font-size:13px;}
+  .live-tag{font-size:10px; font-weight:700; color:var(--teal); text-transform:uppercase; letter-spacing:0.04em;}
 </style>
 </head>
 <body>
@@ -73,18 +88,19 @@ const nextThreeMonths = [monthLabel(1), monthLabel(2), monthLabel(3)];
       <h1 style="margin-top:12px; font-size:1.8rem;">{app.brand_name} — Business Plan</h1>
       <p class="mono" style="color:var(--ink-soft); font-size:12px; margin:4px 0 24px;">
         {app.category || '—'} · {app.format || '—'} · Target cities: {app.target_cities || 'not specified'}
+        {app.catalog_mode === 'shopify' && app.shopify_url ? ` · Catalog: ${app.shopify_url} (fetched directly)` : ''}
       </p>
 
       <div class="panel">
-        <h3 style="font-size:1.1rem; margin-bottom:10px;">Generate / regenerate plan</h3>
+        <h3 style="font-size:1.1rem; margin-bottom:10px;">{plan ? 'Regenerate' : 'Generate'} plan</h3>
         <p style="font-size:12.5px; color:var(--ink-soft); margin-bottom:12px;">
-          Paste real market research below — industry sizing, city-level consumer spend, category price benchmarks,
-          competitor pricing, customer behaviour, sales data — with sources where you have them. The plan is only
-          as good as this. A blank or thin input will be rejected.
+          Claude does its own research (native web search) — category sizing, competitor pricing, city-level
+          spend for the target cities above. If a Shopify catalog is linked, it's fetched directly first, as
+          ground truth. Add anything you already know below that the model should treat as given, not optional.
         </p>
-        <textarea class="research" id="researchNotes" placeholder="e.g. India eyewear market ~$3.9B (Source: IMARC 2026)...">{plan ? plan.research_notes : ''}</textarea>
+        <textarea class="notes" id="extraNotes" placeholder="Optional — anything you want treated as known fact, e.g. actual COGS, a competitor you want compared specifically">{plan ? plan.research_notes : ''}</textarea>
         <div style="margin-top:12px; display:flex; align-items:center; gap:12px;">
-          <button class="btn" id="generateBtn">Generate plan →</button>
+          <button class="btn" id="generateBtn">{plan ? 'Regenerate plan →' : 'Generate plan →'}</button>
           <span class="mono" id="genMsg" style="font-size:12px; color:var(--terracotta);"></span>
         </div>
       </div>
@@ -94,22 +110,33 @@ const nextThreeMonths = [monthLabel(1), monthLabel(2), monthLabel(3)];
       ) : (
         <>
           <div class="panel">
-            <h3 style="font-size:1.1rem; margin-bottom:10px;">Assumptions</h3>
-            {plan.assumptions.map((a) => (
-              <div class="assumption">
-                <div class="label">{a.label} <span class="value">{a.value}</span> <span class="basis-tag">{a.basis.replace(/_/g,' ')}</span></div>
-                <div class="rationale">{a.rationale}</div>
-              </div>
-            ))}
+            <h3 style="font-size:1.1rem; margin-bottom:4px;">Drivers <span class="live-tag">— edit any value, the P&amp;L updates live</span></h3>
+            <p style="font-size:11.5px; color:var(--ink-soft); margin-bottom:14px;">Split: DevShop {splitPct}% of profit pool</p>
+            <div class="driver-grid" id="driverGrid">
+              <div class="driver-field"><label>Orders — Month 1</label><input type="number" id="d-ordersM1" value={plan.drivers.ordersM1} /></div>
+              <div class="driver-field"><label>Orders — Month 2</label><input type="number" id="d-ordersM2" value={plan.drivers.ordersM2} /></div>
+              <div class="driver-field"><label>Orders — Month 3</label><input type="number" id="d-ordersM3" value={plan.drivers.ordersM3} /></div>
+              <div class="driver-field"><label>Avg order value (₹)</label><input type="number" id="d-aovInr" value={plan.drivers.aovInr} /></div>
+              <div class="driver-field"><label>COGS %</label><input type="number" step="0.1" id="d-cogsPct" value={plan.drivers.cogsPct} /></div>
+              <div class="driver-field"><label>CAC %</label><input type="number" step="0.1" id="d-cacPct" value={plan.drivers.cacPct} /></div>
+              <div class="driver-field"><label>Admin/Tech %</label><input type="number" step="0.1" id="d-adminTechPct" value={plan.drivers.adminTechPct} /></div>
+              <div class="driver-field" style="display:flex; align-items:flex-end;"><button class="btn" id="saveDriversBtn" style="width:100%;">Save →</button></div>
+            </div>
+            <div class="assumption"><div class="rationale"><b>Orders:</b> {plan.drivers.rationale.orders}</div></div>
+            <div class="assumption"><div class="rationale"><b>AOV:</b> {plan.drivers.rationale.aov}</div></div>
+            <div class="assumption"><div class="rationale"><b>COGS%:</b> {plan.drivers.rationale.cogsPct}</div></div>
+            <div class="assumption"><div class="rationale"><b>CAC%:</b> {plan.drivers.rationale.cacPct}</div></div>
+            <div class="assumption"><div class="rationale"><b>Admin/Tech%:</b> {plan.drivers.rationale.adminTechPct}</div></div>
+            <span class="mono" id="saveMsg" style="font-size:11px; color:var(--terracotta);"></span>
           </div>
 
           <div class="panel">
             <h3 style="font-size:1.1rem; margin-bottom:10px;">Benchmark P&amp;L (next 3 months) vs actuals</h3>
-            <table>
+            <table id="planTable">
               <thead>
                 <tr><th>Month</th><th>Orders</th><th>Revenue</th><th>COGS</th><th>CAC</th><th>Admin/Tech</th><th>Profit Pool</th><th>DevShop</th><th>Founder</th></tr>
               </thead>
-              <tbody>
+              <tbody id="planTbody">
                 {plan.months.map((m, i) => {
                   const realMonth = nextThreeMonths[i];
                   const actual = realMonth ? actualsByMonth[realMonth.key] : undefined;
@@ -117,8 +144,10 @@ const nextThreeMonths = [monthLabel(1), monthLabel(2), monthLabel(3)];
                     <>
                       <tr>
                         <td>{m.label} <span class="mono" style="color:var(--ink-soft); font-size:10.5px;">({realMonth?.label})</span></td>
-                        <td>{m.orders}</td><td>{inr(m.revenueInr)}</td><td>{inr(m.cogsInr)}</td><td>{inr(m.cacInr)}</td>
-                        <td>{inr(m.adminTechInr)}</td><td>{inr(m.profitPoolInr)}</td><td>{inr(m.devshopShareInr)}</td><td>{inr(m.founderShareInr)}</td>
+                        <td data-cell="orders">{m.orders}</td><td data-cell="revenueInr">{inr(m.revenueInr)}</td>
+                        <td data-cell="cogsInr">{inr(m.cogsInr)}</td><td data-cell="cacInr">{inr(m.cacInr)}</td>
+                        <td data-cell="adminTechInr">{inr(m.adminTechInr)}</td><td data-cell="profitPoolInr">{inr(m.profitPoolInr)}</td>
+                        <td data-cell="devshopShareInr">{inr(m.devshopShareInr)}</td><td data-cell="founderShareInr">{inr(m.founderShareInr)}</td>
                       </tr>
                       <tr>
                         <td colspan="9" style="background:#fff;">
@@ -142,14 +171,29 @@ const nextThreeMonths = [monthLabel(1), monthLabel(2), monthLabel(3)];
                 })}
               </tbody>
               <tfoot>
-                <tr style="font-weight:700; background:var(--gold);">
-                  <td>Quarter total</td><td>{plan.quarter_totals.ordersTotal}</td><td>{inr(plan.quarter_totals.revenueInr)}</td>
-                  <td>{inr(plan.quarter_totals.cogsInr)}</td><td>{inr(plan.quarter_totals.cacInr)}</td>
-                  <td>{inr(plan.quarter_totals.adminTechInr)}</td><td>{inr(plan.quarter_totals.profitPoolInr)}</td>
-                  <td>{inr(plan.quarter_totals.devshopShareInr)}</td><td>{inr(plan.quarter_totals.founderShareInr)}</td>
+                <tr id="quarterTotalRow" style="font-weight:700; background:var(--gold);">
+                  <td>Quarter total</td><td data-total="ordersTotal">{plan.quarter_totals.ordersTotal}</td>
+                  <td data-total="revenueInr">{inr(plan.quarter_totals.revenueInr)}</td>
+                  <td data-total="cogsInr">{inr(plan.quarter_totals.cogsInr)}</td>
+                  <td data-total="cacInr">{inr(plan.quarter_totals.cacInr)}</td>
+                  <td data-total="adminTechInr">{inr(plan.quarter_totals.adminTechInr)}</td>
+                  <td data-total="profitPoolInr">{inr(plan.quarter_totals.profitPoolInr)}</td>
+                  <td data-total="devshopShareInr">{inr(plan.quarter_totals.devshopShareInr)}</td>
+                  <td data-total="founderShareInr">{inr(plan.quarter_totals.founderShareInr)}</td>
                 </tr>
               </tfoot>
             </table>
+          </div>
+
+          <div class="panel">
+            <h3 style="font-size:1.1rem; margin-bottom:10px;">Other assumptions</h3>
+            {plan.assumptions.length === 0 && <p class="empty">None.</p>}
+            {plan.assumptions.map((a) => (
+              <div class="assumption">
+                <div class="label">{a.label} <span class="value">{a.value}</span> <span class="basis-tag">{a.basis.replace(/_/g,' ')}</span></div>
+                <div class="rationale">{a.rationale}</div>
+              </div>
+            ))}
           </div>
 
           <div class="panel">
@@ -170,7 +214,7 @@ const nextThreeMonths = [monthLabel(1), monthLabel(2), monthLabel(3)];
           </div>
 
           <div class="panel">
-            <h3 style="font-size:1.1rem; margin-bottom:10px;">Sources cited</h3>
+            <h3 style="font-size:1.1rem; margin-bottom:10px;">Sources found</h3>
             <ul style="margin:0; padding-left:20px; font-size:12.5px; color:var(--ink-soft);">
               {plan.sources_cited.map((s) => <li style="margin-bottom:4px;">{s}</li>)}
             </ul>
@@ -183,18 +227,18 @@ const nextThreeMonths = [monthLabel(1), monthLabel(2), monthLabel(3)];
     </>
   )}
 </div>
-<script define:vars={{ appId: app?.id }}>
+<script define:vars={{ appId: app?.id, planId: plan?.id, splitPct }}>
   var genBtn = document.getElementById('generateBtn');
   if (genBtn) {
     genBtn.addEventListener('click', async function () {
-      var notes = document.getElementById('researchNotes').value;
+      var notes = document.getElementById('extraNotes').value;
       var msg = document.getElementById('genMsg');
       genBtn.disabled = true;
-      msg.textContent = 'Generating — this can take a minute…';
+      msg.textContent = 'Researching and generating — this can take a minute or two…';
       try {
         var res = await fetch('/retail-os/api/admin/generate-plan', {
           method: 'POST', headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ id: appId, researchNotes: notes })
+          body: JSON.stringify({ id: appId, extraNotes: notes })
         });
         var out = await res.json();
         if (!res.ok) throw new Error(out.error || 'Failed');
@@ -205,6 +249,83 @@ const nextThreeMonths = [monthLabel(1), monthLabel(2), monthLabel(3)];
       }
     });
   }
+
+  function inrFmt(n) { return '₹' + Math.round(n).toLocaleString('en-IN'); }
+
+  function recomputeLive() {
+    var orders = [
+      Number(document.getElementById('d-ordersM1').value) || 0,
+      Number(document.getElementById('d-ordersM2').value) || 0,
+      Number(document.getElementById('d-ordersM3').value) || 0
+    ];
+    var aov = Number(document.getElementById('d-aovInr').value) || 0;
+    var cogsPct = Number(document.getElementById('d-cogsPct').value) || 0;
+    var cacPct = Number(document.getElementById('d-cacPct').value) || 0;
+    var adminPct = Number(document.getElementById('d-adminTechPct').value) || 0;
+
+    var rows = document.querySelectorAll('#planTbody tr:not(:has(form))');
+    var totals = { ordersTotal:0, revenueInr:0, cogsInr:0, cacInr:0, adminTechInr:0, profitPoolInr:0, devshopShareInr:0, founderShareInr:0 };
+
+    orders.forEach(function (o, i) {
+      var revenue = Math.round(o * aov);
+      var cogs = Math.round(revenue * (cogsPct/100));
+      var cac = Math.round(revenue * (cacPct/100));
+      var admin = Math.round(revenue * (adminPct/100));
+      var profitPool = revenue - cogs - cac - admin;
+      var devshopShare = Math.round(profitPool * (splitPct/100));
+      var founderShare = profitPool - devshopShare;
+
+      var row = rows[i];
+      if (row) {
+        row.querySelector('[data-cell="orders"]').textContent = o;
+        row.querySelector('[data-cell="revenueInr"]').textContent = inrFmt(revenue);
+        row.querySelector('[data-cell="cogsInr"]').textContent = inrFmt(cogs);
+        row.querySelector('[data-cell="cacInr"]').textContent = inrFmt(cac);
+        row.querySelector('[data-cell="adminTechInr"]').textContent = inrFmt(admin);
+        row.querySelector('[data-cell="profitPoolInr"]').textContent = inrFmt(profitPool);
+        row.querySelector('[data-cell="devshopShareInr"]').textContent = inrFmt(devshopShare);
+        row.querySelector('[data-cell="founderShareInr"]').textContent = inrFmt(founderShare);
+      }
+      totals.ordersTotal += o; totals.revenueInr += revenue; totals.cogsInr += cogs; totals.cacInr += cac;
+      totals.adminTechInr += admin; totals.profitPoolInr += profitPool; totals.devshopShareInr += devshopShare; totals.founderShareInr += founderShare;
+    });
+
+    Object.keys(totals).forEach(function (key) {
+      var cell = document.querySelector('[data-total="' + key + '"]');
+      if (cell) cell.textContent = key === 'ordersTotal' ? totals[key] : inrFmt(totals[key]);
+    });
+  }
+
+  document.querySelectorAll('#driverGrid input').forEach(function (el) {
+    el.addEventListener('input', recomputeLive);
+  });
+
+  var saveBtn = document.getElementById('saveDriversBtn');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', async function () {
+      var saveMsg = document.getElementById('saveMsg');
+      saveBtn.disabled = true;
+      saveMsg.textContent = 'Saving…';
+      try {
+        var res = await fetch('/retail-os/api/admin/update-plan-drivers', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            planId: planId, applicationId: appId,
+            ordersM1: document.getElementById('d-ordersM1').value, ordersM2: document.getElementById('d-ordersM2').value,
+            ordersM3: document.getElementById('d-ordersM3').value, aovInr: document.getElementById('d-aovInr').value,
+            cogsPct: document.getElementById('d-cogsPct').value, cacPct: document.getElementById('d-cacPct').value,
+            adminTechPct: document.getElementById('d-adminTechPct').value
+          })
+        });
+        if (!res.ok) throw new Error('failed');
+        saveMsg.textContent = 'Saved — the plan now reflects these values.';
+      } catch (err) {
+        saveMsg.textContent = 'Failed to save';
+      }
+      saveBtn.disabled = false;
+    });
+  }
+
   document.querySelectorAll('form.actual-row').forEach(function (form) {
     form.addEventListener('submit', async function (e) {
       e.preventDefault();

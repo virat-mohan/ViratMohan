@@ -63,9 +63,15 @@ export type RetailOsApplication = {
 };
 
 export type BusinessPlanAssumption = { label: string; value: string; rationale: string; basis: string };
+export type BusinessPlanDriverRationale = { orders: string; aov: string; cogsPct: string; cacPct: string; adminTechPct: string };
+export type BusinessPlanDrivers = {
+  ordersM1: number; ordersM2: number; ordersM3: number;
+  aovInr: number; cogsPct: number; cacPct: number; adminTechPct: number;
+  rationale: BusinessPlanDriverRationale;
+};
 export type BusinessPlanMonth = {
   label: string; orders: number; revenueInr: number; cogsInr: number; cacInr: number; adminTechInr: number;
-  rationale: string; profitPoolInr: number; devshopShareInr: number; founderShareInr: number;
+  profitPoolInr: number; devshopShareInr: number; founderShareInr: number;
 };
 export type BusinessPlanCity = { city: string; revenueSharePct: number; rationale: string };
 export type RetailOsBusinessPlan = {
@@ -75,6 +81,7 @@ export type RetailOsBusinessPlan = {
   prompt_version: string;
   research_notes: string;
   assumptions: BusinessPlanAssumption[];
+  drivers: BusinessPlanDrivers;
   months: BusinessPlanMonth[];
   city_breakdown: BusinessPlanCity[];
   risks: string[];
@@ -182,12 +189,26 @@ export function getRetailOsDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE
 
     async saveBusinessPlan(row: {
       application_id: string; model: string; prompt_version: string; research_notes: string;
-      assumptions: BusinessPlanAssumption[]; months: BusinessPlanMonth[]; city_breakdown: BusinessPlanCity[];
-      risks: string[]; sources_cited: string[]; quarter_totals: Record<string, number>;
+      assumptions: BusinessPlanAssumption[]; drivers: BusinessPlanDrivers; months: BusinessPlanMonth[];
+      city_breakdown: BusinessPlanCity[]; risks: string[]; sources_cited: string[]; quarter_totals: Record<string, number>;
     }): Promise<string> {
       const { data, error } = await supabase.from('retail_os_business_plans').insert(row).select('id').single();
       if (error) throw new Error(`supabase retail_os_business_plans insert failed: ${error.message}`);
       return (data as { id: string }).id;
+    },
+
+    async updatePlanDrivers(planId: string, drivers: BusinessPlanDrivers, months: BusinessPlanMonth[], quarterTotals: Record<string, number>) {
+      const { error } = await supabase
+        .from('retail_os_business_plans')
+        .update({ drivers, months, quarter_totals: quarterTotals })
+        .eq('id', planId);
+      if (error) throw new Error(`supabase retail_os_business_plans driver update failed: ${error.message}`);
+    },
+
+    async getBusinessPlanById(planId: string): Promise<RetailOsBusinessPlan | null> {
+      const { data, error } = await supabase.from('retail_os_business_plans').select('*').eq('id', planId).maybeSingle();
+      if (error) throw new Error(`supabase retail_os_business_plans get failed: ${error.message}`);
+      return data as RetailOsBusinessPlan | null;
     },
 
     async getLatestBusinessPlan(applicationId: string): Promise<RetailOsBusinessPlan | null> {
