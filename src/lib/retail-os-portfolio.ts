@@ -20,9 +20,13 @@ export function getLiveBrands(): LiveBrand[] {
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw) as Partial<LiveBrand>[];
+    // Values copied out of `vercel env pull` can carry surrounding quotes or a
+    // literal "\n" from how they were first saved; strip them so the URL and
+    // key are exactly what Supabase expects.
+    const clean = (v: unknown) => String(v ?? '').replace(/\\[nr]/g, '').replace(/^["'\s]+|["'\s]+$/g, '');
     return parsed
-      .filter((b) => b.key && b.name && b.supabaseUrl && b.serviceKey)
-      .map((b) => ({ key: String(b.key), name: String(b.name), supabaseUrl: String(b.supabaseUrl), serviceKey: String(b.serviceKey) }));
+      .map((b) => ({ key: clean(b.key), name: clean(b.name), supabaseUrl: clean(b.supabaseUrl).replace(/\/+$/, ''), serviceKey: clean(b.serviceKey) }))
+      .filter((b) => b.key && b.name && b.supabaseUrl && b.serviceKey);
   } catch (err) {
     console.error('RETAIL_OS_LIVE_BRANDS is not valid JSON', err);
     return [];
