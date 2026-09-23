@@ -36,6 +36,7 @@ export const POST: APIRoute = async ({ request }) => {
         targetCities: app.target_cities,
         handle: app.handle,
         shopifyUrl: app.catalog_mode === 'shopify' ? app.shopify_url : null,
+        postBarterOptIn: app.post_ack,
       },
       env.ANTHROPIC_API_KEY
     );

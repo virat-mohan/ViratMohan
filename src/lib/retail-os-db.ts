@@ -63,14 +63,24 @@ export type RetailOsApplication = {
 };
 
 export type BusinessPlanAssumption = { label: string; value: string; rationale: string; basis: string };
-export type BusinessPlanDriverRationale = { orders: string; aov: string; cogsPct: string; cacPct: string; adminTechPct: string };
+export type BusinessPlanDriverRationale = {
+  orders: string; aov: string; cogsPct: string; cacPct: string; adminTechPct: string;
+  payments: string; logistics: string; postBarter: string; platformTools: string;
+};
 export type BusinessPlanDrivers = {
   ordersM1: number; ordersM2: number; ordersM3: number;
   aovInr: number; cogsPct: number; cacPct: number; adminTechPct: number;
+  codOrderSharePct: number; paymentGatewayFeePct: number; codHandlingFeePct: number;
+  rtoRatePct: number; rtoCostPerOrderInr: number; shippingCostPerOrderInr: number; packagingCostPerOrderInr: number;
+  postBarterOrdersPerMonth: number; postBarterUnitCostInr: number;
+  platformToolsFixedInrPerMonth: number;
   rationale: BusinessPlanDriverRationale;
 };
 export type BusinessPlanMonth = {
   label: string; orders: number; revenueInr: number; cogsInr: number; cacInr: number; adminTechInr: number;
+  codOrders: number; prepaidOrders: number; gatewayFeeInr: number; codHandlingFeeInr: number;
+  rtoOrders: number; rtoCostInr: number; shippingInr: number; packagingInr: number;
+  postBarterCostInr: number; platformToolsInr: number; operatingExpensesInr: number;
   profitPoolInr: number; devshopShareInr: number; founderShareInr: number;
 };
 export type BusinessPlanCity = { city: string; revenueSharePct: number; rationale: string };
