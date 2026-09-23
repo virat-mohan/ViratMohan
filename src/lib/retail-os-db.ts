@@ -24,6 +24,12 @@ export const RETAIL_OS_STAGE_DEFS: { key: string; label: string; note: string }[
 ];
 
 export type SkuAttribute = { name: string; options: string[] };
+export type BrandProgrammes = {
+  loyalty: { name: string | null; pointsPerUnit: number | null; redeemEveryPoints: number | null; redeemValueInr: number | null } | null;
+  referral: { friendDiscountInr: number | null; referrerRewardPoints: number | null } | null;
+  dropsName: string | null;
+  storiesName: string | null;
+};
 
 export type RetailOsApplication = {
   id: string;
@@ -65,6 +71,7 @@ export type RetailOsApplication = {
   product_noun_singular: string | null;
   product_noun_plural: string | null;
   sku_attributes: SkuAttribute[] | null;
+  programmes: BrandProgrammes | null;
   created_at: string;
   updated_at: string;
 };
@@ -168,12 +175,13 @@ export function getRetailOsDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE
       business_registration: string | null;
       store_categories: string[] | null; product_noun_singular: string | null;
       product_noun_plural: string | null; sku_attributes: SkuAttribute[] | null;
+      programmes: BrandProgrammes | null;
     }): Promise<string> {
       const stages = buildInitialStages(row.post_ack);
       // Leave unanswered store-setup columns out entirely, so applications that
-      // skip these optional questions still save if migration 0022 hasn't run.
+      // skip these optional questions still save if migrations 0022/0023 haven't run.
       const clean: Record<string, unknown> = { ...row, stages };
-      for (const k of ['store_categories', 'product_noun_singular', 'product_noun_plural', 'sku_attributes']) {
+      for (const k of ['store_categories', 'product_noun_singular', 'product_noun_plural', 'sku_attributes', 'programmes']) {
         if (clean[k] == null) delete clean[k];
       }
       const { data, error } = await supabase

@@ -72,6 +72,9 @@ if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
         <div><span>Store categories</span>{app.store_categories?.length ? app.store_categories.join(', ') : '—'}</div>
         <div><span>Product called</span>{app.product_noun_singular ? `${app.product_noun_singular}${app.product_noun_plural ? ` / ${app.product_noun_plural}` : ''}` : '—'}</div>
         <div><span>Product options</span>{app.sku_attributes?.length ? app.sku_attributes.map((a) => a.options.length ? `${a.name}: ${a.options.join(', ')}` : a.name).join(' · ') : '—'}</div>
+        <div><span>Loyalty</span>{app.programmes?.loyalty ? `${app.programmes.loyalty.name ?? 'Unnamed'} — ${app.programmes.loyalty.pointsPerUnit ?? '?'}/product; ${app.programmes.loyalty.redeemEveryPoints ?? '?'} = ₹${app.programmes.loyalty.redeemValueInr ?? '?'} off` : '—'}</div>
+        <div><span>Referrals</span>{app.programmes?.referral ? `Friend ₹${app.programmes.referral.friendDiscountInr ?? '?'} off · referrer ${app.programmes.referral.referrerRewardPoints ?? '?'} pts` : '—'}</div>
+        <div><span>Drops / stories</span>{app.programmes?.dropsName || '—'} / {app.programmes?.storiesName || '—'}</div>
         <div><span>Payments</span>{app.payment_mode === 'own' ? 'Own gateway' : 'DevShop-managed'}</div>
         <div><span>Shipping</span>Pincode {app.pincode || '—'} · {app.carrier === 'own' ? 'Own carrier' : 'DevShop aggregator'}</div>
         <div><span>Meta / WhatsApp</span>{app.meta_bm === 'yes' ? 'Has BM' : 'Needs BM'} · {app.wa_number || '—'}</div>

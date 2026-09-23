@@ -44,6 +44,30 @@ export const POST: APIRoute = async ({ request }) => {
     })
     .filter((a) => a.name);
 
+  // Brand-named programmes. Only answered parts are kept; null if none answered.
+  const num = (v: unknown) => {
+    const n = Number(String(v ?? '').replace(/[^0-9.]/g, ''));
+    return Number.isFinite(n) && n > 0 ? n : null;
+  };
+  const loyalty = {
+    name: str(body.loyaltyName)?.slice(0, 40) ?? null,
+    pointsPerUnit: num(body.loyaltyPointsPerUnit),
+    redeemEveryPoints: num(body.loyaltyRedeemEvery),
+    redeemValueInr: num(body.loyaltyRedeemValue),
+  };
+  const referral = {
+    friendDiscountInr: num(body.referralFriendDiscount),
+    referrerRewardPoints: num(body.referralRewardPoints),
+  };
+  const hasAny = (o: Record<string, unknown>) => Object.values(o).some((v) => v != null);
+  const programmesRaw = {
+    loyalty: hasAny(loyalty) ? loyalty : null,
+    referral: hasAny(referral) ? referral : null,
+    dropsName: str(body.dropsName)?.slice(0, 40) ?? null,
+    storiesName: str(body.storiesName)?.slice(0, 40) ?? null,
+  };
+  const programmes = hasAny(programmesRaw) ? programmesRaw : null;
+
   const splitLo = typeof body.splitRangeLo === 'number' ? body.splitRangeLo : null;
   const splitHi = typeof body.splitRangeHi === 'number' ? body.splitRangeHi : null;
 
@@ -91,6 +115,7 @@ export const POST: APIRoute = async ({ request }) => {
       product_noun_singular: str(body.productNounSingular),
       product_noun_plural: str(body.productNounPlural),
       sku_attributes: skuAttributes.length ? skuAttributes : null,
+      programmes,
     });
 
     // Best-effort notifications — a failure here must never block the

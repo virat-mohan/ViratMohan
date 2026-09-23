@@ -419,13 +419,57 @@
             <option>Private Limited</option>
           </select>
         </div>
-        <div class="field" style="margin-top:16px;">
-          <label for="loyaltyMethodology">Loyalty points — how should they work?</label>
-          <textarea id="loyaltyMethodology" placeholder="e.g. 1 point per ₹100 spent, 100 points = ₹50 off"></textarea>
+        <div style="border-top:1.5px solid var(--line); margin-top:22px; padding-top:20px;">
+          <p class="sub" style="margin-bottom:16px;"><b>Loyalty points.</b> Customers earn points on every purchase and cash them in for money off. Name them something that fits your brand, and set the maths. Leave blank if you don't want a loyalty programme.</p>
+          <div class="field">
+            <label for="loyaltyName">What should your points be called?</label>
+            <input type="text" id="loyaltyName" placeholder="e.g. Miles, Stars, Good Vibes">
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label for="loyaltyPointsPerUnit">Points earned per product bought</label>
+              <input type="text" inputmode="numeric" id="loyaltyPointsPerUnit" placeholder="e.g. 250">
+            </div>
+            <div class="field">
+              <label for="loyaltyRedeemEvery">Customers can redeem every…</label>
+              <input type="text" inputmode="numeric" id="loyaltyRedeemEvery" placeholder="e.g. 500 points">
+            </div>
+          </div>
+          <div class="field">
+            <label for="loyaltyRedeemValue">…for this much off (₹)</label>
+            <input type="text" inputmode="numeric" id="loyaltyRedeemValue" placeholder="e.g. 200">
+            <div class="hint">Every point you give away is a real discount, and it comes out of gross profit. We'll review these numbers with you before launch.</div>
+          </div>
+        </div>
+        <div style="border-top:1.5px solid var(--line); margin-top:22px; padding-top:20px;">
+          <p class="sub" style="margin-bottom:16px;"><b>Referrals.</b> A customer shares their code; their friend gets money off, and they earn points when the friend buys.</p>
+          <div class="row2">
+            <div class="field">
+              <label for="referralFriendDiscount">Friend's discount on first order (₹)</label>
+              <input type="text" inputmode="numeric" id="referralFriendDiscount" placeholder="e.g. 150">
+            </div>
+            <div class="field">
+              <label for="referralRewardPoints">Points the referrer earns</label>
+              <input type="text" inputmode="numeric" id="referralRewardPoints" placeholder="e.g. 250">
+            </div>
+          </div>
+        </div>
+        <div style="border-top:1.5px solid var(--line); margin-top:22px; padding-top:20px;">
+          <p class="sub" style="margin-bottom:16px;"><b>Your own names.</b> Your store names these features in your brand's voice. Leave blank if you won't use them.</p>
+          <div class="row2">
+            <div class="field">
+              <label for="dropsName">Limited-edition drops</label>
+              <input type="text" id="dropsName" placeholder="e.g. Limited Series, Drops">
+            </div>
+            <div class="field">
+              <label for="storiesName">Customer stories &amp; photos</label>
+              <input type="text" id="storiesName" placeholder="e.g. Explorer Stories">
+            </div>
+          </div>
         </div>
         <div class="field" style="margin-top:16px;">
-          <label for="referralMethodology">Referrals — what does each side get?</label>
-          <textarea id="referralMethodology" placeholder="e.g. referrer gets ₹200 credit, new customer gets 10% off first order"></textarea>
+          <label for="loyaltyMethodology">Anything else about how loyalty or referrals should work?</label>
+          <textarea id="loyaltyMethodology" placeholder="e.g. double points in launch month, points expire after 12 months"></textarea>
         </div>
         <div class="field" style="margin-top:16px;">
           <label for="targetCities">Top 3–5 cities for launch marketing</label>
@@ -503,7 +547,9 @@
     "revenueRange","following","shopifyUrl","productCount","pincode","adBudget","waNumber",
     "freeShippingThreshold","sameDayCities","returnWindow","businessRegistration","loyaltyMethodology",
     "referralMethodology","targetCities","shippingChargeModel",
-    "storeCategories","productNounSingular","productNounPlural","skuAttributes"];
+    "storeCategories","productNounSingular","productNounPlural","skuAttributes",
+    "loyaltyName","loyaltyPointsPerUnit","loyaltyRedeemEvery","loyaltyRedeemValue",
+    "referralFriendDiscount","referralRewardPoints","dropsName","storiesName"];
   var radioGroups = ["hasRevenue","catalogMode","paymentMode","paymentMethods","carrier","metaBm","sameDayDelivery"];
   var checkboxIds = ["termsAck","waAck","postAck"];
 
@@ -681,7 +727,10 @@
       ["Meta & WhatsApp", [["Business Manager", data.metaBm === "yes" ? "Have one" : "Needs setup"],
                    ["Ad budget", data.adBudget], ["WhatsApp number", data.waNumber]]],
       ["Loyalty, referrals & markets", [["Business registration", data.businessRegistration],
-                   ["Loyalty", data.loyaltyMethodology], ["Referrals", data.referralMethodology],
+                   ["Loyalty points", data.loyaltyName ? data.loyaltyName + " — " + (data.loyaltyPointsPerUnit||"?") + " per product; " + (data.loyaltyRedeemEvery||"?") + " = ₹" + (data.loyaltyRedeemValue||"?") + " off" : ""],
+                   ["Referrals", (data.referralFriendDiscount || data.referralRewardPoints) ? "Friend gets ₹" + (data.referralFriendDiscount||"?") + " off; referrer earns " + (data.referralRewardPoints||"?") + " points" : ""],
+                   ["Drops called", data.dropsName], ["Customer stories called", data.storiesName],
+                   ["Loyalty notes", data.loyaltyMethodology],
                    ["Target cities", data.targetCities]]],
       ["Pay with a Post", [["Status", data.postAck ? "Enabled" : "Not enabled"]]]
     ];
@@ -719,8 +768,10 @@
       "WhatsApp number: " + (data.waNumber||""),
       "",
       "Business registration: " + (data.businessRegistration||""),
-      "Loyalty methodology: " + (data.loyaltyMethodology||""),
-      "Referral methodology: " + (data.referralMethodology||""),
+      "Loyalty points: " + (data.loyaltyName||"") + " — " + (data.loyaltyPointsPerUnit||"") + " per product; redeem " + (data.loyaltyRedeemEvery||"") + " for ₹" + (data.loyaltyRedeemValue||""),
+      "Referrals: friend ₹" + (data.referralFriendDiscount||"") + " off; referrer " + (data.referralRewardPoints||"") + " points",
+      "Drops called: " + (data.dropsName||"") + " — Customer stories called: " + (data.storiesName||""),
+      "Loyalty notes: " + (data.loyaltyMethodology||""),
       "Target cities: " + (data.targetCities||""),
       "",
       "Pay with a Post: " + (data.postAck ? "Enabled" : "Not enabled")
@@ -803,7 +854,11 @@
       businessRegistration: data.businessRegistration, loyaltyMethodology: data.loyaltyMethodology,
       referralMethodology: data.referralMethodology, targetCities: data.targetCities,
       storeCategories: data.storeCategories, productNounSingular: data.productNounSingular,
-      productNounPlural: data.productNounPlural, skuAttributes: data.skuAttributes
+      productNounPlural: data.productNounPlural, skuAttributes: data.skuAttributes,
+      loyaltyName: data.loyaltyName, loyaltyPointsPerUnit: data.loyaltyPointsPerUnit,
+      loyaltyRedeemEvery: data.loyaltyRedeemEvery, loyaltyRedeemValue: data.loyaltyRedeemValue,
+      referralFriendDiscount: data.referralFriendDiscount, referralRewardPoints: data.referralRewardPoints,
+      dropsName: data.dropsName, storiesName: data.storiesName
     };
     try {
       var res = await fetch("/retail-os/api/apply", {
