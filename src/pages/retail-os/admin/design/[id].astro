@@ -7,7 +7,8 @@ const { id } = Astro.params;
 const env = getEnv();
 const db = getRetailOsDb(env);
 const app = id ? await db.getById(id) : null;
-const design = id ? await db.getLatestDesignDirection(id) : null;
+const designs = id ? await db.getLatestDesignOptions(id) : [];
+const design = designs[0] ?? null;
 ---
 <!doctype html>
 <html lang="en">
@@ -77,73 +78,34 @@ const design = id ? await db.getLatestDesignDirection(id) : null;
         <div class="panel"><p class="empty">No design direction generated yet.</p></div>
       ) : (
         <>
-          <div class="panel">
-            <h3 style="font-size:1.1rem; margin-bottom:10px;">
-              Primary reference
-              {design.has_existing_site
-                ? <span class="site-tag existing">Elevating existing look</span>
-                : <span class="site-tag copy">Template to copy — no existing site</span>}
-            </h3>
-            <div class="ref-card">
-              <div class="ref-name">{design.primary_reference.name}</div>
-              <div class="ref-url">{design.primary_reference.url}</div>
-              <div class="ref-note">{design.primary_reference.note}</div>
-            </div>
-
-            {design.additional_references.length > 0 && (
-              <>
-                <h3 style="font-size:0.95rem; margin:16px 0 8px; color:var(--ink-soft);">Secondary references</h3>
-                {design.additional_references.map((r) => (
-                  <div class="ref-card">
-                    <div class="ref-name">{r.name}</div>
-                    <div class="ref-url">{r.url}</div>
-                    <div class="ref-note">{r.note}</div>
-                  </div>
+          <p class="mono" style="font-size:11px; color:var(--ink-soft); margin:0 0 6px;">
+            {designs.length} option{designs.length === 1 ? '' : 's'} · {design.has_existing_site ? 'elevating an existing look' : 'no existing site: starting from category references'} · generated {new Date(design.created_at).toLocaleString('en-IN')} · prompt {design.prompt_version}
+          </p>
+          {designs.map((o, i) => (
+            <div class="panel" style={o.chosen ? 'border-color:var(--teal); border-width:3px;' : ''}>
+              <h3 style="font-size:1.1rem; margin-bottom:6px;">Option {i + 1}: {o.option_name ?? 'Design direction'} {o.chosen && <span class="site-tag existing">Chosen by brand</span>}</h3>
+              {o.option_summary && <p style="margin:0 0 10px; font-size:13.5px;">{o.option_summary}</p>}
+              <div class="ref-card">
+                <div class="ref-name">{o.primary_reference.name}</div>
+                <div class="ref-url">{o.primary_reference.url}</div>
+                <div class="ref-note">{o.primary_reference.note}</div>
+              </div>
+              {o.additional_references.length > 0 && <p class="rationale"><b>Also:</b> {o.additional_references.map((r) => `${r.name} (${r.url})`).join(' · ')}</p>}
+              <div class="swatches" style="margin-top:10px;">
+                {([
+                  ['Primary', o.color_palette.primaryHex], ['Secondary', o.color_palette.secondaryHex], ['Accent', o.color_palette.accentHex],
+                  ['Background', o.color_palette.backgroundHex], ['Text', o.color_palette.textHex],
+                ] as [string, string][]).map(([name, hex]) => (
+                  <div class="swatch"><div class="chip" style={`background:${hex}`}></div><div class="hex">{hex}</div><div class="name">{name}</div></div>
                 ))}
-              </>
-            )}
-          </div>
-
-          <div class="panel">
-            <h3 style="font-size:1.1rem; margin-bottom:10px;">Color palette</h3>
-            <div class="swatches">
-              {([
-                ['Primary', design.color_palette.primaryHex],
-                ['Secondary', design.color_palette.secondaryHex],
-                ['Accent', design.color_palette.accentHex],
-                ['Background', design.color_palette.backgroundHex],
-                ['Text', design.color_palette.textHex],
-              ] as [string, string][]).map(([name, hex]) => (
-                <div class="swatch">
-                  <div class="chip" style={`background:${hex}`}></div>
-                  <div class="hex">{hex}</div>
-                  <div class="name">{name}</div>
-                </div>
-              ))}
+              </div>
+              <div class="rationale">{o.color_palette.rationale}</div>
+              <p style="font-size:13.5px; margin:10px 0 4px;"><b>Heading:</b> {o.typography.headingFont} &nbsp; <b>Body:</b> {o.typography.bodyFont}</p>
+              <div class="rationale">{o.typography.rationale}</div>
+              <ul class="ux" style="margin-top:10px;">{o.ux_principles.map((p) => <li>{p}</li>)}</ul>
+              <p style="font-size:13px; line-height:1.6; margin-top:8px;"><b>Tone:</b> {o.tone_of_voice}</p>
             </div>
-            <div class="rationale">{design.color_palette.rationale}</div>
-          </div>
-
-          <div class="panel">
-            <h3 style="font-size:1.1rem; margin-bottom:10px;">Typography</h3>
-            <p style="font-size:14px;"><b>Heading:</b> {design.typography.headingFont} &nbsp; <b>Body:</b> {design.typography.bodyFont}</p>
-            <div class="rationale">{design.typography.rationale}</div>
-          </div>
-
-          <div class="panel">
-            <h3 style="font-size:1.1rem; margin-bottom:10px;">UX principles</h3>
-            <ul class="ux">
-              {design.ux_principles.map((p) => <li>{p}</li>)}
-            </ul>
-          </div>
-
-          <div class="panel">
-            <h3 style="font-size:1.1rem; margin-bottom:10px;">Tone of voice</h3>
-            <p style="font-size:13.5px; line-height:1.6;">{design.tone_of_voice}</p>
-            <p class="mono" style="font-size:10.5px; color:var(--ink-soft); margin-top:16px;">
-              Generated {new Date(design.created_at).toLocaleString('en-IN')} · {design.model} · prompt {design.prompt_version}
-            </p>
-          </div>
+          ))}
         </>
       )}
     </>

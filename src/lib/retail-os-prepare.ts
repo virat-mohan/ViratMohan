@@ -78,26 +78,35 @@ export async function createDesignForApplication(db: Db, app: RetailOsApplicatio
   // and inline style values on the partner's tracker — only http(s) URLs and
   // strict hex colours get through.
   const cleanRef = (r: { name: string; url: string; note: string }) => ({
-    name: String(r.name ?? ''),
-    url: /^https?:\/\//i.test(String(r.url ?? '')) ? String(r.url) : '',
-    note: String(r.note ?? ''),
+    name: String(r?.name ?? ''),
+    url: /^https?:\/\//i.test(String(r?.url ?? '')) ? String(r.url) : '',
+    note: String(r?.note ?? ''),
   });
   const cleanHex = (h: string) => (/^#[0-9a-fA-F]{3,8}$/.test(String(h ?? '')) ? String(h) : '#CCCCCC');
-  const p = output.colorPalette;
 
-  return db.saveDesignDirection({
-    application_id: app.id,
-    model: 'claude-sonnet-5',
-    prompt_version: DESIGN_DIRECTION_PROMPT_VERSION,
-    has_existing_site: output.hasExistingSite,
-    primary_reference: cleanRef(output.primaryReference),
-    additional_references: (output.additionalReferences ?? []).map(cleanRef),
-    color_palette: {
-      primaryHex: cleanHex(p.primaryHex), secondaryHex: cleanHex(p.secondaryHex), accentHex: cleanHex(p.accentHex),
-      backgroundHex: cleanHex(p.backgroundHex), textHex: cleanHex(p.textHex), rationale: String(p.rationale ?? ''),
-    },
-    typography: output.typography,
-    ux_principles: output.uxPrinciples,
-    tone_of_voice: output.toneOfVoice,
-  });
+  const batchId = crypto.randomUUID();
+  const ids: string[] = [];
+  for (const [i, o] of output.options.slice(0, 3).entries()) {
+    const p = o.colorPalette;
+    ids.push(await db.saveDesignDirection({
+      application_id: app.id,
+      model: 'claude-sonnet-5',
+      prompt_version: DESIGN_DIRECTION_PROMPT_VERSION,
+      has_existing_site: !!output.hasExistingSite,
+      primary_reference: cleanRef(o.primaryReference),
+      additional_references: (o.additionalReferences ?? []).map(cleanRef),
+      color_palette: {
+        primaryHex: cleanHex(p?.primaryHex), secondaryHex: cleanHex(p?.secondaryHex), accentHex: cleanHex(p?.accentHex),
+        backgroundHex: cleanHex(p?.backgroundHex), textHex: cleanHex(p?.textHex), rationale: String(p?.rationale ?? ''),
+      },
+      typography: o.typography,
+      ux_principles: o.uxPrinciples ?? [],
+      tone_of_voice: String(o.toneOfVoice ?? ''),
+      batch_id: batchId,
+      option_name: String(o.name ?? `Option ${i + 1}`).slice(0, 80),
+      option_summary: String(o.summary ?? '').slice(0, 400),
+      sort_order: i,
+    }));
+  }
+  return ids[0];
 }

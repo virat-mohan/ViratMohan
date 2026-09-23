@@ -149,6 +149,11 @@ export type RetailOsDesignDirection = {
   typography: DesignTypography;
   ux_principles: string[];
   tone_of_voice: string;
+  batch_id: string | null;
+  option_name: string | null;
+  option_summary: string | null;
+  sort_order: number;
+  chosen: boolean;
   created_at: string;
 };
 
@@ -429,6 +434,7 @@ export function getRetailOsDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE
       application_id: string; model: string; prompt_version: string; has_existing_site: boolean;
       primary_reference: DesignReference; additional_references: DesignReference[];
       color_palette: DesignColorPalette; typography: DesignTypography; ux_principles: string[]; tone_of_voice: string;
+      batch_id?: string; option_name?: string; option_summary?: string; sort_order?: number;
     }): Promise<string> {
       const { data, error } = await supabase.from('retail_os_design_directions').insert(row).select('id').single();
       if (error) throw new Error(`supabase retail_os_design_directions insert failed: ${error.message}`);
@@ -445,6 +451,44 @@ export function getRetailOsDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE
         .maybeSingle();
       if (error) throw new Error(`supabase retail_os_design_directions select failed: ${error.message}`);
       return data as RetailOsDesignDirection | null;
+    },
+
+    // The latest generation's options, in order. Older single-direction rows
+    // (no batch_id) come back as a one-option set.
+    async getLatestDesignOptions(applicationId: string): Promise<RetailOsDesignDirection[]> {
+      const { data, error } = await supabase
+        .from('retail_os_design_directions')
+        .select('*')
+        .eq('application_id', applicationId)
+        .order('created_at', { ascending: false })
+        .limit(12);
+      if (error) throw new Error(`supabase retail_os_design_directions options failed: ${error.message}`);
+      const rows = (data ?? []) as RetailOsDesignDirection[];
+      if (!rows.length) return [];
+      const batch = rows[0].batch_id;
+      if (!batch) return [rows[0]];
+      return rows.filter((r) => r.batch_id === batch).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    },
+
+    // Marks one option of a generation as the brand's choice. The option must
+    // belong to this application.
+    async chooseDesignOption(applicationId: string, designId: string): Promise<boolean> {
+      const { data: row, error } = await supabase
+        .from('retail_os_design_directions')
+        .select('id, batch_id')
+        .eq('id', designId)
+        .eq('application_id', applicationId)
+        .maybeSingle();
+      if (error) throw new Error(`supabase chooseDesignOption lookup failed: ${error.message}`);
+      if (!row) return false;
+      const batchId = (row as { batch_id: string | null }).batch_id;
+      if (batchId) {
+        const { error: e1 } = await supabase.from('retail_os_design_directions').update({ chosen: false }).eq('batch_id', batchId);
+        if (e1) throw new Error(`supabase chooseDesignOption reset failed: ${e1.message}`);
+      }
+      const { error: e2 } = await supabase.from('retail_os_design_directions').update({ chosen: true }).eq('id', designId);
+      if (e2) throw new Error(`supabase chooseDesignOption failed: ${e2.message}`);
+      return true;
     },
 
     async upsertActual(row: { application_id: string; month: string; revenue_inr: number; cogs_inr: number; cac_inr: number; admin_tech_inr: number }) {
