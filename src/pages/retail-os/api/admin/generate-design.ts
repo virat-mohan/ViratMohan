@@ -35,14 +35,28 @@ export const POST: APIRoute = async ({ request }) => {
       env.ANTHROPIC_API_KEY
     );
 
+    // Model output is shaped by web-search content, and it's rendered as link
+    // hrefs and inline style values on the partner's tracker — only allow
+    // http(s) URLs and strict hex colours through.
+    const cleanRef = (r: { name: string; url: string; note: string }) => ({
+      name: String(r.name ?? ''),
+      url: /^https?:\/\//i.test(String(r.url ?? '')) ? String(r.url) : '',
+      note: String(r.note ?? ''),
+    });
+    const cleanHex = (h: string) => (/^#[0-9a-fA-F]{3,8}$/.test(String(h ?? '')) ? String(h) : '#CCCCCC');
+    const p = output.colorPalette;
+
     const designId = await db.saveDesignDirection({
       application_id: id,
       model: 'claude-sonnet-5',
       prompt_version: DESIGN_DIRECTION_PROMPT_VERSION,
       has_existing_site: output.hasExistingSite,
-      primary_reference: output.primaryReference,
-      additional_references: output.additionalReferences,
-      color_palette: output.colorPalette,
+      primary_reference: cleanRef(output.primaryReference),
+      additional_references: (output.additionalReferences ?? []).map(cleanRef),
+      color_palette: {
+        primaryHex: cleanHex(p.primaryHex), secondaryHex: cleanHex(p.secondaryHex), accentHex: cleanHex(p.accentHex),
+        backgroundHex: cleanHex(p.backgroundHex), textHex: cleanHex(p.textHex), rationale: String(p.rationale ?? ''),
+      },
       typography: output.typography,
       ux_principles: output.uxPrinciples,
       tone_of_voice: output.toneOfVoice,
