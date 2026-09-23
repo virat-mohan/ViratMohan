@@ -33,6 +33,11 @@ export type BrandProgrammes = {
   storiesName: string | null;
 };
 
+export type ReportSchedule = {
+  id: string; brand_key: string; frequency: 'daily' | 'weekly' | 'monthly'; channel: 'email' | 'whatsapp';
+  recipient: string; active: boolean; last_sent_at: string | null; created_at: string;
+};
+
 export type BrandStatus = 'existing' | 'new_sub_brand' | 'from_zero';
 export type RetailOsTerms = { splitPct: number | null; aiEnabler: boolean; notes: string | null; sentAt: string };
 export type RetailOsAgreement = { signedName: string; signedAt: string; ip: string | null; userAgent: string | null; terms: Record<string, unknown> };
@@ -333,6 +338,27 @@ export function getRetailOsDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE
         .update({ setup_answers, updated_at: new Date().toISOString() })
         .eq('id', id);
       if (error) throw new Error(`supabase saveSetupSection failed: ${error.message}`);
+    },
+
+    async listReportSchedules(): Promise<ReportSchedule[]> {
+      const { data, error } = await supabase.from('retail_os_report_schedules').select('*').order('created_at', { ascending: true });
+      if (error) throw new Error(`supabase listReportSchedules failed: ${error.message}`);
+      return (data ?? []) as ReportSchedule[];
+    },
+
+    async addReportSchedule(row: { brand_key: string; frequency: string; channel: string; recipient: string }) {
+      const { error } = await supabase.from('retail_os_report_schedules').insert(row);
+      if (error) throw new Error(`supabase addReportSchedule failed: ${error.message}`);
+    },
+
+    async setReportScheduleActive(id: string, active: boolean) {
+      const { error } = await supabase.from('retail_os_report_schedules').update({ active }).eq('id', id);
+      if (error) throw new Error(`supabase setReportScheduleActive failed: ${error.message}`);
+    },
+
+    async markReportScheduleSent(id: string) {
+      const { error } = await supabase.from('retail_os_report_schedules').update({ last_sent_at: new Date().toISOString() }).eq('id', id);
+      if (error) throw new Error(`supabase markReportScheduleSent failed: ${error.message}`);
     },
 
     async deleteById(id: string) {

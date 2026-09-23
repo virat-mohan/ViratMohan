@@ -1,0 +1,200 @@
+---
+export const prerender = false;
+import { getRetailOsDb, journeyStep, BUILD_WINDOW_DAYS } from '../../../lib/retail-os-db';
+import type { RetailOsApplication, JourneyStep } from '../../../lib/retail-os-db';
+import { getEnv } from '../../../lib/env';
+import { getLiveBrands, clarityFriction, type FrictionPage } from '../../../lib/retail-os-portfolio';
+import { buildBrandReport, reportRows, type BrandReport } from '../../../lib/retail-os-reports';
+
+// DevShop-only founder console (gated by src/middleware.ts). Never linked
+// from anything a brand owner can reach.
+const env = getEnv();
+const db = getRetailOsDb(env);
+const liveBrands = getLiveBrands();
+
+const portfolio = await Promise.all(liveBrands.map(async (b) => {
+  const [report, friction] = await Promise.all([
+    buildBrandReport(b, 'mtd').then((r) => ({ ok: true as const, r })).catch((err) => ({ ok: false as const, error: err instanceof Error ? err.message : String(err) })),
+    clarityFriction(b).catch(() => null),
+  ]);
+  return { brand: b, report, friction };
+}));
+
+let apps: RetailOsApplication[] = [];
+let appsError = false;
+const prep: Record<string, { plan: boolean; design: boolean; quarterRevenue: number | null }> = {};
+try {
+  apps = await db.listRecent();
+  await Promise.all(apps.map(async (a) => {
+    const [p, d] = await Promise.all([db.getLatestBusinessPlan(a.id).catch(() => null), db.getLatestDesignDirection(a.id).catch(() => null)]);
+    prep[a.id] = { plan: !!p, design: !!d, quarterRevenue: p?.quarter_totals?.revenueInr ?? null };
+  }));
+} catch (err) {
+  console.error('console pipeline load failed', err);
+  appsError = true;
+}
+
+const DAY = 86400000;
+const daysSince = (iso: string | null | undefined) => (iso ? Math.floor((Date.now() - Date.parse(iso)) / DAY) : 0);
+type Row = { app: RetailOsApplication; step: JourneyStep; waitingOn: 'You' | 'Brand' | 'DevShop build' | 'Automatic'; days: number; limit: number; note: string };
+const LABEL: Record<JourneyStep, string> = { preparing: 'Preparing forecast', review: 'Review → send terms', sign: 'Awaiting signature', deposit: 'Awaiting deposit', confirming: 'Confirm deposit', building: 'Building', live: 'Live' };
+const rows: Row[] = apps.map((app) => {
+  const step = journeyStep(app, prep[app.id]?.plan ?? false, prep[app.id]?.design ?? false);
+  switch (step) {
+    case 'preparing': return { app, step, waitingOn: 'Automatic', days: daysSince(app.created_at), limit: 1, note: app.prep_error ? 'Auto-prep failed — generate manually' : 'Starts when founder opens their page' };
+    case 'review': return { app, step, waitingOn: 'You', days: daysSince(app.created_at), limit: 3, note: 'Send terms' };
+    case 'sign': return { app, step, waitingOn: 'Brand', days: daysSince(app.terms?.sentAt), limit: 5, note: 'Terms sent' };
+    case 'deposit': return { app, step, waitingOn: 'Brand', days: daysSince(app.agreement?.signedAt), limit: 5, note: 'Signed' };
+    case 'confirming': return { app, step, waitingOn: 'You', days: daysSince(app.deposit?.submittedAt), limit: 1, note: `UTR ${app.deposit?.utr ?? ''}` };
+    case 'building': {
+      const d = daysSince(app.build_started_at);
+      return { app, step, waitingOn: 'DevShop build', days: d, limit: BUILD_WINDOW_DAYS, note: d < BUILD_WINDOW_DAYS ? `${BUILD_WINDOW_DAYS - d} days left` : `${d - BUILD_WINDOW_DAYS} days over` };
+    }
+    default: return { app, step, waitingOn: 'Brand', days: 0, limit: 999, note: 'Live' };
+  }
+});
+const active = rows.filter((r) => r.step !== 'live');
+const onYou = active.filter((r) => r.waitingOn === 'You' || r.app.prep_error);
+const stuck = active.filter((r) => r.days > r.limit).sort((a, b) => (b.days - b.limit) - (a.days - a.limit));
+const newThisWeek = rows.filter((r) => daysSince(r.app.created_at) <= 7);
+const counts = (['preparing', 'review', 'sign', 'deposit', 'confirming', 'building', 'live'] as JourneyStep[]).map((s) => ({ s, n: rows.filter((r) => r.step === s).length }));
+
+const inr = (n: number) => '₹' + Math.round(n).toLocaleString('en-IN');
+const totals = portfolio.reduce((t, p) => {
+  if (!p.report.ok) return t;
+  const c = (p.report.r as BrandReport).current;
+  return { sales: t.sales + c.netSales, orders: t.orders + c.orders, ad: t.ad + c.adSpend, profit: t.profit + c.netProfit, budget: t.budget + ((p.report.r as BrandReport).budget?.revenue ?? 0) };
+}, { sales: 0, orders: 0, ad: 0, profit: 0, budget: 0 });
+---
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Founder console — DevShop Retail OS</title>
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{ --cream:#F4EAD4; --ink:#1A1410; --ink-soft:#4A4038; --gold:#D4AF37; --terracotta:#D9714B; --teal:#2B8C86; --red:#B3261E; --line: rgba(26,20,16,0.14); }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--cream); color:var(--ink); font-family:'Inter',system-ui,sans-serif; font-size:14px; }
+  h1,h2,h3{font-family:'Anton','Arial Narrow',sans-serif; font-weight:400; text-transform:uppercase; margin:0;}
+  a{color:inherit;}
+  .wrap{max-width:1180px; margin-inline:auto; padding:24px 16px 60px;}
+  .mono{font-family:'IBM Plex Mono';}
+  .top{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:20px;}
+  .top nav a{font-size:12.5px; font-weight:700; margin-left:14px; text-decoration:none; color:var(--terracotta);}
+  .kpis{display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:24px;}
+  @media (max-width:800px){ .kpis{grid-template-columns:repeat(2,1fr);} }
+  .kpi{border:2px solid var(--ink); padding:12px; background:#fff;}
+  .kpi .l{font-size:10.5px; font-weight:700; text-transform:uppercase; color:var(--ink-soft);}
+  .kpi .v{font-family:'IBM Plex Mono'; font-size:1.2rem; font-weight:700; margin-top:4px;}
+  section{border:2px solid var(--ink); padding:18px; margin-bottom:20px; background:var(--cream);}
+  section h2{font-size:1.2rem; margin-bottom:12px;}
+  .brands{display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); gap:14px;}
+  .brand{border:1.5px solid var(--ink); background:#fff; padding:14px;}
+  .brand h3{font-size:1.05rem; margin-bottom:8px;}
+  table{width:100%; border-collapse:collapse; font-size:12.5px;}
+  th, td{padding:6px 6px; border-bottom:1px solid var(--line); text-align:right;}
+  th:first-child, td:first-child{text-align:left;}
+  th{font-size:10.5px; text-transform:uppercase; color:var(--ink-soft);}
+  .bad{color:var(--red); font-weight:700;}
+  .lever{font-size:12.5px; margin:6px 0;} .lever b{display:block;}
+  .note{font-size:12px; color:var(--ink-soft);}
+  .chip{display:inline-block; font-family:'IBM Plex Mono'; font-size:10.5px; font-weight:700; padding:2px 7px; border:1.5px solid var(--ink); margin:0 4px 4px 0;}
+  .chip.hot{background:var(--terracotta); color:#fff; border-color:var(--terracotta);}
+  .scroll{overflow-x:auto;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1 style="font-size:1.8rem;">Founder console</h1>
+    <nav><a href="/retail-os/admin">Applications</a><a href="/retail-os/admin/reports">Brand reports</a></nav>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="l">Live brands, net sales MTD</div><div class="v">{inr(totals.sales)}</div></div>
+    <div class="kpi"><div class="l">vs budget MTD</div><div class={`v ${totals.budget && totals.sales < totals.budget ? 'bad' : ''}`}>{totals.budget ? `${Math.round(((totals.sales - totals.budget) / totals.budget) * 100)}%` : '—'}</div></div>
+    <div class="kpi"><div class="l">Ad spend MTD / ROAS</div><div class="v">{inr(totals.ad)} · {totals.ad ? `${(totals.sales / totals.ad).toFixed(1)}×` : '—'}</div></div>
+    <div class="kpi"><div class="l">Net profit MTD</div><div class={`v ${totals.profit < 0 ? 'bad' : ''}`}>{inr(totals.profit)}</div></div>
+    <div class="kpi"><div class="l">Waiting on you</div><div class={`v ${onYou.length ? 'bad' : ''}`}>{onYou.length}</div></div>
+  </div>
+
+  <section>
+    <h2>Live brands — month to date</h2>
+    {liveBrands.length === 0 ? (
+      <p class="note">No live brands connected yet. Add a <span class="mono">RETAIL_OS_LIVE_BRANDS</span> environment variable in Vercel with each store's Supabase URL and service-role key (see the setup note in the latest commit), then redeploy.</p>
+    ) : (
+      <div class="brands">
+        {portfolio.map((p) => (
+          <div class="brand">
+            <h3>{p.brand.name}</h3>
+            {!p.report.ok ? (
+              <p class="note bad">Couldn't read this store: {p.report.error}</p>
+            ) : (
+              <>
+                <div class="scroll"><table>
+                  <tr><th></th><th>MTD</th><th>Last month, same days</th><th>vs budget</th></tr>
+                  {reportRows(p.report.r).filter((r) => ['Orders', 'Net sales', 'Average order value', 'Ad spend', 'Return on ad spend', 'Net profit'].includes(r.label)).map((r) => (
+                    <tr><td>{r.label}</td><td>{r.cur}</td><td>{r.prev} <span class="note">({r.delta})</span></td><td class={r.bad ? 'bad' : ''}>{r.variance}</td></tr>
+                  ))}
+                </table></div>
+                {!p.report.r.budget && <p class="note">No business plan in this store covers this month, so there's no budget.</p>}
+                <div style="margin-top:10px;">
+                  <div class="note" style="font-weight:700; text-transform:uppercase; font-size:10.5px;">Levers</div>
+                  {p.report.r.levers.length ? p.report.r.levers.map((l) => <div class="lever"><b>{l.title}</b>{l.detail}</div>) : <div class="note">Nothing flagged.</div>}
+                </div>
+              </>
+            )}
+            {p.friction && p.friction.pages.length > 0 && (
+              <div style="margin-top:10px;">
+                <div class="note" style="font-weight:700; text-transform:uppercase; font-size:10.5px;">UX friction (Clarity, {new Date(p.friction.fetchedAt).toLocaleDateString('en-IN')})</div>
+                {p.friction.pages.map((f: FrictionPage) => <div class="lever"><b class="mono">{f.url}</b>{f.rageClicks} rage clicks · {f.deadClicks} dead clicks · {f.quickbacks} quick-backs in {f.sessions} sessions</div>)}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    )}
+  </section>
+
+  <section>
+    <h2>Onboarding pipeline</h2>
+    {appsError ? <p class="note bad">Couldn't load applications.</p> : (
+      <>
+        <div style="margin-bottom:12px;">
+          {counts.map((c) => <span class={`chip ${(c.s === 'review' || c.s === 'confirming') && c.n ? 'hot' : ''}`}>{LABEL[c.s]}: {c.n}</span>)}
+        </div>
+        <h3 style="font-size:.95rem; margin:14px 0 6px;">Waiting on you ({onYou.length})</h3>
+        {onYou.length === 0 ? <p class="note">Nothing.</p> : (
+          <div class="scroll"><table>
+            <tr><th>Brand</th><th>Step</th><th>Waiting</th><th>Forecast, 3 months</th><th></th></tr>
+            {onYou.map((r) => <tr><td>{r.app.brand_name}</td><td>{LABEL[r.step]}</td><td class={r.days > r.limit ? 'bad' : ''}>{r.days} days</td><td>{prep[r.app.id]?.quarterRevenue != null ? inr(prep[r.app.id].quarterRevenue!) : '—'}</td><td><a href="/retail-os/admin">Open →</a></td></tr>)}
+          </table></div>
+        )}
+        <h3 style="font-size:.95rem; margin:18px 0 6px;">Stuck ({stuck.length})</h3>
+        {stuck.length === 0 ? <p class="note">Nothing over its time limit.</p> : (
+          <div class="scroll"><table>
+            <tr><th>Brand</th><th>Step</th><th>Waiting on</th><th>Days</th><th>Limit</th><th>Note</th></tr>
+            {stuck.map((r) => <tr><td>{r.app.brand_name}</td><td>{LABEL[r.step]}</td><td>{r.waitingOn}</td><td class="bad">{r.days}</td><td>{r.limit}</td><td>{r.note}</td></tr>)}
+          </table></div>
+        )}
+        <h3 style="font-size:.95rem; margin:18px 0 6px;">New in the last 7 days ({newThisWeek.length})</h3>
+        {newThisWeek.length === 0 ? <p class="note">None.</p> : (
+          <div class="scroll"><table>
+            <tr><th>Brand</th><th>Category / format</th><th>Revenue today</th><th>Forecast, 3 months</th><th>Step</th></tr>
+            {newThisWeek.sort((a, b) => (prep[b.app.id]?.quarterRevenue ?? 0) - (prep[a.app.id]?.quarterRevenue ?? 0)).map((r) => (
+              <tr><td>{r.app.brand_name}</td><td>{r.app.category ?? '—'} / {r.app.format ?? '—'}</td><td>{r.app.has_revenue === 'yes' ? (r.app.revenue_range ?? 'Yes') : 'None'}</td><td>{prep[r.app.id]?.quarterRevenue != null ? inr(prep[r.app.id].quarterRevenue!) : '—'}</td><td>{LABEL[r.step]}</td></tr>
+            ))}
+          </table></div>
+        )}
+      </>
+    )}
+  </section>
+
+  <p class="note">Levers are rule-based for now, read off actuals against each store's plan. Brand owners never see this page.</p>
+</div>
+</body>
+</html>

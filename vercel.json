@@ -1,0 +1,5 @@
+{
+  "crons": [
+    { "path": "/retail-os/api/cron/reports", "schedule": "0 3 * * *" }
+  ]
+}

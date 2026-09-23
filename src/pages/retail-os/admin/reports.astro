@@ -1,0 +1,152 @@
+---
+export const prerender = false;
+import { getRetailOsDb } from '../../../lib/retail-os-db';
+import type { ReportSchedule } from '../../../lib/retail-os-db';
+import { getEnv } from '../../../lib/env';
+import { getLiveBrands } from '../../../lib/retail-os-portfolio';
+import { buildBrandReport, renderReportHtml, REPORT_KINDS, type ReportKind } from '../../../lib/retail-os-reports';
+
+// DevShop-only brand reports (gated by src/middleware.ts): view any live
+// brand's daily / weekly / monthly / month-to-date report with variance
+// against its budget, email it now, and schedule it.
+const env = getEnv();
+const brands = getLiveBrands();
+const url = new URL(Astro.request.url);
+const brandKey = url.searchParams.get('brand') ?? brands[0]?.key ?? '';
+const kindParam = url.searchParams.get('kind') as ReportKind | null;
+const kind: ReportKind = REPORT_KINDS.some((k) => k.key === kindParam) ? kindParam! : 'weekly';
+const brand = brands.find((b) => b.key === brandKey) ?? null;
+
+let reportHtml = '';
+let reportError = '';
+if (brand) {
+  try {
+    reportHtml = renderReportHtml(await buildBrandReport(brand, kind));
+  } catch (err) {
+    reportError = err instanceof Error ? err.message : String(err);
+  }
+}
+
+let schedules: ReportSchedule[] = [];
+let schedulesError = '';
+try {
+  schedules = await getRetailOsDb(env).listReportSchedules();
+} catch (err) {
+  schedulesError = err instanceof Error ? err.message : String(err);
+}
+const brandName = (k: string) => brands.find((b) => b.key === k)?.name ?? k;
+---
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Brand reports — DevShop Retail OS</title>
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{ --cream:#F4EAD4; --ink:#1A1410; --ink-soft:#4A4038; --terracotta:#D9714B; --red:#B3261E; --line: rgba(26,20,16,0.14); }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--cream); color:var(--ink); font-family:'Inter',system-ui,sans-serif; font-size:14px; }
+  h1,h2{font-family:'Anton','Arial Narrow',sans-serif; font-weight:400; text-transform:uppercase; margin:0;}
+  .wrap{max-width:900px; margin-inline:auto; padding:24px 16px 60px;}
+  .top{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:18px;}
+  .top nav a{font-size:12.5px; font-weight:700; margin-left:14px; text-decoration:none; color:var(--terracotta);}
+  section{border:2px solid var(--ink); padding:18px; margin-bottom:20px;}
+  section h2{font-size:1.15rem; margin-bottom:12px;}
+  .report{background:#fff; border:1.5px solid var(--ink); padding:16px; overflow-x:auto;}
+  form.row{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px;}
+  select, input[type=text], input[type=email]{border:1.5px solid var(--ink); padding:7px 9px; font-family:'Inter'; font-size:13px; background:#fff;}
+  button{border:2px solid var(--ink); background:var(--ink); color:var(--cream); padding:7px 14px; font-weight:700; font-size:12.5px; cursor:pointer;}
+  .tabs a{display:inline-block; padding:6px 12px; border:1.5px solid var(--ink); margin:0 6px 6px 0; text-decoration:none; font-weight:700; font-size:12.5px;}
+  .tabs a.on{background:var(--ink); color:var(--cream);}
+  table.s{width:100%; border-collapse:collapse; font-size:12.5px;} table.s td, table.s th{padding:6px; border-bottom:1px solid var(--line); text-align:left;}
+  .note{font-size:12px; color:var(--ink-soft);}
+  .msg{font-size:12px; color:var(--terracotta); font-weight:600;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1 style="font-size:1.7rem;">Brand reports</h1>
+    <nav><a href="/retail-os/admin/console">Founder console</a><a href="/retail-os/admin">Applications</a></nav>
+  </div>
+
+  {brands.length === 0 ? (
+    <section><p class="note">No live brands connected yet. Add <b>RETAIL_OS_LIVE_BRANDS</b> in Vercel, then redeploy.</p></section>
+  ) : (
+    <>
+      <section>
+        <div class="tabs">
+          {brands.map((b) => <a class={b.key === brandKey ? 'on' : ''} href={`?brand=${encodeURIComponent(b.key)}&kind=${kind}`}>{b.name}</a>)}
+        </div>
+        <div class="tabs">
+          {REPORT_KINDS.map((k) => <a class={k.key === kind ? 'on' : ''} href={`?brand=${encodeURIComponent(brandKey)}&kind=${k.key}`}>{k.label}</a>)}
+        </div>
+        {reportError ? <p class="msg">Couldn't build this report: {reportError}</p> : <div class="report" set:html={reportHtml} />}
+        <form class="row" id="sendForm" style="margin-top:14px;">
+          <input type="email" id="sendTo" placeholder="Email this report to…" required />
+          <button type="submit">Send now</button>
+          <span class="msg" id="sendMsg"></span>
+        </form>
+      </section>
+
+      <section>
+        <h2>Schedules</h2>
+        <p class="note">Daily reports go out every morning at 8:30 IST for the previous day, weekly ones on Mondays for the previous Monday–Sunday, monthly ones on the 1st for the previous month. WhatsApp delivery switches on once MSG91 is connected; until then WhatsApp schedules are saved but not sent.</p>
+        {schedulesError ? <p class="msg">Couldn't load schedules ({schedulesError}). Has migration 0025 been run?</p> : (
+          <table class="s">
+            <tr><th>Brand</th><th>Frequency</th><th>Channel</th><th>To</th><th>Last sent</th><th>On</th></tr>
+            {schedules.length === 0 && <tr><td colspan="6" class="note">No schedules yet.</td></tr>}
+            {schedules.map((s) => (
+              <tr>
+                <td>{brandName(s.brand_key)}</td><td>{s.frequency}</td><td>{s.channel}</td><td>{s.recipient}</td>
+                <td>{s.last_sent_at ? new Date(s.last_sent_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : '—'}</td>
+                <td><input type="checkbox" class="toggle" data-id={s.id} checked={s.active} /></td>
+              </tr>
+            ))}
+          </table>
+        )}
+        <form class="row" id="addForm" style="margin-top:14px;">
+          <select id="addBrand">{brands.map((b) => <option value={b.key} selected={b.key === brandKey}>{b.name}</option>)}</select>
+          <select id="addFreq"><option value="daily">Daily</option><option value="weekly" selected>Weekly</option><option value="monthly">Monthly</option></select>
+          <select id="addChannel"><option value="email">Email</option><option value="whatsapp">WhatsApp</option></select>
+          <input type="text" id="addTo" placeholder="Email or WhatsApp number" required />
+          <button type="submit">Add schedule</button>
+          <span class="msg" id="addMsg"></span>
+        </form>
+      </section>
+    </>
+  )}
+</div>
+<script define:vars={{ brandKey, kind }}>
+  function post(url, body) {
+    return fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, data: d }; }); });
+  }
+  var sendForm = document.getElementById('sendForm');
+  if (sendForm) sendForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var msg = document.getElementById('sendMsg'); msg.textContent = 'Sending…';
+    post('/retail-os/api/admin/report-send', { brandKey: brandKey, kind: kind, to: document.getElementById('sendTo').value }).then(function (res) {
+      msg.textContent = res.ok ? 'Sent.' : ((res.data && res.data.error) || 'Failed');
+    });
+  });
+  var addForm = document.getElementById('addForm');
+  if (addForm) addForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var msg = document.getElementById('addMsg'); msg.textContent = 'Saving…';
+    post('/retail-os/api/admin/report-schedule', {
+      action: 'add', brandKey: document.getElementById('addBrand').value, frequency: document.getElementById('addFreq').value,
+      channel: document.getElementById('addChannel').value, recipient: document.getElementById('addTo').value,
+    }).then(function (res) { if (res.ok) location.reload(); else msg.textContent = (res.data && res.data.error) || 'Failed'; });
+  });
+  document.querySelectorAll('input.toggle').forEach(function (cb) {
+    cb.addEventListener('change', function () {
+      post('/retail-os/api/admin/report-schedule', { action: 'toggle', id: cb.getAttribute('data-id'), active: cb.checked });
+    });
+  });
+</script>
+</body>
+</html>

@@ -18,6 +18,7 @@ export type Env = {
   RETAIL_OS_UPI_PAYEE: string; // name shown in the payer's UPI app
   RETAIL_OS_UPI_QR_URL: string; // image URL of DevShop's static UPI QR
   RETAIL_OS_WHATSAPP_NUMBER: string; // DevShop's WhatsApp for payment screenshots, digits with country code
+  CRON_SECRET: string; // Vercel sends it as a Bearer token to scheduled routes
 };
 
 export function getEnv(): Env {
@@ -35,5 +36,6 @@ export function getEnv(): Env {
     RETAIL_OS_UPI_PAYEE: process.env.RETAIL_OS_UPI_PAYEE ?? '',
     RETAIL_OS_UPI_QR_URL: process.env.RETAIL_OS_UPI_QR_URL ?? '',
     RETAIL_OS_WHATSAPP_NUMBER: process.env.RETAIL_OS_WHATSAPP_NUMBER ?? '',
+    CRON_SECRET: process.env.CRON_SECRET ?? '',
   };
 }
