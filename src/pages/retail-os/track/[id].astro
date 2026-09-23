@@ -71,7 +71,8 @@ function inr(n: number) {
   .lookup-msg{font-size:12px; color:var(--terracotta); font-weight:600; margin-top:10px; min-height:16px;}
   .panel{border:2px solid var(--ink); padding:20px; margin-top:24px;}
   .panel h2{font-size:1.25rem; margin-bottom:12px;}
-  .split-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  .split-grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px;}
+  @media (max-width:640px){ .split-grid{grid-template-columns:1fr;} }
   .split-col h3{font-family:'Inter'; font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.03em; color:var(--ink-soft); margin-bottom:8px;}
   .split-col ul{margin:0; padding-left:18px; font-size:13px;}
   .split-col li{margin-bottom:5px;}
@@ -140,6 +141,7 @@ function inr(n: number) {
               <li>WhatsApp Business API provisioning</li>
               <li>Day-to-day site operations &amp; catalog management</li>
               <li>Performance marketing execution</li>
+              <li>Pricing — we fix the price of each product with you</li>
               <li>Your benchmark P&amp;L and monthly reporting</li>
             </ul>
           </div>
@@ -147,11 +149,17 @@ function inr(n: number) {
             <h3>You</h3>
             <ul>
               <li>Product sourcing, manufacturing &amp; inventory</li>
-              <li>Pricing decisions</li>
               <li>Fulfillment — packing &amp; handoff to courier</li>
               <li>Brand creative &amp; product photography</li>
               <li>Customer relationships beyond order status</li>
               <li>Answering the setup questions we'll ask at each stage below</li>
+            </ul>
+          </div>
+          <div class="split-col">
+            <h3>Decided together</h3>
+            <ul>
+              <li>Discounting &amp; promo rules — these move gross profit directly, so we agree them jointly</li>
+              <li>Any freelancers we bring in (performance marketing, content/production, etc.) and their cost — also comes out of gross profit, so agreed before we hire</li>
             </ul>
           </div>
         </div>
