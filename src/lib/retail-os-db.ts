@@ -13,6 +13,7 @@ export const RETAIL_OS_STAGE_DEFS: { key: string; label: string; note: string }[
   { key: 'submitted', label: 'Application submitted', note: '' },
   { key: 'agreement', label: 'Commercial agreement signed', note: 'Master Brand Partnership Agreement (or AI-Enabler™ Agreement) sent for signature.' },
   { key: 'catalog', label: 'Catalog connected', note: 'Shopify import or manual catalog build.' },
+  { key: 'design', label: 'Design direction proposed', note: 'Reference sites, palette, and typography drafted from the brand\'s existing look — or a proven category reference if there isn\'t one yet.' },
   { key: 'payments', label: 'Payments configured', note: 'Gateway KYC and settlement account linked.' },
   { key: 'shipping', label: 'Shipping configured', note: 'Carrier account or DevShop aggregator wired in.' },
   { key: 'meta', label: 'Meta linked', note: 'Business Manager, catalog and pixel connected.' },
@@ -96,6 +97,24 @@ export type RetailOsBusinessPlan = {
   risks: string[];
   sources_cited: string[];
   quarter_totals: Record<string, number>;
+  created_at: string;
+};
+
+export type DesignReference = { name: string; url: string; note: string };
+export type DesignColorPalette = { primaryHex: string; secondaryHex: string; accentHex: string; backgroundHex: string; textHex: string; rationale: string };
+export type DesignTypography = { headingFont: string; bodyFont: string; rationale: string };
+export type RetailOsDesignDirection = {
+  id: string;
+  application_id: string;
+  model: string;
+  prompt_version: string;
+  has_existing_site: boolean;
+  primary_reference: DesignReference;
+  additional_references: DesignReference[];
+  color_palette: DesignColorPalette;
+  typography: DesignTypography;
+  ux_principles: string[];
+  tone_of_voice: string;
   created_at: string;
 };
 
@@ -230,6 +249,28 @@ export function getRetailOsDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE
         .maybeSingle();
       if (error) throw new Error(`supabase retail_os_business_plans select failed: ${error.message}`);
       return data as RetailOsBusinessPlan | null;
+    },
+
+    async saveDesignDirection(row: {
+      application_id: string; model: string; prompt_version: string; has_existing_site: boolean;
+      primary_reference: DesignReference; additional_references: DesignReference[];
+      color_palette: DesignColorPalette; typography: DesignTypography; ux_principles: string[]; tone_of_voice: string;
+    }): Promise<string> {
+      const { data, error } = await supabase.from('retail_os_design_directions').insert(row).select('id').single();
+      if (error) throw new Error(`supabase retail_os_design_directions insert failed: ${error.message}`);
+      return (data as { id: string }).id;
+    },
+
+    async getLatestDesignDirection(applicationId: string): Promise<RetailOsDesignDirection | null> {
+      const { data, error } = await supabase
+        .from('retail_os_design_directions')
+        .select('*')
+        .eq('application_id', applicationId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw new Error(`supabase retail_os_design_directions select failed: ${error.message}`);
+      return data as RetailOsDesignDirection | null;
     },
 
     async upsertActual(row: { application_id: string; month: string; revenue_inr: number; cogs_inr: number; cac_inr: number; admin_tech_inr: number }) {

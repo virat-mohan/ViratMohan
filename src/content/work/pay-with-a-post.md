@@ -1,13 +1,15 @@
 ---
-category: "Pay-With-A-Post Checkout"
-brand: "Moon Glasses"
-tagline: "Check out with an Instagram post instead of a card — verified live, no discount, no gimmick, just distribution engineered properly."
-order: 9
-accent: "#C9A227"
+category: "Retail OS Module — Payment Gateway"
+brand: "Pay With A Post"
+tagline: "An alternative payment gateway — check out with an Instagram post instead of a card. Proven live on Moon Glasses."
+order: 1.5
+accent: "#3E7A44"
+badge: "New"
+href: "/devshop/retail#how-it-works"
 logo: "../../assets/logos/moonglasses.webp"
 ---
 
-Moon Glasses is a D2C eyewear brand. Its checkout does something no ordinary D2C store does: a customer can pay with a post instead of money — no payment gateway involved at all for that flow.
+Pay With A Post is a real, engineered alternative to a payment gateway — a module inside Retail OS, not a one-off gimmick. It shipped first on Moon Glasses, a D2C eyewear brand: a customer can check out with an Instagram post instead of money.
 
 ### How it actually works
 

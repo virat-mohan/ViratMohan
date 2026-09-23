@@ -34,6 +34,11 @@ const work = defineCollection({
       // a short pill shown on the tile itself, e.g. "New Launch" — for a
       // brand that just went live and should stand out from the rest.
       badge: z.string().optional(),
+      // override the tile's link — for an entry that's really a module of
+      // another product (e.g. a Retail OS feature) rather than its own
+      // standalone case study, so the tile can point straight at that
+      // product's own section instead of /work/<id>.
+      href: z.string().optional(),
     }),
 });
 

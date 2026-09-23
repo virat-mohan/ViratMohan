@@ -47,7 +47,7 @@ const projects = (await getCollection('work')).sort(
       {
         projects.map((p) => (
           <li class="work-teaser__item" data-reveal style={`--c: ${p.data.accent}`}>
-            <a class="work-teaser__link" href={`/work/${p.id}`}>
+            <a class="work-teaser__link" href={p.data.href ?? `/work/${p.id}`}>
               {p.data.badge && (
                 <span class="work-teaser__badge">{p.data.badge}</span>
               )}

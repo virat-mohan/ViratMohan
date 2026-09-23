@@ -75,6 +75,7 @@ if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
         <div><span>Pay with a Post</span>{app.post_ack ? 'Requested' : 'Not requested'}</div>
         <div><a class="track-link" href={`/retail-os/track/${app.id}`} target="_blank">View founder status page →</a></div>
         <div><a class="track-link" href={`/retail-os/admin/plan/${app.id}`}>Business plan →</a></div>
+        <div><a class="track-link" href={`/retail-os/admin/design/${app.id}`}>Design direction →</a></div>
         <div>
           <a class="track-link resend-link" href="#" data-resend={app.id} data-email={app.founder_email}>Resend link to founder</a>
           {' · '}
