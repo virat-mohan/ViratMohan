@@ -30,6 +30,20 @@ export const POST: APIRoute = async ({ request }) => {
   const hasRevenue = str(body.hasRevenue);
   const aiEnablerTrack = hasRevenue === 'no';
 
+  // "Caps, Bucket hats" → ["Caps", "Bucket hats"]
+  const storeCategories = (str(body.storeCategories) ?? '')
+    .split(',').map((s) => s.trim().slice(0, 60)).filter(Boolean).slice(0, 20);
+  // "Size: S, M, L\nColour: Black, Olive" → [{name:"Size", options:["S","M","L"]}, ...]
+  const skuAttributes = (str(body.skuAttributes) ?? '')
+    .split('\n').map((line) => line.trim()).filter(Boolean).slice(0, 10)
+    .map((line) => {
+      const i = line.indexOf(':');
+      const name = (i === -1 ? line : line.slice(0, i)).trim().slice(0, 40);
+      const options = i === -1 ? [] : line.slice(i + 1).split(',').map((o) => o.trim().slice(0, 40)).filter(Boolean).slice(0, 50);
+      return { name, options };
+    })
+    .filter((a) => a.name);
+
   const splitLo = typeof body.splitRangeLo === 'number' ? body.splitRangeLo : null;
   const splitHi = typeof body.splitRangeHi === 'number' ? body.splitRangeHi : null;
 
@@ -73,6 +87,10 @@ export const POST: APIRoute = async ({ request }) => {
       referral_methodology: str(body.referralMethodology),
       target_cities: str(body.targetCities),
       business_registration: str(body.businessRegistration),
+      store_categories: storeCategories.length ? storeCategories : null,
+      product_noun_singular: str(body.productNounSingular),
+      product_noun_plural: str(body.productNounPlural),
+      sku_attributes: skuAttributes.length ? skuAttributes : null,
     });
 
     // Best-effort notifications — a failure here must never block the

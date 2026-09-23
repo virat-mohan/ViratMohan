@@ -23,6 +23,8 @@ export const RETAIL_OS_STAGE_DEFS: { key: string; label: string; note: string }[
   { key: 'live', label: 'Live & selling', note: 'Storefront public, ads running.' },
 ];
 
+export type SkuAttribute = { name: string; options: string[] };
+
 export type RetailOsApplication = {
   id: string;
   brand_name: string;
@@ -59,6 +61,10 @@ export type RetailOsApplication = {
   referral_methodology: string | null;
   target_cities: string | null;
   business_registration: string | null;
+  store_categories: string[] | null;
+  product_noun_singular: string | null;
+  product_noun_plural: string | null;
+  sku_attributes: SkuAttribute[] | null;
   created_at: string;
   updated_at: string;
 };
@@ -160,11 +166,19 @@ export function getRetailOsDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE
       same_day_delivery: string | null; same_day_cities: string | null; return_window: string | null;
       loyalty_methodology: string | null; referral_methodology: string | null; target_cities: string | null;
       business_registration: string | null;
+      store_categories: string[] | null; product_noun_singular: string | null;
+      product_noun_plural: string | null; sku_attributes: SkuAttribute[] | null;
     }): Promise<string> {
       const stages = buildInitialStages(row.post_ack);
+      // Leave unanswered store-setup columns out entirely, so applications that
+      // skip these optional questions still save if migration 0022 hasn't run.
+      const clean: Record<string, unknown> = { ...row, stages };
+      for (const k of ['store_categories', 'product_noun_singular', 'product_noun_plural', 'sku_attributes']) {
+        if (clean[k] == null) delete clean[k];
+      }
       const { data, error } = await supabase
         .from('retail_os_applications')
-        .insert({ ...row, stages })
+        .insert(clean)
         .select('id')
         .single();
       if (error) throw new Error(`supabase retail_os_applications insert failed: ${error.message}`);

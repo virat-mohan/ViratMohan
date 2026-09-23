@@ -69,6 +69,9 @@ if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
         <div><span>Existing revenue</span>{app.has_revenue === 'yes' ? (app.revenue_range || 'Yes') : 'No — AI-Enabler track'}</div>
         <div><span>Following</span>{app.following || '—'}</div>
         <div><span>Catalog</span>{app.catalog_mode === 'shopify' ? `Shopify — ${app.shopify_url || ''}` : 'Manual'}</div>
+        <div><span>Store categories</span>{app.store_categories?.length ? app.store_categories.join(', ') : '—'}</div>
+        <div><span>Product called</span>{app.product_noun_singular ? `${app.product_noun_singular}${app.product_noun_plural ? ` / ${app.product_noun_plural}` : ''}` : '—'}</div>
+        <div><span>Product options</span>{app.sku_attributes?.length ? app.sku_attributes.map((a) => a.options.length ? `${a.name}: ${a.options.join(', ')}` : a.name).join(' · ') : '—'}</div>
         <div><span>Payments</span>{app.payment_mode === 'own' ? 'Own gateway' : 'DevShop-managed'}</div>
         <div><span>Shipping</span>Pincode {app.pincode || '—'} · {app.carrier === 'own' ? 'Own carrier' : 'DevShop aggregator'}</div>
         <div><span>Meta / WhatsApp</span>{app.meta_bm === 'yes' ? 'Has BM' : 'Needs BM'} · {app.wa_number || '—'}</div>

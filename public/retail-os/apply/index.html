@@ -240,6 +240,30 @@
             <option>Under 10</option><option>10–50</option><option>50–200</option><option>200+</option>
           </select>
         </div>
+
+        <div style="border-top:1.5px solid var(--line); margin-top:26px; padding-top:22px;">
+          <p class="sub" style="margin-bottom:18px;">How your store should describe what you sell. Your storefront is built on our own platform, so these words replace any template wording.</p>
+          <div class="field">
+            <label for="storeCategories">Store categories</label>
+            <input type="text" id="storeCategories" placeholder="e.g. Caps, Bucket hats, Accessories">
+            <div class="hint">Separate with commas. These become the sections of your store.</div>
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label for="productNounSingular">What's one product called?</label>
+              <input type="text" id="productNounSingular" placeholder="e.g. cap">
+            </div>
+            <div class="field">
+              <label for="productNounPlural">And more than one?</label>
+              <input type="text" id="productNounPlural" placeholder="e.g. caps">
+            </div>
+          </div>
+          <div class="field">
+            <label for="skuAttributes">Product options (SKU attributes)</label>
+            <textarea id="skuAttributes" rows="3" placeholder="Size: S, M, L&#10;Colour: Black, Olive, Sand"></textarea>
+            <div class="hint">One option per line: the option name, a colon, then its values separated by commas. You can add more later.</div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -478,7 +502,8 @@
   var fieldIds = ["brandName","founderName","founderEmail","founderPhone","category","format","handle",
     "revenueRange","following","shopifyUrl","productCount","pincode","adBudget","waNumber",
     "freeShippingThreshold","sameDayCities","returnWindow","businessRegistration","loyaltyMethodology",
-    "referralMethodology","targetCities","shippingChargeModel"];
+    "referralMethodology","targetCities","shippingChargeModel",
+    "storeCategories","productNounSingular","productNounPlural","skuAttributes"];
   var radioGroups = ["hasRevenue","catalogMode","paymentMode","paymentMethods","carrier","metaBm","sameDayDelivery"];
   var checkboxIds = ["termsAck","waAck","postAck"];
 
@@ -643,7 +668,10 @@
                  ["Handle / site", data.handle], ["Existing revenue", data.hasRevenue === "yes" ? (data.revenueRange || "Yes") : "No — AI-Enabler track"],
                  ["Following", data.following]]],
       ["Catalog", [["Mode", data.catalogMode === "shopify" ? "Shopify import" : "Manual"],
-                   ["Shopify URL", data.shopifyUrl], ["SKU count", data.productCount]]],
+                   ["Shopify URL", data.shopifyUrl], ["SKU count", data.productCount],
+                   ["Store categories", data.storeCategories],
+                   ["Product called", data.productNounSingular ? data.productNounSingular + (data.productNounPlural ? " / " + data.productNounPlural : "") : ""],
+                   ["Product options", (data.skuAttributes || "").split("\n").filter(function(l){ return l.trim(); }).join(" · ")]]],
       ["Payments & Shipping", [["Payment setup", data.paymentMode === "own" ? "Own gateway account" : "DevShop-managed"],
                    ["Payment methods", {both:"Prepaid + COD", prepaid:"Prepaid only", cod:"COD only"}[data.paymentMethods]],
                    ["Pickup pincode", data.pincode], ["Carrier", data.carrier === "own" ? "Own account" : "DevShop aggregator"],
@@ -677,6 +705,9 @@
       "",
       "Catalog: " + (data.catalogMode === "shopify" ? "Shopify import — " + (data.shopifyUrl||"") : "Manual"),
       "SKU count: " + (data.productCount||""),
+      "Store categories: " + (data.storeCategories||""),
+      "Product called: " + (data.productNounSingular||"") + " / " + (data.productNounPlural||""),
+      "Product options:\n" + (data.skuAttributes||""),
       "",
       "Payments: " + (data.paymentMode === "own" ? "Own gateway account" : "DevShop-managed") + " — Methods: " + (data.paymentMethods||""),
       "Shipping pincode: " + (data.pincode||"") + " — Carrier: " + (data.carrier === "own" ? "Own account" : "DevShop aggregator"),
@@ -770,7 +801,9 @@
       freeShippingThreshold: data.freeShippingThreshold, sameDayDelivery: data.sameDayDelivery,
       sameDayCities: data.sameDayCities, returnWindow: data.returnWindow,
       businessRegistration: data.businessRegistration, loyaltyMethodology: data.loyaltyMethodology,
-      referralMethodology: data.referralMethodology, targetCities: data.targetCities
+      referralMethodology: data.referralMethodology, targetCities: data.targetCities,
+      storeCategories: data.storeCategories, productNounSingular: data.productNounSingular,
+      productNounPlural: data.productNounPlural, skuAttributes: data.skuAttributes
     };
     try {
       var res = await fetch("/retail-os/api/apply", {
