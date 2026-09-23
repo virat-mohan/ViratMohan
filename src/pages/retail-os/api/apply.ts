@@ -5,6 +5,7 @@ import { getRetailOsDb } from '../../../lib/retail-os-db';
 import { getEnv } from '../../../lib/env';
 import { sendEmail } from '../../../lib/email';
 import { getOrigin } from '../../../lib/http';
+import { renderRetailOsEmail } from '../../../lib/retail-os-email';
 
 export const POST: APIRoute = async ({ request }) => {
   const env = getEnv();
@@ -140,35 +141,47 @@ export const POST: APIRoute = async ({ request }) => {
     // application that was already saved (same pattern as generations/
     // stage_transitions logging elsewhere in this codebase).
     const trackUrl = `${origin}/retail-os/track/${id}`;
+    const brandLabel = brandStatus === 'existing' ? 'Existing brand' : brandStatus === 'new_sub_brand' ? 'New sub-brand' : brandStatus === 'from_zero' ? 'Starting from zero' : '—';
     if (env.RESEND_API_KEY && env.RESEND_FROM_EMAIL && env.ADMIN_NOTIFY_EMAIL) {
       sendEmail(
         {
           to: env.ADMIN_NOTIFY_EMAIL,
-          subject: `Retail OS Application — ${brandName}`,
+          subject: `New application: ${brandName}`,
           replyTo: founderEmail,
-          html: `<p><b>${escapeHtml(brandName)}</b> just applied to DevShop Retail OS.</p>
-<p>Founder: ${escapeHtml(founderName)} (${escapeHtml(founderEmail)}${body.founderPhone ? `, ${escapeHtml(String(body.founderPhone))}` : ''})</p>
-<p>Category: ${escapeHtml(str(body.category) || '—')} · Format: ${escapeHtml(format || '—')} · Brand: ${escapeHtml(brandStatus === 'existing' ? 'existing' : brandStatus === 'new_sub_brand' ? 'new sub-brand' : brandStatus === 'from_zero' ? 'starting from zero' : '—')}</p>
-<p>Existing revenue: ${hasRevenue === 'yes' ? escapeHtml(str(body.revenueRange) || 'Yes') : 'No — AI-Enabler track requested'}</p>
-<p><a href="${trackUrl}">Founder status page →</a> · <a href="${origin}/retail-os/admin">Admin dashboard →</a></p>`,
+          html: renderRetailOsEmail({
+            preheader: `${brandName} applied to Retail OS.`,
+            eyebrow: 'New application',
+            heading: brandName,
+            lines: ['Its forecast and design direction generate when the founder opens their page. Review, then send terms.'],
+            rows: [
+              { label: 'Founder', value: `${founderName} · ${founderEmail}${body.founderPhone ? ` · ${String(body.founderPhone)}` : ''}` },
+              { label: 'Brand', value: `${brandLabel} · ${str(body.category) || '—'} · ${format || '—'}` },
+              { label: 'Revenue today', value: hasRevenue === 'yes' ? (str(body.revenueRange) || 'Yes') : 'None (AI-Enabler track)' },
+            ],
+            cta: { label: 'Review in admin', url: `${origin}/retail-os/admin` },
+          }),
         },
         env
       ).catch((err) => console.error('retail-os apply admin notification email failed', err));
     }
     // Founder's own confirmation — the track link doubles as their "login":
-    // no password, the URL itself is the bearer token (same pattern as
-    // /devshop/demo/[id]).
+    // no password, the URL itself is the bearer token.
     if (env.RESEND_API_KEY && env.RESEND_FROM_EMAIL) {
       sendEmail(
         {
           to: founderEmail,
-          subject: `${brandName} — your DevShop Retail OS application`,
-          html: `<p>Hi ${escapeHtml(founderName)},</p>
-<p>Got your application for <b>${escapeHtml(brandName)}</b>.</p>
-<p>Open your page now: in a few minutes it shows your provisional quarterly forecast and a design direction for your store, researched for your category. I review every application myself; your terms appear on the same page for signature, usually within the week.</p>
-<p>Bookmark it, no login needed:</p>
-<p><a href="${trackUrl}">${trackUrl}</a></p>
-<p>— Virat</p>`,
+          subject: `${brandName}: your forecast is being prepared`,
+          html: renderRetailOsEmail({
+            preheader: 'Your forecast and store design will be ready in a few minutes.',
+            eyebrow: 'Application received',
+            heading: `Thanks, ${founderName.split(' ')[0]}`,
+            lines: [
+              `In a few minutes your page shows a first forecast for ${brandName} and a proposed look for your store.`,
+              'I review every application myself. Your terms will appear on the same page, usually within the week.',
+            ],
+            cta: { label: 'See your forecast and design', url: trackUrl },
+            note: 'Bookmark this link. It is your private page, no login needed.',
+          }),
         },
         env
       ).catch((err) => console.error('retail-os apply founder confirmation email failed', err));
@@ -186,8 +199,4 @@ function json(data: unknown, status: number) {
     status,
     headers: { 'content-type': 'application/json' },
   });
-}
-
-function escapeHtml(s: string) {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }

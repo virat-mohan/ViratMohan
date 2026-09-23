@@ -6,7 +6,8 @@ import { getEnv } from '../../../../lib/env';
 import { sendEmail } from '../../../../lib/email';
 import { getOrigin } from '../../../../lib/http';
 import { buildTermLines } from '../../../../lib/retail-os-terms';
-import { json, escapeHtml, clientIp, readJson } from '../../../../lib/retail-os-http';
+import { json, clientIp, readJson } from '../../../../lib/retail-os-http';
+import { renderRetailOsEmail } from '../../../../lib/retail-os-email';
 
 // The founder accepts their commercial terms by typing their full legal name.
 // The exact terms shown, the name, time, IP address and browser are frozen
@@ -39,17 +40,21 @@ export const POST: APIRoute = async ({ params, request }) => {
   if (!ok) return json({ error: 'These terms are already signed.' }, 409);
 
   const trackUrl = `${getOrigin(request)}/retail-os/track/${id}`;
-  const termsHtml = `<table cellpadding="6" style="border-collapse:collapse;font-size:14px;">${lines
-    .map((l) => `<tr><td style="vertical-align:top;font-weight:bold;padding-right:12px;">${escapeHtml(l.label)}</td><td>${escapeHtml(l.value)}</td></tr>`)
-    .join('')}</table>`;
   const when = new Date(signedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
 
   if (env.RESEND_API_KEY && env.RESEND_FROM_EMAIL) {
     sendEmail(
       {
         to: app.founder_email,
-        subject: `${app.brand_name} — your signed DevShop Retail OS terms`,
-        html: `<p>Hi ${escapeHtml(app.founder_name)},</p><p>Thank you for signing. Here is a copy of the terms you accepted on ${escapeHtml(when)} IST as <b>${escapeHtml(signedName)}</b>:</p>${termsHtml}<p>Next step: the ₹5,000 deposit, on your page:</p><p><a href="${trackUrl}">${trackUrl}</a></p><p>— Virat</p>`,
+        subject: `${app.brand_name}: signed. Next, the deposit`,
+        html: renderRetailOsEmail({
+          preheader: 'Pay the ₹5,000 deposit to start your 7-day build.',
+          eyebrow: 'Signed',
+          heading: 'Next: the deposit',
+          lines: [`Thank you. Your terms were signed on ${when} IST as ${signedName}; a copy is below and on your page.`, 'Pay the ₹5,000 deposit on your page, fully adjusted against your tech costs. Your 7-day build starts once it is confirmed.'],
+          cta: { label: 'Pay the deposit', url: trackUrl },
+          rows: lines,
+        }),
       },
       env
     ).catch((err) => console.error('retail-os sign founder email failed', err));
@@ -57,8 +62,14 @@ export const POST: APIRoute = async ({ params, request }) => {
       sendEmail(
         {
           to: env.ADMIN_NOTIFY_EMAIL,
-          subject: `Signed: ${app.brand_name} accepted their Retail OS terms`,
-          html: `<p><b>${escapeHtml(app.brand_name)}</b> signed as ${escapeHtml(signedName)} on ${escapeHtml(when)} IST.</p>${termsHtml}<p><a href="${getOrigin(request)}/retail-os/admin">Admin →</a></p>`,
+          subject: `Signed: ${app.brand_name}`,
+          html: renderRetailOsEmail({
+            preheader: `${app.brand_name} accepted their terms.`,
+            eyebrow: 'FYI',
+            heading: `${app.brand_name} signed`,
+            lines: [`Signed as ${signedName} on ${when} IST. Next, they pay the deposit; you'll get an email when they report it.`],
+            cta: { label: 'Open in admin', url: `${getOrigin(request)}/retail-os/admin` },
+          }),
           replyTo: app.founder_email,
         },
         env

@@ -5,7 +5,8 @@ import { getRetailOsDb } from '../../../../lib/retail-os-db';
 import { getEnv } from '../../../../lib/env';
 import { sendEmail } from '../../../../lib/email';
 import { getOrigin } from '../../../../lib/http';
-import { json, escapeHtml, readJson } from '../../../../lib/retail-os-http';
+import { renderRetailOsEmail } from '../../../../lib/retail-os-email';
+import { json, readJson } from '../../../../lib/retail-os-http';
 
 // Gated by src/middleware.ts. Sets the final commercial terms after review and
 // emails the founder that they are ready to sign. Terms can be re-sent with a
@@ -36,8 +37,14 @@ export const POST: APIRoute = async ({ request }) => {
     sendEmail(
       {
         to: app.founder_email,
-        subject: `${app.brand_name} — your DevShop Retail OS terms are ready`,
-        html: `<p>Hi ${escapeHtml(app.founder_name)},</p><p>I've reviewed ${escapeHtml(app.brand_name)} and your terms are ready. You can read them and sign on your page:</p><p><a href="${trackUrl}">${trackUrl}</a></p><p>Once signed and the ₹5,000 deposit is in, your store goes live within 7 days.</p><p>— Virat</p>`,
+        subject: `${app.brand_name}: your terms are ready to sign`,
+        html: renderRetailOsEmail({
+          preheader: 'Review and sign on your page.',
+          eyebrow: 'Next step',
+          heading: 'Your terms are ready',
+          lines: [`I've reviewed ${app.brand_name}. Read your terms and sign on your page; it takes two minutes.`, 'Then the ₹5,000 deposit, and your store goes live within 7 days.'],
+          cta: { label: 'Review and sign', url: trackUrl },
+        }),
       },
       env
     ).catch((err) => console.error('retail-os send-terms email failed', err));

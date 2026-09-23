@@ -5,7 +5,8 @@ import { getRetailOsDb, DEPOSIT_INR } from '../../../../lib/retail-os-db';
 import { getEnv } from '../../../../lib/env';
 import { sendEmail } from '../../../../lib/email';
 import { getOrigin } from '../../../../lib/http';
-import { json, escapeHtml, readJson } from '../../../../lib/retail-os-http';
+import { renderRetailOsEmail } from '../../../../lib/retail-os-email';
+import { json, readJson } from '../../../../lib/retail-os-http';
 
 // The founder reports their UPI deposit by its reference number (UTR). An
 // admin confirms it against the bank statement, which starts the build clock.
@@ -30,8 +31,15 @@ export const POST: APIRoute = async ({ params, request }) => {
     sendEmail(
       {
         to: env.ADMIN_NOTIFY_EMAIL,
-        subject: `Deposit reported: ${app.brand_name} — UTR ${utr}`,
-        html: `<p><b>${escapeHtml(app.brand_name)}</b> reports paying the ₹${DEPOSIT_INR.toLocaleString('en-IN')} deposit.</p><p>UTR: <b>${escapeHtml(utr)}</b></p><p>Check it against the bank statement, then confirm in <a href="${getOrigin(request)}/retail-os/admin">admin</a> to start their 7-day build.</p>`,
+        subject: `Confirm deposit: ${app.brand_name}`,
+        html: renderRetailOsEmail({
+          preheader: `UTR ${utr} to check against the bank statement.`,
+          eyebrow: 'Action needed',
+          heading: 'Confirm a deposit',
+          lines: [`${app.brand_name} reports paying the ₹${DEPOSIT_INR.toLocaleString('en-IN')} deposit. Check the reference against the bank statement, then confirm to start their 7-day build.`],
+          rows: [{ label: 'UTR', value: utr }],
+          cta: { label: 'Confirm in admin', url: `${getOrigin(request)}/retail-os/admin` },
+        }),
         replyTo: app.founder_email,
       },
       env

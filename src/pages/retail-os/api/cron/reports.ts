@@ -5,7 +5,7 @@ import { getEnv } from '../../../../lib/env';
 import { sendEmail } from '../../../../lib/email';
 import { getRetailOsDb } from '../../../../lib/retail-os-db';
 import { getLiveBrands, istToday } from '../../../../lib/retail-os-portfolio';
-import { buildBrandReport, renderReportHtml, type BrandReport } from '../../../../lib/retail-os-reports';
+import { buildBrandReport, renderReportEmail, type BrandReport } from '../../../../lib/retail-os-reports';
 import { json } from '../../../../lib/retail-os-http';
 
 // Run once a day by Vercel Cron (vercel.json, 03:00 UTC = 08:30 IST). Sends
@@ -40,7 +40,7 @@ export const GET: APIRoute = async ({ request }) => {
       const k = `${brand.key}:${s.frequency}`;
       if (!cache.has(k)) cache.set(k, buildBrandReport(brand, s.frequency));
       const report = await cache.get(k)!;
-      await sendEmail({ to: s.recipient, subject: `${brand.name} — ${report.period.label}`, html: renderReportHtml(report) }, env);
+      await sendEmail({ to: s.recipient, subject: `${brand.name} — ${report.period.label}`, html: renderReportEmail(report) }, env);
       await db.markReportScheduleSent(s.id);
       results.push({ id: s.id, status: 'sent' });
     } catch (err) {

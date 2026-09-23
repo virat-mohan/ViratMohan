@@ -5,7 +5,8 @@ import { getRetailOsDb, BUILD_WINDOW_DAYS } from '../../../../lib/retail-os-db';
 import { getEnv } from '../../../../lib/env';
 import { sendEmail } from '../../../../lib/email';
 import { getOrigin } from '../../../../lib/http';
-import { json, escapeHtml, readJson } from '../../../../lib/retail-os-http';
+import { renderRetailOsEmail } from '../../../../lib/retail-os-email';
+import { json, readJson } from '../../../../lib/retail-os-http';
 
 // Gated by src/middleware.ts. Confirms the founder's UPI deposit against the
 // bank statement and starts the 7-day build clock.
@@ -28,8 +29,14 @@ export const POST: APIRoute = async ({ request }) => {
     sendEmail(
       {
         to: app.founder_email,
-        subject: `${app.brand_name} — deposit received, your build has started`,
-        html: `<p>Hi ${escapeHtml(app.founder_name)},</p><p>Your ₹5,000 deposit is confirmed and the build has started. Target go-live: <b>${escapeHtml(targetText)}</b>.</p><p>The fastest way to hit that date is to answer the setup questions on your page as they open:</p><p><a href="${trackUrl}">${trackUrl}</a></p><p>— Virat</p>`,
+        subject: `${app.brand_name}: your build has started`,
+        html: renderRetailOsEmail({
+          preheader: `Target go-live: ${targetText}.`,
+          eyebrow: 'Build started',
+          heading: `Live by ${targetText}`,
+          lines: ['Your deposit is confirmed and your 7-day build has started.', 'The setup questions on your page open one at a time. Answering them quickly is what keeps us on that date.'],
+          cta: { label: 'Answer the first questions', url: trackUrl },
+        }),
       },
       env
     ).catch((err) => console.error('retail-os confirm-deposit email failed', err));

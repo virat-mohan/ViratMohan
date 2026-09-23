@@ -1,5 +1,6 @@
 import { brandMetrics, brandBudget, leversFor, periodFor, type LiveBrand, type Metrics, type Budget, type Lever, type Period } from './retail-os-portfolio';
 import { escapeHtml } from './retail-os-http';
+import { renderRetailOsEmail } from './retail-os-email';
 
 export type ReportKind = 'daily' | 'weekly' | 'monthly' | 'mtd';
 export const REPORT_KINDS: { key: ReportKind; label: string }[] = [
@@ -58,7 +59,7 @@ export function reportRows(r: BrandReport): Row[] {
 }
 
 // Email-safe HTML (inline styles only). Also embedded as-is on the admin page.
-export function renderReportHtml(r: BrandReport): string {
+export function renderReportHtml(r: BrandReport, withTitle = true): string {
   const rows = reportRows(r);
   const th = 'style="text-align:right;padding:6px 8px;border-bottom:2px solid #1A1410;font-size:12px;"';
   const td = 'style="text-align:right;padding:6px 8px;border-bottom:1px solid #ddd;font-size:13px;"';
@@ -71,7 +72,18 @@ ${rows.map((x) => `<tr><td ${tdl}>${escapeHtml(x.label)}</td><td ${td}>${escapeH
   const levers = r.levers.length
     ? `<h3 style="font-family:Arial,sans-serif;font-size:14px;margin:18px 0 6px;">Levers to pull</h3><ul style="font-family:Arial,sans-serif;font-size:13px;padding-left:18px;margin:0;">${r.levers.map((l) => `<li style="margin-bottom:6px;"><b>${escapeHtml(l.title)}.</b> ${escapeHtml(l.detail)}</li>`).join('')}</ul>`
     : '<p style="font-family:Arial,sans-serif;font-size:13px;">Nothing flagged this period.</p>';
-  return `<h2 style="font-family:Arial,sans-serif;font-size:18px;margin:0 0 4px;">${escapeHtml(r.brand.name)}: ${escapeHtml(r.period.label)}</h2>
+  return `${withTitle ? `<h2 style="font-family:Arial,sans-serif;font-size:18px;margin:0 0 4px;">${escapeHtml(r.brand.name)}: ${escapeHtml(r.period.label)}</h2>` : ''}
 <p style="font-family:Arial,sans-serif;font-size:12px;color:#666;margin:0 0 12px;">Net sales are after discounts and refunds. Profit uses the store's own cost per unit, expenses, Meta ad spend, WhatsApp messages and Pay With A Post value.</p>
 ${table}${budgetNote}${levers}`;
+}
+
+// Report emails are FYIs on a preset schedule, so no call to action is required.
+export function renderReportEmail(r: BrandReport): string {
+  return renderRetailOsEmail({
+    preheader: `${r.brand.name}: net sales ${Math.round(r.current.netSales).toLocaleString('en-IN')} for ${r.period.label}.`,
+    eyebrow: `${REPORT_KINDS.find((k) => k.key === r.kind)?.label ?? ''} report`,
+    heading: `${r.brand.name}: ${r.period.label}`,
+    lines: [],
+    bodyHtml: renderReportHtml(r, false),
+  });
 }

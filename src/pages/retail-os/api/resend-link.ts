@@ -5,6 +5,7 @@ import { getRetailOsDb } from '../../../lib/retail-os-db';
 import { getEnv } from '../../../lib/env';
 import { sendEmail } from '../../../lib/email';
 import { getOrigin } from '../../../lib/http';
+import { renderRetailOsEmail } from '../../../lib/retail-os-email';
 
 // Public, deliberately vague response either way (never confirms/denies
 // whether an email has an application on file) — same shape as a password-
@@ -30,11 +31,14 @@ export const POST: APIRoute = async ({ request }) => {
       await sendEmail(
         {
           to: app.founder_email,
-          subject: `${app.brand_name} — your DevShop Retail OS status link`,
-          html: `<p>Hi ${escapeHtml(app.founder_name)},</p>
-<p>Here's your status link for <b>${escapeHtml(app.brand_name)}</b>:</p>
-<p><a href="${trackUrl}">${trackUrl}</a></p>
-<p>— Virat</p>`,
+          subject: `${app.brand_name}: your onboarding link`,
+          html: renderRetailOsEmail({
+            preheader: 'Your private DevShop Retail OS page.',
+            heading: 'Here is your link',
+            lines: [`This opens your onboarding page for ${app.brand_name}.`],
+            cta: { label: 'Open your page', url: trackUrl },
+            note: 'Bookmark it. It is private to you, no login needed.',
+          }),
         },
         env
       );
@@ -52,8 +56,4 @@ function json(data: unknown, status: number) {
     status,
     headers: { 'content-type': 'application/json' },
   });
-}
-
-function escapeHtml(s: string) {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }

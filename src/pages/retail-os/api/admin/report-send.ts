@@ -4,7 +4,7 @@ import type { APIRoute } from 'astro';
 import { getEnv } from '../../../../lib/env';
 import { sendEmail } from '../../../../lib/email';
 import { getLiveBrands } from '../../../../lib/retail-os-portfolio';
-import { buildBrandReport, renderReportHtml, type ReportKind } from '../../../../lib/retail-os-reports';
+import { buildBrandReport, renderReportEmail, type ReportKind } from '../../../../lib/retail-os-reports';
 import { json, readJson } from '../../../../lib/retail-os-http';
 
 // Gated by src/middleware.ts. Emails one brand report right now.
@@ -20,7 +20,7 @@ export const POST: APIRoute = async ({ request }) => {
   if (!env.RESEND_API_KEY || !env.RESEND_FROM_EMAIL) return json({ error: 'Email is not configured' }, 503);
   try {
     const report = await buildBrandReport(brand, kind);
-    await sendEmail({ to, subject: `${brand.name} — ${report.period.label}`, html: renderReportHtml(report) }, env);
+    await sendEmail({ to, subject: `${brand.name} — ${report.period.label}`, html: renderReportEmail(report) }, env);
     return json({ ok: true }, 200);
   } catch (err) {
     console.error('retail-os report-send failed', err);

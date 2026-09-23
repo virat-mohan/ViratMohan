@@ -241,7 +241,8 @@ const planWhy = d ? ([
       {step === 'review' && (
         <div class="next">
           <h2>Your forecast and design direction are ready</h2>
-          <p>Read them below. Virat reviews every application personally; your commercial terms will appear on this page for signature, usually within the week, and you'll get an email when they do.</p>
+          <p>Have a look below. Next, Virat walks you through the plan and sends your terms to this page for signature, usually within the week.</p>
+          <a class="btn light" href={`mailto:viratmohan@gmail.com?subject=${encodeURIComponent(`Retail OS: ${app.brand_name}`)}`}>Talk it through with Virat →</a>
         </div>
       )}
       {step === 'sign' && (
@@ -382,6 +383,7 @@ const planWhy = d ? ([
             <div class="fcell"><div class="l">3-month profit pool</div><div class="v">{inr(plan.quarter_totals.profitPoolInr)}</div></div>
             <div class="fcell"><div class="l">Your share</div><div class="v">{inr(plan.quarter_totals.founderShareInr)}</div></div>
           </div>
+          {app.agreement ? (<>
           <div class="scroll">
             <table class="months">
               <tr><th>Month</th><th>Orders</th><th>Revenue</th><th>Profit pool</th><th>Your share</th></tr>
@@ -394,7 +396,10 @@ const planWhy = d ? ([
               <dl class="why">{planWhy.map(([k, v]) => <><dt>{k}</dt><dd>{v}</dd></>)}</dl>
             </>
           )}
-          <p class="note" style="margin-top:14px;">Built from your answers and researched category and city benchmarks. It is a starting estimate, not a guarantee, and gets sharper as your real payment, shipping and ad numbers come in. Once you're live it becomes the benchmark your monthly results are compared with.</p>
+          <p class="note" style="margin-top:14px;">Built from your answers and researched category and city benchmarks. It gets sharper as your real payment, shipping and ad numbers come in, and once you're live it becomes the benchmark your monthly results are compared with.</p>
+          </>) : (
+            <p class="note" style="margin-top:4px;">A first estimate from your answers and category research. Virat walks you through the full plan before you sign.</p>
+          )}
         </div>
       )}
 
@@ -415,7 +420,7 @@ const planWhy = d ? ([
             {design.primary_reference.url && <div class="ref-url"><a href={design.primary_reference.url} target="_blank" rel="noopener noreferrer">{design.primary_reference.url}</a></div>}
             <div class="ref-note">{design.primary_reference.note}</div>
           </div>
-          {design.additional_references.length > 0 && (
+          {app.agreement && design.additional_references.length > 0 && (
             <>
               <div class="sub-h">Also drawing from</div>
               {design.additional_references.map((r) => (
@@ -437,13 +442,15 @@ const planWhy = d ? ([
               <div class="swatch"><div class="chip" style={`background:${hex}`}></div><div class="hex">{hex}</div><div class="name">{name}</div></div>
             ))}
           </div>
-          <p class="note" style="margin-top:0;">{design.color_palette.rationale}</p>
+          {app.agreement && <p class="note" style="margin-top:0;">{design.color_palette.rationale}</p>}
           <div class="sub-h">Typography</div>
           <p style="margin:0; font-size:13.5px;"><b>Headings:</b> {design.typography.headingFont} · <b>Body:</b> {design.typography.bodyFont}</p>
           <div class="sub-h">How the site will work</div>
-          <ul class="plain">{design.ux_principles.map((p) => <li>{p}</li>)}</ul>
-          <div class="sub-h">Tone of voice</div>
-          <p style="margin:0; font-size:13px; line-height:1.6;">{design.tone_of_voice}</p>
+          <ul class="plain">{(app.agreement ? design.ux_principles : design.ux_principles.slice(0, 3)).map((p) => <li>{p}</li>)}</ul>
+          {app.agreement && (<>
+            <div class="sub-h">Tone of voice</div>
+            <p style="margin:0; font-size:13px; line-height:1.6;">{design.tone_of_voice}</p>
+          </>)}
         </div>
       )}
 
