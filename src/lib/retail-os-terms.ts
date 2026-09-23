@@ -23,7 +23,7 @@ export function buildTermLines(app: RetailOsApplication, terms: RetailOsTerms): 
   }
 
   lines.push(
-    { label: 'Term', value: '12 months, with a 30-day break clause.' },
+    { label: 'Term', value: '12 months, with a 30-day break clause. After the first year it is renewable on mutually agreed terms.' },
     { label: 'Break fee', value: 'If the partnership is ended before the 12 months are up, DevShop receives 5% of all revenue generated through the store from the start date to the termination date.' },
     { label: 'Deposit', value: `₹${DEPOSIT_INR.toLocaleString('en-IN')}, fully adjusted against your actual onboarding tech costs (hosting, database, WhatsApp number, email, domain, AI). DevShop keeps none of it; every charge and the remaining balance are shown on this page.` },
     { label: 'Payments', value: "Every customer payment is collected into DevShop's account first. Each week (Monday to Sunday) is settled the following Monday by 1 PM, with an itemised statement." },
