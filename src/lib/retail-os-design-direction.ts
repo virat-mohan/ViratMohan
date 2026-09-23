@@ -17,9 +17,9 @@ const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
 const ANTHROPIC_VERSION = '2023-06-01';
 const WEB_SEARCH_TOOL_TYPE = 'web_search_20250305';
 const MODEL = 'claude-sonnet-5';
-const MAX_TOKENS = 14000;
-export const DESIGN_DIRECTION_PROMPT_VERSION = '2026-09-23.2-three-options';
-const CLAUDE_TIMEOUT_MS = 240_000;
+const MAX_TOKENS = 5000;
+export const DESIGN_DIRECTION_PROMPT_VERSION = '2026-09-24.1-three-angles';
+const CLAUDE_TIMEOUT_MS = 200_000;
 
 export type DesignReference = { name: string; url: string; note: string };
 export type DesignColorPalette = { primaryHex: string; secondaryHex: string; accentHex: string; backgroundHex: string; textHex: string; rationale: string };
@@ -71,32 +71,52 @@ const OPTION = {
   required: ['name', 'summary', 'primaryReference', 'additionalReferences', 'colorPalette', 'typography', 'uxPrinciples', 'toneOfVoice'],
 } as const;
 
+// One call per option, run in parallel: a single call asked for all three
+// ran past the serverless time limit. Each call gets a different angle so
+// the three come back genuinely different.
 const DESIGN_TOOL = {
-  name: 'design_directions',
-  description: 'Three distinct, grounded design directions for a D2C brand storefront, each anchored on a different real reference site.',
+  name: 'design_direction',
+  description: 'One grounded design direction for a D2C brand storefront, anchored on a real reference site.',
   input_schema: {
     type: 'object',
     properties: {
       hasExistingSite: { type: 'boolean', description: 'True if the brand has a live website/Shopify store/Instagram with an established look to build from' },
-      options: { type: 'array', minItems: 3, maxItems: 3, description: 'Exactly three genuinely different directions', items: OPTION },
+      option: OPTION,
     },
-    required: ['hasExistingSite', 'options'],
+    required: ['hasExistingSite', 'option'],
   },
 } as const;
 
-const SYSTEM_PROMPT = `You are a senior brand strategist and UI/UX designer proposing design directions for a D2C brand's storefront on DevShop Retail OS.
+type Angle = { key: string; withSite: string; withoutSite: string };
+const ANGLES: Angle[] = [
+  {
+    key: 'closest',
+    withSite: "ELEVATE THE EXISTING BRAND: keep its recognisable colours and feel, and push the execution toward how the best site in its category does it.",
+    withoutSite: 'CATEGORY LEADER: anchor on the single most proven, commercially successful brand in this exact category, and adopt its site as the starting template.',
+  },
+  {
+    key: 'premium',
+    withSite: 'PREMIUM AND EDITORIAL: a quieter, more elevated alternative (considered typography, generous space, storytelling), anchored on a different successful brand from the one an obvious category search returns first.',
+    withoutSite: 'PREMIUM AND EDITORIAL: a quiet-luxury direction (considered typography, generous space, storytelling), anchored on a successful premium brand in or near the category.',
+  },
+  {
+    key: 'bold',
+    withSite: 'BOLD AND SOCIAL-FIRST: a louder alternative (strong colour, playful type, customer photos and video up front), anchored on a different successful, youth-led brand.',
+    withoutSite: 'BOLD AND SOCIAL-FIRST: strong colour, playful type, customer photos and video up front, anchored on a successful youth-led brand in or near the category.',
+  },
+];
 
-You have a native web search tool. Use it to find real, named, currently-successful brand websites in and around the brand's category — sites that genuinely work commercially, not generic inspiration. Cite what you find.
+const SYSTEM_PROMPT = `You are a senior brand strategist and UI/UX designer proposing ONE design direction for a D2C brand's storefront on DevShop Retail OS. You will be told which angle to take.
 
-Give exactly THREE directions the founder can choose between. They must be genuinely different from each other (different reference brand, different palette logic, different typographic feel, different layout emphasis), not three shades of one idea.
+You have a native web search tool. Use it to find real, named, currently-successful brand websites in and around the brand's category — sites that genuinely work commercially, not generic inspiration.
 
 Hard rules:
-- If the brand has its own live website, Shopify store or Instagram with an established look, search for it first. Option 1 must elevate that existing identity toward a world-class execution and keep its recognisable colours. Options 2 and 3 may explore bolder alternatives, and should say what they change.
-- If the brand has no live site and no design system, anchor each option on a specific, famous, commercially successful brand in or near the category whose website is worth adopting directly as the starting template, and say plainly why it works.
-- Every reference must be a real, named brand/site you can point to — never a made-up or generic placeholder.
+- If the brand has its own live website, Shopify store or Instagram, look at it first so the direction relates to where the brand is today.
+- Anchor the direction on one specific, real, commercially successful brand whose website is worth building on, and say plainly why.
+- Every reference must be a real, named brand/site — never a made-up or generic placeholder.
 - UX principles must be specific and actionable ("sticky add-to-cart bar on mobile PDP", not "good mobile experience").
-- Keep each option concise: a founder should grasp it in under a minute.
-- Output only through the design_directions tool.`;
+- Keep it concise: a founder should grasp it in under a minute.
+- Output only through the design_direction tool.`;
 
 export type DesignBrandContext = {
   brandName: string;
@@ -132,47 +152,49 @@ Shopify/live store: ${app.shopifyUrl ?? 'not provided'}
 ${homepageSignal ? `HOMEPAGE SIGNAL (fetched directly, heuristic — verify visually before treating as final)\n${homepageSignal}\n` : ''}
 ${app.shopifyUrl || app.handle ? "Search for the brand's live site and/or Instagram to see its actual current look before proposing directions." : 'This brand has no live website or design system yet.'}
 
-Research category-leading brand websites and propose three distinct design directions.`;
+Research category-leading brand websites and propose this one design direction.`;
 }
 
-export async function generateDesignDirection(app: DesignBrandContext, apiKey: string): Promise<DesignDirectionOutput> {
-  const homepageSignal = app.shopifyUrl ? await fetchHomepageSignal(app.shopifyUrl) : null;
-
+async function generateOne(app: DesignBrandContext, apiKey: string, homepageSignal: string | null, angle: Angle): Promise<{ hasExistingSite: boolean; option: DesignOption }> {
+  const hasSomething = !!(app.shopifyUrl || app.handle);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS);
   try {
     const res = await fetch(ANTHROPIC_API_URL, {
       method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': ANTHROPIC_VERSION,
-      },
+      headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': ANTHROPIC_VERSION },
       body: JSON.stringify({
         model: MODEL,
         max_tokens: MAX_TOKENS,
         system: SYSTEM_PROMPT,
-        messages: [{ role: 'user', content: buildUserMessage(app, homepageSignal) }],
+        messages: [{ role: 'user', content: `${buildUserMessage(app, homepageSignal)}\n\nANGLE FOR THIS DIRECTION: ${hasSomething ? angle.withSite : angle.withoutSite}` }],
         tools: [{ type: WEB_SEARCH_TOOL_TYPE, name: 'web_search' }, DESIGN_TOOL],
         tool_choice: { type: 'auto' },
       }),
       signal: controller.signal,
     });
-
     if (!res.ok) {
       const body = await res.text().catch(() => '');
-      throw new Error(`Anthropic API error ${res.status}: ${body.slice(0, 500)}`);
+      throw new Error(`Anthropic API error ${res.status}: ${body.slice(0, 300)}`);
     }
-
     const data = (await res.json()) as { content: Array<{ type: string; name?: string; input?: Record<string, unknown> }> };
     const toolUse = data.content.find((b) => b.type === 'tool_use' && b.name === DESIGN_TOOL.name);
-    if (!toolUse?.input) {
-      throw new Error('Model did not call design_directions — it may have stopped mid-research. Try again.');
-    }
-    const out = toolUse.input as unknown as DesignDirectionOutput;
-    if (!Array.isArray(out.options) || out.options.length === 0) throw new Error('No design options returned. Try again.');
-    return out;
+    const out = toolUse?.input as { hasExistingSite?: boolean; option?: DesignOption } | undefined;
+    if (!out?.option) throw new Error(`No ${angle.key} direction returned`);
+    return { hasExistingSite: !!out.hasExistingSite, option: out.option };
   } finally {
     clearTimeout(timeout);
   }
+}
+
+// Three directions from three parallel calls; succeeds if at least one does.
+export async function generateDesignDirection(app: DesignBrandContext, apiKey: string): Promise<DesignDirectionOutput> {
+  const homepageSignal = app.shopifyUrl ? await fetchHomepageSignal(app.shopifyUrl) : null;
+  const results = await Promise.allSettled(ANGLES.map((a) => generateOne(app, apiKey, homepageSignal, a)));
+  const ok = results.flatMap((r) => (r.status === 'fulfilled' ? [r.value] : []));
+  if (!ok.length) {
+    const first = results.find((r) => r.status === 'rejected') as PromiseRejectedResult | undefined;
+    throw new Error(first?.reason instanceof Error ? first.reason.message : 'Design generation failed. Try again.');
+  }
+  return { hasExistingSite: ok.some((r) => r.hasExistingSite), options: ok.map((r) => r.option) };
 }
