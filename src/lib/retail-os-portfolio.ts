@@ -24,8 +24,15 @@ export function getLiveBrands(): LiveBrand[] {
     // literal "\n" from how they were first saved; strip them so the URL and
     // key are exactly what Supabase expects.
     const clean = (v: unknown) => String(v ?? '').replace(/\\[nr]/g, '').replace(/^["'\s]+|["'\s]+$/g, '');
+    // Optional non-secret override: RETAIL_OS_BRAND_URLS = {"caps":"https://…supabase.co"}.
+    // Lets a store's project URL be corrected without re-handling its key.
+    let urlOverrides: Record<string, string> = {};
+    try { urlOverrides = JSON.parse(process.env.RETAIL_OS_BRAND_URLS || '{}'); } catch { urlOverrides = {}; }
     return parsed
-      .map((b) => ({ key: clean(b.key), name: clean(b.name), supabaseUrl: clean(b.supabaseUrl).replace(/\/+$/, ''), serviceKey: clean(b.serviceKey) }))
+      .map((b) => {
+        const key = clean(b.key);
+        return { key, name: clean(b.name), supabaseUrl: clean(urlOverrides[key] || b.supabaseUrl).replace(/\/+$/, ''), serviceKey: clean(b.serviceKey) };
+      })
       .filter((b) => b.key && b.name && b.supabaseUrl && b.serviceKey);
   } catch (err) {
     console.error('RETAIL_OS_LIVE_BRANDS is not valid JSON', err);
