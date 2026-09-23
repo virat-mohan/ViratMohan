@@ -5,7 +5,7 @@ tagline: "An alternative payment gateway — check out with an Instagram post in
 order: 1.5
 accent: "#3E7A44"
 badge: "New"
-href: "/devshop/retail#how-it-works"
+href: "/retail-os#post"
 logo: "../../assets/logos/moonglasses.webp"
 ---
 
