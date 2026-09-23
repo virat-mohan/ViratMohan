@@ -11,7 +11,9 @@ export type RetailOsStage = {
 
 export const RETAIL_OS_STAGE_DEFS: { key: string; label: string; note: string }[] = [
   { key: 'submitted', label: 'Application submitted', note: '' },
-  { key: 'agreement', label: 'Commercial agreement signed', note: 'Master Brand Partnership Agreement (or AI-Enabler™ Agreement) sent for signature.' },
+  { key: 'agreement', label: 'Commercial terms signed', note: 'Your terms appear on this page for signature once DevShop has reviewed your application.' },
+  { key: 'deposit', label: 'Deposit received', note: '₹5,000, fully adjusted against your actual onboarding tech costs; DevShop keeps none of it. The 7-day build starts once it is confirmed.' },
+  { key: 'identity', label: 'Brand identity set up', note: 'Domain, brand email, Instagram and Meta Business Manager, for brands starting fresh.' },
   { key: 'catalog', label: 'Catalog connected', note: 'Shopify import or manual catalog build.' },
   { key: 'design', label: 'Design direction proposed', note: 'Reference sites, palette, and typography drafted from the brand\'s existing look — or a proven category reference if there isn\'t one yet.' },
   { key: 'payments', label: 'Payments configured', note: 'Gateway KYC and settlement account linked.' },
@@ -30,6 +32,11 @@ export type BrandProgrammes = {
   dropsName: string | null;
   storiesName: string | null;
 };
+
+export type BrandStatus = 'existing' | 'new_sub_brand' | 'from_zero';
+export type RetailOsTerms = { splitPct: number | null; aiEnabler: boolean; notes: string | null; sentAt: string };
+export type RetailOsAgreement = { signedName: string; signedAt: string; ip: string | null; userAgent: string | null; terms: Record<string, unknown> };
+export type RetailOsDeposit = { amountInr: number; utr: string; submittedAt: string; confirmedAt: string | null };
 
 export type RetailOsApplication = {
   id: string;
@@ -72,6 +79,15 @@ export type RetailOsApplication = {
   product_noun_plural: string | null;
   sku_attributes: SkuAttribute[] | null;
   programmes: BrandProgrammes | null;
+  brand_status: BrandStatus | null;
+  model_details: Record<string, string> | null;
+  prep_started_at: string | null;
+  prep_error: string | null;
+  terms: RetailOsTerms | null;
+  agreement: RetailOsAgreement | null;
+  deposit: RetailOsDeposit | null;
+  build_started_at: string | null;
+  setup_answers: Record<string, { answers: Record<string, string>; savedAt: string }> | null;
   created_at: string;
   updated_at: string;
 };
@@ -142,7 +158,8 @@ export type RetailOsActual = {
   entered_at: string;
 };
 
-export function buildInitialStages(postAck: boolean): RetailOsStage[] {
+export function buildInitialStages(postAck: boolean, brandStatus: BrandStatus | null = null): RetailOsStage[] {
+  const newBrand = brandStatus === 'new_sub_brand' || brandStatus === 'from_zero';
   return RETAIL_OS_STAGE_DEFS.map((s) => {
     let note = s.note;
     let status: StageStatus = 'pending';
@@ -151,9 +168,29 @@ export function buildInitialStages(postAck: boolean): RetailOsStage[] {
       note = postAck ? 'Requested — activates once you\'re live.' : 'Not requested for launch.';
       status = postAck ? 'pending' : 'skipped';
     }
+    if (s.key === 'identity' && !newBrand) {
+      note = 'Not needed — your brand already has its own domain and accounts.';
+      status = 'skipped';
+    }
     return { key: s.key, label: s.label, note, status };
   });
 }
+
+// Journey state derived from the record itself, so it's right even for
+// applications created before a stage existed in RETAIL_OS_STAGE_DEFS.
+export type JourneyStep = 'preparing' | 'review' | 'sign' | 'deposit' | 'confirming' | 'building' | 'live';
+export function journeyStep(app: RetailOsApplication, hasPlan: boolean, hasDesign: boolean): JourneyStep {
+  if (app.stages?.some((s) => s.key === 'live' && s.status === 'done')) return 'live';
+  if (app.deposit?.confirmedAt) return 'building';
+  if (app.deposit?.submittedAt) return 'confirming';
+  if (app.agreement) return 'deposit';
+  if (app.terms) return 'sign';
+  if (!hasPlan || !hasDesign) return 'preparing';
+  return 'review';
+}
+
+export const BUILD_WINDOW_DAYS = 7;
+export const DEPOSIT_INR = 5000;
 
 export function getRetailOsDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: string }) {
   const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
@@ -176,12 +213,13 @@ export function getRetailOsDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE
       store_categories: string[] | null; product_noun_singular: string | null;
       product_noun_plural: string | null; sku_attributes: SkuAttribute[] | null;
       programmes: BrandProgrammes | null;
+      brand_status: BrandStatus | null; model_details: Record<string, string> | null;
     }): Promise<string> {
-      const stages = buildInitialStages(row.post_ack);
-      // Leave unanswered store-setup columns out entirely, so applications that
-      // skip these optional questions still save if migrations 0022/0023 haven't run.
+      const stages = buildInitialStages(row.post_ack, row.brand_status);
+      // Leave unanswered optional columns out entirely, so applications that
+      // skip these questions still save if migrations 0022–0024 haven't run.
       const clean: Record<string, unknown> = { ...row, stages };
-      for (const k of ['store_categories', 'product_noun_singular', 'product_noun_plural', 'sku_attributes', 'programmes']) {
+      for (const k of ['store_categories', 'product_noun_singular', 'product_noun_plural', 'sku_attributes', 'programmes', 'brand_status', 'model_details']) {
         if (clean[k] == null) delete clean[k];
       }
       const { data, error } = await supabase
@@ -207,6 +245,94 @@ export function getRetailOsDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE
         .limit(limit);
       if (error) throw new Error(`supabase retail_os_applications list failed: ${error.message}`);
       return (data ?? []) as RetailOsApplication[];
+    },
+
+    // Atomically claims the right to run automatic preparation: succeeds only
+    // if no run started in the last 10 minutes, so concurrent tracker visits
+    // can't double-spend API credits.
+    async claimPrep(id: string): Promise<boolean> {
+      const cutoff = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+      const { data, error } = await supabase
+        .from('retail_os_applications')
+        .update({ prep_started_at: new Date().toISOString(), prep_error: null })
+        .eq('id', id)
+        // PostgREST needs values with ':' or '.' double-quoted inside or().
+        .or(`prep_started_at.is.null,prep_started_at.lt."${cutoff}"`)
+        .select('id');
+      if (error) throw new Error(`supabase claimPrep failed: ${error.message}`);
+      return (data ?? []).length > 0;
+    },
+
+    async countPrepsSince(sinceIso: string): Promise<number> {
+      const { count, error } = await supabase
+        .from('retail_os_applications')
+        .select('id', { count: 'exact', head: true })
+        .gte('prep_started_at', sinceIso);
+      if (error) throw new Error(`supabase countPrepsSince failed: ${error.message}`);
+      return count ?? 0;
+    },
+
+    async setPrepError(id: string, message: string | null) {
+      const { error } = await supabase.from('retail_os_applications').update({ prep_error: message }).eq('id', id);
+      if (error) throw new Error(`supabase setPrepError failed: ${error.message}`);
+    },
+
+    async setTerms(id: string, terms: RetailOsTerms) {
+      const { error } = await supabase
+        .from('retail_os_applications')
+        .update({ terms, updated_at: new Date().toISOString() })
+        .eq('id', id);
+      if (error) throw new Error(`supabase setTerms failed: ${error.message}`);
+    },
+
+    // Only records a signature once: a second call on an already-signed
+    // application changes nothing and returns false.
+    async signAgreement(id: string, agreement: RetailOsAgreement): Promise<boolean> {
+      const app = await this.getById(id);
+      if (!app || app.agreement || !app.terms) return false;
+      const stages = app.stages.map((s) => (s.key === 'agreement' ? { ...s, status: 'done' as StageStatus, note: `Signed by ${agreement.signedName}.` } : s));
+      const { data, error } = await supabase
+        .from('retail_os_applications')
+        .update({ agreement, stages, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .is('agreement', null)
+        .select('id');
+      if (error) throw new Error(`supabase signAgreement failed: ${error.message}`);
+      return (data ?? []).length > 0;
+    },
+
+    async submitDeposit(id: string, deposit: RetailOsDeposit) {
+      const { error } = await supabase
+        .from('retail_os_applications')
+        .update({ deposit, updated_at: new Date().toISOString() })
+        .eq('id', id);
+      if (error) throw new Error(`supabase submitDeposit failed: ${error.message}`);
+    },
+
+    async confirmDeposit(id: string): Promise<RetailOsApplication | null> {
+      const app = await this.getById(id);
+      if (!app?.deposit) return null;
+      const now = new Date().toISOString();
+      const stages = app.stages.some((s) => s.key === 'deposit')
+        ? app.stages.map((s) => (s.key === 'deposit' ? { ...s, status: 'done' as StageStatus, note: 'Confirmed. Your 7-day build has started.' } : s))
+        : app.stages;
+      const { error } = await supabase
+        .from('retail_os_applications')
+        .update({ deposit: { ...app.deposit, confirmedAt: now }, build_started_at: app.build_started_at ?? now, stages, updated_at: now })
+        .eq('id', id);
+      if (error) throw new Error(`supabase confirmDeposit failed: ${error.message}`);
+      return this.getById(id);
+    },
+
+    async saveSetupSection(id: string, sectionKey: string, answers: Record<string, string>) {
+      const app = await this.getById(id);
+      if (!app) throw new Error('saveSetupSection: application not found');
+      const setup_answers = { ...(app.setup_answers ?? {}), [sectionKey]: { answers, savedAt: new Date().toISOString() } };
+      const { error } = await supabase
+        .from('retail_os_applications')
+        .update({ setup_answers, updated_at: new Date().toISOString() })
+        .eq('id', id);
+      if (error) throw new Error(`supabase saveSetupSection failed: ${error.message}`);
     },
 
     async deleteById(id: string) {

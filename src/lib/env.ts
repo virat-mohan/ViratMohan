@@ -13,6 +13,11 @@ export type Env = {
   INBOUND_EMAIL_DOMAIN: string; // e.g. "reply.viratmohan.com" — must be configured for Resend Inbound
   RESEND_WEBHOOK_SECRET: string; // Resend webhook signing secret (Svix-based)
   ADMIN_PASSWORD: string; // gates /devshop/admin/* — see src/middleware.ts
+  // Retail OS deposit collection by UPI until a payment gateway is chosen.
+  RETAIL_OS_UPI_ID: string; // e.g. devshop@okicici
+  RETAIL_OS_UPI_PAYEE: string; // name shown in the payer's UPI app
+  RETAIL_OS_UPI_QR_URL: string; // image URL of DevShop's static UPI QR
+  RETAIL_OS_WHATSAPP_NUMBER: string; // DevShop's WhatsApp for payment screenshots, digits with country code
 };
 
 export function getEnv(): Env {
@@ -26,5 +31,9 @@ export function getEnv(): Env {
     INBOUND_EMAIL_DOMAIN: process.env.INBOUND_EMAIL_DOMAIN ?? '',
     RESEND_WEBHOOK_SECRET: process.env.RESEND_WEBHOOK_SECRET ?? '',
     ADMIN_PASSWORD: process.env.ADMIN_PASSWORD ?? '',
+    RETAIL_OS_UPI_ID: process.env.RETAIL_OS_UPI_ID ?? '',
+    RETAIL_OS_UPI_PAYEE: process.env.RETAIL_OS_UPI_PAYEE ?? '',
+    RETAIL_OS_UPI_QR_URL: process.env.RETAIL_OS_UPI_QR_URL ?? '',
+    RETAIL_OS_WHATSAPP_NUMBER: process.env.RETAIL_OS_WHATSAPP_NUMBER ?? '',
   };
 }

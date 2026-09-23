@@ -68,6 +68,22 @@ export const POST: APIRoute = async ({ request }) => {
   };
   const programmes = hasAny(programmesRaw) ? programmesRaw : null;
 
+  const brandStatusRaw = str(body.brandStatus);
+  const brandStatus = brandStatusRaw === 'existing' || brandStatusRaw === 'new_sub_brand' || brandStatusRaw === 'from_zero' ? brandStatusRaw : null;
+
+  // Marketplace / subscription specifics, kept only for the matching format.
+  const format = str(body.format);
+  const MODEL_KEYS: Record<string, string[]> = {
+    Marketplace: ['mpListingType', 'mpSellerCount', 'mpCommission', 'mpWhoShips', 'mpSellerJoin'],
+    Subscription: ['subWhat', 'subFrequencies', 'subDurations', 'subArea', 'subDelivery'],
+  };
+  const modelDetailsRaw: Record<string, string> = {};
+  for (const k of MODEL_KEYS[format ?? ''] ?? []) {
+    const v = str(body[k]);
+    if (v) modelDetailsRaw[k] = v.slice(0, 300);
+  }
+  const modelDetails = Object.keys(modelDetailsRaw).length ? modelDetailsRaw : null;
+
   const splitLo = typeof body.splitRangeLo === 'number' ? body.splitRangeLo : null;
   const splitHi = typeof body.splitRangeHi === 'number' ? body.splitRangeHi : null;
 
@@ -83,7 +99,7 @@ export const POST: APIRoute = async ({ request }) => {
       founder_email: founderEmail,
       founder_phone: str(body.founderPhone),
       category: str(body.category),
-      format: str(body.format),
+      format,
       handle: str(body.handle),
       has_revenue: hasRevenue,
       revenue_range: str(body.revenueRange),
@@ -116,6 +132,8 @@ export const POST: APIRoute = async ({ request }) => {
       product_noun_plural: str(body.productNounPlural),
       sku_attributes: skuAttributes.length ? skuAttributes : null,
       programmes,
+      brand_status: brandStatus,
+      model_details: modelDetails,
     });
 
     // Best-effort notifications — a failure here must never block the
@@ -130,7 +148,7 @@ export const POST: APIRoute = async ({ request }) => {
           replyTo: founderEmail,
           html: `<p><b>${escapeHtml(brandName)}</b> just applied to DevShop Retail OS.</p>
 <p>Founder: ${escapeHtml(founderName)} (${escapeHtml(founderEmail)}${body.founderPhone ? `, ${escapeHtml(String(body.founderPhone))}` : ''})</p>
-<p>Category: ${escapeHtml(str(body.category) || '—')} · Format: ${escapeHtml(str(body.format) || '—')}</p>
+<p>Category: ${escapeHtml(str(body.category) || '—')} · Format: ${escapeHtml(format || '—')} · Brand: ${escapeHtml(brandStatus === 'existing' ? 'existing' : brandStatus === 'new_sub_brand' ? 'new sub-brand' : brandStatus === 'from_zero' ? 'starting from zero' : '—')}</p>
 <p>Existing revenue: ${hasRevenue === 'yes' ? escapeHtml(str(body.revenueRange) || 'Yes') : 'No — AI-Enabler track requested'}</p>
 <p><a href="${trackUrl}">Founder status page →</a> · <a href="${origin}/retail-os/admin">Admin dashboard →</a></p>`,
         },
@@ -146,8 +164,9 @@ export const POST: APIRoute = async ({ request }) => {
           to: founderEmail,
           subject: `${brandName} — your DevShop Retail OS application`,
           html: `<p>Hi ${escapeHtml(founderName)},</p>
-<p>Got your application for <b>${escapeHtml(brandName)}</b>. I read every one myself and reply within the week.</p>
-<p>You can check where things stand any time — bookmark this link, no login needed:</p>
+<p>Got your application for <b>${escapeHtml(brandName)}</b>.</p>
+<p>Open your page now: in a few minutes it shows your provisional quarterly forecast and a design direction for your store, researched for your category. I review every application myself; your terms appear on the same page for signature, usually within the week.</p>
+<p>Bookmark it, no login needed:</p>
 <p><a href="${trackUrl}">${trackUrl}</a></p>
 <p>— Virat</p>`,
         },

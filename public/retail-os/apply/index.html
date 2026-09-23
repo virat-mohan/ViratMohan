@@ -159,8 +159,17 @@
       <div class="card">
         <h2>Brand identity</h2>
         <p class="sub">Who's applying, and what's the brand.</p>
+        <div class="field">
+          <label>Where is the brand today? *</label>
+          <div class="choice-group" id="brandStatusGroup">
+            <label class="choice"><input type="radio" name="brandStatus" value="existing"> An existing brand</label>
+            <label class="choice"><input type="radio" name="brandStatus" value="new_sub_brand"> A new sub-brand of my business</label>
+            <label class="choice"><input type="radio" name="brandStatus" value="from_zero"> Starting from zero</label>
+          </div>
+          <div class="hint" id="brandStatusHint">For a new brand we also set up the domain, brand email, Instagram and Meta accounts.</div>
+        </div>
         <div class="row2">
-          <div class="field"><label for="brandName">Brand name *</label><input type="text" id="brandName" required></div>
+          <div class="field"><label for="brandName" id="brandNameLabel">Brand name *</label><input type="text" id="brandName" required></div>
           <div class="field"><label for="founderName">Founder name *</label><input type="text" id="founderName" required></div>
         </div>
         <div class="row2">
@@ -264,6 +273,77 @@
             <div class="hint">One option per line: the option name, a colon, then its values separated by commas. You can add more later.</div>
           </div>
         </div>
+
+        <div id="mpFields" hidden style="border-top:1.5px solid var(--line); margin-top:26px; padding-top:22px;">
+          <p class="sub" style="margin-bottom:18px;"><b>Your marketplace.</b> Other people sell through your store and you keep a commission.</p>
+          <div class="row2">
+            <div class="field">
+              <label for="mpListingType">What gets listed?</label>
+              <select id="mpListingType">
+                <option value="">Select…</option>
+                <option>Products that ship</option><option>One-of-a-kind items (art, vintage)</option><option>Stays and bookings</option><option>Services</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="mpSellerCount">Sellers at launch</label>
+              <select id="mpSellerCount">
+                <option value="">Select…</option>
+                <option>1–5</option><option>6–20</option><option>21–100</option><option>100+</option>
+              </select>
+            </div>
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label for="mpCommission">Commission you take from sellers (%)</label>
+              <input type="text" inputmode="decimal" id="mpCommission" placeholder="e.g. 30">
+            </div>
+            <div class="field">
+              <label for="mpWhoShips">Who ships orders?</label>
+              <select id="mpWhoShips">
+                <option value="">Select…</option>
+                <option>Each seller ships</option><option>We ship from our own warehouse</option><option>Nothing ships (stays or services)</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="mpSellerJoin">How do sellers join?</label>
+            <select id="mpSellerJoin">
+              <option value="">Select…</option>
+              <option>They apply and we approve</option><option>We invite them</option><option>Both</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="subFields" hidden style="border-top:1.5px solid var(--line); margin-top:26px; padding-top:22px;">
+          <p class="sub" style="margin-bottom:18px;"><b>Your subscription.</b> Customers sign up once and receive deliveries on a schedule.</p>
+          <div class="field">
+            <label for="subWhat">What is delivered each time?</label>
+            <input type="text" id="subWhat" placeholder="e.g. a basket of seasonal flowers">
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label for="subFrequencies">How often</label>
+              <input type="text" id="subFrequencies" placeholder="e.g. weekly, fortnightly, monthly">
+            </div>
+            <div class="field">
+              <label for="subDurations">Plan lengths</label>
+              <input type="text" id="subDurations" placeholder="e.g. 1, 3, 6 or 12 months">
+            </div>
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label for="subArea">Where you deliver</label>
+              <input type="text" id="subArea" placeholder="e.g. Delhi NCR, or all of India">
+            </div>
+            <div class="field">
+              <label for="subDelivery">Who delivers</label>
+              <select id="subDelivery">
+                <option value="">Select…</option>
+                <option>Our own delivery team</option><option>A courier</option><option>Both</option>
+              </select>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -278,7 +358,7 @@
           <p id="splitExplainText">Fill in Step 1 to see your indicative range.</p>
         </div>
         <div class="terms-box">
-          12-month term · 30-day break clause · paid only once you're earning · Pay with a Post™ carries a separate 1% GMV fee, charged only once payment is received.
+          12-month term · 30-day break clause · zero capex: a ₹5,000 deposit once terms are signed, fully adjusted against your actual onboarding tech costs (DevShop keeps none of it) · every customer payment lands in DevShop's account and is settled to you weekly · Pay with a Post™ carries a separate 1% fee on the sales it drives, charged only once payment is received.
         </div>
         <label class="checkline">
           <input type="checkbox" id="termsAck" required>
@@ -549,8 +629,10 @@
     "referralMethodology","targetCities","shippingChargeModel",
     "storeCategories","productNounSingular","productNounPlural","skuAttributes",
     "loyaltyName","loyaltyPointsPerUnit","loyaltyRedeemEvery","loyaltyRedeemValue",
-    "referralFriendDiscount","referralRewardPoints","dropsName","storiesName"];
-  var radioGroups = ["hasRevenue","catalogMode","paymentMode","paymentMethods","carrier","metaBm","sameDayDelivery"];
+    "referralFriendDiscount","referralRewardPoints","dropsName","storiesName",
+    "mpListingType","mpSellerCount","mpCommission","mpWhoShips","mpSellerJoin",
+    "subWhat","subFrequencies","subDurations","subArea","subDelivery"];
+  var radioGroups = ["brandStatus","hasRevenue","catalogMode","paymentMode","paymentMethods","carrier","metaBm","sameDayDelivery"];
   var checkboxIds = ["termsAck","waAck","postAck"];
 
   function syncConditionalFields(){
@@ -561,6 +643,12 @@
     document.getElementById("shopifyUrlField").hidden = !catalogModeEl || catalogModeEl.value !== "shopify";
     document.getElementById("freeShippingThresholdField").hidden = document.getElementById("shippingChargeModel").value !== "threshold";
     document.getElementById("sameDayCitiesField").hidden = !sameDayEl || sameDayEl.value !== "yes";
+    var fmt = document.getElementById("format").value;
+    document.getElementById("mpFields").hidden = fmt !== "Marketplace";
+    document.getElementById("subFields").hidden = fmt !== "Subscription";
+    var bsEl = document.querySelector('input[name="brandStatus"]:checked');
+    var isNew = bsEl && bsEl.value !== "existing";
+    document.getElementById("brandNameLabel").textContent = isNew ? "Brand name, or working name *" : "Brand name *";
   }
 
   function restore(){
@@ -599,6 +687,7 @@
 
   var shippingChargeModelEl = document.getElementById("shippingChargeModel");
   if (shippingChargeModelEl) shippingChargeModelEl.addEventListener("change", function(){ save(); syncConditionalFields(); });
+  document.getElementById("format").addEventListener("change", function(){ save(); syncConditionalFields(); });
 
   document.querySelectorAll(".choice-group").forEach(function(group){
     group.addEventListener("click", function(e){
@@ -691,6 +780,10 @@
   function validateStep(i){
     var s = steps[i];
     if (s === "1") {
+      if (!document.querySelector('input[name="brandStatus"]:checked')) {
+        alert("Tell us whether this is an existing brand or a new one.");
+        return false;
+      }
       if (!document.getElementById("brandName").value || !document.getElementById("founderName").value ||
           !document.getElementById("founderEmail").value || !document.getElementById("category").value ||
           !document.getElementById("format").value) {
@@ -709,7 +802,8 @@
     save();
     var out = document.getElementById("summaryOutput");
     var blocks = [
-      ["Brand", [["Brand name", data.brandName], ["Founder", data.founderName], ["Email", data.founderEmail],
+      ["Brand", [["Where the brand is", {existing:"Existing brand", new_sub_brand:"New sub-brand", from_zero:"Starting from zero"}[data.brandStatus]],
+                 ["Brand name", data.brandName], ["Founder", data.founderName], ["Email", data.founderEmail],
                  ["Phone", data.founderPhone], ["Category", data.category], ["Format", data.format],
                  ["Handle / site", data.handle], ["Existing revenue", data.hasRevenue === "yes" ? (data.revenueRange || "Yes") : "No — AI-Enabler track"],
                  ["Following", data.following]]],
@@ -718,6 +812,10 @@
                    ["Store categories", data.storeCategories],
                    ["Product called", data.productNounSingular ? data.productNounSingular + (data.productNounPlural ? " / " + data.productNounPlural : "") : ""],
                    ["Product options", (data.skuAttributes || "").split("\n").filter(function(l){ return l.trim(); }).join(" · ")]]],
+      ["Marketplace", data.format === "Marketplace" ? [["Listed", data.mpListingType], ["Sellers at launch", data.mpSellerCount],
+                   ["Commission", data.mpCommission ? data.mpCommission + "%" : ""], ["Who ships", data.mpWhoShips], ["Sellers join", data.mpSellerJoin]] : []],
+      ["Subscription", data.format === "Subscription" ? [["Delivered", data.subWhat], ["How often", data.subFrequencies],
+                   ["Plan lengths", data.subDurations], ["Area", data.subArea], ["Who delivers", data.subDelivery]] : []],
       ["Payments & Shipping", [["Payment setup", data.paymentMode === "own" ? "Own gateway account" : "DevShop-managed"],
                    ["Payment methods", {both:"Prepaid + COD", prepaid:"Prepaid only", cod:"COD only"}[data.paymentMethods]],
                    ["Pickup pincode", data.pincode], ["Carrier", data.carrier === "own" ? "Own account" : "DevShop aggregator"],
@@ -734,7 +832,7 @@
                    ["Target cities", data.targetCities]]],
       ["Pay with a Post", [["Status", data.postAck ? "Enabled" : "Not enabled"]]]
     ];
-    out.innerHTML = blocks.map(function(b){
+    out.innerHTML = blocks.filter(function(b){ return b[1].length > 0; }).map(function(b){
       var rows = b[1].filter(function(r){ return r[1]; }).map(function(r){
         return '<div class="summary-row"><span>'+r[0]+'</span><span>'+ (r[1] || "—") +'</span></div>';
       }).join("");
@@ -747,6 +845,7 @@
     var lines = [
       "Brand name: " + (data.brandName||""),
       "Founder: " + (data.founderName||"") + " / " + (data.founderEmail||"") + " / " + (data.founderPhone||""),
+      "Brand: " + ({existing:"Existing brand", new_sub_brand:"New sub-brand", from_zero:"Starting from zero"}[data.brandStatus] || ""),
       "Category: " + (data.category||"") + " — Format: " + (data.format||""),
       "Instagram/site: " + (data.handle||""),
       "Existing revenue: " + (data.hasRevenue === "yes" ? (data.revenueRange||"yes") : "No — AI-Enabler track requested"),
@@ -858,7 +957,12 @@
       loyaltyName: data.loyaltyName, loyaltyPointsPerUnit: data.loyaltyPointsPerUnit,
       loyaltyRedeemEvery: data.loyaltyRedeemEvery, loyaltyRedeemValue: data.loyaltyRedeemValue,
       referralFriendDiscount: data.referralFriendDiscount, referralRewardPoints: data.referralRewardPoints,
-      dropsName: data.dropsName, storiesName: data.storiesName
+      dropsName: data.dropsName, storiesName: data.storiesName,
+      brandStatus: data.brandStatus,
+      mpListingType: data.mpListingType, mpSellerCount: data.mpSellerCount, mpCommission: data.mpCommission,
+      mpWhoShips: data.mpWhoShips, mpSellerJoin: data.mpSellerJoin,
+      subWhat: data.subWhat, subFrequencies: data.subFrequencies, subDurations: data.subDurations,
+      subArea: data.subArea, subDelivery: data.subDelivery
     };
     try {
       var res = await fetch("/retail-os/api/apply", {

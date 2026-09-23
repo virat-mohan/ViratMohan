@@ -1,109 +1,204 @@
 ---
 export const prerender = false;
-import { getRetailOsDb } from '../../../lib/retail-os-db';
+import { getRetailOsDb, journeyStep, BUILD_WINDOW_DAYS, DEPOSIT_INR } from '../../../lib/retail-os-db';
+import type { RetailOsApplication, RetailOsBusinessPlan, RetailOsDesignDirection, JourneyStep } from '../../../lib/retail-os-db';
 import { getEnv } from '../../../lib/env';
+import { sectionsFor } from '../../../lib/retail-os-setup';
+import { buildTermLines } from '../../../lib/retail-os-terms';
 
 const { id } = Astro.params;
 const env = getEnv();
-let app = null;
-let plan = null;
-let design = null;
+let app: RetailOsApplication | null = null;
+let plan: RetailOsBusinessPlan | null = null;
+let design: RetailOsDesignDirection | null = null;
 let loadError = false;
 if (id && env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
   const db = getRetailOsDb(env);
   try {
     app = await db.getById(id);
-    if (app) plan = await db.getLatestBusinessPlan(id);
   } catch (err) {
     console.error('track page lookup failed', err);
     loadError = true;
   }
-  // Separate so a design-direction failure (e.g. its table not migrated yet)
-  // never takes down the partner's whole tracker.
+  // Loaded separately so a failure (e.g. a table not migrated yet) never takes
+  // down the partner's whole page.
   if (app) {
-    try {
-      design = await db.getLatestDesignDirection(id);
-    } catch (err) {
-      console.error('track page design lookup failed', err);
-    }
+    [plan, design] = await Promise.all([
+      db.getLatestBusinessPlan(app.id).catch((err) => { console.error('track plan lookup failed', err); return null; }),
+      db.getLatestDesignDirection(app.id).catch((err) => { console.error('track design lookup failed', err); return null; }),
+    ]);
   }
 }
+
 function inr(n: number) {
   return '₹' + Math.round(n).toLocaleString('en-IN');
 }
+const fmtDate = (d: Date) => d.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Kolkata' });
+
+const step: JourneyStep | null = app ? journeyStep(app, !!plan, !!design) : null;
+const prepFailed = !!app?.prep_error && (!plan || !design);
+const termLines = app?.terms ? (app.agreement?.terms?.lines as { label: string; value: string }[] | undefined) ?? buildTermLines(app, app.terms) : [];
+const sections = app ? sectionsFor(app) : [];
+const answered = app?.setup_answers ?? {};
+const firstOpen = sections.find((s) => !answered[s.key])?.key ?? null;
+const answeredCount = sections.filter((s) => answered[s.key]).length;
+
+let buildDay = 0;
+let targetDate: Date | null = null;
+if (app?.build_started_at) {
+  const start = new Date(app.build_started_at);
+  targetDate = new Date(start.getTime() + BUILD_WINDOW_DAYS * 86400000);
+  buildDay = Math.min(BUILD_WINDOW_DAYS, Math.max(1, Math.floor((Date.now() - start.getTime()) / 86400000) + 1));
+}
+
+const upiLink = env.RETAIL_OS_UPI_ID
+  ? `upi://pay?pa=${encodeURIComponent(env.RETAIL_OS_UPI_ID)}&pn=${encodeURIComponent(env.RETAIL_OS_UPI_PAYEE || 'DevShop')}&am=${DEPOSIT_INR}&cu=INR&tn=${encodeURIComponent(`Retail OS deposit ${app?.id.slice(0, 8).toUpperCase() ?? ''}`)}`
+  : null;
+
+const qrUrl = /^https:\/\//i.test(env.RETAIL_OS_UPI_QR_URL) ? env.RETAIL_OS_UPI_QR_URL : null;
+const waDigits = env.RETAIL_OS_WHATSAPP_NUMBER.replace(/\D/g, '');
+const waLink = waDigits && app
+  ? `https://wa.me/${waDigits}?text=${encodeURIComponent(`Retail OS deposit for ${app.brand_name} (${app.id.slice(0, 8).toUpperCase()}): ₹${DEPOSIT_INR} paid. Payment screenshot attached.`)}`
+  : null;
+
+const JOURNEY: { key: string; label: string }[] = [
+  { key: 'applied', label: 'Applied' },
+  { key: 'plan', label: 'Forecast & design' },
+  { key: 'terms', label: 'Sign terms' },
+  { key: 'deposit', label: 'Deposit' },
+  { key: 'build', label: `${BUILD_WINDOW_DAYS}-day build` },
+  { key: 'live', label: 'Live' },
+];
+const STEP_INDEX: Record<JourneyStep, number> = { preparing: 1, review: 2, sign: 2, deposit: 3, confirming: 3, building: 4, live: 5 };
+const currentIndex = step ? STEP_INDEX[step] : 0;
+
+const d = plan?.drivers?.rationale;
+const planWhy = d ? ([
+  ['Orders', d.orders], ['Average order value', d.aov], ['Product cost', d.cogsPct], ['Marketing', d.cacPct],
+  ['Payments', d.payments], ['Shipping and returns', d.logistics],
+] as [string, string | undefined][]).filter(([, v]) => !!v) : [];
 ---
 <!doctype html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Onboarding status — DevShop Retail OS</title>
+<title>{app ? `${app.brand_name} — DevShop Retail OS` : 'Onboarding — DevShop Retail OS'}</title>
 <meta name="robots" content="noindex" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
   :root{ --cream:#F4EAD4; --ink:#1A1410; --ink-soft:#4A4038; --gold:#D4AF37; --gold-deep:#C99A3D;
-    --terracotta:#D9714B; --line: rgba(26,20,16,0.14); }
+    --terracotta:#D9714B; --teal:#2B8C86; --line: rgba(26,20,16,0.14); }
   *{box-sizing:border-box;}
-  body{ margin:0; background:var(--cream); color:var(--ink); font-family:'Inter',system-ui,sans-serif;
-    font-size:15px; line-height:1.55; }
+  body{ margin:0; background:var(--cream); color:var(--ink); font-family:'Inter',system-ui,sans-serif; font-size:15px; line-height:1.55; }
   h1,h2,h3{font-family:'Anton','Arial Narrow',sans-serif; font-weight:400; text-transform:uppercase; margin:0;}
   a{color:inherit;}
-  .wrap{max-width:720px; margin-inline:auto; padding-inline:24px; padding-block:32px 60px;}
+  [hidden]{display:none!important;}
+  .wrap{max-width:760px; margin-inline:auto; padding-inline:16px; padding-block:24px 60px;}
+  .mono{font-family:'IBM Plex Mono';}
   .stripe{display:flex; height:6px;} .stripe span{flex:1;}
   .stripe span:nth-child(1){background:var(--gold);} .stripe span:nth-child(2){background:#3E6FA6;}
   .stripe span:nth-child(3){background:#E91E8C;} .stripe span:nth-child(4){background:#9C7A4A;}
-  nav{display:flex; justify-content:space-between; align-items:center; padding-block:16px 28px;}
+  nav{display:flex; justify-content:space-between; align-items:center; padding-block:12px 24px; gap:12px; flex-wrap:wrap;}
   .wordmark{display:flex; align-items:baseline; gap:2px; font-family:'Anton'; font-size:20px; text-transform:uppercase;}
   .wordmark .w1{color:var(--gold-deep);} .wordmark .w2{color:var(--ink);}
   .wordmark small{font-family:'Inter'; font-style:italic; font-weight:500; font-size:10.5px; color:var(--ink-soft); text-transform:none; margin-left:8px;}
   nav a.back{font-size:13px; font-weight:600; text-decoration:none; color:var(--ink-soft);}
+  .head{display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap; margin-bottom:18px;}
+  .head h1{font-size:1.9rem; line-height:1;}
   .appid{font-family:'IBM Plex Mono'; font-size:11px; color:var(--ink-soft);}
-  .pipeline-head{display:flex; justify-content:space-between; align-items:flex-end; gap:14px; margin-bottom:16px; flex-wrap:wrap;}
-  .pipeline{display:flex; flex-direction:column; border:2px solid var(--ink);}
-  .pipeline-row{display:flex; align-items:center; gap:14px; padding:14px 18px; border-bottom:1.5px solid var(--ink);}
-  .pipeline-row:last-child{border-bottom:none;}
-  .pipeline-badge{font-family:'IBM Plex Mono'; font-size:10px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase;
-    padding:4px 10px; border:1.5px solid currentColor; flex:none; min-width:84px; text-align:center;}
-  .pipeline-badge.done{background:var(--ink); color:var(--cream); border-color:var(--ink);}
-  .pipeline-badge.pending{color:var(--ink-soft); border-color:var(--line);}
-  .pipeline-badge.skipped{color:var(--line); border-color:var(--line);}
-  .pipeline-label{font-weight:700; font-size:13.5px;}
-  .pipeline-note{font-size:11.5px; color:var(--ink-soft); font-weight:500; margin-top:2px;}
-  .notfound{padding-block:60px; text-align:center;}
-  .notfound p{color:var(--ink-soft); font-weight:500; max-width:44ch; margin:14px auto 0;}
-  .lookup{margin-top:32px; padding-top:28px; border-top:1.5px solid var(--line);}
-  .lookup-label{font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-bottom:10px;}
-  .lookup form{display:flex; gap:8px; justify-content:center; flex-wrap:wrap;}
-  .lookup input{border:1.5px solid var(--ink); padding:10px 12px; font-family:'Inter'; font-size:13.5px; min-width:220px;}
-  .lookup button{border:2px solid var(--ink); background:var(--ink); color:var(--cream); padding:10px 16px; font-family:'Inter'; font-weight:700; font-size:13.5px; cursor:pointer;}
-  .lookup-msg{font-size:12px; color:var(--terracotta); font-weight:600; margin-top:10px; min-height:16px;}
-  .panel{border:2px solid var(--ink); padding:20px; margin-top:24px;}
+
+  .journey{display:grid; grid-template-columns:repeat(6,1fr); gap:4px; margin-bottom:22px;}
+  .jstep{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.03em; color:var(--ink-soft);}
+  .jstep i{display:block; height:5px; background:var(--line); margin-bottom:6px;}
+  .jstep.done i{background:var(--ink);} .jstep.current i{background:var(--terracotta);}
+  .jstep.current{color:var(--ink);}
+  @media (max-width:560px){ .jstep span{display:none;} .jstep.current span{display:block;} }
+
+  .next{border:2px solid var(--ink); background:var(--ink); color:var(--cream); padding:22px; margin-bottom:24px;}
+  .next h2{font-size:1.35rem; margin-bottom:8px; color:var(--cream);}
+  .next p{margin:0 0 10px; font-size:14px; color:rgba(244,234,212,0.9);}
+  .next p:last-child{margin-bottom:0;}
+  .next .big{font-family:'Anton'; font-size:2.2rem; line-height:1; color:var(--gold);}
+  .next .bar{height:6px; background:rgba(244,234,212,0.2); margin:12px 0;}
+  .next .bar i{display:block; height:100%; background:var(--gold);}
+  .pulse{display:inline-block; width:9px; height:9px; border-radius:50%; background:var(--gold); margin-right:8px; animation:pulse 1.2s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}
+
+  .panel{border:2px solid var(--ink); padding:20px; margin-top:20px; background:var(--cream);}
   .panel h2{font-size:1.25rem; margin-bottom:12px;}
-  .split-grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px;}
-  @media (max-width:640px){ .split-grid{grid-template-columns:1fr;} }
-  .split-col h3{font-family:'Inter'; font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.03em; color:var(--ink-soft); margin-bottom:8px;}
-  .split-col ul{margin:0; padding-left:18px; font-size:13px;}
-  .split-col li{margin-bottom:5px;}
-  .split-note{font-size:11px; color:var(--ink-soft); margin-top:14px; font-style:italic;}
-  .provisional-tag{font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--terracotta); border:1.5px solid var(--terracotta); padding:3px 8px; margin-left:10px; vertical-align:middle;}
-  .forecast-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:14px;}
-  .forecast-cell{border:1.5px solid var(--line); padding:12px;}
-  .forecast-cell .fc-label{font-size:10.5px; font-weight:700; text-transform:uppercase; color:var(--ink-soft);}
-  .forecast-cell .fc-value{font-family:'IBM Plex Mono'; font-size:1.15rem; font-weight:700; margin-top:4px;}
-  .forecast-note{font-size:12px; color:var(--ink-soft); margin-top:14px; line-height:1.5;}
+  .tag{font-family:'Inter'; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--terracotta); border:1.5px solid var(--terracotta); padding:3px 8px; margin-left:8px; vertical-align:middle;}
+  .tag.ok{color:var(--teal); border-color:var(--teal);}
+  .note{font-size:12.5px; color:var(--ink-soft); line-height:1.5;}
+  .sub-h{font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.03em; color:var(--ink-soft); margin:18px 0 8px;}
+
+  .forecast-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:6px 0 14px;}
+  @media (max-width:560px){ .forecast-grid{grid-template-columns:1fr;} }
+  .fcell{border:1.5px solid var(--line); padding:12px;}
+  .fcell .l{font-size:10.5px; font-weight:700; text-transform:uppercase; color:var(--ink-soft);}
+  .fcell .v{font-family:'IBM Plex Mono'; font-size:1.15rem; font-weight:700; margin-top:4px;}
+  table.months{width:100%; border-collapse:collapse; font-size:12.5px;}
+  table.months th, table.months td{border-bottom:1px solid var(--line); padding:7px 6px; text-align:right;}
+  table.months th:first-child, table.months td:first-child{text-align:left;}
+  table.months th{font-size:10.5px; text-transform:uppercase; color:var(--ink-soft);}
+  .scroll{overflow-x:auto;}
+  dl.why{margin:0; font-size:13px;}
+  dl.why dt{font-weight:700; margin-top:10px;} dl.why dd{margin:2px 0 0; color:var(--ink-soft);}
+
   .ref-card{border:1.5px solid var(--line); padding:12px 14px; margin-bottom:10px;}
-  .ref-card .ref-name{font-weight:700; font-size:13.5px;}
-  .ref-card .ref-url{font-family:'IBM Plex Mono'; font-size:10.5px; color:var(--ink-soft); margin:2px 0 6px; word-break:break-all;}
-  .ref-card .ref-note{font-size:12.5px; color:var(--ink-soft);}
+  .ref-name{font-weight:700; font-size:13.5px;}
+  .ref-url{font-family:'IBM Plex Mono'; font-size:10.5px; color:var(--ink-soft); margin:2px 0 6px; word-break:break-all;}
+  .ref-note{font-size:12.5px; color:var(--ink-soft);}
   .swatches{display:flex; gap:10px; flex-wrap:wrap; margin:6px 0 10px;}
-  .swatch{width:76px;}
-  .swatch .chip{height:44px; border:1.5px solid var(--ink);}
+  .swatch{width:76px;} .swatch .chip{height:44px; border:1.5px solid var(--ink);}
   .swatch .hex{font-family:'IBM Plex Mono'; font-size:10px; margin-top:4px; text-align:center;}
   .swatch .name{font-size:9px; color:var(--ink-soft); text-align:center; text-transform:uppercase; font-weight:700;}
-  .sub-h{font-family:'Inter'; font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.03em; color:var(--ink-soft); margin:18px 0 8px;}
-  ul.ux{margin:0; padding-left:18px; font-size:13px;} ul.ux li{margin-bottom:6px;}
+  ul.plain{margin:0; padding-left:18px; font-size:13px;} ul.plain li{margin-bottom:6px;}
+
+  .terms{border-collapse:collapse; width:100%; font-size:13px;}
+  .terms td{border-bottom:1px solid var(--line); padding:9px 6px; vertical-align:top;}
+  .terms td:first-child{font-weight:700; width:32%;}
+  form.stack label{display:block; font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); margin:14px 0 6px;}
+  form.stack input[type=text], form.stack select, form.stack textarea{width:100%; border:1.5px solid var(--ink); background:#fff; padding:10px 12px; font-family:'Inter'; font-size:14px; color:var(--ink); border-radius:0;}
+  form.stack textarea{min-height:76px; resize:vertical;}
+  .hint{font-size:11.5px; color:var(--ink-soft); margin-top:4px;}
+  .check{display:flex; gap:10px; align-items:flex-start; font-size:13.5px; font-weight:600; margin-top:14px;}
+  .check input{margin-top:4px;}
+  .btn{display:inline-block; border:2px solid var(--ink); background:var(--ink); color:var(--cream); padding:11px 18px; font-family:'Inter'; font-weight:700; font-size:14px; cursor:pointer; text-decoration:none; margin-top:14px;}
+  .btn.light{background:var(--cream); color:var(--ink);}
+  .btn:disabled{opacity:.5; cursor:wait;}
+  .msg{font-size:12.5px; color:var(--terracotta); font-weight:600; margin-top:8px; min-height:1em;}
+  .upi{border:1.5px dashed var(--ink); padding:14px; margin-top:10px; font-size:13.5px;}
+  .upi b{font-family:'IBM Plex Mono';}
+
+  details.sec{border:1.5px solid var(--ink); margin-top:10px; background:#fff;}
+  details.sec summary{cursor:pointer; padding:12px 14px; font-weight:700; font-size:14px; list-style:none; display:flex; justify-content:space-between; gap:10px;}
+  details.sec summary::-webkit-details-marker{display:none;}
+  details.sec .body{padding:0 14px 14px;}
+  details.sec .state{font-family:'IBM Plex Mono'; font-size:10.5px; font-weight:700; text-transform:uppercase; color:var(--ink-soft);}
+  details.sec.done .state{color:var(--teal);}
+  details.sec.next-up{border-color:var(--terracotta); border-width:2px;}
+  .answers{font-size:12.5px; color:var(--ink-soft); margin:0 0 6px;} .answers b{color:var(--ink);}
+
+  .split-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px;}
+  @media (max-width:640px){ .split-grid{grid-template-columns:1fr;} }
+  .split-col h3{font-family:'Inter'; font-size:11.5px; font-weight:700; letter-spacing:0.03em; color:var(--ink-soft); margin-bottom:8px;}
+
+  .pipeline{display:flex; flex-direction:column; border:1.5px solid var(--line); margin-top:8px;}
+  .prow{display:flex; align-items:center; gap:12px; padding:10px 12px; border-bottom:1px solid var(--line); font-size:13px;}
+  .prow:last-child{border-bottom:none;}
+  .badge{font-family:'IBM Plex Mono'; font-size:9.5px; font-weight:700; text-transform:uppercase; padding:3px 8px; border:1.5px solid var(--line); min-width:74px; text-align:center; flex:none;}
+  .badge.done{background:var(--ink); color:var(--cream); border-color:var(--ink);} .badge.skipped{color:var(--line);}
+  .pnote{font-size:11.5px; color:var(--ink-soft);}
+
+  .notfound{padding-block:60px; text-align:center;}
+  .notfound p{color:var(--ink-soft); max-width:44ch; margin:14px auto 0;}
+  .lookup{margin-top:32px; padding-top:28px; border-top:1.5px solid var(--line);}
+  .lookup form{display:flex; gap:8px; justify-content:center; flex-wrap:wrap;}
+  .lookup input{border:1.5px solid var(--ink); padding:10px 12px; font-size:13.5px; min-width:220px;}
+  .lookup button{border:2px solid var(--ink); background:var(--ink); color:var(--cream); padding:10px 16px; font-weight:700; cursor:pointer;}
   footer{padding-block:24px; text-align:center;}
   footer p{margin:0; font-size:10.5px; font-weight:700; letter-spacing:0.03em; color:var(--ink-soft);}
 </style>
@@ -113,53 +208,206 @@ function inr(n: number) {
 <div class="wrap">
   <nav>
     <div class="wordmark"><span class="w1">Dev</span><span class="w2">Shop</span><small>Retail OS™</small></div>
-    <a class="back" href="/retail-os">← Back to Retail OS</a>
+    <a class="back" href="/retail-os">← About Retail OS</a>
   </nav>
 
-  {app ? (
+  {app && step ? (
     <>
-      <div class="pipeline-head">
-        <h1 style="font-size:1.8rem;">Onboarding status</h1>
-        <span class="appid">{app.id.slice(0,8).toUpperCase()} · {app.brand_name}</span>
+      <div class="head">
+        <h1>{app.brand_name}</h1>
+        <span class="appid">{app.id.slice(0, 8).toUpperCase()} · applied {new Date(app.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
       </div>
-      <div class="pipeline">
-        {app.stages.map((s) => (
-          <div class="pipeline-row">
-            <span class={`pipeline-badge ${s.status}`}>{s.status === 'done' ? 'Done' : s.status === 'skipped' ? 'Skipped' : 'Pending'}</span>
-            <div>
-              <div class="pipeline-label">{s.label}</div>
-              {s.note && <div class="pipeline-note">{s.note}</div>}
-            </div>
-          </div>
+
+      <div class="journey">
+        {JOURNEY.map((j, i) => (
+          <div class={`jstep ${i < currentIndex ? 'done' : i === currentIndex ? 'current' : ''}`}><i></i><span>{j.label}</span></div>
         ))}
       </div>
 
-      {plan && (
-        <div class="panel">
-          <h2>Quarterly forecast <span class="provisional-tag">Provisional</span></h2>
-          <div class="forecast-grid">
-            <div class="forecast-cell"><div class="fc-label">3-month revenue</div><div class="fc-value">{inr(plan.quarter_totals.revenueInr)}</div></div>
-            <div class="forecast-cell"><div class="fc-label">3-month profit pool</div><div class="fc-value">{inr(plan.quarter_totals.profitPoolInr)}</div></div>
-            <div class="forecast-cell"><div class="fc-label">Your share (3 months)</div><div class="fc-value">{inr(plan.quarter_totals.founderShareInr)}</div></div>
-          </div>
-          <p class="forecast-note">
-            Built from your catalog and researched category/city benchmarks — this is a starting estimate, not a
-            guarantee. It gets sharper as we lock in your actual payment gateway, shipping, and Meta ad numbers
-            through onboarding, and becomes your official benchmark once you're live.
-          </p>
+      {/* ── The one thing to do now ── */}
+      {step === 'preparing' && (
+        <div class="next" id="prepCard">
+          <h2>{prepFailed ? 'Your forecast is being finished by hand' : 'Preparing your forecast and design direction'}</h2>
+          {prepFailed ? (
+            <p>Part of the research needs a closer look, so Virat is completing it himself. You'll get an email when it's on this page.</p>
+          ) : (
+            <>
+              <p><span class="pulse"></span><span id="prepMsg">Researching your category, competitors and target cities. This takes about 2–3 minutes; keep this page open.</span></p>
+              <p>You'll see a provisional quarterly P&amp;L for your brand and a proposed look for your store, before anything is signed.</p>
+            </>
+          )}
+        </div>
+      )}
+      {step === 'review' && (
+        <div class="next">
+          <h2>Your forecast and design direction are ready</h2>
+          <p>Read them below. Virat reviews every application personally; your commercial terms will appear on this page for signature, usually within the week, and you'll get an email when they do.</p>
+        </div>
+      )}
+      {step === 'sign' && (
+        <div class="next">
+          <h2>Your terms are ready to sign</h2>
+          <p>Read them below, then sign by typing your full name. Next comes the ₹{DEPOSIT_INR.toLocaleString('en-IN')} deposit, and your {BUILD_WINDOW_DAYS}-day build starts once it's confirmed.</p>
+          <a class="btn light" href="#terms">Review and sign →</a>
+        </div>
+      )}
+      {step === 'deposit' && (
+        <div class="next">
+          <h2>Pay the ₹{DEPOSIT_INR.toLocaleString('en-IN')} deposit</h2>
+          <p>It's fully adjusted against your actual onboarding tech costs; DevShop keeps none of it. Your {BUILD_WINDOW_DAYS}-day build starts the moment it's confirmed.</p>
+          <a class="btn light" href="#deposit">Pay the deposit →</a>
+        </div>
+      )}
+      {step === 'confirming' && (
+        <div class="next">
+          <h2>Confirming your deposit</h2>
+          <p>We're matching reference <span class="mono">{app.deposit?.utr}</span> against our bank statement, usually within one working day. Start the setup questions below meanwhile: the more you answer now, the faster the build.</p>
+        </div>
+      )}
+      {step === 'building' && targetDate && (
+        <div class="next">
+          <h2>Your store is being built</h2>
+          <div class="big">Day {buildDay} of {BUILD_WINDOW_DAYS}</div>
+          <div class="bar"><i style={`width:${Math.round((buildDay / BUILD_WINDOW_DAYS) * 100)}%`}></i></div>
+          <p>Target go-live: <b>{fmtDate(targetDate)}</b>. {answeredCount < sections.length ? `${sections.length - answeredCount} setup ${sections.length - answeredCount === 1 ? 'section is' : 'sections are'} still waiting on you below.` : 'All setup questions answered, thank you.'}</p>
+        </div>
+      )}
+      {step === 'live' && (
+        <div class="next">
+          <h2>You're live</h2>
+          <p>Your store is public and selling. Settlement statements arrive every Monday.</p>
         </div>
       )}
 
+      {/* ── Setup questions, one section at a time ── */}
+      {app.agreement && sections.length > 0 && (
+        <div class="panel" id="setup">
+          <h2>Setup questions <span class={`tag ${answeredCount === sections.length ? 'ok' : ''}`}>{answeredCount} of {sections.length} done</span></h2>
+          <p class="note">One section at a time. Never enter passwords, API keys or card details here: where we need access to an account, we request it through the provider.</p>
+          {sections.map((s) => {
+            const saved = answered[s.key];
+            return (
+              <details class={`sec ${saved ? 'done' : ''} ${s.key === firstOpen ? 'next-up' : ''}`} open={s.key === firstOpen}>
+                <summary><span>{s.title}</span><span class="state">{saved ? 'Done ✓' : s.key === firstOpen ? 'Next' : 'To do'}</span></summary>
+                <div class="body">
+                  <p class="note" style="margin-top:0;">{s.why}</p>
+                  <form class="stack setup-form" data-section={s.key}>
+                    {s.fields.map((f) => (
+                      <>
+                        <label for={`${s.key}-${f.key}`}>{f.label}</label>
+                        {f.type === 'select' ? (
+                          <select id={`${s.key}-${f.key}`} name={f.key}>
+                            <option value="">Select…</option>
+                            {f.options!.map((o) => <option value={o} selected={saved?.answers[f.key] === o}>{o}</option>)}
+                          </select>
+                        ) : f.type === 'textarea' ? (
+                          <textarea id={`${s.key}-${f.key}`} name={f.key} placeholder={f.placeholder}>{saved?.answers[f.key] ?? ''}</textarea>
+                        ) : (
+                          <input type="text" id={`${s.key}-${f.key}`} name={f.key} placeholder={f.placeholder} value={saved?.answers[f.key] ?? ''} />
+                        )}
+                        {f.hint && <div class="hint">{f.hint}</div>}
+                      </>
+                    ))}
+                    <button type="submit" class="btn">{saved ? 'Update' : 'Save and continue'}</button>
+                    <div class="msg"></div>
+                  </form>
+                </div>
+              </details>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── Terms and signature ── */}
+      {app.terms && (
+        <div class="panel" id="terms">
+          <h2>Your commercial terms {app.agreement ? <span class="tag ok">Signed</span> : <span class="tag">Awaiting your signature</span>}</h2>
+          <table class="terms">
+            {termLines.map((l) => <tr><td>{l.label}</td><td>{l.value}</td></tr>)}
+          </table>
+          {app.agreement ? (
+            <p class="note" style="margin-top:12px;">Signed by <b>{app.agreement.signedName}</b> on {new Date(app.agreement.signedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST. A copy was emailed to you.</p>
+          ) : (
+            <form class="stack" id="signForm">
+              <p class="note" style="margin-top:14px;">These terms form part of the DevShop Retail OS partnership agreement between you and DevShop. Your typed name, the time, and your device and IP address are recorded as your signature.</p>
+              <label for="signedName">Your full legal name</label>
+              <input type="text" id="signedName" autocomplete="name" required />
+              <label class="check" style="text-transform:none; letter-spacing:0; font-size:13.5px; color:var(--ink);"><input type="checkbox" id="accept" /> <span>I have read and accept these terms on behalf of {app.brand_name}.</span></label>
+              <button type="submit" class="btn">Sign terms</button>
+              <div class="msg" id="signMsg"></div>
+            </form>
+          )}
+        </div>
+      )}
+
+      {/* ── Deposit ── */}
+      {app.agreement && (
+        <div class="panel" id="deposit">
+          <h2>Deposit {app.deposit?.confirmedAt ? <span class="tag ok">Confirmed</span> : app.deposit ? <span class="tag">Being confirmed</span> : <span class="tag">Due</span>}</h2>
+          <p class="note" style="margin-top:0;">₹{DEPOSIT_INR.toLocaleString('en-IN')}, fully adjusted against your actual onboarding tech costs (hosting, database, WhatsApp number, email, domain and AI). DevShop keeps none of it; every charge against it will be listed here.</p>
+          {app.deposit ? (
+            <p class="note">Reported {new Date(app.deposit.submittedAt).toLocaleDateString('en-IN')} with reference <span class="mono">{app.deposit.utr}</span>{app.deposit.confirmedAt ? `, confirmed ${new Date(app.deposit.confirmedAt).toLocaleDateString('en-IN')}.` : '.'}</p>
+          ) : (
+            <>
+              {env.RETAIL_OS_UPI_ID || qrUrl ? (
+                <div class="upi">
+                  <div><b>1.</b> Pay <b>₹{DEPOSIT_INR.toLocaleString('en-IN')}</b> by UPI{env.RETAIL_OS_UPI_ID && <> to <b>{env.RETAIL_OS_UPI_ID}</b></>}{env.RETAIL_OS_UPI_PAYEE && <> ({env.RETAIL_OS_UPI_PAYEE})</>}: scan the code, or tap the button on your phone.</div>
+                  {qrUrl && <img src={qrUrl} alt="DevShop UPI QR code" width="200" height="200" style="display:block; margin:12px 0; border:1.5px solid var(--ink); background:#fff;" />}
+                  {upiLink && <a class="btn light" href={upiLink}>Open my UPI app →</a>}
+                  {waLink && (
+                    <div style="margin-top:14px;"><b>2.</b> Send the payment screenshot on WhatsApp so we can confirm it quickly.<br /><a class="btn light" href={waLink} target="_blank" rel="noopener noreferrer">Send screenshot on WhatsApp →</a></div>
+                  )}
+                  <div style="margin-top:14px;"><b>{waLink ? '3.' : '2.'}</b> Enter the reference number below.</div>
+                </div>
+              ) : (
+                <div class="upi">Payment details for the deposit are sent to you by email once your terms are signed.</div>
+              )}
+              <form class="stack" id="depositForm">
+                <label for="utr">UPI reference number (UTR) after paying</label>
+                <input type="text" id="utr" placeholder="12-digit number from your UPI app" inputmode="numeric" />
+                <button type="submit" class="btn">I've paid</button>
+                <div class="msg" id="depositMsg"></div>
+              </form>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* ── Forecast ── */}
+      {plan && (
+        <div class="panel" id="forecast">
+          <h2>Quarterly forecast <span class="tag">Provisional</span></h2>
+          <div class="forecast-grid">
+            <div class="fcell"><div class="l">3-month revenue</div><div class="v">{inr(plan.quarter_totals.revenueInr)}</div></div>
+            <div class="fcell"><div class="l">3-month profit pool</div><div class="v">{inr(plan.quarter_totals.profitPoolInr)}</div></div>
+            <div class="fcell"><div class="l">Your share</div><div class="v">{inr(plan.quarter_totals.founderShareInr)}</div></div>
+          </div>
+          <div class="scroll">
+            <table class="months">
+              <tr><th>Month</th><th>Orders</th><th>Revenue</th><th>Profit pool</th><th>Your share</th></tr>
+              {plan.months.map((m) => <tr><td>{m.label}</td><td>{m.orders.toLocaleString('en-IN')}</td><td>{inr(m.revenueInr)}</td><td>{inr(m.profitPoolInr)}</td><td>{inr(m.founderShareInr)}</td></tr>)}
+            </table>
+          </div>
+          {planWhy.length > 0 && (
+            <>
+              <div class="sub-h">How we got these numbers</div>
+              <dl class="why">{planWhy.map(([k, v]) => <><dt>{k}</dt><dd>{v}</dd></>)}</dl>
+            </>
+          )}
+          <p class="note" style="margin-top:14px;">Built from your answers and researched category and city benchmarks. It is a starting estimate, not a guarantee, and gets sharper as your real payment, shipping and ad numbers come in. Once you're live it becomes the benchmark your monthly results are compared with.</p>
+        </div>
+      )}
+
+      {/* ── Design direction ── */}
       {design && (
-        <div class="panel">
-          <h2>Design direction <span class="provisional-tag">Proposed — for your review</span></h2>
-          <p class="forecast-note" style="margin-top:0;">
+        <div class="panel" id="design">
+          <h2>Design direction <span class="tag">Proposed</span></h2>
+          <p class="note" style="margin-top:0;">
             {design.has_existing_site
-              ? "Built from your existing look, pushed toward how the best sites in your category execute."
+              ? 'Built from your existing look, pushed toward how the best sites in your category work.'
               : "You don't have a live site yet, so we've started from a proven, successful brand in your category as the template."}
           </p>
-
-          <div class="sub-h">{design.has_existing_site ? 'Primary reference' : 'Template we\'ll start from'}</div>
+          <div class="sub-h">{design.has_existing_site ? 'Primary reference' : "Template we'll start from"}</div>
           <div class="ref-card">
             <div class="ref-name">{design.primary_reference.name}</div>
             {design.primary_reference.url && <div class="ref-url"><a href={design.primary_reference.url} target="_blank" rel="noopener noreferrer">{design.primary_reference.url}</a></div>}
@@ -177,107 +425,181 @@ function inr(n: number) {
               ))}
             </>
           )}
-
           <div class="sub-h">Palette</div>
           <div class="swatches">
             {([
-              ['Primary', design.color_palette.primaryHex],
-              ['Secondary', design.color_palette.secondaryHex],
-              ['Accent', design.color_palette.accentHex],
-              ['Background', design.color_palette.backgroundHex],
+              ['Primary', design.color_palette.primaryHex], ['Secondary', design.color_palette.secondaryHex],
+              ['Accent', design.color_palette.accentHex], ['Background', design.color_palette.backgroundHex],
               ['Text', design.color_palette.textHex],
             ] as [string, string][]).map(([name, hex]) => (
-              <div class="swatch">
-                <div class="chip" style={`background:${hex}`}></div>
-                <div class="hex">{hex}</div>
-                <div class="name">{name}</div>
-              </div>
+              <div class="swatch"><div class="chip" style={`background:${hex}`}></div><div class="hex">{hex}</div><div class="name">{name}</div></div>
             ))}
           </div>
-          <p class="forecast-note" style="margin-top:0;">{design.color_palette.rationale}</p>
-
+          <p class="note" style="margin-top:0;">{design.color_palette.rationale}</p>
           <div class="sub-h">Typography</div>
           <p style="margin:0; font-size:13.5px;"><b>Headings:</b> {design.typography.headingFont} · <b>Body:</b> {design.typography.bodyFont}</p>
-
           <div class="sub-h">How the site will work</div>
-          <ul class="ux">{design.ux_principles.map((p) => <li>{p}</li>)}</ul>
-
+          <ul class="plain">{design.ux_principles.map((p) => <li>{p}</li>)}</ul>
           <div class="sub-h">Tone of voice</div>
           <p style="margin:0; font-size:13px; line-height:1.6;">{design.tone_of_voice}</p>
         </div>
       )}
 
+      {/* ── Who handles what ── */}
       <div class="panel">
         <h2>Who handles what</h2>
         <div class="split-grid">
           <div class="split-col">
             <h3>DevShop</h3>
-            <ul>
-              <li>Storefront build, hosting &amp; maintenance</li>
-              <li>Payment gateway integration</li>
-              <li>Meta Business Manager, catalog &amp; pixel setup</li>
-              <li>WhatsApp Business API provisioning</li>
-              <li>Day-to-day site operations &amp; catalog management</li>
-              <li>Performance marketing execution</li>
-              <li>Pricing — we fix the price of each product with you</li>
-              <li>Your benchmark P&amp;L and monthly reporting</li>
+            <ul class="plain">
+              <li>Storefront build, hosting and maintenance</li>
+              <li>Payments, shipping, Meta, WhatsApp and Google set up and run</li>
+              <li>Pricing, fixed with you per product</li>
+              <li>Performance marketing and content</li>
+              <li>Weekly settlement and your P&amp;L against the plan</li>
             </ul>
           </div>
           <div class="split-col">
             <h3>You</h3>
-            <ul>
-              <li>Product sourcing, manufacturing &amp; inventory</li>
-              <li>Fulfillment — packing &amp; handoff to courier</li>
-              <li>Brand creative &amp; product photography</li>
-              <li>Customer relationships beyond order status</li>
-              <li>Answering the setup questions we'll ask at each stage below</li>
+            <ul class="plain">
+              <li>Product sourcing, manufacturing and inventory</li>
+              <li>Packing orders and handing them to the courier</li>
+              <li>Product photos, unless we agree otherwise</li>
+              <li>Answering the setup questions on this page</li>
             </ul>
           </div>
           <div class="split-col">
             <h3>Decided together</h3>
-            <ul>
-              <li>Discounting &amp; promo rules — these move gross profit directly, so we agree them jointly</li>
-              <li>Any freelancers we bring in (performance marketing, content/production, etc.) and their cost — also comes out of gross profit, so agreed before we hire</li>
+            <ul class="plain">
+              <li>Discount and promotion rules</li>
+              <li>Any freelancers we hire, and what they cost</li>
             </ul>
           </div>
         </div>
-        <p class="split-note">Full detail is in your signed Partnership Agreement — this is the plain-English summary.</p>
+      </div>
+
+      {/* ── Detailed checklist ── */}
+      <div class="panel">
+        <h2>Build checklist</h2>
+        <div class="pipeline">
+          {app.stages.map((s) => (
+            <div class="prow">
+              <span class={`badge ${s.status}`}>{s.status === 'done' ? 'Done' : s.status === 'skipped' ? 'Not needed' : 'Pending'}</span>
+              <div><div style="font-weight:700;">{s.label}</div>{s.note && <div class="pnote">{s.note}</div>}</div>
+            </div>
+          ))}
+        </div>
       </div>
     </>
   ) : (
     <div class="notfound">
       <h2>{loadError ? 'Status temporarily unavailable' : "Can't find that application"}</h2>
       <p>{loadError
-        ? "There's a hiccup reaching the backend right now — try again shortly, or email viratmohan@gmail.com."
+        ? "There's a hiccup reaching the backend right now. Try again shortly, or email viratmohan@gmail.com."
         : "This link doesn't match an application on file."}</p>
       {!loadError && (
         <div class="lookup">
-          <p class="lookup-label">Lost your link? Enter the email you applied with:</p>
+          <p class="note">Lost your link? Enter the email you applied with:</p>
           <form id="lookupForm">
             <input type="email" id="lookupEmail" placeholder="you@brand.com" required />
             <button type="submit">Resend link →</button>
           </form>
-          <p class="lookup-msg" id="lookupMsg"></p>
+          <p class="msg" id="lookupMsg"></p>
         </div>
       )}
     </div>
   )}
 </div>
-<footer><p>DEVSHOP RETAIL OS™ — REAL-TIME ONBOARDING STATUS</p></footer>
-<script>
-  var form = document.getElementById('lookupForm');
-  if (form) {
-    form.addEventListener('submit', async function (e) {
+<footer><p>DEVSHOP RETAIL OS™ — YOUR ONBOARDING, LIVE</p></footer>
+
+<script define:vars={{ appId: app?.id ?? null, autoPrepare: step === 'preparing' && !prepFailed }}>
+  function post(url, body) {
+    return fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body || {}) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, data: d }; }); });
+  }
+
+  // Automatic forecast + design preparation, then poll until both exist.
+  if (appId && autoPrepare) {
+    var prepMsg = document.getElementById('prepMsg');
+    var started = Date.now();
+    var poll = function () {
+      fetch('/retail-os/api/status/' + appId).then(function (r) { return r.json(); }).then(function (s) {
+        if (s.hasPlan && s.hasDesign) return location.reload();
+        if (s.prepFailed) return location.reload();
+        if (Date.now() - started > 8 * 60 * 1000) {
+          if (prepMsg) prepMsg.textContent = 'This is taking longer than usual. Refresh in a few minutes; nothing is lost.';
+          return;
+        }
+        setTimeout(poll, 15000);
+      }).catch(function () { setTimeout(poll, 20000); });
+    };
+    post('/retail-os/api/prepare/' + appId).then(function (res) {
+      var st = res.data && res.data.status;
+      if (st === 'ready' || st === 'partial' || st === 'failed') return location.reload();
+      if (st === 'queued' && prepMsg) prepMsg.textContent = "We're preparing several brands right now. Yours starts shortly; keep this page open or come back in a few minutes.";
+      if (st === 'unavailable' && prepMsg) prepMsg.textContent = 'Your forecast is being prepared by hand and will appear here soon.';
+      setTimeout(poll, st === 'queued' ? 60000 : 15000);
+    }).catch(function () { setTimeout(poll, 20000); });
+  }
+
+  var signForm = document.getElementById('signForm');
+  if (signForm) {
+    signForm.addEventListener('submit', function (e) {
       e.preventDefault();
-      var email = document.getElementById('lookupEmail').value;
+      var msg = document.getElementById('signMsg');
+      var btn = signForm.querySelector('button');
+      btn.disabled = true; msg.textContent = 'Signing…';
+      post('/retail-os/api/sign/' + appId, {
+        signedName: document.getElementById('signedName').value,
+        accept: document.getElementById('accept').checked,
+      }).then(function (res) {
+        if (res.ok) return location.reload();
+        msg.textContent = (res.data && res.data.error) || 'Could not sign. Try again.';
+        btn.disabled = false;
+      });
+    });
+  }
+
+  var depositForm = document.getElementById('depositForm');
+  if (depositForm) {
+    depositForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var msg = document.getElementById('depositMsg');
+      var btn = depositForm.querySelector('button');
+      btn.disabled = true; msg.textContent = 'Saving…';
+      post('/retail-os/api/deposit/' + appId, { utr: document.getElementById('utr').value }).then(function (res) {
+        if (res.ok) return location.reload();
+        msg.textContent = (res.data && res.data.error) || 'Could not save. Try again.';
+        btn.disabled = false;
+      });
+    });
+  }
+
+  document.querySelectorAll('form.setup-form').forEach(function (form) {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var msg = form.querySelector('.msg');
+      var btn = form.querySelector('button');
+      var answers = {};
+      form.querySelectorAll('input, select, textarea').forEach(function (el) { if (el.name) answers[el.name] = el.value; });
+      btn.disabled = true; msg.textContent = 'Saving…';
+      post('/retail-os/api/setup/' + appId, { section: form.getAttribute('data-section'), answers: answers }).then(function (res) {
+        if (res.ok) return location.reload();
+        msg.textContent = (res.data && res.data.error) || 'Could not save. Try again.';
+        btn.disabled = false;
+      });
+    });
+  });
+
+  var lookup = document.getElementById('lookupForm');
+  if (lookup) {
+    lookup.addEventListener('submit', function (e) {
+      e.preventDefault();
       var msg = document.getElementById('lookupMsg');
       msg.textContent = 'Sending…';
-      try {
-        await fetch('/retail-os/api/resend-link', {
-          method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: email })
-        });
-      } catch (e) {}
-      msg.textContent = "If that email has an application, we've sent the link.";
+      post('/retail-os/api/resend-link', { email: document.getElementById('lookupEmail').value }).finally(function () {
+        msg.textContent = "If that email has an application, we've sent the link.";
+      });
     });
   }
 </script>

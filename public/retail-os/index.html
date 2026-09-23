@@ -113,6 +113,20 @@
   .segment .eg{margin-top:auto; padding-top:12px; border-top:1px solid rgba(244,234,212,0.35); font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em;}
   @media (max-width:860px){ .segments{grid-template-columns:1fr;} }
 
+  /* journey */
+  .howsteps{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; counter-reset:how;}
+  .howstep{border:2px solid var(--ink); padding:22px 20px; background:var(--cream);}
+  .howstep .n{font-family:'Inter'; letter-spacing:0.06em; font-size:12px; font-weight:700; color:var(--terracotta);}
+  .howstep h3{font-size:1.25rem; margin:8px 0 8px;}
+  .howstep p{margin:0; font-size:13.8px; color:var(--ink-soft); font-weight:500;}
+  .howstep .when{margin-top:10px; font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em;}
+  @media (max-width:860px){ .howsteps{grid-template-columns:1fr;} }
+  .handles{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:22px;}
+  .handle{border:2px solid var(--ink); padding:20px;}
+  .handle h4{font-family:'Anton'; font-size:1.05rem; text-transform:uppercase; margin:0 0 10px;}
+  .handle ul{margin:0; padding-left:18px; font-size:13.5px;} .handle li{margin-bottom:6px;}
+  @media (max-width:860px){ .handles{grid-template-columns:1fr;} }
+
   /* flagship modules */
   .flagship-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
   .flag{padding:24px; color:var(--cream); display:flex; flex-direction:column; gap:10px; min-height:240px; position:relative;}
@@ -260,6 +274,7 @@
   <nav>
     <div class="wordmark"><span class="w1">Dev</span><span class="w2">Shop</span><small>Retail OS™</small></div>
     <div class="navlinks">
+      <a href="#how">How it works</a>
       <a href="#segments">Segments</a>
       <a href="#modules">What you get</a>
       <a href="#post">Pay with a Post</a>
@@ -275,7 +290,7 @@
   <div class="wrap hero-inner">
     <div class="eyebrow">DevShop Retail OS™</div>
     <h1>I've built this <span style="color:var(--cream);-webkit-text-stroke:2px var(--ink);">myself,</span><br>more than once. Yours could be next.</h1>
-    <p class="lede">One stack — storefront, payments, shipping, WhatsApp, Meta, abandoned-cart recovery, AI content — already running four real businesses. Zero capex to start. It's live, it's making money, and I can start your brand on it this week.</p>
+    <p class="lede">One stack — storefront, payments, shipping, WhatsApp, Meta, abandoned-cart recovery, AI content — already running four real businesses. Zero capex: the only thing you pay upfront is a ₹5,000 deposit, fully adjusted against your actual onboarding tech costs — DevShop keeps none of it. I can start your brand on it this week.</p>
     <div class="cta-row">
       <a class="btn btn-primary" href="/retail-os/apply/">Start — zero capex, live in 7 days →</a>
       <a class="btn btn-ghost" href="#modules">See what's inside</a>
@@ -290,6 +305,29 @@
 </header>
 
 <div class="wrap">
+
+  <section id="how">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">How it works</div>
+        <h2>From application to live store in about two weeks</h2>
+      </div>
+      <p>You see your numbers and your store's design before you sign anything. Everything after that happens on one page, one step at a time.</p>
+    </div>
+    <div class="howsteps">
+      <div class="howstep"><div class="n">01</div><h3>Apply</h3><p>Tell us about the brand, the products, and how you want to sell. Existing brand or brand-new, both work.</p><div class="when">About 10 minutes</div></div>
+      <div class="howstep"><div class="n">02</div><h3>See your forecast and design</h3><p>A researched quarterly P&amp;L for your brand and a proposed look for your store, built from your category and your target cities.</p><div class="when">Minutes after applying</div></div>
+      <div class="howstep"><div class="n">03</div><h3>Sign your terms</h3><p>I review every application myself. Your terms appear on your page, and you sign on screen.</p><div class="when">Usually within the week</div></div>
+      <div class="howstep"><div class="n">04</div><h3>Pay the deposit</h3><p>₹5,000 by UPI, fully adjusted against your actual onboarding tech costs. DevShop keeps none of it, and every charge against it is listed for you.</p><div class="when">Starts the build clock</div></div>
+      <div class="howstep"><div class="n">05</div><h3>Answer as we build</h3><p>Pickup address, WhatsApp number, Meta account and the rest are asked one section at a time, only when that part of the build needs it.</p><div class="when">7-day build</div></div>
+      <div class="howstep"><div class="n">06</div><h3>Go live, get settled weekly</h3><p>Your store opens, ads start, and every Monday you get an itemised statement and your share of the profit.</p><div class="when">Every Monday</div></div>
+    </div>
+    <div class="handles">
+      <div class="handle"><h4>DevShop handles</h4><ul><li>Storefront, hosting and tech</li><li>Payments, shipping, Meta, WhatsApp and Google</li><li>Pricing, fixed with you per product</li><li>Marketing, content and reporting</li></ul></div>
+      <div class="handle"><h4>You handle</h4><ul><li>Sourcing, making and stocking the product</li><li>Packing orders for the courier</li><li>Answering the setup questions</li></ul></div>
+      <div class="handle"><h4>Decided together</h4><ul><li>Discounts and promotions</li><li>Freelancers we hire, and their cost</li></ul></div>
+    </div>
+  </section>
 
   <section id="segments">
     <div class="section-head">
@@ -373,6 +411,8 @@
           <li><b>Full product & collection pages</b>, brand story and lookbook pages, a journal you can publish to with no redeploy</li>
           <li><b>UGC wall</b> — customers submit photos, you approve, they go live tagged to the product</li>
           <li><b>Mobile-first</b> across the whole site, built to load fast and rank — sitemap, metadata, structured data all handled</li>
+          <li><b>Found on Google from launch</b> — Google Business Profile and Search Console set up during onboarding; Google Shopping feed and AI-answer optimisation <span class="soon">(coming soon)</span></li>
+          <li><b>Your team, your roles</b> <span class="soon">(coming soon)</span> — invite operations, marketing, finance and support people, each seeing only what their role needs</li>
           <li><b>Region-based pricing</b> <span class="soon">(coming soon)</span> — a % markup or markdown per region, or custom pricing you set yourself, with checkout shown in the customer's local currency based on where they're buying from</li>
         </ul>
       </div>
@@ -471,7 +511,7 @@
           <div class="term"><div class="k">Contract</div><div class="v">12 months</div></div>
           <div class="term"><div class="k">Break clause</div><div class="v">30 days + fee</div></div>
           <div class="term"><div class="k">Brand IP</div><div class="v">Stays yours</div></div>
-          <div class="term"><div class="k">You pay</div><div class="v">Only once you earn</div></div>
+          <div class="term"><div class="k">Capex</div><div class="v">Zero — ₹5,000 deposit, fully adjusted against tech costs</div></div>
           <div class="term"><div class="k">Pay with a Post</div><div class="v">1% of its GMV</div></div>
         </div>
       </div>
@@ -500,7 +540,7 @@
         <div class="eyebrow">How you get paid</div>
         <h2>Settled every Monday. Visible every day.</h2>
       </div>
-      <p>The split isn't a mystery at the end of the month — it's a report, on a fixed schedule, itemised down to the line.</p>
+      <p>Every customer payment lands in DevShop's account first. The split isn't a mystery at the end of the month — it's a report, on a fixed schedule, itemised down to the line.</p>
     </div>
     <div class="week-strip">
       <div class="week-day">Mon</div>
@@ -545,7 +585,7 @@
     <div class="cat-grid">
       <div class="cat live"><div class="st">Live</div><h5>Eyewear</h5><div class="brand">Moonglasses</div><div class="meta">55–75%+ margin · low returns</div></div>
       <div class="cat live"><div class="st">Live</div><h5>Travel & Headwear</h5><div class="brand">Travaholic Caps</div><div class="meta">Low ship weight · high creator fit</div></div>
-      <div class="cat live"><div class="st">Live</div><h5>Marketplace</h5><div class="brand">India Contemporary</div><div class="meta">Multi-brand fashion & lifestyle</div></div>
+      <div class="cat live"><div class="st">Live</div><h5>Marketplace</h5><div class="brand">India Contemporary</div><div class="meta">Original art from Indian artists</div></div>
       <div class="cat live"><div class="st">Live</div><h5>Gifting & Subscription</h5><div class="brand">Flowerbasket</div><div class="meta">Recurring · high repeat</div></div>
       <div class="cat"><div class="st">Open</div><h5>Fashion Jewellery</h5><div class="brand">Looking for a brand</div><div class="meta">50–70% margin · ★★★★★ creator fit</div></div>
       <div class="cat"><div class="st">Open</div><h5>Beauty & Skincare</h5><div class="brand">Looking for a brand</div><div class="meta">60–80% margin · very high repeat</div></div>
@@ -580,7 +620,7 @@
         <div class="row"><span>Time to live</span><span>3–7 days post-signature</span></div>
         <div class="row"><span>What you keep</span><span>Full brand IP</span></div>
         <div class="row"><span>Commitment</span><span>12 mo · 30-day break clause</span></div>
-        <div class="row"><span>When you pay</span><span>Only once you're earning</span></div>
+        <div class="row"><span>Capex</span><span>Zero — ₹5,000 deposit, fully adjusted against tech costs</span></div>
         <a class="btn" href="/retail-os/apply/">Start — zero capex, live in 7 days →</a>
       </div>
     </div>

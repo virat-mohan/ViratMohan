@@ -1,15 +1,37 @@
 ---
 export const prerender = false;
-import { getRetailOsDb } from '../../../lib/retail-os-db';
+import { getRetailOsDb, journeyStep, BUILD_WINDOW_DAYS } from '../../../lib/retail-os-db';
 import { getEnv } from '../../../lib/env';
+import { sectionsFor } from '../../../lib/retail-os-setup';
 
 const env = getEnv();
 let apps: Awaited<ReturnType<ReturnType<typeof getRetailOsDb>['listRecent']>> = [];
 let loadError = false;
+const prepState: Record<string, { plan: boolean; design: boolean }> = {};
+const STEP_LABEL: Record<string, string> = {
+  preparing: 'Preparing forecast', review: 'Needs your review → send terms', sign: 'Terms sent, awaiting signature',
+  deposit: 'Signed, awaiting deposit', confirming: 'Deposit reported → confirm', building: 'Building', live: 'Live',
+};
+const BRAND_STATUS: Record<string, string> = { existing: 'Existing brand', new_sub_brand: 'New sub-brand', from_zero: 'Starting from zero' };
+const MODEL_LABELS: Record<string, string> = {
+  mpListingType: 'Listed', mpSellerCount: 'Sellers at launch', mpCommission: 'Commission %', mpWhoShips: 'Who ships', mpSellerJoin: 'Sellers join',
+  subWhat: 'Delivered', subFrequencies: 'How often', subDurations: 'Plan lengths', subArea: 'Area', subDelivery: 'Who delivers',
+};
+function daysLeft(startIso: string | null) {
+  if (!startIso) return null;
+  const end = new Date(startIso).getTime() + BUILD_WINDOW_DAYS * 86400000;
+  return Math.ceil((end - Date.now()) / 86400000);
+}
 if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
   try {
     const db = getRetailOsDb(env);
     apps = await db.listRecent();
+    const withPlan = await Promise.all(apps.map(async (a) => [
+      a.id,
+      !!(await db.getLatestBusinessPlan(a.id).catch(() => null)),
+      !!(await db.getLatestDesignDirection(a.id).catch(() => null)),
+    ] as const));
+    for (const [appId, p, d] of withPlan) prepState[appId] = { plan: p, design: d };
   } catch (err) {
     console.error('retail-os admin list failed', err);
     loadError = true;
@@ -47,6 +69,15 @@ if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
   .delete-link{color:#a33;}
   .empty{padding-block:60px; text-align:center; color:var(--ink-soft);}
   .save-msg{font-size:11px; color:var(--terracotta); margin-left:8px;}
+  .journey-chip{font-family:'IBM Plex Mono'; font-size:10.5px; font-weight:700; text-transform:uppercase; background:var(--gold); color:var(--ink); padding:3px 8px;}
+  .journey-chip.act{background:var(--terracotta); color:#fff;}
+  .actions{grid-column:1 / -1; border-top:1.5px solid var(--line); padding-top:12px; margin-top:6px; display:grid; gap:12px;}
+  .actions h3{font-family:'Inter'; font-size:11px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); margin:0 0 6px;}
+  .actions input[type=text], .actions textarea{border:1.5px solid var(--ink); padding:7px 9px; font-family:'Inter'; font-size:12.5px; background:#fff;}
+  .actions textarea{width:100%; min-height:54px;}
+  .abtn{border:2px solid var(--ink); background:var(--ink); color:var(--cream); padding:6px 12px; font-weight:700; font-size:12px; cursor:pointer;}
+  details.answers summary{cursor:pointer; font-weight:700; font-size:12.5px;}
+  details.answers dl{margin:6px 0 0; font-size:12px;} details.answers dt{font-weight:700; margin-top:6px;} details.answers dd{margin:0; color:var(--ink-soft); white-space:pre-wrap;}
 </style>
 </head>
 <body>
@@ -61,11 +92,18 @@ if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
     <div class="app-card" data-app-id={app.id}>
       <div class="app-head">
         <h2>{app.brand_name}</h2>
-        <span class="meta mono">{app.id.slice(0,8).toUpperCase()} · {new Date(app.created_at).toLocaleDateString()}</span>
+        <span class="meta mono">{(() => {
+          const st = journeyStep(app, prepState[app.id]?.plan ?? false, prepState[app.id]?.design ?? false);
+          const dl = st === 'building' ? daysLeft(app.build_started_at) : null;
+          return <span class={`journey-chip ${st === 'review' || st === 'confirming' ? 'act' : ''}`}>{STEP_LABEL[st]}{dl != null ? ` · ${dl > 0 ? `${dl} days left` : `${-dl} days over`}` : ''}</span>;
+        })()} {app.id.slice(0,8).toUpperCase()} · {new Date(app.created_at).toLocaleDateString()}</span>
       </div>
       <div class="app-body">
         <div><span>Founder</span>{app.founder_name} ({app.founder_email}{app.founder_phone ? `, ${app.founder_phone}` : ''})</div>
         <div><span>Category / Format</span>{app.category || '—'} / {app.format || '—'}</div>
+        <div><span>Brand</span>{app.brand_status ? BRAND_STATUS[app.brand_status] : '—'}</div>
+        <div><span>Model details</span>{app.model_details ? Object.entries(app.model_details).map(([k, v]) => `${MODEL_LABELS[k] ?? k}: ${v}`).join(' · ') : '—'}</div>
+        <div><span>Auto-prep</span>{prepState[app.id]?.plan && prepState[app.id]?.design ? 'Forecast + design ready' : app.prep_error ? `Failed — generate manually (${app.prep_error.slice(0, 120)})` : app.prep_started_at ? 'Running or waiting' : 'Not started (starts when founder opens their page)'}</div>
         <div><span>Existing revenue</span>{app.has_revenue === 'yes' ? (app.revenue_range || 'Yes') : 'No — AI-Enabler track'}</div>
         <div><span>Following</span>{app.following || '—'}</div>
         <div><span>Catalog</span>{app.catalog_mode === 'shopify' ? `Shopify — ${app.shopify_url || ''}` : 'Manual'}</div>
@@ -86,6 +124,44 @@ if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
           <a class="track-link resend-link" href="#" data-resend={app.id} data-email={app.founder_email}>Resend link to founder</a>
           {' · '}
           <a class="track-link delete-link" href="#" data-delete={app.id} data-brand={app.brand_name}>Delete</a>
+        </div>
+        <div class="actions">
+          {!app.agreement && (
+            <form class="terms-form" data-app={app.id}>
+              <h3>{app.terms ? `Terms sent ${new Date(app.terms.sentAt).toLocaleDateString('en-IN')} — resend with changes` : 'Send terms'}</h3>
+              {app.ai_enabler_track ? (
+                <p style="margin:0 0 6px; font-size:12px;">AI-Enabler track: 50% of brand IP, no profit-pool split.</p>
+              ) : (
+                <label style="font-size:12px;">DevShop share of profit pool (%) <input type="text" name="splitPct" size="5" value={String(app.terms?.splitPct ?? (app.split_range_lo != null && app.split_range_hi != null ? (app.split_range_lo + app.split_range_hi) / 2 : ''))} /> <span style="color:var(--ink-soft);">indicative {app.split_range_lo ?? '?'}–{app.split_range_hi ?? '?'}%</span></label>
+              )}
+              <textarea name="notes" placeholder="Anything else agreed (optional) — shown to the founder as part of the terms">{app.terms?.notes ?? ''}</textarea>
+              <button class="abtn" type="submit">{app.terms ? 'Resend terms' : 'Send terms to founder'}</button> <span class="save-msg"></span>
+            </form>
+          )}
+          {app.agreement && (
+            <div><h3>Signed</h3><p style="margin:0; font-size:12px;">{app.agreement.signedName} · {new Date(app.agreement.signedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST · IP {app.agreement.ip ?? '—'}</p></div>
+          )}
+          {app.deposit && (
+            <div>
+              <h3>Deposit</h3>
+              <p style="margin:0 0 6px; font-size:12px;">UTR <b class="mono">{app.deposit.utr}</b> reported {new Date(app.deposit.submittedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}{app.deposit.confirmedAt ? ` · confirmed ${new Date(app.deposit.confirmedAt).toLocaleDateString('en-IN')}` : ''}</p>
+              {!app.deposit.confirmedAt && <button class="abtn confirm-deposit" data-app={app.id}>Confirm deposit and start the 7-day build</button>}<span class="save-msg"></span>
+            </div>
+          )}
+          {app.agreement && (
+            <details class="answers">
+              <summary>Setup answers ({sectionsFor(app).filter((s) => app.setup_answers?.[s.key]).length} of {sectionsFor(app).length} sections)</summary>
+              {sectionsFor(app).map((s) => {
+                const saved = app.setup_answers?.[s.key];
+                return (
+                  <dl>
+                    <dt>{s.title} {saved ? `· ${new Date(saved.savedAt).toLocaleDateString('en-IN')}` : '· not answered'}</dt>
+                    {saved && s.fields.filter((f) => saved.answers[f.key]).map((f) => <dd><b>{f.label}:</b> {saved.answers[f.key]}</dd>)}
+                  </dl>
+                );
+              })}
+            </details>
+          )}
         </div>
       </div>
       <div class="stages" style="padding:0 18px 16px;">
@@ -141,6 +217,44 @@ if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
         setTimeout(function () { el.textContent = 'Resend link to founder'; }, 2000);
       } catch (err) {
         el.textContent = 'Failed';
+      }
+    });
+  });
+
+  document.querySelectorAll('form.terms-form').forEach(function (form) {
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var msg = form.querySelector('.save-msg');
+      var split = form.querySelector('[name="splitPct"]');
+      msg.textContent = 'Sending…';
+      try {
+        var res = await fetch('/retail-os/api/admin/send-terms', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ id: form.getAttribute('data-app'), splitPct: split ? split.value : null, notes: form.querySelector('[name="notes"]').value })
+        });
+        var out = await res.json().catch(function () { return {}; });
+        if (!res.ok) throw new Error(out.error || 'failed');
+        msg.textContent = 'Sent — founder emailed';
+      } catch (err) {
+        msg.textContent = err.message || 'Failed';
+      }
+    });
+  });
+
+  document.querySelectorAll('button.confirm-deposit').forEach(function (btn) {
+    btn.addEventListener('click', async function () {
+      if (!confirm('Confirm this UTR matches a ₹5,000 credit on the bank statement? This starts the 7-day build clock.')) return;
+      var msg = btn.nextElementSibling;
+      btn.disabled = true;
+      try {
+        var res = await fetch('/retail-os/api/admin/confirm-deposit', {
+          method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: btn.getAttribute('data-app') })
+        });
+        if (!res.ok) throw new Error('failed');
+        location.reload();
+      } catch (err) {
+        if (msg) msg.textContent = 'Failed';
+        btn.disabled = false;
       }
     });
   });
