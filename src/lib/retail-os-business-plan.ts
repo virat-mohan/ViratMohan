@@ -39,21 +39,21 @@ export type PlanAssumption = { label: string; value: string; rationale: string; 
 export type PlanDrivers = {
   ordersM1: number; ordersM2: number; ordersM3: number;
   aovInr: number; cogsPct: number; cacPct: number; adminTechPct: number;
-  // Payments mix and fees.
-  codOrderSharePct: number; paymentGatewayFeePct: number; codHandlingFeePct: number;
+  // Payments mix and fees — all three are gateway-style fees on realised
+  // revenue: gateway fee on the prepaid share, COD handling fee on the COD
+  // share, and Pay with a Post's own 1% platform fee (DevShop's, not
+  // researched — see generate-plan.ts) on whatever revenue flows through it.
+  codOrderSharePct: number; paymentGatewayFeePct: number; codHandlingFeePct: number; postBarterFeePct: number;
   // Logistics — RTO is COD-specific (charged on the returned share of COD orders only).
   rtoRatePct: number; rtoCostPerOrderInr: number; shippingCostPerOrderInr: number; packagingCostPerOrderInr: number;
-  // Pay with a Post — DevShop's barter mechanic, not something Travaholic Caps' P&L has.
-  // Zero these out (with a rationale saying so) when the brand didn't opt into it.
-  postBarterOrdersPerMonth: number; postBarterUnitCostInr: number;
   // Fixed monthly platform/tooling cost (Shopify, WhatsApp Business API, apps) — constant across the quarter.
   platformToolsFixedInrPerMonth: number;
 };
 export type PlanMonth = {
   label: string; orders: number; revenueInr: number; cogsInr: number; cacInr: number; adminTechInr: number;
-  codOrders: number; prepaidOrders: number; gatewayFeeInr: number; codHandlingFeeInr: number;
+  codOrders: number; prepaidOrders: number; gatewayFeeInr: number; codHandlingFeeInr: number; postBarterFeeInr: number;
   rtoOrders: number; rtoCostInr: number; shippingInr: number; packagingInr: number;
-  postBarterCostInr: number; platformToolsInr: number; operatingExpensesInr: number;
+  platformToolsInr: number; operatingExpensesInr: number;
   profitPoolInr: number; devshopShareInr: number; founderShareInr: number;
 };
 export type PlanCity = { city: string; revenueSharePct: number; rationale: string };
@@ -63,7 +63,7 @@ export type BusinessPlanOutput = {
   drivers: PlanDrivers;
   driverRationale: {
     aov: string; orders: string; cogsPct: string; cacPct: string; adminTechPct: string;
-    payments: string; logistics: string; postBarter: string; platformTools: string;
+    payments: string; logistics: string; platformTools: string;
   };
   cityBreakdown: PlanCity[];
   risks: string[];
@@ -108,15 +108,13 @@ const PLAN_TOOL = {
           rtoCostPerOrderInr: { type: 'number', description: 'Wasted forward+reverse shipping cost per RTO order, in INR' },
           shippingCostPerOrderInr: { type: 'number', description: 'Net forward shipping/courier cost per order, in INR (after any amount charged to the customer)' },
           packagingCostPerOrderInr: { type: 'number', description: 'Packaging and inserts cost per order, in INR' },
-          postBarterOrdersPerMonth: { type: 'number', description: 'Units/month given away via Pay with a Post (DevShop\'s content-for-product barter mechanic). 0 if the brand did not opt into it.' },
-          postBarterUnitCostInr: { type: 'number', description: 'Cost (COGS) per unit given away via Pay with a Post, in INR. 0 if not opted in.' },
           platformToolsFixedInrPerMonth: { type: 'number', description: 'Fixed monthly cost of Shopify/platform subscription, WhatsApp Business API, and other required tooling, in INR' },
         },
         required: [
           'ordersM1', 'ordersM2', 'ordersM3', 'aovInr', 'cogsPct', 'cacPct', 'adminTechPct',
           'codOrderSharePct', 'paymentGatewayFeePct', 'codHandlingFeePct',
           'rtoRatePct', 'rtoCostPerOrderInr', 'shippingCostPerOrderInr', 'packagingCostPerOrderInr',
-          'postBarterOrdersPerMonth', 'postBarterUnitCostInr', 'platformToolsFixedInrPerMonth',
+          'platformToolsFixedInrPerMonth',
         ],
       },
       driverRationale: {
@@ -128,12 +126,11 @@ const PLAN_TOOL = {
           cogsPct: { type: 'string' },
           cacPct: { type: 'string' },
           adminTechPct: { type: 'string' },
-          payments: { type: 'string', description: 'Covers COD share, gateway fee, and COD handling fee together' },
+          payments: { type: 'string', description: 'Covers COD share, gateway fee, and COD handling fee together (do not mention Pay with a Post here — that fee is fixed by DevShop, not researched)' },
           logistics: { type: 'string', description: 'Covers RTO rate/cost, shipping, and packaging together' },
-          postBarter: { type: 'string', description: 'Explain the Pay with a Post volume/cost assumption, or say explicitly the brand did not opt in and both drivers are 0' },
           platformTools: { type: 'string' },
         },
-        required: ['orders', 'aov', 'cogsPct', 'cacPct', 'adminTechPct', 'payments', 'logistics', 'postBarter', 'platformTools'],
+        required: ['orders', 'aov', 'cogsPct', 'cacPct', 'adminTechPct', 'payments', 'logistics', 'platformTools'],
       },
       cityBreakdown: {
         type: 'array',
@@ -159,7 +156,7 @@ Hard rules:
 - Express the plan as DRIVERS, not final totals: orders per month (a realistic ramp across 3 months, not identical numbers), average order value, COGS%, CAC%, admin/tech% of revenue, plus the full cost-to-operate picture: COD vs prepaid mix, payment gateway fee, COD handling fee, RTO rate and cost, shipping cost per order, packaging cost per order, and a fixed monthly platform/tooling cost. You are not asked to compute revenue or profit — that happens outside this tool, deterministically, from the drivers you give.
 - Use conservative, defensible estimates appropriate for an early-stage or scaling D2C brand — not best-case numbers. RTO rates in particular are commonly underestimated — research the actual category/COD benchmark rather than assuming a low number.
 - COGS%, CAC%, admin/tech%, COD share, and RTO rate should reflect the actual category and city mix, not a generic default unless research genuinely supports that split for this brand.
-- Pay with a Post: only include non-zero postBarterOrdersPerMonth/postBarterUnitCostInr if the brand context says it opted in. If it didn't, set both to 0 and say so plainly in the postBarter rationale — do not invent a barter volume.
+- Pay with a Post's fee is fixed by DevShop (1% of revenue when opted in) and is applied outside this tool — do not estimate anything for it.
 - Every driver's rationale should be something a skeptical founder would accept, in one or two sentences, naming what you found.
 
 Output only through the quarterly_business_plan tool.`;
@@ -207,7 +204,7 @@ Catalog size (self-reported): ${app.productCount ?? 'not specified'}
 Target cities: ${app.targetCities ?? 'not specified — research general India D2C city patterns for this category'}
 Instagram / handle: ${app.handle ?? 'not provided'}
 Shopify store: ${app.shopifyUrl ?? 'not provided'}
-Pay with a Post (content-for-product barter): ${app.postBarterOptIn ? 'opted in — estimate a realistic monthly gifted-unit volume and cost' : 'not opted in — postBarterOrdersPerMonth and postBarterUnitCostInr must both be 0'}
+Pay with a Post: ${app.postBarterOptIn ? 'opted in (its fee is applied outside this tool, do not estimate it)' : 'not opted in'}
 
 ${catalogSummary ? `BRAND'S OWN CATALOG (fetched directly — treat as ground truth, do not search for this)\n${catalogSummary}\n` : "No live catalog was fetchable. Search for the brand's website or Instagram if either was given above, to understand its actual product offering before estimating.\n"}
 
@@ -270,21 +267,21 @@ export function computePlanFromDrivers(drivers: PlanDrivers, splitPct: number): 
     const prepaidOrders = o - codOrders;
     const gatewayFeeInr = Math.round(prepaidOrders * drivers.aovInr * (drivers.paymentGatewayFeePct / 100));
     const codHandlingFeeInr = Math.round(codOrders * drivers.aovInr * (drivers.codHandlingFeePct / 100));
+    const postBarterFeeInr = Math.round(revenueInr * (drivers.postBarterFeePct / 100));
     const rtoOrders = Math.round(codOrders * (drivers.rtoRatePct / 100));
     const rtoCostInr = Math.round(rtoOrders * drivers.rtoCostPerOrderInr);
     const shippingInr = Math.round(o * drivers.shippingCostPerOrderInr);
     const packagingInr = Math.round(o * drivers.packagingCostPerOrderInr);
-    const postBarterCostInr = Math.round(drivers.postBarterOrdersPerMonth * drivers.postBarterUnitCostInr);
     const platformToolsInr = Math.round(drivers.platformToolsFixedInrPerMonth);
-    const operatingExpensesInr = gatewayFeeInr + codHandlingFeeInr + rtoCostInr + shippingInr + packagingInr + postBarterCostInr + platformToolsInr;
+    const operatingExpensesInr = gatewayFeeInr + codHandlingFeeInr + postBarterFeeInr + rtoCostInr + shippingInr + packagingInr + platformToolsInr;
 
     const profitPoolInr = revenueInr - cogsInr - cacInr - adminTechInr - operatingExpensesInr;
     const devshopShareInr = Math.round(profitPoolInr * (splitPct / 100));
     return {
       label: `Month ${i + 1}`, orders: o, revenueInr, cogsInr, cacInr, adminTechInr,
-      codOrders, prepaidOrders, gatewayFeeInr, codHandlingFeeInr,
+      codOrders, prepaidOrders, gatewayFeeInr, codHandlingFeeInr, postBarterFeeInr,
       rtoOrders, rtoCostInr, shippingInr, packagingInr,
-      postBarterCostInr, platformToolsInr, operatingExpensesInr,
+      platformToolsInr, operatingExpensesInr,
       profitPoolInr, devshopShareInr, founderShareInr: profitPoolInr - devshopShareInr,
     };
   });
@@ -297,10 +294,10 @@ export function computePlanFromDrivers(drivers: PlanDrivers, splitPct: number): 
       adminTechInr: acc.adminTechInr + m.adminTechInr,
       gatewayFeeInr: acc.gatewayFeeInr + m.gatewayFeeInr,
       codHandlingFeeInr: acc.codHandlingFeeInr + m.codHandlingFeeInr,
+      postBarterFeeInr: acc.postBarterFeeInr + m.postBarterFeeInr,
       rtoCostInr: acc.rtoCostInr + m.rtoCostInr,
       shippingInr: acc.shippingInr + m.shippingInr,
       packagingInr: acc.packagingInr + m.packagingInr,
-      postBarterCostInr: acc.postBarterCostInr + m.postBarterCostInr,
       platformToolsInr: acc.platformToolsInr + m.platformToolsInr,
       operatingExpensesInr: acc.operatingExpensesInr + m.operatingExpensesInr,
       profitPoolInr: acc.profitPoolInr + m.profitPoolInr,
@@ -309,8 +306,8 @@ export function computePlanFromDrivers(drivers: PlanDrivers, splitPct: number): 
     }),
     {
       ordersTotal: 0, revenueInr: 0, cogsInr: 0, cacInr: 0, adminTechInr: 0,
-      gatewayFeeInr: 0, codHandlingFeeInr: 0, rtoCostInr: 0, shippingInr: 0, packagingInr: 0,
-      postBarterCostInr: 0, platformToolsInr: 0, operatingExpensesInr: 0,
+      gatewayFeeInr: 0, codHandlingFeeInr: 0, postBarterFeeInr: 0, rtoCostInr: 0, shippingInr: 0, packagingInr: 0,
+      platformToolsInr: 0, operatingExpensesInr: 0,
       profitPoolInr: 0, devshopShareInr: 0, founderShareInr: 0,
     }
   );

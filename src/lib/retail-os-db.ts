@@ -70,17 +70,16 @@ export type BusinessPlanDriverRationale = {
 export type BusinessPlanDrivers = {
   ordersM1: number; ordersM2: number; ordersM3: number;
   aovInr: number; cogsPct: number; cacPct: number; adminTechPct: number;
-  codOrderSharePct: number; paymentGatewayFeePct: number; codHandlingFeePct: number;
+  codOrderSharePct: number; paymentGatewayFeePct: number; codHandlingFeePct: number; postBarterFeePct: number;
   rtoRatePct: number; rtoCostPerOrderInr: number; shippingCostPerOrderInr: number; packagingCostPerOrderInr: number;
-  postBarterOrdersPerMonth: number; postBarterUnitCostInr: number;
   platformToolsFixedInrPerMonth: number;
   rationale: BusinessPlanDriverRationale;
 };
 export type BusinessPlanMonth = {
   label: string; orders: number; revenueInr: number; cogsInr: number; cacInr: number; adminTechInr: number;
-  codOrders: number; prepaidOrders: number; gatewayFeeInr: number; codHandlingFeeInr: number;
+  codOrders: number; prepaidOrders: number; gatewayFeeInr: number; codHandlingFeeInr: number; postBarterFeeInr: number;
   rtoOrders: number; rtoCostInr: number; shippingInr: number; packagingInr: number;
-  postBarterCostInr: number; platformToolsInr: number; operatingExpensesInr: number;
+  platformToolsInr: number; operatingExpensesInr: number;
   profitPoolInr: number; devshopShareInr: number; founderShareInr: number;
 };
 export type BusinessPlanCity = { city: string; revenueSharePct: number; rationale: string };

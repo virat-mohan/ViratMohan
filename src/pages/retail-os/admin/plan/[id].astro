@@ -127,13 +127,15 @@ const splitPct = app?.ai_enabler_track
             <div class="assumption"><div class="rationale"><b>CAC%:</b> {plan.drivers.rationale.cacPct}</div></div>
             <div class="assumption"><div class="rationale"><b>Admin/Tech%:</b> {plan.drivers.rationale.adminTechPct}</div></div>
 
-            <h3 style="font-size:1.1rem; margin:20px 0 4px;">Payments</h3>
+            <h3 style="font-size:1.1rem; margin:20px 0 4px;">Payments &amp; gateway fees</h3>
             <div class="driver-grid">
               <div class="driver-field"><label>COD share of orders %</label><input type="number" step="0.1" id="d-codOrderSharePct" value={plan.drivers.codOrderSharePct} /></div>
               <div class="driver-field"><label>Gateway fee % (prepaid)</label><input type="number" step="0.1" id="d-paymentGatewayFeePct" value={plan.drivers.paymentGatewayFeePct} /></div>
               <div class="driver-field"><label>COD handling fee % (COD)</label><input type="number" step="0.1" id="d-codHandlingFeePct" value={plan.drivers.codHandlingFeePct} /></div>
+              <div class="driver-field"><label>Pay with a Post fee % (revenue)</label><input type="number" step="0.1" id="d-postBarterFeePct" value={plan.drivers.postBarterFeePct} /></div>
             </div>
             <div class="assumption"><div class="rationale">{plan.drivers.rationale.payments}</div></div>
+            <div class="assumption"><div class="rationale"><b>Pay with a Post:</b> {plan.drivers.rationale.postBarter}</div></div>
 
             <h3 style="font-size:1.1rem; margin:20px 0 4px;">Logistics</h3>
             <div class="driver-grid">
@@ -144,14 +146,11 @@ const splitPct = app?.ai_enabler_track
             </div>
             <div class="assumption"><div class="rationale">{plan.drivers.rationale.logistics}</div></div>
 
-            <h3 style="font-size:1.1rem; margin:20px 0 4px;">Pay with a Post &amp; platform costs</h3>
+            <h3 style="font-size:1.1rem; margin:20px 0 4px;">Platform costs</h3>
             <div class="driver-grid">
-              <div class="driver-field"><label>Post-barter units / month</label><input type="number" id="d-postBarterOrdersPerMonth" value={plan.drivers.postBarterOrdersPerMonth} /></div>
-              <div class="driver-field"><label>Post-barter unit cost (₹)</label><input type="number" id="d-postBarterUnitCostInr" value={plan.drivers.postBarterUnitCostInr} /></div>
               <div class="driver-field"><label>Platform/tools fixed cost (₹/mo)</label><input type="number" id="d-platformToolsFixedInrPerMonth" value={plan.drivers.platformToolsFixedInrPerMonth} /></div>
               <div class="driver-field" style="display:flex; align-items:flex-end;"><button class="btn" id="saveDriversBtn" style="width:100%;">Save →</button></div>
             </div>
-            <div class="assumption"><div class="rationale"><b>Pay with a Post:</b> {plan.drivers.rationale.postBarter}</div></div>
             <div class="assumption"><div class="rationale"><b>Platform/tools:</b> {plan.drivers.rationale.platformTools}</div></div>
             <span class="mono" id="saveMsg" style="font-size:11px; color:var(--terracotta);"></span>
           </div>
@@ -160,7 +159,7 @@ const splitPct = app?.ai_enabler_track
             <h3 style="font-size:1.1rem; margin-bottom:10px;">Benchmark P&amp;L (next 3 months) vs actuals</h3>
             <table id="planTable">
               <thead>
-                <tr><th>Month</th><th>Orders</th><th>Revenue</th><th>COGS</th><th>CAC</th><th>Admin/Tech</th><th>Gateway+COD fee</th><th>RTO</th><th>Ship+Pack</th><th>Post-barter</th><th>Platform</th><th>Profit Pool</th><th>DevShop</th><th>Founder</th></tr>
+                <tr><th>Month</th><th>Orders</th><th>Revenue</th><th>COGS</th><th>CAC</th><th>Admin/Tech</th><th>Payment/gateway fees</th><th>RTO</th><th>Ship+Pack</th><th>Platform</th><th>Profit Pool</th><th>DevShop</th><th>Founder</th></tr>
               </thead>
               <tbody id="planTbody">
                 {plan.months.map((m, i) => {
@@ -173,16 +172,15 @@ const splitPct = app?.ai_enabler_track
                         <td data-cell="orders">{m.orders}</td><td data-cell="revenueInr">{inr(m.revenueInr)}</td>
                         <td data-cell="cogsInr">{inr(m.cogsInr)}</td><td data-cell="cacInr">{inr(m.cacInr)}</td>
                         <td data-cell="adminTechInr">{inr(m.adminTechInr)}</td>
-                        <td data-cell="feesInr">{inr(m.gatewayFeeInr + m.codHandlingFeeInr)}</td>
+                        <td data-cell="feesInr">{inr(m.gatewayFeeInr + m.codHandlingFeeInr + m.postBarterFeeInr)}</td>
                         <td data-cell="rtoCostInr">{inr(m.rtoCostInr)}</td>
                         <td data-cell="shipPackInr">{inr(m.shippingInr + m.packagingInr)}</td>
-                        <td data-cell="postBarterCostInr">{inr(m.postBarterCostInr)}</td>
                         <td data-cell="platformToolsInr">{inr(m.platformToolsInr)}</td>
                         <td data-cell="profitPoolInr">{inr(m.profitPoolInr)}</td>
                         <td data-cell="devshopShareInr">{inr(m.devshopShareInr)}</td><td data-cell="founderShareInr">{inr(m.founderShareInr)}</td>
                       </tr>
                       <tr>
-                        <td colspan="14" style="background:#fff;">
+                        <td colspan="13" style="background:#fff;">
                           <form class="actual-row" data-month={realMonth?.key} data-app={app.id}>
                             <span class="mono" style="font-size:11px; color:var(--ink-soft); min-width:70px;">Actual:</span>
                             <input type="number" placeholder="Revenue" class="a-revenue" value={actual?.revenue_inr || ''} />
@@ -209,10 +207,9 @@ const splitPct = app?.ai_enabler_track
                   <td data-total="cogsInr">{inr(plan.quarter_totals.cogsInr)}</td>
                   <td data-total="cacInr">{inr(plan.quarter_totals.cacInr)}</td>
                   <td data-total="adminTechInr">{inr(plan.quarter_totals.adminTechInr)}</td>
-                  <td data-total="feesInr">{inr(plan.quarter_totals.gatewayFeeInr + plan.quarter_totals.codHandlingFeeInr)}</td>
+                  <td data-total="feesInr">{inr(plan.quarter_totals.gatewayFeeInr + plan.quarter_totals.codHandlingFeeInr + plan.quarter_totals.postBarterFeeInr)}</td>
                   <td data-total="rtoCostInr">{inr(plan.quarter_totals.rtoCostInr)}</td>
                   <td data-total="shipPackInr">{inr(plan.quarter_totals.shippingInr + plan.quarter_totals.packagingInr)}</td>
-                  <td data-total="postBarterCostInr">{inr(plan.quarter_totals.postBarterCostInr)}</td>
                   <td data-total="platformToolsInr">{inr(plan.quarter_totals.platformToolsInr)}</td>
                   <td data-total="profitPoolInr">{inr(plan.quarter_totals.profitPoolInr)}</td>
                   <td data-total="devshopShareInr">{inr(plan.quarter_totals.devshopShareInr)}</td>
@@ -298,14 +295,14 @@ const splitPct = app?.ai_enabler_track
     var codSharePct = driverVal('d-codOrderSharePct'), gatewayPct = driverVal('d-paymentGatewayFeePct'), codHandlingPct = driverVal('d-codHandlingFeePct');
     var rtoRatePct = driverVal('d-rtoRatePct'), rtoCostPerOrder = driverVal('d-rtoCostPerOrderInr');
     var shipPerOrder = driverVal('d-shippingCostPerOrderInr'), packPerOrder = driverVal('d-packagingCostPerOrderInr');
-    var postBarterUnits = driverVal('d-postBarterOrdersPerMonth'), postBarterUnitCost = driverVal('d-postBarterUnitCostInr');
+    var postBarterFeePct = driverVal('d-postBarterFeePct');
     var platformFixed = driverVal('d-platformToolsFixedInrPerMonth');
 
     var rows = document.querySelectorAll('#planTbody tr:not(:has(form))');
     var totals = {
       ordersTotal:0, revenueInr:0, cogsInr:0, cacInr:0, adminTechInr:0,
-      gatewayFeeInr:0, codHandlingFeeInr:0, rtoCostInr:0, shippingInr:0, packagingInr:0,
-      postBarterCostInr:0, platformToolsInr:0, profitPoolInr:0, devshopShareInr:0, founderShareInr:0
+      gatewayFeeInr:0, codHandlingFeeInr:0, postBarterFeeInr:0, rtoCostInr:0, shippingInr:0, packagingInr:0,
+      platformToolsInr:0, profitPoolInr:0, devshopShareInr:0, founderShareInr:0
     };
 
     orders.forEach(function (o, i) {
@@ -318,13 +315,13 @@ const splitPct = app?.ai_enabler_track
       var prepaidOrders = o - codOrders;
       var gatewayFee = Math.round(prepaidOrders * aov * (gatewayPct/100));
       var codHandlingFee = Math.round(codOrders * aov * (codHandlingPct/100));
+      var postBarterFee = Math.round(revenue * (postBarterFeePct/100));
       var rtoOrders = Math.round(codOrders * (rtoRatePct/100));
       var rtoCost = Math.round(rtoOrders * rtoCostPerOrder);
       var shipping = Math.round(o * shipPerOrder);
       var packaging = Math.round(o * packPerOrder);
-      var postBarterCost = Math.round(postBarterUnits * postBarterUnitCost);
       var platformTools = Math.round(platformFixed);
-      var opex = gatewayFee + codHandlingFee + rtoCost + shipping + packaging + postBarterCost + platformTools;
+      var opex = gatewayFee + codHandlingFee + postBarterFee + rtoCost + shipping + packaging + platformTools;
 
       var profitPool = revenue - cogs - cac - admin - opex;
       var devshopShare = Math.round(profitPool * (splitPct/100));
@@ -337,28 +334,27 @@ const splitPct = app?.ai_enabler_track
         row.querySelector('[data-cell="cogsInr"]').textContent = inrFmt(cogs);
         row.querySelector('[data-cell="cacInr"]').textContent = inrFmt(cac);
         row.querySelector('[data-cell="adminTechInr"]').textContent = inrFmt(admin);
-        row.querySelector('[data-cell="feesInr"]').textContent = inrFmt(gatewayFee + codHandlingFee);
+        row.querySelector('[data-cell="feesInr"]').textContent = inrFmt(gatewayFee + codHandlingFee + postBarterFee);
         row.querySelector('[data-cell="rtoCostInr"]').textContent = inrFmt(rtoCost);
         row.querySelector('[data-cell="shipPackInr"]').textContent = inrFmt(shipping + packaging);
-        row.querySelector('[data-cell="postBarterCostInr"]').textContent = inrFmt(postBarterCost);
         row.querySelector('[data-cell="platformToolsInr"]').textContent = inrFmt(platformTools);
         row.querySelector('[data-cell="profitPoolInr"]').textContent = inrFmt(profitPool);
         row.querySelector('[data-cell="devshopShareInr"]').textContent = inrFmt(devshopShare);
         row.querySelector('[data-cell="founderShareInr"]').textContent = inrFmt(founderShare);
       }
       totals.ordersTotal += o; totals.revenueInr += revenue; totals.cogsInr += cogs; totals.cacInr += cac; totals.adminTechInr += admin;
-      totals.gatewayFeeInr += gatewayFee; totals.codHandlingFeeInr += codHandlingFee; totals.rtoCostInr += rtoCost;
-      totals.shippingInr += shipping; totals.packagingInr += packaging; totals.postBarterCostInr += postBarterCost; totals.platformToolsInr += platformTools;
+      totals.gatewayFeeInr += gatewayFee; totals.codHandlingFeeInr += codHandlingFee; totals.postBarterFeeInr += postBarterFee; totals.rtoCostInr += rtoCost;
+      totals.shippingInr += shipping; totals.packagingInr += packaging; totals.platformToolsInr += platformTools;
       totals.profitPoolInr += profitPool; totals.devshopShareInr += devshopShare; totals.founderShareInr += founderShare;
     });
 
-    var simpleKeys = ['ordersTotal','revenueInr','cogsInr','cacInr','adminTechInr','rtoCostInr','postBarterCostInr','platformToolsInr','profitPoolInr','devshopShareInr','founderShareInr'];
+    var simpleKeys = ['ordersTotal','revenueInr','cogsInr','cacInr','adminTechInr','rtoCostInr','platformToolsInr','profitPoolInr','devshopShareInr','founderShareInr'];
     simpleKeys.forEach(function (key) {
       var cell = document.querySelector('[data-total="' + key + '"]');
       if (cell) cell.textContent = key === 'ordersTotal' ? totals[key] : inrFmt(totals[key]);
     });
     var feesCell = document.querySelector('[data-total="feesInr"]');
-    if (feesCell) feesCell.textContent = inrFmt(totals.gatewayFeeInr + totals.codHandlingFeeInr);
+    if (feesCell) feesCell.textContent = inrFmt(totals.gatewayFeeInr + totals.codHandlingFeeInr + totals.postBarterFeeInr);
     var shipPackCell = document.querySelector('[data-total="shipPackInr"]');
     if (shipPackCell) shipPackCell.textContent = inrFmt(totals.shippingInr + totals.packagingInr);
   }
@@ -382,10 +378,10 @@ const splitPct = app?.ai_enabler_track
             aovInr: driverVal('d-aovInr'), cogsPct: driverVal('d-cogsPct'), cacPct: driverVal('d-cacPct'),
             adminTechPct: driverVal('d-adminTechPct'),
             codOrderSharePct: driverVal('d-codOrderSharePct'), paymentGatewayFeePct: driverVal('d-paymentGatewayFeePct'),
-            codHandlingFeePct: driverVal('d-codHandlingFeePct'), rtoRatePct: driverVal('d-rtoRatePct'),
+            codHandlingFeePct: driverVal('d-codHandlingFeePct'), postBarterFeePct: driverVal('d-postBarterFeePct'),
+            rtoRatePct: driverVal('d-rtoRatePct'),
             rtoCostPerOrderInr: driverVal('d-rtoCostPerOrderInr'), shippingCostPerOrderInr: driverVal('d-shippingCostPerOrderInr'),
             packagingCostPerOrderInr: driverVal('d-packagingCostPerOrderInr'),
-            postBarterOrdersPerMonth: driverVal('d-postBarterOrdersPerMonth'), postBarterUnitCostInr: driverVal('d-postBarterUnitCostInr'),
             platformToolsFixedInrPerMonth: driverVal('d-platformToolsFixedInrPerMonth')
           })
         });

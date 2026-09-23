@@ -50,7 +50,19 @@ export const POST: APIRoute = async ({ request }) => {
         ? (app.split_range_lo + app.split_range_hi) / 2
         : 37.5;
 
-    const drivers = { ...output.drivers, rationale: output.driverRationale };
+    // Pay with a Post's fee is DevShop's own platform fee (1% of realised
+    // revenue when opted in), not something to research — set deterministically
+    // here rather than asked of the model. Treated like a payment gateway charge.
+    const postBarterFeePct = app.post_ack ? 1 : 0;
+    const postBarterRationale = app.post_ack
+      ? "DevShop's Pay with a Post platform fee — 1% of realised revenue, applied like a payment gateway charge."
+      : 'Not opted into Pay with a Post — no fee applies.';
+
+    const drivers = {
+      ...output.drivers,
+      postBarterFeePct,
+      rationale: { ...output.driverRationale, postBarter: postBarterRationale },
+    };
     const { months, quarterTotals } = computePlanFromDrivers(drivers, splitPct);
 
     const planId = await db.saveBusinessPlan({
