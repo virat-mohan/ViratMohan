@@ -1,0 +1,230 @@
+---
+export const prerender = false;
+import { getRetailOsDb } from '../../../../lib/retail-os-db';
+import { getEnv } from '../../../../lib/env';
+
+const { id } = Astro.params;
+const env = getEnv();
+const db = getRetailOsDb(env);
+const app = id ? await db.getById(id) : null;
+const plan = id ? await db.getLatestBusinessPlan(id) : null;
+const actuals = id ? await db.listActuals(id) : [];
+const actualsByMonth: Record<string, typeof actuals[number]> = {};
+actuals.forEach((a) => { actualsByMonth[a.month] = a; });
+
+function inr(n: number) {
+  return '₹' + Math.round(n).toLocaleString('en-IN');
+}
+const fmt = new Intl.DateTimeFormat('en-IN', { year: 'numeric', month: 'short' });
+function monthLabel(offset: number) {
+  const d = new Date();
+  d.setMonth(d.getMonth() + offset);
+  return { key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`, label: fmt.format(d) };
+}
+const nextThreeMonths = [monthLabel(1), monthLabel(2), monthLabel(3)];
+---
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Business Plan — {app ? app.brand_name : 'Not found'}</title>
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{ --cream:#F4EAD4; --ink:#1A1410; --ink-soft:#4A4038; --gold:#D4AF37; --terracotta:#D9714B; --teal:#2B8C86; --line: rgba(26,20,16,0.14); }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--cream); color:var(--ink); font-family:'Inter',system-ui,sans-serif; font-size:14px; }
+  h1,h2,h3{font-family:'Anton','Arial Narrow',sans-serif; font-weight:400; text-transform:uppercase; margin:0;}
+  a{color:inherit;}
+  .wrap{max-width:1040px; margin-inline:auto; padding:28px 24px 60px;}
+  .mono{font-family:'IBM Plex Mono';}
+  .back{font-size:12px; color:var(--ink-soft); text-decoration:none; font-weight:600;}
+  .panel{border:2px solid var(--ink); margin-bottom:24px; padding:20px;}
+  textarea.research{width:100%; min-height:140px; border:1.5px solid var(--ink); padding:12px; font-family:'Inter'; font-size:13px;}
+  .btn{border:2px solid var(--ink); background:var(--ink); color:var(--cream); padding:11px 18px; font-family:'Inter'; font-weight:700; font-size:13.5px; cursor:pointer;}
+  .btn:disabled{opacity:0.5;}
+  table{width:100%; border-collapse:collapse; font-size:12.5px;}
+  th, td{border:1px solid var(--line); padding:8px 10px; text-align:right;}
+  th:first-child, td:first-child{text-align:left;}
+  thead th{background:var(--ink); color:var(--cream); font-weight:700;}
+  .assumption{border-bottom:1px solid var(--line); padding-block:10px;}
+  .assumption:last-child{border-bottom:none;}
+  .assumption .label{font-weight:700; font-size:13px;}
+  .assumption .value{font-family:'IBM Plex Mono'; color:var(--terracotta); font-size:12.5px;}
+  .assumption .rationale{color:var(--ink-soft); font-size:12px; margin-top:3px;}
+  .basis-tag{font-size:9.5px; font-weight:700; text-transform:uppercase; padding:2px 6px; border:1px solid var(--line); margin-left:6px;}
+  .actual-row{display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap;}
+  .actual-row input{border:1.5px solid var(--ink); padding:6px 8px; font-size:12px; width:110px;}
+  .variance-pos{color:var(--teal); font-weight:700;}
+  .variance-neg{color:var(--terracotta); font-weight:700;}
+  .empty{color:var(--ink-soft); font-size:13px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/retail-os/admin">← All applications</a>
+
+  {!app ? (
+    <h1 style="margin-top:16px;">Application not found</h1>
+  ) : (
+    <>
+      <h1 style="margin-top:12px; font-size:1.8rem;">{app.brand_name} — Business Plan</h1>
+      <p class="mono" style="color:var(--ink-soft); font-size:12px; margin:4px 0 24px;">
+        {app.category || '—'} · {app.format || '—'} · Target cities: {app.target_cities || 'not specified'}
+      </p>
+
+      <div class="panel">
+        <h3 style="font-size:1.1rem; margin-bottom:10px;">Generate / regenerate plan</h3>
+        <p style="font-size:12.5px; color:var(--ink-soft); margin-bottom:12px;">
+          Paste real market research below — industry sizing, city-level consumer spend, category price benchmarks,
+          competitor pricing, customer behaviour, sales data — with sources where you have them. The plan is only
+          as good as this. A blank or thin input will be rejected.
+        </p>
+        <textarea class="research" id="researchNotes" placeholder="e.g. India eyewear market ~$3.9B (Source: IMARC 2026)...">{plan ? plan.research_notes : ''}</textarea>
+        <div style="margin-top:12px; display:flex; align-items:center; gap:12px;">
+          <button class="btn" id="generateBtn">Generate plan →</button>
+          <span class="mono" id="genMsg" style="font-size:12px; color:var(--terracotta);"></span>
+        </div>
+      </div>
+
+      {!plan ? (
+        <div class="panel"><p class="empty">No plan generated yet.</p></div>
+      ) : (
+        <>
+          <div class="panel">
+            <h3 style="font-size:1.1rem; margin-bottom:10px;">Assumptions</h3>
+            {plan.assumptions.map((a) => (
+              <div class="assumption">
+                <div class="label">{a.label} <span class="value">{a.value}</span> <span class="basis-tag">{a.basis.replace(/_/g,' ')}</span></div>
+                <div class="rationale">{a.rationale}</div>
+              </div>
+            ))}
+          </div>
+
+          <div class="panel">
+            <h3 style="font-size:1.1rem; margin-bottom:10px;">Benchmark P&amp;L (next 3 months) vs actuals</h3>
+            <table>
+              <thead>
+                <tr><th>Month</th><th>Orders</th><th>Revenue</th><th>COGS</th><th>CAC</th><th>Admin/Tech</th><th>Profit Pool</th><th>DevShop</th><th>Founder</th></tr>
+              </thead>
+              <tbody>
+                {plan.months.map((m, i) => {
+                  const realMonth = nextThreeMonths[i];
+                  const actual = realMonth ? actualsByMonth[realMonth.key] : undefined;
+                  return (
+                    <>
+                      <tr>
+                        <td>{m.label} <span class="mono" style="color:var(--ink-soft); font-size:10.5px;">({realMonth?.label})</span></td>
+                        <td>{m.orders}</td><td>{inr(m.revenueInr)}</td><td>{inr(m.cogsInr)}</td><td>{inr(m.cacInr)}</td>
+                        <td>{inr(m.adminTechInr)}</td><td>{inr(m.profitPoolInr)}</td><td>{inr(m.devshopShareInr)}</td><td>{inr(m.founderShareInr)}</td>
+                      </tr>
+                      <tr>
+                        <td colspan="9" style="background:#fff;">
+                          <form class="actual-row" data-month={realMonth?.key} data-app={app.id}>
+                            <span class="mono" style="font-size:11px; color:var(--ink-soft); min-width:70px;">Actual:</span>
+                            <input type="number" placeholder="Revenue" class="a-revenue" value={actual?.revenue_inr || ''} />
+                            <input type="number" placeholder="COGS" class="a-cogs" value={actual?.cogs_inr || ''} />
+                            <input type="number" placeholder="CAC" class="a-cac" value={actual?.cac_inr || ''} />
+                            <input type="number" placeholder="Admin/Tech" class="a-admin" value={actual?.admin_tech_inr || ''} />
+                            <button type="submit" class="btn" style="padding:6px 12px; font-size:11px;">Save</button>
+                            {actual && (
+                              <span class={actual.revenue_inr >= m.revenueInr ? 'variance-pos' : 'variance-neg'} style="font-size:11px;">
+                                {actual.revenue_inr >= m.revenueInr ? '▲' : '▼'} {inr(Math.abs(actual.revenue_inr - m.revenueInr))} vs plan
+                              </span>
+                            )}
+                          </form>
+                        </td>
+                      </tr>
+                    </>
+                  );
+                })}
+              </tbody>
+              <tfoot>
+                <tr style="font-weight:700; background:var(--gold);">
+                  <td>Quarter total</td><td>{plan.quarter_totals.ordersTotal}</td><td>{inr(plan.quarter_totals.revenueInr)}</td>
+                  <td>{inr(plan.quarter_totals.cogsInr)}</td><td>{inr(plan.quarter_totals.cacInr)}</td>
+                  <td>{inr(plan.quarter_totals.adminTechInr)}</td><td>{inr(plan.quarter_totals.profitPoolInr)}</td>
+                  <td>{inr(plan.quarter_totals.devshopShareInr)}</td><td>{inr(plan.quarter_totals.founderShareInr)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <div class="panel">
+            <h3 style="font-size:1.1rem; margin-bottom:10px;">City breakdown</h3>
+            {plan.city_breakdown.map((c) => (
+              <div class="assumption">
+                <div class="label">{c.city} <span class="value">{c.revenueSharePct}%</span></div>
+                <div class="rationale">{c.rationale}</div>
+              </div>
+            ))}
+          </div>
+
+          <div class="panel">
+            <h3 style="font-size:1.1rem; margin-bottom:10px;">Risks</h3>
+            <ul style="margin:0; padding-left:20px; font-size:12.5px; color:var(--ink-soft);">
+              {plan.risks.map((r) => <li style="margin-bottom:6px;">{r}</li>)}
+            </ul>
+          </div>
+
+          <div class="panel">
+            <h3 style="font-size:1.1rem; margin-bottom:10px;">Sources cited</h3>
+            <ul style="margin:0; padding-left:20px; font-size:12.5px; color:var(--ink-soft);">
+              {plan.sources_cited.map((s) => <li style="margin-bottom:4px;">{s}</li>)}
+            </ul>
+            <p class="mono" style="font-size:10.5px; color:var(--ink-soft); margin-top:12px;">
+              Generated {new Date(plan.created_at).toLocaleString('en-IN')} · {plan.model} · prompt {plan.prompt_version}
+            </p>
+          </div>
+        </>
+      )}
+    </>
+  )}
+</div>
+<script define:vars={{ appId: app?.id }}>
+  var genBtn = document.getElementById('generateBtn');
+  if (genBtn) {
+    genBtn.addEventListener('click', async function () {
+      var notes = document.getElementById('researchNotes').value;
+      var msg = document.getElementById('genMsg');
+      genBtn.disabled = true;
+      msg.textContent = 'Generating — this can take a minute…';
+      try {
+        var res = await fetch('/retail-os/api/admin/generate-plan', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ id: appId, researchNotes: notes })
+        });
+        var out = await res.json();
+        if (!res.ok) throw new Error(out.error || 'Failed');
+        location.reload();
+      } catch (err) {
+        msg.textContent = err.message || 'Failed to generate';
+        genBtn.disabled = false;
+      }
+    });
+  }
+  document.querySelectorAll('form.actual-row').forEach(function (form) {
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var btn = form.querySelector('button');
+      btn.textContent = 'Saving…';
+      try {
+        await fetch('/retail-os/api/admin/save-actuals', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            id: form.getAttribute('data-app'), month: form.getAttribute('data-month'),
+            revenueInr: form.querySelector('.a-revenue').value, cogsInr: form.querySelector('.a-cogs').value,
+            cacInr: form.querySelector('.a-cac').value, adminTechInr: form.querySelector('.a-admin').value
+          })
+        });
+        location.reload();
+      } catch (err) {
+        btn.textContent = 'Failed';
+      }
+    });
+  });
+</script>
+</body>
+</html>

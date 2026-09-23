@@ -48,8 +48,50 @@ export type RetailOsApplication = {
   split_range_hi: number | null;
   ai_enabler_track: boolean;
   stages: RetailOsStage[];
+  payment_methods: string | null;
+  shipping_charge_model: string | null;
+  free_shipping_threshold: string | null;
+  same_day_delivery: string | null;
+  same_day_cities: string | null;
+  return_window: string | null;
+  loyalty_methodology: string | null;
+  referral_methodology: string | null;
+  target_cities: string | null;
+  business_registration: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type BusinessPlanAssumption = { label: string; value: string; rationale: string; basis: string };
+export type BusinessPlanMonth = {
+  label: string; orders: number; revenueInr: number; cogsInr: number; cacInr: number; adminTechInr: number;
+  rationale: string; profitPoolInr: number; devshopShareInr: number; founderShareInr: number;
+};
+export type BusinessPlanCity = { city: string; revenueSharePct: number; rationale: string };
+export type RetailOsBusinessPlan = {
+  id: string;
+  application_id: string;
+  model: string;
+  prompt_version: string;
+  research_notes: string;
+  assumptions: BusinessPlanAssumption[];
+  months: BusinessPlanMonth[];
+  city_breakdown: BusinessPlanCity[];
+  risks: string[];
+  sources_cited: string[];
+  quarter_totals: Record<string, number>;
+  created_at: string;
+};
+
+export type RetailOsActual = {
+  id: string;
+  application_id: string;
+  month: string;
+  revenue_inr: number;
+  cogs_inr: number;
+  cac_inr: number;
+  admin_tech_inr: number;
+  entered_at: string;
 };
 
 export function buildInitialStages(postAck: boolean): RetailOsStage[] {
@@ -79,6 +121,10 @@ export function getRetailOsDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE
       payment_mode: string | null; pincode: string | null; carrier: string | null;
       meta_bm: string | null; ad_budget: string | null; wa_number: string | null;
       post_ack: boolean; split_range_lo: number | null; split_range_hi: number | null; ai_enabler_track: boolean;
+      payment_methods: string | null; shipping_charge_model: string | null; free_shipping_threshold: string | null;
+      same_day_delivery: string | null; same_day_cities: string | null; return_window: string | null;
+      loyalty_methodology: string | null; referral_methodology: string | null; target_cities: string | null;
+      business_registration: string | null;
     }): Promise<string> {
       const stages = buildInitialStages(row.post_ack);
       const { data, error } = await supabase
@@ -132,6 +178,45 @@ export function getRetailOsDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE
         .update({ stages, updated_at: new Date().toISOString() })
         .eq('id', id);
       if (error) throw new Error(`supabase retail_os_applications stage update failed: ${error.message}`);
+    },
+
+    async saveBusinessPlan(row: {
+      application_id: string; model: string; prompt_version: string; research_notes: string;
+      assumptions: BusinessPlanAssumption[]; months: BusinessPlanMonth[]; city_breakdown: BusinessPlanCity[];
+      risks: string[]; sources_cited: string[]; quarter_totals: Record<string, number>;
+    }): Promise<string> {
+      const { data, error } = await supabase.from('retail_os_business_plans').insert(row).select('id').single();
+      if (error) throw new Error(`supabase retail_os_business_plans insert failed: ${error.message}`);
+      return (data as { id: string }).id;
+    },
+
+    async getLatestBusinessPlan(applicationId: string): Promise<RetailOsBusinessPlan | null> {
+      const { data, error } = await supabase
+        .from('retail_os_business_plans')
+        .select('*')
+        .eq('application_id', applicationId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw new Error(`supabase retail_os_business_plans select failed: ${error.message}`);
+      return data as RetailOsBusinessPlan | null;
+    },
+
+    async upsertActual(row: { application_id: string; month: string; revenue_inr: number; cogs_inr: number; cac_inr: number; admin_tech_inr: number }) {
+      const { error } = await supabase
+        .from('retail_os_actuals')
+        .upsert(row, { onConflict: 'application_id,month' });
+      if (error) throw new Error(`supabase retail_os_actuals upsert failed: ${error.message}`);
+    },
+
+    async listActuals(applicationId: string): Promise<RetailOsActual[]> {
+      const { data, error } = await supabase
+        .from('retail_os_actuals')
+        .select('*')
+        .eq('application_id', applicationId)
+        .order('month', { ascending: true });
+      if (error) throw new Error(`supabase retail_os_actuals list failed: ${error.message}`);
+      return (data ?? []) as RetailOsActual[];
     },
   };
 }

@@ -155,7 +155,7 @@
 
     <!-- STEP 1 — Brand identity -->
     <section class="step" data-step="1">
-      <div class="step-meta"><span class="step-count mono">STEP 01 / 08</span></div>
+      <div class="step-meta"><span class="step-count mono">STEP 01 / 09</span></div>
       <div class="card">
         <h2>Brand identity</h2>
         <p class="sub">Who's applying, and what's the brand.</p>
@@ -220,7 +220,7 @@
 
     <!-- STEP 2 — Catalog -->
     <section class="step" data-step="2" hidden>
-      <div class="step-meta"><span class="step-count mono">STEP 02 / 08</span></div>
+      <div class="step-meta"><span class="step-count mono">STEP 02 / 09</span></div>
       <div class="card">
         <h2>Catalog</h2>
         <p class="sub">Bring an existing store over, or start fresh.</p>
@@ -245,7 +245,7 @@
 
     <!-- STEP 3 — Commercial terms -->
     <section class="step" data-step="3" hidden>
-      <div class="step-meta"><span class="step-count mono">STEP 03 / 08</span></div>
+      <div class="step-meta"><span class="step-count mono">STEP 03 / 09</span></div>
       <div class="card">
         <h2>Commercial terms</h2>
         <p class="sub">An indicative range based on what you've told us so far — final terms are set in the Master Brand Partnership Agreement.</p>
@@ -265,7 +265,7 @@
 
     <!-- STEP 4 — Payments -->
     <section class="step" data-step="4" hidden>
-      <div class="step-meta"><span class="step-count mono">STEP 04 / 08</span></div>
+      <div class="step-meta"><span class="step-count mono">STEP 04 / 09</span></div>
       <div class="card">
         <h2>Payments</h2>
         <p class="sub">How checkout gets funded.</p>
@@ -273,13 +273,21 @@
           <label class="choice"><input type="radio" name="paymentMode" value="own"> I have my own gateway account</label>
           <label class="choice"><input type="radio" name="paymentMode" value="managed"> Set me up on a DevShop-managed account</label>
         </div>
+        <div class="field" style="margin-top:18px;">
+          <label>Payment methods to accept</label>
+          <div class="choice-group" id="paymentMethodsGroup">
+            <label class="choice"><input type="radio" name="paymentMethods" value="both"> Prepaid + COD</label>
+            <label class="choice"><input type="radio" name="paymentMethods" value="prepaid"> Prepaid only</label>
+            <label class="choice"><input type="radio" name="paymentMethods" value="cod"> COD only</label>
+          </div>
+        </div>
         <div class="hint" style="margin-top:14px;">Full KYC (PAN, GST, cancelled cheque, incorporation proof) is collected after the agreement is signed — nothing needed here yet.</div>
       </div>
     </section>
 
     <!-- STEP 5 — Shipping -->
     <section class="step" data-step="5" hidden>
-      <div class="step-meta"><span class="step-count mono">STEP 05 / 08</span></div>
+      <div class="step-meta"><span class="step-count mono">STEP 05 / 09</span></div>
       <div class="card">
         <h2>Shipping</h2>
         <p class="sub">Where orders ship from, and how they're carried.</p>
@@ -293,12 +301,49 @@
             </div>
           </div>
         </div>
+        <div class="field" style="margin-top:18px;">
+          <label>Shipping charges</label>
+          <select id="shippingChargeModel">
+            <option value="">Select…</option>
+            <option value="free">Free shipping, always</option>
+            <option value="threshold">Free above a minimum order value</option>
+            <option value="flat">Flat fee</option>
+            <option value="calculated">Calculated at checkout</option>
+          </select>
+        </div>
+        <div class="field" id="freeShippingThresholdField" style="margin-top:14px;" hidden>
+          <label for="freeShippingThreshold">Free-shipping minimum order value (₹)</label>
+          <input type="text" id="freeShippingThreshold" placeholder="e.g. 999">
+        </div>
+        <div class="row2" style="margin-top:18px;">
+          <div class="field">
+            <label>Same-day delivery?</label>
+            <div class="choice-group" id="sameDayGroup">
+              <label class="choice"><input type="radio" name="sameDayDelivery" value="yes"> Yes</label>
+              <label class="choice"><input type="radio" name="sameDayDelivery" value="no"> No</label>
+            </div>
+          </div>
+          <div class="field">
+            <label for="returnWindow">Return window</label>
+            <select id="returnWindow">
+              <option value="">Select…</option>
+              <option value="7">7 days</option>
+              <option value="14">14 days</option>
+              <option value="30">30 days</option>
+              <option value="none">No returns</option>
+            </select>
+          </div>
+        </div>
+        <div class="field" id="sameDayCitiesField" style="margin-top:14px;" hidden>
+          <label for="sameDayCities">Which cities?</label>
+          <input type="text" id="sameDayCities" placeholder="e.g. Mumbai, Delhi, Bengaluru">
+        </div>
       </div>
     </section>
 
     <!-- STEP 6 — Meta -->
     <section class="step" data-step="6" hidden>
-      <div class="step-meta"><span class="step-count mono">STEP 06 / 08</span></div>
+      <div class="step-meta"><span class="step-count mono">STEP 06 / 09</span></div>
       <div class="card">
         <h2>Meta</h2>
         <p class="sub">Ads, catalog and pixel run through Meta Business Manager.</p>
@@ -321,7 +366,7 @@
 
     <!-- STEP 7 — WhatsApp -->
     <section class="step" data-step="7" hidden>
-      <div class="step-meta"><span class="step-count mono">STEP 07 / 08</span></div>
+      <div class="step-meta"><span class="step-count mono">STEP 07 / 09</span></div>
       <div class="card">
         <h2>WhatsApp</h2>
         <p class="sub">The number order updates, OTPs and catalog checkout run through.</p>
@@ -333,9 +378,42 @@
       </div>
     </section>
 
-    <!-- STEP 8 — Pay with a Post -->
+    <!-- STEP 8 — Loyalty, Referrals & Markets -->
     <section class="step" data-step="8" hidden>
-      <div class="step-meta"><span class="step-count mono">STEP 08 / 08</span></div>
+      <div class="step-meta"><span class="step-count mono">STEP 08 / 09</span></div>
+      <div class="card">
+        <h2>Loyalty, referrals &amp; markets</h2>
+        <p class="sub">Retention mechanics, and where you're actually trying to sell.</p>
+        <div class="field">
+          <label for="businessRegistration">Business registration</label>
+          <select id="businessRegistration">
+            <option value="">Select…</option>
+            <option>Not yet registered</option>
+            <option>Proprietorship</option>
+            <option>Partnership</option>
+            <option>LLP</option>
+            <option>Private Limited</option>
+          </select>
+        </div>
+        <div class="field" style="margin-top:16px;">
+          <label for="loyaltyMethodology">Loyalty points — how should they work?</label>
+          <textarea id="loyaltyMethodology" placeholder="e.g. 1 point per ₹100 spent, 100 points = ₹50 off"></textarea>
+        </div>
+        <div class="field" style="margin-top:16px;">
+          <label for="referralMethodology">Referrals — what does each side get?</label>
+          <textarea id="referralMethodology" placeholder="e.g. referrer gets ₹200 credit, new customer gets 10% off first order"></textarea>
+        </div>
+        <div class="field" style="margin-top:16px;">
+          <label for="targetCities">Top 3–5 cities for launch marketing</label>
+          <input type="text" id="targetCities" placeholder="e.g. Mumbai, Bengaluru, Delhi NCR, Pune, Hyderabad">
+          <div class="hint">This is what performance-marketing audiences get built around — be specific.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 9 — Pay with a Post -->
+    <section class="step" data-step="9" hidden>
+      <div class="step-meta"><span class="step-count mono">STEP 09 / 09</span></div>
       <div class="card">
         <h2>Pay with a Post™</h2>
         <p class="sub">A buyer posts about the product, unlocks a perk at checkout. DevShop takes 1% of the GMV that flow generates — only once payment is received.</p>
@@ -385,10 +463,10 @@
 
 <script>
 (function(){
-  var steps = ["1","2","3","4","5","6","7","8","review"];
+  var steps = ["1","2","3","4","5","6","7","8","9","review"];
   var stepLabels = {
     "1": "Brand identity", "2": "Catalog", "3": "Commercial terms", "4": "Payments",
-    "5": "Shipping", "6": "Meta", "7": "WhatsApp", "8": "Pay with a Post", "review": "Review & submit"
+    "5": "Shipping", "6": "Meta", "7": "WhatsApp", "8": "Loyalty & markets", "9": "Pay with a Post", "review": "Review & submit"
   };
   var current = 0;
   var STORAGE_KEY = "retailOsApplication";
@@ -398,9 +476,21 @@
   try { data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch(e) { data = {}; }
 
   var fieldIds = ["brandName","founderName","founderEmail","founderPhone","category","format","handle",
-    "revenueRange","following","shopifyUrl","productCount","pincode","adBudget","waNumber"];
-  var radioGroups = ["hasRevenue","catalogMode","paymentMode","carrier","metaBm"];
+    "revenueRange","following","shopifyUrl","productCount","pincode","adBudget","waNumber",
+    "freeShippingThreshold","sameDayCities","returnWindow","businessRegistration","loyaltyMethodology",
+    "referralMethodology","targetCities","shippingChargeModel"];
+  var radioGroups = ["hasRevenue","catalogMode","paymentMode","paymentMethods","carrier","metaBm","sameDayDelivery"];
   var checkboxIds = ["termsAck","waAck","postAck"];
+
+  function syncConditionalFields(){
+    var hasRevenueEl = document.querySelector('input[name="hasRevenue"]:checked');
+    var catalogModeEl = document.querySelector('input[name="catalogMode"]:checked');
+    var sameDayEl = document.querySelector('input[name="sameDayDelivery"]:checked');
+    document.getElementById("revenueRangeField").hidden = !hasRevenueEl || hasRevenueEl.value !== "yes";
+    document.getElementById("shopifyUrlField").hidden = !catalogModeEl || catalogModeEl.value !== "shopify";
+    document.getElementById("freeShippingThresholdField").hidden = document.getElementById("shippingChargeModel").value !== "threshold";
+    document.getElementById("sameDayCitiesField").hidden = !sameDayEl || sameDayEl.value !== "yes";
+  }
 
   function restore(){
     fieldIds.forEach(function(id){
@@ -417,8 +507,7 @@
       var el = document.getElementById(id);
       if (el && data[id]) el.checked = true;
     });
-    document.getElementById("revenueRangeField").hidden = data.hasRevenue !== "yes";
-    document.getElementById("shopifyUrlField").hidden = data.catalogMode !== "shopify";
+    syncConditionalFields();
   }
 
   function save(){
@@ -437,6 +526,9 @@
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
   }
 
+  var shippingChargeModelEl = document.getElementById("shippingChargeModel");
+  if (shippingChargeModelEl) shippingChargeModelEl.addEventListener("change", function(){ save(); syncConditionalFields(); });
+
   document.querySelectorAll(".choice-group").forEach(function(group){
     group.addEventListener("click", function(e){
       var label = e.target.closest(".choice");
@@ -446,8 +538,7 @@
       var input = label.querySelector("input");
       input.checked = true;
       save();
-      document.getElementById("revenueRangeField").hidden = document.querySelector('input[name="hasRevenue"]:checked') === null || document.querySelector('input[name="hasRevenue"]:checked').value !== "yes";
-      document.getElementById("shopifyUrlField").hidden = document.querySelector('input[name="catalogMode"]:checked') === null || document.querySelector('input[name="catalogMode"]:checked').value !== "shopify";
+      syncConditionalFields();
       updateSplitPreview();
     });
   });
@@ -486,7 +577,7 @@
   document.querySelectorAll("input[type=checkbox]").forEach(function(cb){
     cb.addEventListener("change", save);
   });
-  document.querySelectorAll("input[type=text],input[type=email],input[type=tel],input[type=url],select").forEach(function(el){
+  document.querySelectorAll("input[type=text],input[type=email],input[type=tel],input[type=url],select,textarea").forEach(function(el){
     el.addEventListener("input", save);
     el.addEventListener("change", save);
   });
@@ -554,10 +645,17 @@
       ["Catalog", [["Mode", data.catalogMode === "shopify" ? "Shopify import" : "Manual"],
                    ["Shopify URL", data.shopifyUrl], ["SKU count", data.productCount]]],
       ["Payments & Shipping", [["Payment setup", data.paymentMode === "own" ? "Own gateway account" : "DevShop-managed"],
-                   ["Pickup pincode", data.pincode], ["Carrier", data.carrier === "own" ? "Own account" : "DevShop aggregator"]]],
+                   ["Payment methods", {both:"Prepaid + COD", prepaid:"Prepaid only", cod:"COD only"}[data.paymentMethods]],
+                   ["Pickup pincode", data.pincode], ["Carrier", data.carrier === "own" ? "Own account" : "DevShop aggregator"],
+                   ["Shipping charges", {free:"Free, always", threshold:"Free above ₹"+(data.freeShippingThreshold||"__"), flat:"Flat fee", calculated:"Calculated at checkout"}[data.shippingChargeModel]],
+                   ["Same-day delivery", data.sameDayDelivery === "yes" ? ("Yes — " + (data.sameDayCities||"")) : "No"],
+                   ["Return window", {"7":"7 days","14":"14 days","30":"30 days",none:"No returns"}[data.returnWindow]]]],
       ["Meta & WhatsApp", [["Business Manager", data.metaBm === "yes" ? "Have one" : "Needs setup"],
-                   ["Ad budget", data.adBudget], ["WhatsApp number", data.waNumber],
-                   ["Pay with a Post™", data.postAck ? "Enabled" : "Not enabled"]]]
+                   ["Ad budget", data.adBudget], ["WhatsApp number", data.waNumber]]],
+      ["Loyalty, referrals & markets", [["Business registration", data.businessRegistration],
+                   ["Loyalty", data.loyaltyMethodology], ["Referrals", data.referralMethodology],
+                   ["Target cities", data.targetCities]]],
+      ["Pay with a Post", [["Status", data.postAck ? "Enabled" : "Not enabled"]]]
     ];
     out.innerHTML = blocks.map(function(b){
       var rows = b[1].filter(function(r){ return r[1]; }).map(function(r){
@@ -580,11 +678,20 @@
       "Catalog: " + (data.catalogMode === "shopify" ? "Shopify import — " + (data.shopifyUrl||"") : "Manual"),
       "SKU count: " + (data.productCount||""),
       "",
-      "Payments: " + (data.paymentMode === "own" ? "Own gateway account" : "DevShop-managed"),
+      "Payments: " + (data.paymentMode === "own" ? "Own gateway account" : "DevShop-managed") + " — Methods: " + (data.paymentMethods||""),
       "Shipping pincode: " + (data.pincode||"") + " — Carrier: " + (data.carrier === "own" ? "Own account" : "DevShop aggregator"),
+      "Shipping charges: " + (data.shippingChargeModel||"") + (data.freeShippingThreshold ? " (₹"+data.freeShippingThreshold+")" : ""),
+      "Same-day delivery: " + (data.sameDayDelivery === "yes" ? "Yes — " + (data.sameDayCities||"") : "No"),
+      "Return window: " + (data.returnWindow||""),
       "Meta Business Manager: " + (data.metaBm === "yes" ? "Already have one" : "Needs setup"),
       "Ad budget: " + (data.adBudget||""),
       "WhatsApp number: " + (data.waNumber||""),
+      "",
+      "Business registration: " + (data.businessRegistration||""),
+      "Loyalty methodology: " + (data.loyaltyMethodology||""),
+      "Referral methodology: " + (data.referralMethodology||""),
+      "Target cities: " + (data.targetCities||""),
+      "",
       "Pay with a Post: " + (data.postAck ? "Enabled" : "Not enabled")
     ];
     var subject = "Retail OS Application — " + (data.brandName || "New brand");
@@ -658,7 +765,12 @@
       catalogMode: data.catalogMode, shopifyUrl: data.shopifyUrl, productCount: data.productCount,
       paymentMode: data.paymentMode, pincode: data.pincode, carrier: data.carrier, metaBm: data.metaBm,
       adBudget: data.adBudget, waNumber: data.waNumber, postAck: !!data.postAck,
-      splitRangeLo: range.lo, splitRangeHi: range.hi
+      splitRangeLo: range.lo, splitRangeHi: range.hi,
+      paymentMethods: data.paymentMethods, shippingChargeModel: data.shippingChargeModel,
+      freeShippingThreshold: data.freeShippingThreshold, sameDayDelivery: data.sameDayDelivery,
+      sameDayCities: data.sameDayCities, returnWindow: data.returnWindow,
+      businessRegistration: data.businessRegistration, loyaltyMethodology: data.loyaltyMethodology,
+      referralMethodology: data.referralMethodology, targetCities: data.targetCities
     };
     try {
       var res = await fetch("/retail-os/api/apply", {

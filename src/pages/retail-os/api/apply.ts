@@ -63,6 +63,16 @@ export const POST: APIRoute = async ({ request }) => {
       split_range_lo: splitLo,
       split_range_hi: splitHi,
       ai_enabler_track: aiEnablerTrack,
+      payment_methods: str(body.paymentMethods),
+      shipping_charge_model: str(body.shippingChargeModel),
+      free_shipping_threshold: str(body.freeShippingThreshold),
+      same_day_delivery: str(body.sameDayDelivery),
+      same_day_cities: str(body.sameDayCities),
+      return_window: str(body.returnWindow),
+      loyalty_methodology: str(body.loyaltyMethodology),
+      referral_methodology: str(body.referralMethodology),
+      target_cities: str(body.targetCities),
+      business_registration: str(body.businessRegistration),
     });
 
     // Best-effort notifications — a failure here must never block the
