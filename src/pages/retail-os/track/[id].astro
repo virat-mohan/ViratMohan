@@ -405,7 +405,9 @@ const planWhy = d ? ([
           <p class="note" style="margin-top:0;">
             {design.has_existing_site
               ? 'Built from your existing look, pushed toward how the best sites in your category work.'
-              : "You don't have a live site yet, so we've started from a proven, successful brand in your category as the template."}
+              : app.brand_status === 'existing'
+                ? "We've taken a proven, successful brand in your category as the template to lift your store to."
+                : "You don't have a live site yet, so we've started from a proven, successful brand in your category as the template."}
           </p>
           <div class="sub-h">{design.has_existing_site ? 'Primary reference' : "Template we'll start from"}</div>
           <div class="ref-card">
