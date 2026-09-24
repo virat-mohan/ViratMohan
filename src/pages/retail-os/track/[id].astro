@@ -527,7 +527,7 @@ const planWhy = d ? ([
             <div class="fcell"><div class="l">3-month profit pool</div><div class="v">{inr(plan.quarter_totals.profitPoolInr)}</div></div>
             <div class="fcell"><div class="l">Your share</div><div class="v">{inr(plan.quarter_totals.founderShareInr)}</div></div>
           </div>
-          <p class="note" style="margin-top:8px;">{perDay(plan.drivers.ordersM1)} → {perDay(plan.drivers.ordersM3)} orders a day over the quarter. {splitNow != null && !app.ai_enabler_track && <>Profit pool split: <b>DevShop {splitNow}% · {app.brand_name} {Math.round((100 - splitNow) * 10) / 10}%</b>.</>} <a href="#checklist">See the full plan ↓</a></p>
+          <p class="note" style="margin-top:8px;">Orders: <b>{plan.drivers.ordersM1.toLocaleString('en-IN')}</b> in month 1 ({perDay(plan.drivers.ordersM1)}/day) → <b>{plan.drivers.ordersM2.toLocaleString('en-IN')}</b> in month 2 ({perDay(plan.drivers.ordersM2)}/day) → <b>{plan.drivers.ordersM3.toLocaleString('en-IN')}</b> in month 3 ({perDay(plan.drivers.ordersM3)}/day). {splitNow != null && !app.ai_enabler_track && <>Profit pool split: <b>DevShop {splitNow}% · {app.brand_name} {Math.round((100 - splitNow) * 10) / 10}%</b>.</>} <a href="#checklist">See the full plan ↓</a></p>
           {app.agreement ? (<>
           <div class="scroll">
             <table class="months">

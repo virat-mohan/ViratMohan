@@ -99,7 +99,7 @@ const onboarding: [string, string | null | undefined][] = [
     <>
       <h2>Benchmark forecast (first 3 months)</h2>
       <div class="kpis">
-        <div class="kpi"><div class="l">Orders / day</div><div class="v">{Math.round(plan.drivers.ordersM1 / 3) / 10} → {Math.round(plan.drivers.ordersM3 / 3) / 10}</div></div>
+        <div class="kpi"><div class="l">Orders (M1 · M2 · M3)</div><div class="v" style="font-size:14px;">{plan.drivers.ordersM1.toLocaleString('en-IN')} · {plan.drivers.ordersM2.toLocaleString('en-IN')} · {plan.drivers.ordersM3.toLocaleString('en-IN')}</div><div class="l" style="margin-top:3px;">{Math.round(plan.drivers.ordersM1 / 3) / 10} · {Math.round(plan.drivers.ordersM2 / 3) / 10} · {Math.round(plan.drivers.ordersM3 / 3) / 10} a day</div></div>
         <div class="kpi"><div class="l">Revenue</div><div class="v">{inr(qt.revenueInr)}</div></div>
         <div class="kpi"><div class="l">Profit pool</div><div class="v">{inr(qt.profitPoolInr)}</div></div>
         <div class="kpi"><div class="l">{app.brand_name}'s share</div><div class="v">{inr(qt.founderShareInr)}</div></div>
