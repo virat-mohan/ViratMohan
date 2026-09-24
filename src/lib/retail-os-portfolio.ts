@@ -15,9 +15,32 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 export type LiveBrand = { key: string; name: string; supabaseUrl: string; serviceKey: string };
 
+// A brand can also be added with three separate variables, so its secret key
+// never has to be pasted inside the shared JSON:
+//   RETAIL_OS_BRAND_<KEY>_NAME, RETAIL_OS_BRAND_<KEY>_URL, RETAIL_OS_BRAND_<KEY>_SERVICE_KEY
+function brandsFromSeparateVars(): LiveBrand[] {
+  const out: LiveBrand[] = [];
+  for (const [name, value] of Object.entries(process.env)) {
+    const m = name.match(/^RETAIL_OS_BRAND_([A-Z0-9_]+)_SERVICE_KEY$/);
+    if (!m || !value) continue;
+    const id = m[1];
+    const url = process.env[`RETAIL_OS_BRAND_${id}_URL`];
+    if (!url) continue;
+    out.push({
+      key: id.toLowerCase(),
+      name: process.env[`RETAIL_OS_BRAND_${id}_NAME`] || id,
+      supabaseUrl: url.trim().replace(/\/+$/, ''),
+      serviceKey: value.trim(),
+    });
+  }
+  return out;
+}
+
 export function getLiveBrands(): LiveBrand[] {
+  const extra = brandsFromSeparateVars();
+  const merge = (list: LiveBrand[]) => [...list.filter((b) => !extra.some((e) => e.key === b.key)), ...extra];
   const raw = process.env.RETAIL_OS_LIVE_BRANDS;
-  if (!raw) return [];
+  if (!raw) return extra;
   try {
     const parsed = JSON.parse(raw) as Partial<LiveBrand>[];
     // Values copied out of `vercel env pull` can carry surrounding quotes or a
@@ -28,15 +51,16 @@ export function getLiveBrands(): LiveBrand[] {
     // Lets a store's project URL be corrected without re-handling its key.
     let urlOverrides: Record<string, string> = {};
     try { urlOverrides = JSON.parse(process.env.RETAIL_OS_BRAND_URLS || '{}'); } catch { urlOverrides = {}; }
-    return parsed
+    const parsedBrands = parsed
       .map((b) => {
         const key = clean(b.key);
         return { key, name: clean(b.name), supabaseUrl: clean(urlOverrides[key] || b.supabaseUrl).replace(/\/+$/, ''), serviceKey: clean(b.serviceKey) };
       })
       .filter((b) => b.key && b.name && b.supabaseUrl && b.serviceKey);
+    return merge(parsedBrands);
   } catch (err) {
     console.error('RETAIL_OS_LIVE_BRANDS is not valid JSON', err);
-    return [];
+    return extra;
   }
 }
 
