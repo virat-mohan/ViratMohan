@@ -1,0 +1,129 @@
+---
+export const prerender = false;
+import { getRetailOsDb, DEPOSIT_INR, BUILD_WINDOW_DAYS } from '../../../lib/retail-os-db';
+import type { RetailOsApplication, RetailOsBusinessPlan, RetailOsTerms } from '../../../lib/retail-os-db';
+import { getEnv } from '../../../lib/env';
+import { buildTermLines } from '../../../lib/retail-os-terms';
+import { planSplitPct } from '../../../lib/retail-os-prepare';
+
+// Brand-specific partnership terms, print-ready. Public by application UUID,
+// like the tracker. Shows the signed record once signed, a draft before.
+const { id } = Astro.params;
+const env = getEnv();
+let app: RetailOsApplication | null = null;
+let plan: RetailOsBusinessPlan | null = null;
+if (id && env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
+  const db = getRetailOsDb(env);
+  app = await db.getById(id).catch(() => null);
+  if (app) plan = await db.getLatestBusinessPlan(app.id).catch(() => null);
+}
+if (!app) return new Response('Not found', { status: 404 });
+
+const split = planSplitPct(plan, app);
+const terms: RetailOsTerms = app.terms ?? { splitPct: app.ai_enabler_track ? null : split, aiEnabler: app.ai_enabler_track, notes: null, sentAt: new Date().toISOString() };
+const lines = (app.agreement?.terms?.lines as { label: string; value: string }[] | undefined) ?? buildTermLines(app, terms);
+const status = app.agreement ? 'Signed' : app.terms ? 'Sent for signature' : 'Draft';
+const inr = (n: number) => '₹' + Math.round(n).toLocaleString('en-IN');
+const date = (iso: string) => new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' });
+const lane = app.ai_enabler_track ? 'AI-Enabler™ / Co-Founder' : 'Full Operate';
+const qt = plan?.quarter_totals;
+const pay = ({ both: 'Prepaid + cash on delivery', prepaid: 'Prepaid only', cod: 'Cash on delivery only' } as Record<string, string>)[app.payment_methods ?? ''] ?? app.payment_methods;
+const ship = ({ free: 'Free, always', threshold: `Free on orders of ₹${app.free_shipping_threshold ?? '—'} or more; a fee below that`, flat: 'Flat fee', calculated: 'Calculated at checkout' } as Record<string, string>)[app.shipping_charge_model ?? ''] ?? app.shipping_charge_model;
+const onboarding: [string, string | null | undefined][] = [
+  ['Category', app.category], ['Format', app.format], ['Current store', app.shopify_url], ['Products at launch', app.product_count],
+  ['Payment setup', app.payment_mode === 'own' ? 'Own gateway account' : "DevShop-managed: payments land in DevShop's account first"],
+  ['Payment methods', pay], ['Shipping', ship], ['Returns window', app.return_window === 'none' ? 'No returns' : app.return_window ? `${app.return_window} days` : null],
+  ['Courier', app.carrier === 'own' ? 'Own courier account' : 'DevShop aggregator'], ['Target cities', app.target_cities],
+  ['Pay with a Post', app.post_ack ? 'Opted in (1% of sales it drives)' : 'Not opted in'],
+];
+---
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{app.brand_name} — Partnership Terms</title>
+<meta name="robots" content="noindex" />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#1A1410; --soft:#5A5048; --gold:#C99A3D; --line:#DDD5C8; --terra:#D9714B; }
+  *{box-sizing:border-box;}
+  body{margin:0; background:#EDE6D8; color:var(--ink); font-family:'Inter',system-ui,sans-serif; font-size:13px; line-height:1.5;}
+  .page{max-width:820px; margin:24px auto; background:#fff; padding:44px 52px; box-shadow:0 2px 20px rgba(0,0,0,0.08);}
+  .brand{font-weight:700; color:var(--gold); letter-spacing:0.08em; font-size:11px;}
+  h1{font-family:'Anton',sans-serif; font-weight:400; text-transform:uppercase; font-size:30px; margin:4px 0 2px;}
+  h2{font-size:12px; text-transform:uppercase; letter-spacing:0.06em; margin:26px 0 8px; padding-bottom:4px; border-bottom:2px solid var(--gold);}
+  .sub{color:var(--soft); font-style:italic;}
+  .status{display:inline-block; border:1.5px solid var(--terra); color:var(--terra); font-weight:700; font-size:10px; text-transform:uppercase; padding:2px 8px; margin-left:8px; vertical-align:middle;}
+  table{width:100%; border-collapse:collapse;}
+  td{padding:7px 8px; border-bottom:1px solid var(--line); vertical-align:top;}
+  td:first-child{width:32%; font-weight:700;}
+  .kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:8px;}
+  .kpi{border:1.5px solid var(--line); padding:10px;} .kpi .l{font-size:10px; text-transform:uppercase; color:var(--soft); font-weight:700;} .kpi .v{font-size:17px; font-weight:700; margin-top:2px;}
+  .sig{display:grid; grid-template-columns:1fr 1fr; gap:36px; margin-top:12px;}
+  .sig .line{border-bottom:1px solid #999; height:44px;} .sig p{margin:4px 0; font-size:12px;}
+  .note{color:var(--soft); font-size:11.5px;}
+  .bar{max-width:820px; margin:16px auto 0; display:flex; gap:10px; justify-content:flex-end; padding-inline:16px;}
+  .bar button, .bar a{border:2px solid var(--ink); background:var(--ink); color:#fff; padding:9px 16px; font-weight:700; font-family:'Inter'; font-size:13px; cursor:pointer; text-decoration:none;}
+  .bar a{background:transparent; color:var(--ink);}
+  @media (max-width:640px){ .page{padding:24px 18px; margin:12px 0;} .kpis{grid-template-columns:1fr 1fr;} .sig{grid-template-columns:1fr;} }
+  @page{size:A4; margin:14mm;}
+  @media print{ body{background:#fff;} .bar{display:none;} .page{box-shadow:none; margin:0; padding:0; max-width:none;} h2{break-after:avoid;} tr{break-inside:avoid;} }
+</style>
+</head>
+<body>
+<div class="bar"><a href={`/retail-os/track/${app.id}`}>← Back to page</a><button type="button" onclick="window.print()">Save as PDF</button></div>
+<div class="page">
+  <div class="brand">DEVSHOP RETAIL OS™</div>
+  <h1>Partnership Terms <span class="status">{status}</span></h1>
+  <div class="sub">{app.brand_name} · {app.agreement ? `signed ${date(app.agreement.signedAt)}` : app.terms ? `sent ${date(app.terms.sentAt)}` : `prepared ${date(new Date().toISOString())}`}</div>
+
+  <h2>Parties</h2>
+  <table>
+    <tr><td>DevShop</td><td>Virat Mohan, operating as DevShop Retail OS · viratmohan@gmail.com</td></tr>
+    <tr><td>Brand</td><td>{app.brand_name}{app.business_registration && <> ({app.business_registration})</>}, represented by {app.founder_name} · {app.founder_email}{app.founder_phone && <> · {app.founder_phone}</>}</td></tr>
+  </table>
+
+  <h2>Commercial arrangement</h2>
+  <table>
+    <tr><td>Lane</td><td>{lane}</td></tr>
+    {app.ai_enabler_track
+      ? <tr><td>DevShop's return</td><td>50% of the brand IP. No profit-pool split.</td></tr>
+      : <tr><td>Profit-pool split</td><td><b>DevShop {terms.splitPct}% · {app.brand_name} {Math.round((100 - (terms.splitPct ?? 0)) * 10) / 10}%</b></td></tr>}
+    <tr><td>Brand IP</td><td>{app.ai_enabler_track ? 'Held 50% by DevShop and 50% by the Brand.' : `Stays 100% with ${app.brand_name}.`}</td></tr>
+    <tr><td>Costs to the brand</td><td>{`₹${DEPOSIT_INR.toLocaleString('en-IN')} deposit, fully adjusted against actual onboarding tech costs; DevShop keeps none of it. No other upfront fee. Running costs come out of revenue before the profit pool is split.`}</td></tr>
+    <tr><td>Cost strategy</td><td>Product ≤25%, marketing ≤25%, admin and all other costs ≤10% of revenue, leaving a profit pool of about 40%.</td></tr>
+  </table>
+
+  {plan && qt && (
+    <>
+      <h2>Benchmark forecast (first 3 months)</h2>
+      <div class="kpis">
+        <div class="kpi"><div class="l">Orders / day</div><div class="v">{Math.round(plan.drivers.ordersM1 / 3) / 10} → {Math.round(plan.drivers.ordersM3 / 3) / 10}</div></div>
+        <div class="kpi"><div class="l">Revenue</div><div class="v">{inr(qt.revenueInr)}</div></div>
+        <div class="kpi"><div class="l">Profit pool</div><div class="v">{inr(qt.profitPoolInr)}</div></div>
+        <div class="kpi"><div class="l">{app.brand_name}'s share</div><div class="v">{inr(qt.founderShareInr)}</div></div>
+      </div>
+      <p class="note">A benchmark, not a guarantee. Actuals are reported weekly against it.</p>
+    </>
+  )}
+
+  <h2>Onboarding details</h2>
+  <table>{onboarding.filter(([, v]) => v).map(([k, v]) => <tr><td>{k}</td><td>{v}</td></tr>)}</table>
+
+  <h2>Terms</h2>
+  <table>{lines.map((l) => <tr><td>{l.label}</td><td>{l.value}</td></tr>)}</table>
+  <p class="note">Build: live within {BUILD_WINDOW_DAYS} days of the deposit being confirmed. Confidentiality and non-circumvention per the NCNDA between the parties. Governed by the laws of India.</p>
+
+  <h2>Signatures</h2>
+  <div class="sig">
+    <div><div class="line"></div><p><b>For DevShop Retail OS</b></p><p>Virat Mohan</p></div>
+    <div>
+      {app.agreement
+        ? <><div class="line" style="display:flex; align-items:flex-end; font-style:italic; font-size:18px;">{app.agreement.signedName}</div><p><b>For {app.brand_name}</b></p><p>Signed electronically {new Date(app.agreement.signedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST{app.agreement.ip && <> · IP {app.agreement.ip}</>}{app.agreement.portfolioConsent && <> · portfolio consent given</>}</p></>
+        : <><div class="line"></div><p><b>For {app.brand_name}</b></p><p>Name, title and date</p></>}
+    </div>
+  </div>
+</div>
+</body>
+</html>

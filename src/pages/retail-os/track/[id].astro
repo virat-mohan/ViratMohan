@@ -391,6 +391,37 @@ const planWhy = d ? ([
         </div>
       )}
 
+      {editMode && (
+        <div class="panel" id="controls" style="border-color:var(--terracotta);">
+          <h2>Virat's controls <span class="tag">Admin only</span></h2>
+          <p class="note" style="margin-top:0;">Emails go to <b>{app.founder_email}</b>. To use their official email, change it under Checklist → Application → Edit answers.</p>
+
+          <div class="sub-h">1. Send terms</div>
+          {app.agreement ? <p class="note">Signed by {app.agreement.signedName}.</p> : (
+            <form class="stack" id="sendTermsForm">
+              <div class="edit-grid">
+                {!app.ai_enabler_track && <label>DevShop share of profit pool (%)<input type="number" step="0.5" name="splitPct" value={app.terms?.splitPct ?? splitNow ?? ''} /></label>}
+                <label style="grid-column:1/-1;">Anything else agreed (optional)<input type="text" name="notes" value={app.terms?.notes ?? ''} /></label>
+              </div>
+              <button type="submit" class="btn">{app.terms ? 'Update terms' : 'Send terms to this page'}</button>
+              <div class="msg" id="sendTermsMsg"></div>
+            </form>
+          )}
+
+          <div class="sub-h">2. Deposit</div>
+          {app.deposit?.confirmedAt ? <p class="note">Confirmed. Build started.</p> : !app.agreement ? <p class="note">Available once the terms are signed.</p> : (
+            <form class="stack" id="markPaidForm">
+              <div class="edit-grid"><label>Payment reference (UTR, or "cash")<input type="text" name="reference" placeholder="Collected in the meeting" /></label></div>
+              <button type="submit" class="btn">Mark ₹{DEPOSIT_INR.toLocaleString('en-IN')} paid and email {app.founder_email}</button>
+              <div class="msg" id="markPaidMsg"></div>
+            </form>
+          )}
+
+          <div class="sub-h">3. Terms document</div>
+          <p class="note"><a href={`/retail-os/terms/${app.id}`} target="_blank">Open {app.brand_name}'s terms as PDF →</a></p>
+        </div>
+      )}
+
       {/* ── Setup questions, one section at a time ── */}
       {app.agreement && sections.length > 0 && (
         <div class="panel" id="setup">
@@ -437,6 +468,7 @@ const planWhy = d ? ([
           <table class="terms">
             {termLines.map((l) => <tr><td>{l.label}</td><td>{l.value}</td></tr>)}
           </table>
+          <p class="note" style="margin-top:8px;"><a href={`/retail-os/terms/${app.id}`} target="_blank">View or save these terms as a PDF →</a></p>
           {app.agreement ? (
             <p class="note" style="margin-top:12px;">Signed by <b>{app.agreement.signedName}</b> on {new Date(app.agreement.signedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST. A copy was emailed to you.</p>
           ) : (
@@ -701,7 +733,7 @@ const planWhy = d ? ([
                     {termLines.length > 0
                       ? <table class="terms">{termLines.map((l) => <tr><td>{l.label}</td><td>{l.value}</td></tr>)}</table>
                       : <p class="note">Sent to this page once the commercial lane and split are agreed with Virat.</p>}
-                    <p class="note">Documents: <a href="/retail-os/docs/DevShop-Retail-OS-NCNDA.docx" download>NCNDA</a> · <a href="/retail-os/docs/DevShop-Retail-OS-Partnership-Terms.docx" download>Partnership terms (summary)</a></p>
+                    <p class="note">Documents: <a href={`/retail-os/terms/${app.id}`} target="_blank"><b>{app.brand_name}'s terms (PDF)</b></a> · <a href="/retail-os/docs/DevShop-Retail-OS-NCNDA.docx" download>NCNDA</a> · <a href="/retail-os/docs/DevShop-Retail-OS-Partnership-Terms.docx" download>Partnership terms (summary)</a></p>
                   </>
                 )}
 
@@ -823,6 +855,27 @@ const planWhy = d ? ([
         msg.textContent = (res.data && res.data.error) || 'Could not save. Try again.';
         btn.disabled = false;
       });
+    });
+  });
+
+  var sendTerms = document.getElementById('sendTermsForm');
+  if (sendTerms) sendTerms.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var msg = document.getElementById('sendTermsMsg'); msg.textContent = 'Sending…';
+    var split = sendTerms.querySelector('[name="splitPct"]');
+    post('/retail-os/api/admin/send-terms', { id: appId, splitPct: split ? split.value : null, notes: sendTerms.querySelector('[name="notes"]').value }).then(function (res) {
+      if (res.ok) return location.reload();
+      msg.textContent = (res.data && res.data.error) || 'Could not send. Are you logged in to admin?';
+    });
+  });
+
+  var markPaid = document.getElementById('markPaidForm');
+  if (markPaid) markPaid.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var msg = document.getElementById('markPaidMsg'); msg.textContent = 'Confirming…';
+    post('/retail-os/api/admin/mark-deposit-paid', { id: appId, reference: markPaid.querySelector('[name="reference"]').value }).then(function (res) {
+      if (res.ok) { msg.textContent = 'Confirmed. Email sent to ' + (res.data.emailedTo || 'the founder') + '.'; return setTimeout(function () { location.reload(); }, 1200); }
+      msg.textContent = (res.data && res.data.error) || 'Could not confirm. Are you logged in to admin?';
     });
   });
 

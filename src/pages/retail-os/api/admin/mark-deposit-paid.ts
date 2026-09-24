@@ -34,6 +34,20 @@ export const POST: APIRoute = async ({ request }) => {
   const target = new Date(start.getTime() + BUILD_WINDOW_DAYS * 86400000);
   const targetText = target.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Kolkata' });
 
+  const day = (n: number) => new Date(start.getTime() + n * 86400000).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' });
+  const schedule: [number, number, string, string][] = [
+    [0, 0, 'Deposit confirmed', 'Done. Build clock started.'],
+    [1, 1, 'Setup questions', 'You: answer each section on your page.'],
+    [1, 2, 'Catalog', 'We import or build your products; you confirm prices and stock.'],
+    [2, 4, 'Payments', 'We set up the gateway; you share KYC documents when asked.'],
+    [2, 3, 'Shipping', 'We wire in the courier; you confirm the pickup address.'],
+    [3, 4, 'Meta (Instagram & Facebook)', 'We connect Business Manager, catalog and pixel; you accept the access request.'],
+    [3, 5, 'WhatsApp', 'We provision the business number; you approve the display name.'],
+    [6, 6, 'Go-live review', 'Together: test order end to end and sign off.'],
+    [BUILD_WINDOW_DAYS, BUILD_WINDOW_DAYS, 'Live & selling', 'Store opens and ads start. Weekly settlement every Monday by 1 PM.'],
+  ];
+  const rows = schedule.map(([a, b, label, what]) => ({ label: `${a === b ? `Day ${a}` : `Days ${a}–${b}`} · ${day(b)}`, value: `${label}: ${what}` }));
+
   if (env.RESEND_API_KEY && env.RESEND_FROM_EMAIL) {
     const trackUrl = `${getOrigin(request)}/retail-os/track/${id}`;
     sendEmail(
@@ -44,13 +58,14 @@ export const POST: APIRoute = async ({ request }) => {
           preheader: `Target go-live: ${targetText}.`,
           eyebrow: 'Build started',
           heading: `Live by ${targetText}`,
-          lines: ['Your deposit is confirmed and your 7-day build has started.', 'The setup questions on your page open one at a time. Answering them quickly is what keeps us on that date.'],
+          lines: [`Your ₹${DEPOSIT_INR.toLocaleString('en-IN')} deposit is confirmed and your ${BUILD_WINDOW_DAYS}-day build has started. Here's the full checklist with dates.`, 'Answering the setup questions on your page quickly is what keeps us on that date.'],
           cta: { label: 'Answer the first questions', url: trackUrl },
+          rows,
         }),
       },
       env
     ).catch((err) => console.error('retail-os mark-deposit-paid founder email failed', err));
   }
 
-  return json({ ok: true, targetText: escapeHtml(targetText) }, 200);
+  return json({ ok: true, targetText: escapeHtml(targetText), emailedTo: app.founder_email }, 200);
 };
