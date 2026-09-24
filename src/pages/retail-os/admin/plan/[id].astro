@@ -55,8 +55,11 @@ const splitPct = app?.ai_enabler_track
   .btn{border:2px solid var(--ink); background:var(--ink); color:var(--cream); padding:11px 18px; font-family:'Inter'; font-weight:700; font-size:13.5px; cursor:pointer;}
   .btn:disabled{opacity:0.5;}
   .btn-outline{background:transparent; color:var(--ink);}
-  table{width:100%; border-collapse:collapse; font-size:12.5px;}
-  th, td{border:1px solid var(--line); padding:8px 10px; text-align:right;}
+  .table-scroll{overflow-x:auto; max-width:100%;}
+  table{width:100%; border-collapse:collapse; font-size:12px;}
+  th, td{border:1px solid var(--line); padding:7px 6px; text-align:right; white-space:nowrap;}
+  thead th{white-space:normal;}
+  .table-scroll .actual-row input{width:92px;}
   th:first-child, td:first-child{text-align:left;}
   thead th{background:var(--ink); color:var(--cream); font-weight:700;}
   .assumption{border-bottom:1px solid var(--line); padding-block:10px;}
@@ -157,6 +160,7 @@ const splitPct = app?.ai_enabler_track
 
           <div class="panel">
             <h3 style="font-size:1.1rem; margin-bottom:10px;">Benchmark P&amp;L (next 3 months) vs actuals</h3>
+            <div class="table-scroll">
             <table id="planTable">
               <thead>
                 <tr><th>Month</th><th>Orders</th><th>Revenue</th><th>COGS</th><th>CAC</th><th>Admin/Tech</th><th>Payment/gateway fees</th><th>RTO</th><th>Ship+Pack</th><th>Platform</th><th>Profit Pool</th><th>DevShop</th><th>Founder</th></tr>
@@ -217,6 +221,7 @@ const splitPct = app?.ai_enabler_track
                 </tr>
               </tfoot>
             </table>
+            </div>
           </div>
 
           <div class="panel">
@@ -323,7 +328,7 @@ const splitPct = app?.ai_enabler_track
       var platformTools = Math.round(platformFixed);
       var opex = gatewayFee + codHandlingFee + postBarterFee + rtoCost + shipping + packaging + platformTools;
 
-      var profitPool = revenue - cogs - cac - admin - opex;
+      var profitPool = Math.max(0, revenue - cogs - cac - admin - opex);
       var devshopShare = Math.round(profitPool * (splitPct/100));
       var founderShare = profitPool - devshopShare;
 
