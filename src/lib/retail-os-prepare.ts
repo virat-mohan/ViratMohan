@@ -5,6 +5,15 @@ import { generateDesignDirection, DESIGN_DIRECTION_PROMPT_VERSION } from './reta
 
 type Db = ReturnType<typeof getRetailOsDb>;
 
+// The split a plan is computed at: the sent/signed terms, else whatever was
+// last set on the plan, else the midpoint of the brand's indicative range.
+export function planSplitPct(plan: { drivers: { splitPct?: number } } | null, app: RetailOsApplication): number {
+  if (app.ai_enabler_track) return 0;
+  if (app.terms?.splitPct != null) return app.terms.splitPct;
+  if (plan?.drivers?.splitPct != null) return plan.drivers.splitPct;
+  return splitPctFor(app);
+}
+
 // DevShop's split % — midpoint of the stored indicative range, or the final
 // % once terms have been sent. The AI-Enabler track has no profit-pool split
 // (its economics run on brand-IP equity), so 0%.

@@ -256,9 +256,23 @@ export async function generateBusinessPlan(app: BrandContext, apiKey: string): P
 // other cost (fees, shipping, packing, RTO, platform) held to 10% of revenue,
 // so the benchmark profit pool is never below 40%. Researched drivers above
 // these caps are pulled down to them; lower ones are kept.
-export const STRATEGY = { cogsPct: 25, cacPct: 25, adminAndOtherPct: 10 };
+// Orders ramp from 25 a day in month 1 (750, 1,000, 1,250 on a 30-day
+// month); researched volumes above the ramp are kept.
+export const DAYS_PER_MONTH = 30;
+export const STRATEGY = { cogsPct: 25, cacPct: 25, adminAndOtherPct: 10, ordersFloor: [750, 1000, 1250] as const };
+export const perDay = (ordersInMonth: number) => Math.round((ordersInMonth / DAYS_PER_MONTH) * 10) / 10;
+export function belowStrategy(d: PlanDrivers): boolean {
+  return d.ordersM1 < STRATEGY.ordersFloor[0] || d.ordersM2 < STRATEGY.ordersFloor[1] || d.ordersM3 < STRATEGY.ordersFloor[2];
+}
 export function applyStrategy<T extends PlanDrivers>(d: T): T {
-  const x: T = { ...d, cogsPct: Math.min(d.cogsPct, STRATEGY.cogsPct), cacPct: Math.min(d.cacPct, STRATEGY.cacPct) };
+  const x: T = {
+    ...d,
+    ordersM1: Math.max(d.ordersM1, STRATEGY.ordersFloor[0]),
+    ordersM2: Math.max(d.ordersM2, STRATEGY.ordersFloor[1]),
+    ordersM3: Math.max(d.ordersM3, STRATEGY.ordersFloor[2]),
+    cogsPct: Math.min(d.cogsPct, STRATEGY.cogsPct),
+    cacPct: Math.min(d.cacPct, STRATEGY.cacPct),
+  };
   const probe = computePlanFromDrivers({ ...x, adminTechPct: 0 }, 0).quarterTotals;
   const opexPct = probe.revenueInr > 0 ? (probe.operatingExpensesInr / probe.revenueInr) * 100 : 0;
   if (opexPct > STRATEGY.adminAndOtherPct) {

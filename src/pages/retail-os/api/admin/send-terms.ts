@@ -1,6 +1,7 @@
 export const prerender = false;
 
 import type { APIRoute } from 'astro';
+import { computePlanFromDrivers } from '../../../../lib/retail-os-business-plan';
 import { getRetailOsDb } from '../../../../lib/retail-os-db';
 import { getEnv } from '../../../../lib/env';
 import { sendEmail } from '../../../../lib/email';
@@ -31,6 +32,17 @@ export const POST: APIRoute = async ({ request }) => {
   const notes = (body?.notes || '').trim().slice(0, 1500) || null;
 
   await db.setTerms(id, { splitPct, aiEnabler: app.ai_enabler_track, notes, sentAt: new Date().toISOString() });
+
+  // Keep the forecast on the same split the brand is signing.
+  if (splitPct != null) {
+    const plan = await db.getLatestBusinessPlan(id).catch(() => null);
+    if (plan) {
+      const drivers = { ...plan.drivers, splitPct };
+      const { months, quarterTotals } = computePlanFromDrivers(drivers, splitPct);
+      const labelled = months.map((m, i) => ({ ...m, label: plan.months[i]?.label ?? m.label }));
+      await db.updatePlanDrivers(plan.id, drivers, labelled, quarterTotals).catch((err) => console.error('send-terms plan resplit failed', err));
+    }
+  }
 
   const trackUrl = `${getOrigin(request)}/retail-os/track/${id}`;
   if (env.RESEND_API_KEY && env.RESEND_FROM_EMAIL) {

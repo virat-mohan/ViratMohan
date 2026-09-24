@@ -4,6 +4,7 @@ import type { APIRoute } from 'astro';
 import { getRetailOsDb } from '../../../../lib/retail-os-db';
 import { getEnv } from '../../../../lib/env';
 import { computePlanFromDrivers } from '../../../../lib/retail-os-business-plan';
+import { planSplitPct } from '../../../../lib/retail-os-prepare';
 
 // Gated by src/middleware.ts. A human edits a driver here; this recomputes
 // months/quarter_totals from the SAME formula the LLM-generated plan used
@@ -15,7 +16,7 @@ export const POST: APIRoute = async ({ request }) => {
     aovInr?: number; cogsPct?: number; cacPct?: number; adminTechPct?: number;
     codOrderSharePct?: number; paymentGatewayFeePct?: number; codHandlingFeePct?: number; postBarterFeePct?: number;
     rtoRatePct?: number; rtoCostPerOrderInr?: number; shippingCostPerOrderInr?: number; packagingCostPerOrderInr?: number;
-    platformToolsFixedInrPerMonth?: number;
+    platformToolsFixedInrPerMonth?: number; splitPct?: number;
   };
   try {
     body = await request.json();
@@ -50,17 +51,21 @@ export const POST: APIRoute = async ({ request }) => {
     packagingCostPerOrderInr: Number(body.packagingCostPerOrderInr) || 0,
     platformToolsFixedInrPerMonth: Number(body.platformToolsFixedInrPerMonth) || 0,
     rationale: plan.drivers.rationale, // rationale text is untouched by a numeric edit
+    lockedByAdmin: true,
   };
 
+  const requested = Number(body.splitPct);
   const splitPct = app.ai_enabler_track
     ? 0
-    : app.split_range_lo != null && app.split_range_hi != null
-      ? (app.split_range_lo + app.split_range_hi) / 2
-      : 37.5;
+    : Number.isFinite(requested) && requested >= 1 && requested <= 90
+      ? Math.round(requested * 10) / 10
+      : planSplitPct(plan, app);
+  (drivers as typeof drivers & { splitPct: number }).splitPct = splitPct;
 
   try {
     const { months, quarterTotals } = computePlanFromDrivers(drivers, splitPct);
-    await db.updatePlanDrivers(planId, drivers, months, quarterTotals);
+    const labelled = months.map((m, i) => ({ ...m, label: plan.months[i]?.label ?? m.label }));
+    await db.updatePlanDrivers(planId, drivers, labelled, quarterTotals);
     return json({ ok: true }, 200);
   } catch (err) {
     console.error('retail-os update-plan-drivers failed', err);

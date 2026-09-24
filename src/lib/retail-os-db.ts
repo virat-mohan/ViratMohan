@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { applyStrategy, computePlanFromDrivers } from './retail-os-business-plan';
+import { applyStrategy, belowStrategy, computePlanFromDrivers } from './retail-os-business-plan';
 
 export type StageStatus = 'pending' | 'done' | 'skipped';
 
@@ -110,6 +110,8 @@ export type BusinessPlanDrivers = {
   rtoRatePct: number; rtoCostPerOrderInr: number; shippingCostPerOrderInr: number; packagingCostPerOrderInr: number;
   platformToolsFixedInrPerMonth: number;
   rationale: BusinessPlanDriverRationale;
+  lockedByAdmin?: boolean;
+  splitPct?: number;
 };
 export type BusinessPlanMonth = {
   label: string; orders: number; revenueInr: number; cogsInr: number; cacInr: number; adminTechInr: number;
@@ -335,6 +337,11 @@ export function getRetailOsDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE
       return this.getById(id);
     },
 
+    async updateApplicationFields(id: string, fields: Record<string, unknown>) {
+      const { error } = await supabase.from('retail_os_applications').update({ ...fields, updated_at: new Date().toISOString() }).eq('id', id);
+      if (error) throw new Error(`supabase updateApplicationFields failed: ${error.message}`);
+    },
+
     async saveSetupSection(id: string, sectionKey: string, answers: Record<string, string>) {
       const app = await this.getById(id);
       if (!app) throw new Error('saveSetupSection: application not found');
@@ -431,13 +438,13 @@ export function getRetailOsDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE
       return this.withStrategy(data as RetailOsBusinessPlan | null);
     },
 
-    // Plans saved before the 25/25/10 strategy was enforced can carry a
-    // negative profit pool; bring them onto the strategy and persist it.
+    // Plans saved before the strategy (25/25/10 costs, 25-orders-a-day ramp)
+    // was enforced are brought onto it and persisted the first time they load.
     async withStrategy(plan: RetailOsBusinessPlan | null): Promise<RetailOsBusinessPlan | null> {
-      if (!plan || (plan.quarter_totals?.profitPoolInr ?? 0) > 0) return plan;
+      if (!plan || plan.drivers?.lockedByAdmin || ((plan.quarter_totals?.profitPoolInr ?? 0) > 0 && !belowStrategy(plan.drivers))) return plan;
       const qt = plan.quarter_totals || {};
-      const splitPct = qt.profitPoolInr ? Math.round((qt.devshopShareInr / qt.profitPoolInr) * 100) : 25;
-      const drivers = applyStrategy(plan.drivers);
+      const splitPct = plan.drivers.splitPct ?? (qt.profitPoolInr ? Math.round((qt.devshopShareInr / qt.profitPoolInr) * 1000) / 10 : 32.5);
+      const drivers = { ...applyStrategy(plan.drivers), splitPct };
       const { months, quarterTotals } = computePlanFromDrivers(drivers, splitPct || 25);
       const labelled = months.map((m, i) => ({ ...m, label: plan.months[i]?.label ?? m.label }));
       await this.updatePlanDrivers(plan.id, drivers, labelled, quarterTotals).catch((err: unknown) => console.error('withStrategy persist failed', err));

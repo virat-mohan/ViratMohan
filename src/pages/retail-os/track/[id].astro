@@ -99,19 +99,68 @@ const checklist: CkItem[] = app ? [
   { key: 'live', label: 'Live & selling', day: [BUILD_WINDOW_DAYS, BUILD_WINDOW_DAYS], owner: 'DevShop', status: stageStatus('live'), we: 'Open the store and start ads; weekly settlement every Monday.', you: 'Pack and ship orders.' },
 ] : [];
 const doneCount = checklist.filter((c) => c.status !== 'pending').length;
-const intakeRows: [string, string | null | undefined][] = app ? [
-  ['Brand', app.brand_name], ['Founder', app.founder_name], ['Email', app.founder_email], ['Phone', app.founder_phone],
-  ['Where the brand is', ({ existing: 'Existing brand', new_sub_brand: 'New sub-brand', from_zero: 'Starting from zero' } as Record<string, string>)[app.brand_status ?? ''] ?? app.brand_status], ['Category', app.category], ['Format', app.format], ['Instagram', app.handle],
-  ['Selling today', app.has_revenue === 'yes' ? 'Yes' : app.has_revenue === 'no' ? 'No' : app.has_revenue], ['Monthly revenue', app.revenue_range], ['Following', app.following],
-  ['Catalog', app.catalog_mode === 'shopify' ? 'Shopify import' : app.catalog_mode ? 'Built manually' : null], ['Store URL', app.shopify_url], ['Products', app.product_count],
-  ['Store categories', app.store_categories?.join(', ')], ['Product called', [app.product_noun_singular, app.product_noun_plural].filter(Boolean).join(' / ')],
-  ['Payment setup', app.payment_mode === 'own' ? 'Own gateway account' : app.payment_mode ? 'DevShop-managed (payments land with DevShop first)' : null], ['Payment methods', ({ both: 'Prepaid + cash on delivery (COD)', prepaid: 'Prepaid only', cod: 'Cash on delivery only' } as Record<string, string>)[app.payment_methods ?? ''] ?? app.payment_methods], ['Shipping charge', ({ free: 'Free, always', threshold: 'Free above a threshold', flat: 'Flat fee', calculated: 'Calculated at checkout' } as Record<string, string>)[app.shipping_charge_model ?? ''] ?? app.shipping_charge_model],
-  ['Free shipping above', app.free_shipping_threshold ? `₹${app.free_shipping_threshold}` : null], ['Returns window', app.return_window === 'none' ? 'No returns' : app.return_window ? `${app.return_window} days` : null],
-  ['Same-day delivery', app.same_day_delivery === 'yes' ? `Yes${app.same_day_cities ? ` — ${app.same_day_cities}` : ''}` : app.same_day_delivery === 'no' ? 'No' : app.same_day_delivery], ['Carrier', app.carrier === 'own' ? 'Own courier account' : app.carrier ? 'DevShop aggregator' : null], ['Pickup pincode', app.pincode], ['Meta Business Manager', app.meta_bm === 'yes' ? 'Have one' : app.meta_bm ? 'Needs setup (DevShop does it)' : null],
-  ['Ad budget', app.ad_budget], ['WhatsApp number', app.wa_number], ['Target cities', app.target_cities],
-  ['Pay with a Post', app.post_ack ? 'Yes' : 'No'], ['Split range', app.split_range_lo != null ? `${app.split_range_lo}–${app.split_range_hi}%` : null],
-  ['AI-Enabler track', app.ai_enabler_track ? 'Yes' : 'No'],
+const editMode = Astro.url.searchParams.get('edit') === '1';
+type Field = { key: string; label: string; raw: string; shown: string | null | undefined; explain: string; options?: [string, string][] };
+const pick = (opts: [string, string][], v: string | null | undefined) => opts.find(([k]) => k === v)?.[1] ?? v;
+const O = {
+  brand_status: [['existing', 'Existing brand'], ['new_sub_brand', 'New sub-brand'], ['from_zero', 'Starting from zero']] as [string, string][],
+  yesno: [['yes', 'Yes'], ['no', 'No']] as [string, string][],
+  catalog_mode: [['shopify', 'Shopify import'], ['manual', 'Built manually']] as [string, string][],
+  payment_mode: [['managed', 'DevShop-managed'], ['own', 'Own gateway account']] as [string, string][],
+  payment_methods: [['both', 'Prepaid + cash on delivery'], ['prepaid', 'Prepaid only'], ['cod', 'Cash on delivery only']] as [string, string][],
+  shipping: [['free', 'Free, always'], ['threshold', 'Free above a minimum order'], ['flat', 'Flat fee'], ['calculated', 'Calculated at checkout']] as [string, string][],
+  returns: [['7', '7 days'], ['14', '14 days'], ['30', '30 days'], ['none', 'No returns']] as [string, string][],
+  carrier: [['aggregator', 'DevShop aggregator'], ['own', 'Own courier account']] as [string, string][],
+  meta_bm: [['yes', 'Have one'], ['no', 'Needs setup']] as [string, string][],
+};
+const thr = app?.free_shipping_threshold ? `₹${Number(app.free_shipping_threshold).toLocaleString('en-IN')}` : 'the minimum';
+const shipExplain: Record<string, string> = {
+  free: 'Customers never pay for shipping; the cost comes out of the profit pool.',
+  threshold: `Customers pay a shipping fee on orders under ${thr}; orders of ${thr} or more ship free.`,
+  flat: 'Every order carries the same shipping fee, whatever its size.',
+  calculated: 'Shipping is priced at checkout by weight and pincode.',
+};
+const payExplain: Record<string, string> = {
+  both: 'Customers can pay online (UPI, card, netbanking) or in cash when the order arrives. COD widens reach but has more returns.',
+  prepaid: 'Customers pay online before the order ships. No cash-on-delivery returns.',
+  cod: 'Customers pay in cash at delivery only.',
+};
+const fields: Field[] = app ? [
+  { key: 'brand_name', label: 'Brand', raw: app.brand_name, shown: app.brand_name, explain: 'The name on the store, emails and terms.' },
+  { key: 'founder_name', label: 'Founder', raw: app.founder_name, shown: app.founder_name, explain: 'Main contact and signatory.' },
+  { key: 'founder_email', label: 'Email', raw: app.founder_email, shown: app.founder_email, explain: 'Where this page link, terms and weekly statements go.' },
+  { key: 'founder_phone', label: 'Phone', raw: app.founder_phone ?? '', shown: app.founder_phone, explain: 'For quick questions during the build.' },
+  { key: 'brand_status', label: 'Where the brand is', raw: app.brand_status ?? '', shown: pick(O.brand_status, app.brand_status), explain: 'An existing brand keeps its name, domain and accounts; new brands get these set up by DevShop.', options: O.brand_status },
+  { key: 'category', label: 'Category', raw: app.category ?? '', shown: app.category, explain: 'Sets the benchmarks used for the forecast and design.' },
+  { key: 'format', label: 'Format', raw: app.format ?? '', shown: app.format, explain: 'D2C direct: you sell your own products on your own store.' },
+  { key: 'handle', label: 'Instagram', raw: app.handle ?? '', shown: app.handle, explain: 'Linked to the store for catalog and ads.' },
+  { key: 'has_revenue', label: 'Selling today', raw: app.has_revenue ?? '', shown: pick(O.yesno, app.has_revenue), explain: 'Brands already selling go on Full Operate; brands from zero can take the AI-Enabler route.', options: O.yesno },
+  { key: 'revenue_range', label: 'Monthly revenue', raw: app.revenue_range ?? '', shown: app.revenue_range, explain: 'Current online sales, used as the starting point.' },
+  { key: 'following', label: 'Following', raw: app.following ?? '', shown: app.following, explain: 'Instagram audience size; affects how fast orders ramp.' },
+  { key: 'catalog_mode', label: 'Catalog', raw: app.catalog_mode ?? '', shown: pick(O.catalog_mode, app.catalog_mode), explain: 'Shopify import: we copy products, photos and prices from the current store.', options: O.catalog_mode },
+  { key: 'shopify_url', label: 'Store URL', raw: app.shopify_url ?? '', shown: app.shopify_url, explain: 'The current store we import from.' },
+  { key: 'product_count', label: 'Products', raw: app.product_count ?? '', shown: app.product_count, explain: 'Number of products (SKUs) at launch.' },
+  { key: 'store_categories', label: 'Store categories', raw: app.store_categories?.join(', ') ?? '', shown: app.store_categories?.join(', '), explain: 'How the store menu is organised. Separate with commas.' },
+  { key: 'product_noun_singular', label: 'One product is called', raw: app.product_noun_singular ?? '', shown: app.product_noun_singular, explain: 'Used in store copy, e.g. "Add 2 packs".' },
+  { key: 'product_noun_plural', label: 'Many are called', raw: app.product_noun_plural ?? '', shown: app.product_noun_plural, explain: 'Plural of the above.' },
+  { key: 'payment_mode', label: 'Payment setup', raw: app.payment_mode ?? '', shown: pick(O.payment_mode, app.payment_mode), explain: "DevShop-managed: payments land in DevShop's account and are settled to you every Monday by 1 PM.", options: O.payment_mode },
+  { key: 'payment_methods', label: 'Payment methods', raw: app.payment_methods ?? '', shown: pick(O.payment_methods, app.payment_methods), explain: payExplain[app.payment_methods ?? ''] ?? '', options: O.payment_methods },
+  { key: 'shipping_charge_model', label: 'Shipping charge', raw: app.shipping_charge_model ?? '', shown: pick(O.shipping, app.shipping_charge_model), explain: shipExplain[app.shipping_charge_model ?? ''] ?? '', options: O.shipping },
+  { key: 'free_shipping_threshold', label: 'Free shipping from (₹)', raw: app.free_shipping_threshold ?? '', shown: app.free_shipping_threshold ? `₹${app.free_shipping_threshold}` : null, explain: 'Order value at which shipping becomes free.' },
+  { key: 'return_window', label: 'Returns window', raw: app.return_window ?? '', shown: pick(O.returns, app.return_window), explain: 'How long after delivery a customer can ask for a return.', options: O.returns },
+  { key: 'same_day_delivery', label: 'Same-day delivery', raw: app.same_day_delivery ?? '', shown: pick(O.yesno, app.same_day_delivery), explain: 'Same-day delivery in selected cities, if offered.', options: O.yesno },
+  { key: 'carrier', label: 'Courier', raw: app.carrier ?? '', shown: pick(O.carrier, app.carrier), explain: "DevShop aggregator: we book couriers on DevShop's rates; you just pack and hand over.", options: O.carrier },
+  { key: 'pincode', label: 'Pickup pincode', raw: app.pincode ?? '', shown: app.pincode, explain: 'Where couriers collect orders.' },
+  { key: 'meta_bm', label: 'Meta Business Manager', raw: app.meta_bm ?? '', shown: pick(O.meta_bm, app.meta_bm), explain: 'Needed for Instagram/Facebook ads and catalog. DevShop sets it up if missing.', options: O.meta_bm },
+  { key: 'ad_budget', label: 'Ad budget', raw: app.ad_budget ?? '', shown: app.ad_budget, explain: 'Monthly ad spend comes from the 25% marketing budget in the forecast.' },
+  { key: 'wa_number', label: 'WhatsApp number', raw: app.wa_number ?? '', shown: app.wa_number, explain: 'Number customers message for orders and support.' },
+  { key: 'target_cities', label: 'Target cities', raw: app.target_cities ?? '', shown: app.target_cities, explain: 'Where ads are focused first.' },
+  { key: 'post_ack', label: 'Pay with a Post', raw: app.post_ack ? 'Yes' : 'No', shown: app.post_ack ? 'Yes' : 'No', explain: 'Customers unlock a perk by posting about the product; DevShop takes 1% of sales it drives.', options: [['Yes', 'Yes'], ['No', 'No']] },
+  { key: 'split_range_lo', label: 'Split range: low (%)', raw: String(app.split_range_lo ?? ''), shown: app.split_range_lo != null ? `${app.split_range_lo}%` : null, explain: "Lowest DevShop share of the profit pool discussed." },
+  { key: 'split_range_hi', label: 'Split range: high (%)', raw: String(app.split_range_hi ?? ''), shown: app.split_range_hi != null ? `${app.split_range_hi}%` : null, explain: 'Highest DevShop share discussed. The final % is set in the terms.' },
 ] : [];
+const splitNow = app && plan ? (app.ai_enabler_track ? 0 : app.terms?.splitPct ?? plan.drivers.splitPct ?? (plan.quarter_totals.profitPoolInr ? Math.round((plan.quarter_totals.devshopShareInr / plan.quarter_totals.profitPoolInr) * 1000) / 10 : null)) : null;
+const perDay = (n: number) => Math.round((n / 30) * 10) / 10;
 
 const d = plan?.drivers?.rationale;
 const planWhy = d ? ([
@@ -248,6 +297,10 @@ const planWhy = d ? ([
   .ck-body{padding:4px 14px 14px; font-size:13.5px;}
   .ck-split{display:grid; grid-template-columns:1fr 1fr; gap:16px;} .ck-split p{margin:0;} .ck-split .sub-h{margin-top:10px;}
   .qlist{padding-left:18px; margin:8px 0 0;} .qlist > li{margin-bottom:8px;} .qlist ul{margin:4px 0 0; padding-left:16px; color:var(--ink-soft); font-size:12.5px;}
+  .edit-form{margin-top:14px; border-top:2px solid var(--ink); padding-top:6px;}
+  .edit-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px;}
+  .edit-grid label{display:flex; flex-direction:column; gap:4px; font-size:11px; font-weight:700; text-transform:uppercase; color:var(--ink-soft);}
+  .edit-grid input, .edit-grid select{border:1.5px solid var(--ink); padding:7px; font-size:13px; font-family:'Inter'; text-transform:none; color:var(--ink); background:#fff;}
   @media (max-width:560px){ .ck-split{grid-template-columns:1fr;} .ck-day{display:none;} .daybar span{display:none;} }
   .pnote{font-size:11.5px; color:var(--ink-soft);}
 
@@ -442,11 +495,12 @@ const planWhy = d ? ([
             <div class="fcell"><div class="l">3-month profit pool</div><div class="v">{inr(plan.quarter_totals.profitPoolInr)}</div></div>
             <div class="fcell"><div class="l">Your share</div><div class="v">{inr(plan.quarter_totals.founderShareInr)}</div></div>
           </div>
+          <p class="note" style="margin-top:8px;">{perDay(plan.drivers.ordersM1)} → {perDay(plan.drivers.ordersM3)} orders a day over the quarter. {splitNow != null && !app.ai_enabler_track && <>Profit pool split: <b>DevShop {splitNow}% · {app.brand_name} {Math.round((100 - splitNow) * 10) / 10}%</b>.</>} <a href="#checklist">See the full plan ↓</a></p>
           {app.agreement ? (<>
           <div class="scroll">
             <table class="months">
-              <tr><th>Month</th><th>Orders</th><th>Revenue</th><th>Profit pool</th><th>Your share</th></tr>
-              {plan.months.map((m) => <tr><td>{m.label}</td><td>{m.orders.toLocaleString('en-IN')}</td><td>{inr(m.revenueInr)}</td><td>{inr(m.profitPoolInr)}</td><td>{inr(m.founderShareInr)}</td></tr>)}
+              <tr><th>Month</th><th>Orders/day</th><th>Orders</th><th>Revenue</th><th>Profit pool</th><th>Your share</th></tr>
+              {plan.months.map((m) => <tr><td>{m.label}</td><td>{perDay(m.orders)}</td><td>{m.orders.toLocaleString('en-IN')}</td><td>{inr(m.revenueInr)}</td><td>{inr(m.profitPoolInr)}</td><td>{inr(m.founderShareInr)}</td></tr>)}
             </table>
           </div>
           {planWhy.length > 0 && (
@@ -569,27 +623,71 @@ const planWhy = d ? ([
                 </div>
 
                 {c.detail === 'application' && (
-                  <table class="terms">{intakeRows.filter(([, v]) => v).map(([k, v]) => <tr><td>{k}</td><td>{v}</td></tr>)}</table>
+                  <table class="terms">{fields.filter((f) => f.shown).map((f) => <tr><td>{f.label}</td><td>{f.shown}{f.explain && <div class="pnote">{f.explain}</div>}</td></tr>)}</table>
+                )}
+                {c.detail === 'application' && editMode && (
+                  <form class="stack edit-form" id="appEditForm">
+                    <div class="sub-h">Edit answers</div>
+                    <div class="edit-grid">
+                      {fields.map((f) => (
+                        <label>{f.label}
+                          {f.options
+                            ? <select name={f.key}><option value="">—</option>{f.options.map(([v, l]) => <option value={v} selected={f.raw === v}>{l}</option>)}</select>
+                            : <input type="text" name={f.key} value={f.raw} />}
+                        </label>
+                      ))}
+                    </div>
+                    <button type="submit" class="btn">Save answers</button>
+                    <div class="msg" id="appEditMsg"></div>
+                  </form>
                 )}
 
                 {c.detail === 'plan' && plan && (
                   <>
                     <table class="terms">
-                      <tr><td>Orders (months 1–3)</td><td>{plan.drivers.ordersM1} · {plan.drivers.ordersM2} · {plan.drivers.ordersM3}</td></tr>
+                      <tr><td>Orders per day</td><td>{perDay(plan.drivers.ordersM1)} · {perDay(plan.drivers.ordersM2)} · {perDay(plan.drivers.ordersM3)}<div class="pnote">Months 1–3; that's {plan.drivers.ordersM1.toLocaleString('en-IN')} · {plan.drivers.ordersM2.toLocaleString('en-IN')} · {plan.drivers.ordersM3.toLocaleString('en-IN')} orders a month (30-day months).</div></td></tr>
                       <tr><td>Average order value</td><td>{inr(plan.drivers.aovInr)}</td></tr>
                       <tr><td>Product cost</td><td>{plan.drivers.cogsPct}% of revenue</td></tr>
                       <tr><td>Marketing (online + offline)</td><td>{plan.drivers.cacPct}% of revenue</td></tr>
                       <tr><td>Admin and other costs</td><td>{plan.quarter_totals.revenueInr ? Math.round(((plan.quarter_totals.adminTechInr + plan.quarter_totals.operatingExpensesInr) / plan.quarter_totals.revenueInr) * 1000) / 10 : 0}% of revenue (fees, shipping, packing, returns, platform)</td></tr>
                       <tr><td>3-month revenue</td><td>{inr(plan.quarter_totals.revenueInr)}</td></tr>
                       <tr><td>3-month profit pool</td><td>{inr(plan.quarter_totals.profitPoolInr)}</td></tr>
+                      {splitNow != null && !app.ai_enabler_track && <tr><td>Profit pool split</td><td>DevShop {splitNow}% ({inr(plan.quarter_totals.devshopShareInr)}) · {app.brand_name} {Math.round((100 - splitNow) * 10) / 10}% ({inr(plan.quarter_totals.founderShareInr)})</td></tr>}
                     </table>
+                    {editMode && (
+                      <form class="stack edit-form" id="planEditForm" data-plan={plan.id}>
+                        <div class="sub-h">Edit forecast</div>
+                        <div class="edit-grid">
+                          <label>Orders/day, month 1<input type="number" step="0.1" name="perDay1" value={perDay(plan.drivers.ordersM1)} /></label>
+                          <label>Orders/day, month 2<input type="number" step="0.1" name="perDay2" value={perDay(plan.drivers.ordersM2)} /></label>
+                          <label>Orders/day, month 3<input type="number" step="0.1" name="perDay3" value={perDay(plan.drivers.ordersM3)} /></label>
+                          <label>Average order value (₹)<input type="number" name="aovInr" value={plan.drivers.aovInr} /></label>
+                          <label>Product cost (% of revenue)<input type="number" step="0.1" name="cogsPct" value={plan.drivers.cogsPct} /></label>
+                          <label>Marketing (% of revenue)<input type="number" step="0.1" name="cacPct" value={plan.drivers.cacPct} /></label>
+                          <label>Admin & tech (% of revenue)<input type="number" step="0.1" name="adminTechPct" value={plan.drivers.adminTechPct} /></label>
+                          {!app.ai_enabler_track && <label>DevShop share of profit pool (%)<input type="number" step="0.5" name="splitPct" value={splitNow ?? ''} /></label>}
+                          <label>COD share of orders (%)<input type="number" step="0.1" name="codOrderSharePct" value={plan.drivers.codOrderSharePct} /></label>
+                          <label>Gateway fee (% of prepaid)<input type="number" step="0.01" name="paymentGatewayFeePct" value={plan.drivers.paymentGatewayFeePct} /></label>
+                          <label>COD fee (% of COD)<input type="number" step="0.01" name="codHandlingFeePct" value={plan.drivers.codHandlingFeePct} /></label>
+                          <label>RTO rate (% of COD)<input type="number" step="0.1" name="rtoRatePct" value={plan.drivers.rtoRatePct} /></label>
+                          <label>RTO cost per order (₹)<input type="number" name="rtoCostPerOrderInr" value={plan.drivers.rtoCostPerOrderInr} /></label>
+                          <label>Shipping per order (₹)<input type="number" name="shippingCostPerOrderInr" value={plan.drivers.shippingCostPerOrderInr} /></label>
+                          <label>Packaging per order (₹)<input type="number" name="packagingCostPerOrderInr" value={plan.drivers.packagingCostPerOrderInr} /></label>
+                          <label>Platform & tools (₹/month)<input type="number" name="platformToolsFixedInrPerMonth" value={plan.drivers.platformToolsFixedInrPerMonth} /></label>
+                          <input type="hidden" name="postBarterFeePct" value={plan.drivers.postBarterFeePct} />
+                        </div>
+                        <p class="note">Saving locks these numbers in: the automatic 25/25/10 strategy won't change them again.</p>
+                        <button type="submit" class="btn">Save forecast</button>
+                        <div class="msg" id="planEditMsg"></div>
+                      </form>
+                    )}
                     {plan.assumptions.length > 0 && (
                       <>
                         <div class="sub-h" style="margin-top:12px;">Assumptions</div>
                         <ul class="plain">{plan.assumptions.map((a) => <li><b>{a.label}:</b> {a.value}{a.rationale && <span class="pnote"> — {a.rationale}</span>}</li>)}</ul>
                       </>
                     )}
-                    <p class="note">Any number can be changed with Virat and locked in before signing. <a href={`/retail-os/admin/plan/${app.id}`}>Adjust assumptions (Virat)</a></p>
+                    <p class="note">Any number can be changed with Virat and locked in before signing.</p>
                   </>
                 )}
                 {c.detail === 'plan' && !plan && <p class="note">Being prepared.</p>}
@@ -725,6 +823,33 @@ const planWhy = d ? ([
         msg.textContent = (res.data && res.data.error) || 'Could not save. Try again.';
         btn.disabled = false;
       });
+    });
+  });
+
+  var appEdit = document.getElementById('appEditForm');
+  if (appEdit) appEdit.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var msg = document.getElementById('appEditMsg'); msg.textContent = 'Saving…';
+    var fields = {};
+    appEdit.querySelectorAll('input, select').forEach(function (el) { if (el.name) fields[el.name] = el.value; });
+    post('/retail-os/api/admin/update-application', { id: appId, fields: fields }).then(function (res) {
+      if (res.ok) return location.reload();
+      msg.textContent = (res.data && res.data.error) || 'Could not save. Are you logged in to admin?';
+    });
+  });
+
+  var planEdit = document.getElementById('planEditForm');
+  if (planEdit) planEdit.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var msg = document.getElementById('planEditMsg'); msg.textContent = 'Saving…';
+    var v = {};
+    planEdit.querySelectorAll('input').forEach(function (el) { if (el.name) v[el.name] = Number(el.value); });
+    v.ordersM1 = Math.round(v.perDay1 * 30); v.ordersM2 = Math.round(v.perDay2 * 30); v.ordersM3 = Math.round(v.perDay3 * 30);
+    delete v.perDay1; delete v.perDay2; delete v.perDay3;
+    v.planId = planEdit.getAttribute('data-plan'); v.applicationId = appId;
+    post('/retail-os/api/admin/update-plan-drivers', v).then(function (res) {
+      if (res.ok) return location.reload();
+      msg.textContent = (res.data && res.data.error) || 'Could not save. Are you logged in to admin?';
     });
   });
 
