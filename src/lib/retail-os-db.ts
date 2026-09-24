@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { applyStrategy, computePlanFromDrivers } from './retail-os-business-plan';
 
 export type StageStatus = 'pending' | 'done' | 'skipped';
 
@@ -415,7 +416,7 @@ export function getRetailOsDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE
     async getBusinessPlanById(planId: string): Promise<RetailOsBusinessPlan | null> {
       const { data, error } = await supabase.from('retail_os_business_plans').select('*').eq('id', planId).maybeSingle();
       if (error) throw new Error(`supabase retail_os_business_plans get failed: ${error.message}`);
-      return data as RetailOsBusinessPlan | null;
+      return this.withStrategy(data as RetailOsBusinessPlan | null);
     },
 
     async getLatestBusinessPlan(applicationId: string): Promise<RetailOsBusinessPlan | null> {
@@ -427,7 +428,20 @@ export function getRetailOsDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE
         .limit(1)
         .maybeSingle();
       if (error) throw new Error(`supabase retail_os_business_plans select failed: ${error.message}`);
-      return data as RetailOsBusinessPlan | null;
+      return this.withStrategy(data as RetailOsBusinessPlan | null);
+    },
+
+    // Plans saved before the 25/25/10 strategy was enforced can carry a
+    // negative profit pool; bring them onto the strategy and persist it.
+    async withStrategy(plan: RetailOsBusinessPlan | null): Promise<RetailOsBusinessPlan | null> {
+      if (!plan || (plan.quarter_totals?.profitPoolInr ?? 0) > 0) return plan;
+      const qt = plan.quarter_totals || {};
+      const splitPct = qt.profitPoolInr ? Math.round((qt.devshopShareInr / qt.profitPoolInr) * 100) : 25;
+      const drivers = applyStrategy(plan.drivers);
+      const { months, quarterTotals } = computePlanFromDrivers(drivers, splitPct || 25);
+      const labelled = months.map((m, i) => ({ ...m, label: plan.months[i]?.label ?? m.label }));
+      await this.updatePlanDrivers(plan.id, drivers, labelled, quarterTotals).catch((err: unknown) => console.error('withStrategy persist failed', err));
+      return { ...plan, drivers, months: labelled, quarter_totals: quarterTotals };
     },
 
     async saveDesignDirection(row: {

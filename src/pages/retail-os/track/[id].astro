@@ -74,6 +74,45 @@ const JOURNEY: { key: string; label: string }[] = [
 const STEP_INDEX: Record<JourneyStep, number> = { preparing: 1, review: 2, sign: 2, deposit: 3, confirming: 3, building: 4, live: 5 };
 const currentIndex = step ? STEP_INDEX[step] : 0;
 
+// ── Checklist: every step of the journey on a 7-day clock from application ──
+const clockStart = app ? new Date(app.created_at) : new Date();
+const goLiveTarget = new Date(clockStart.getTime() + BUILD_WINDOW_DAYS * 86400000);
+const today = Math.max(0, Math.floor((Date.now() - clockStart.getTime()) / 86400000));
+const stageStatus = (k: string) => app?.stages.find((s) => s.key === k)?.status ?? 'pending';
+const dayDate = (n: number) => new Date(clockStart.getTime() + n * 86400000).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' });
+type CkItem = { key: string; label: string; day: [number, number]; owner: 'DevShop' | 'You' | 'Together'; status: 'done' | 'pending' | 'skipped'; we: string; you: string; detail?: 'application' | 'plan' | 'design' | 'terms' | 'deposit' | 'setup' };
+const checklist: CkItem[] = app ? [
+  { key: 'submitted', label: 'Application', day: [0, 0], owner: 'You', status: 'done', we: 'Read your answers and research your category and cities.', you: 'Tell us about the brand, catalog, payments and shipping.', detail: 'application' },
+  { key: 'plan', label: 'Business plan & forecast', day: [0, 0], owner: 'Together', status: plan ? 'done' : 'pending', we: `Build a 3-month P&L on DevShop's strategy: product ≤25%, marketing ≤25%, admin and all other costs ≤10% of revenue.`, you: 'Go through the assumptions with Virat and agree the numbers.', detail: 'plan' },
+  { key: 'design', label: 'Design direction', day: [0, 0], owner: 'You', status: chosenDesign || stageStatus('design') === 'done' ? 'done' : 'pending', we: 'Propose three directions, each based on a real brand that works.', you: 'Pick the one that feels most like your brand.', detail: 'design' },
+  { key: 'agreement', label: 'Terms signed', day: [0, 0], owner: 'Together', status: app.agreement ? 'done' : 'pending', we: 'Send your terms with the agreed lane and split.', you: 'Read, type your name, tick both boxes and sign.', detail: 'terms' },
+  { key: 'deposit', label: 'Deposit ₹5,000', day: [0, 0], owner: 'You', status: app.deposit?.confirmedAt ? 'done' : 'pending', we: 'Confirm it; the build starts the same moment.', you: 'Pay by UPI.', detail: 'deposit' },
+  { key: 'setup', label: 'Setup questions', day: [1, 1], owner: 'You', status: sections.length > 0 && answeredCount === sections.length ? 'done' : 'pending', we: 'Use the answers to configure everything below.', you: 'Answer each section on this page.', detail: 'setup' },
+  { key: 'identity', label: 'Brand identity', day: [1, 2], owner: 'DevShop', status: stageStatus('identity'), we: 'Domain, brand email, Instagram and Meta Business Manager where needed.', you: 'Approve names and handles.' },
+  { key: 'catalog', label: 'Catalog', day: [1, 2], owner: 'DevShop', status: stageStatus('catalog'), we: 'Import from Shopify or build the catalog; prices fixed with you.', you: 'Confirm products, prices and stock.' },
+  { key: 'payments', label: 'Payments', day: [2, 4], owner: 'Together', status: stageStatus('payments'), we: 'Set up the gateway and settlement into DevShop, then weekly to you.', you: 'Share KYC documents when the gateway asks.' },
+  { key: 'shipping', label: 'Shipping', day: [2, 3], owner: 'DevShop', status: stageStatus('shipping'), we: 'Wire in the courier, pickup address and rates.', you: 'Confirm the pickup address and packing process.' },
+  { key: 'meta', label: 'Meta (Instagram & Facebook)', day: [3, 4], owner: 'DevShop', status: stageStatus('meta'), we: 'Connect Business Manager, catalog and pixel; draft launch ads.', you: 'Accept the access request.' },
+  { key: 'whatsapp', label: 'WhatsApp', day: [3, 5], owner: 'DevShop', status: stageStatus('whatsapp'), we: 'Provision the WhatsApp Business number for orders and catalog.', you: 'Approve the display name.' },
+  { key: 'postbarter', label: 'Pay with a Post', day: [5, 5], owner: 'DevShop', status: stageStatus('postbarter'), we: 'Switch on post-to-unlock at checkout, if opted in.', you: 'Nothing.' },
+  { key: 'golive', label: 'Go-live review', day: [6, 6], owner: 'Together', status: stageStatus('golive'), we: 'Test orders, payments, shipping and messages end to end.', you: 'Place a test order and sign off.' },
+  { key: 'live', label: 'Live & selling', day: [BUILD_WINDOW_DAYS, BUILD_WINDOW_DAYS], owner: 'DevShop', status: stageStatus('live'), we: 'Open the store and start ads; weekly settlement every Monday.', you: 'Pack and ship orders.' },
+] : [];
+const doneCount = checklist.filter((c) => c.status !== 'pending').length;
+const intakeRows: [string, string | null | undefined][] = app ? [
+  ['Brand', app.brand_name], ['Founder', app.founder_name], ['Email', app.founder_email], ['Phone', app.founder_phone],
+  ['Stage', app.brand_status], ['Category', app.category], ['Format', app.format], ['Instagram', app.handle],
+  ['Selling today', app.has_revenue], ['Monthly revenue', app.revenue_range], ['Following', app.following],
+  ['Catalog', app.catalog_mode], ['Store URL', app.shopify_url], ['Products', app.product_count],
+  ['Store categories', app.store_categories?.join(', ')], ['Product called', [app.product_noun_singular, app.product_noun_plural].filter(Boolean).join(' / ')],
+  ['Payments', app.payment_mode], ['Payment methods', app.payment_methods], ['Shipping charge', app.shipping_charge_model],
+  ['Free shipping above', app.free_shipping_threshold ? `₹${app.free_shipping_threshold}` : null], ['Returns window', app.return_window ? `${app.return_window} days` : null],
+  ['Same-day delivery', app.same_day_delivery], ['Carrier', app.carrier], ['Pickup pincode', app.pincode], ['Meta Business Manager', app.meta_bm],
+  ['Ad budget', app.ad_budget], ['WhatsApp number', app.wa_number], ['Target cities', app.target_cities],
+  ['Pay with a Post', app.post_ack ? 'Yes' : 'No'], ['Split range', app.split_range_lo != null ? `${app.split_range_lo}–${app.split_range_hi}%` : null],
+  ['AI-Enabler track', app.ai_enabler_track ? 'Yes' : 'No'],
+] : [];
+
 const d = plan?.drivers?.rationale;
 const planWhy = d ? ([
   ['Orders', d.orders], ['Average order value', d.aov], ['Product cost', d.cogsPct], ['Marketing', d.cacPct],
@@ -197,6 +236,19 @@ const planWhy = d ? ([
   .prow:last-child{border-bottom:none;}
   .badge{font-family:'IBM Plex Mono'; font-size:9.5px; font-weight:700; text-transform:uppercase; padding:3px 8px; border:1.5px solid var(--line); min-width:74px; text-align:center; flex:none;}
   .badge.done{background:var(--ink); color:var(--cream); border-color:var(--ink);} .badge.skipped{color:var(--line);}
+  .daybar{display:grid; grid-template-columns:repeat(8,1fr); gap:4px; margin:10px 0 14px;}
+  .dcell{border:1.5px solid var(--line); padding:6px 4px; text-align:center; font-size:10.5px; line-height:1.3;}
+  .dcell b{display:block; font-family:'IBM Plex Mono'; font-size:12px;} .dcell span{color:var(--ink-soft);}
+  .dcell.past{background:rgba(26,20,16,0.06);} .dcell.now{background:var(--gold); border-color:var(--ink);}
+  details.ck{border:1.5px solid var(--line); border-bottom:none;} details.ck:last-of-type{border-bottom:1.5px solid var(--line);}
+  details.ck summary{display:flex; align-items:center; gap:12px; padding:11px 12px; cursor:pointer; list-style:none; font-size:13.5px;}
+  details.ck summary::-webkit-details-marker{display:none;}
+  details.ck[open] summary{background:rgba(212,175,55,0.18);}
+  .ck-label{font-weight:700; flex:1;} .ck-day{font-family:'IBM Plex Mono'; font-size:11px; color:var(--ink-soft); white-space:nowrap;}
+  .ck-body{padding:4px 14px 14px; font-size:13.5px;}
+  .ck-split{display:grid; grid-template-columns:1fr 1fr; gap:16px;} .ck-split p{margin:0;} .ck-split .sub-h{margin-top:10px;}
+  .qlist{padding-left:18px; margin:8px 0 0;} .qlist > li{margin-bottom:8px;} .qlist ul{margin:4px 0 0; padding-left:16px; color:var(--ink-soft); font-size:12.5px;}
+  @media (max-width:560px){ .ck-split{grid-template-columns:1fr;} .ck-day{display:none;} .daybar span{display:none;} }
   .pnote{font-size:11.5px; color:var(--ink-soft);}
 
   .notfound{padding-block:60px; text-align:center;}
@@ -493,16 +545,86 @@ const planWhy = d ? ([
       </div>
 
       {/* ── Detailed checklist ── */}
-      <div class="panel">
-        <h2>Build checklist</h2>
-        <div class="pipeline">
-          {app.stages.map((s) => (
-            <div class="prow">
-              <span class={`badge ${s.status}`}>{s.status === 'done' ? 'Done' : s.status === 'skipped' ? 'Not needed' : 'Pending'}</span>
-              <div><div style="font-weight:700;">{s.label}</div>{s.note && <div class="pnote">{s.note}</div>}</div>
-            </div>
+      <div class="panel" id="checklist">
+        <h2>Checklist <span class="tag">{doneCount} of {checklist.length} done</span></h2>
+        <p class="note" style="margin-top:0;">Day 0 is {dayDate(0)}, the day you applied. Target go-live: <b>{fmtDate(goLiveTarget)}</b> (day {BUILD_WINDOW_DAYS}). Today is day {Math.min(today, 99)}. Tap any step to see the detail.</p>
+        <div class="daybar">
+          {Array.from({ length: BUILD_WINDOW_DAYS + 1 }, (_, n) => (
+            <div class={`dcell ${n < today ? 'past' : n === today ? 'now' : ''}`}><b>D{n}</b><span>{dayDate(n).split(' ').slice(1).join(' ')}</span></div>
           ))}
         </div>
+        {checklist.map((c) => {
+          const late = c.status === 'pending' && today > c.day[1];
+          return (
+            <details class={`ck ${c.status}`}>
+              <summary>
+                <span class={`badge ${c.status}`}>{c.status === 'done' ? 'Done' : c.status === 'skipped' ? 'Not needed' : late ? 'Due' : 'Pending'}</span>
+                <span class="ck-label">{c.label}</span>
+                <span class="ck-day">{c.day[0] === c.day[1] ? `Day ${c.day[0]}` : `Days ${c.day[0]}–${c.day[1]}`} · {c.owner}</span>
+              </summary>
+              <div class="ck-body">
+                <div class="ck-split">
+                  <div><div class="sub-h">DevShop does</div><p>{c.we}</p></div>
+                  <div><div class="sub-h">You do</div><p>{c.you}</p></div>
+                </div>
+
+                {c.detail === 'application' && (
+                  <table class="terms">{intakeRows.filter(([, v]) => v).map(([k, v]) => <tr><td>{k}</td><td>{v}</td></tr>)}</table>
+                )}
+
+                {c.detail === 'plan' && plan && (
+                  <>
+                    <table class="terms">
+                      <tr><td>Orders (months 1–3)</td><td>{plan.drivers.ordersM1} · {plan.drivers.ordersM2} · {plan.drivers.ordersM3}</td></tr>
+                      <tr><td>Average order value</td><td>{inr(plan.drivers.aovInr)}</td></tr>
+                      <tr><td>Product cost</td><td>{plan.drivers.cogsPct}% of revenue</td></tr>
+                      <tr><td>Marketing (online + offline)</td><td>{plan.drivers.cacPct}% of revenue</td></tr>
+                      <tr><td>Admin and other costs</td><td>{plan.quarter_totals.revenueInr ? Math.round(((plan.quarter_totals.adminTechInr + plan.quarter_totals.operatingExpensesInr) / plan.quarter_totals.revenueInr) * 1000) / 10 : 0}% of revenue (fees, shipping, packing, returns, platform)</td></tr>
+                      <tr><td>3-month revenue</td><td>{inr(plan.quarter_totals.revenueInr)}</td></tr>
+                      <tr><td>3-month profit pool</td><td>{inr(plan.quarter_totals.profitPoolInr)}</td></tr>
+                    </table>
+                    {plan.assumptions.length > 0 && (
+                      <>
+                        <div class="sub-h" style="margin-top:12px;">Assumptions</div>
+                        <ul class="plain">{plan.assumptions.map((a) => <li><b>{a.label}:</b> {a.value}{a.rationale && <span class="pnote"> — {a.rationale}</span>}</li>)}</ul>
+                      </>
+                    )}
+                    <p class="note">Any number can be changed with Virat and locked in before signing. <a href={`/retail-os/admin/plan/${app.id}`}>Adjust assumptions (Virat)</a></p>
+                  </>
+                )}
+                {c.detail === 'plan' && !plan && <p class="note">Being prepared.</p>}
+
+                {c.detail === 'design' && (
+                  <p class="note">{chosenDesign ? <>Chosen: <b>{chosenDesign.option_name}</b>, based on {chosenDesign.primary_reference.name}.</> : designs.length ? <>{designs.length} directions proposed: {designs.map((o) => o.option_name).join(', ')}. <a href="#design">Choose one ↑</a></> : 'Being prepared.'}</p>
+                )}
+
+                {c.detail === 'terms' && (
+                  <>
+                    {termLines.length > 0
+                      ? <table class="terms">{termLines.map((l) => <tr><td>{l.label}</td><td>{l.value}</td></tr>)}</table>
+                      : <p class="note">Sent to this page once the commercial lane and split are agreed with Virat.</p>}
+                    <p class="note">Documents: <a href="/retail-os/docs/DevShop-Retail-OS-NCNDA.docx" download>NCNDA</a> · <a href="/retail-os/docs/DevShop-Retail-OS-Partnership-Terms.docx" download>Partnership terms (summary)</a></p>
+                  </>
+                )}
+
+                {c.detail === 'deposit' && (
+                  <p class="note">{app.deposit?.confirmedAt ? `Confirmed ${new Date(app.deposit.confirmedAt).toLocaleDateString('en-IN')} (ref ${app.deposit.utr}).` : app.deposit ? 'Reported, being confirmed.' : `₹${DEPOSIT_INR.toLocaleString('en-IN')}, fully adjusted against onboarding tech costs. Due once terms are signed.`}</p>
+                )}
+
+                {c.detail === 'setup' && (
+                  <ol class="qlist">
+                    {sections.map((s) => (
+                      <li>
+                        <b>{s.title}</b>{answered[s.key] && <span class="tag ok" style="margin-left:6px;">Answered</span>}
+                        <ul>{s.fields.map((f) => <li>{f.label}{answered[s.key]?.answers[f.key] && <> — <span class="mono">{answered[s.key]!.answers[f.key]}</span></>}</li>)}</ul>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </div>
+            </details>
+          );
+        })}
       </div>
     </>
   ) : (

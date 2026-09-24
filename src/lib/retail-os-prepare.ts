@@ -1,6 +1,6 @@
 import type { RetailOsApplication } from './retail-os-db';
 import { getRetailOsDb } from './retail-os-db';
-import { generateBusinessPlan, computePlanFromDrivers, BUSINESS_PLAN_PROMPT_VERSION } from './retail-os-business-plan';
+import { generateBusinessPlan, computePlanFromDrivers, applyStrategy, BUSINESS_PLAN_PROMPT_VERSION } from './retail-os-business-plan';
 import { generateDesignDirection, DESIGN_DIRECTION_PROMPT_VERSION } from './retail-os-design-direction';
 
 type Db = ReturnType<typeof getRetailOsDb>;
@@ -40,11 +40,11 @@ export async function createPlanForApplication(db: Db, app: RetailOsApplication,
     ? "DevShop's Pay with a Post platform fee — 1% of realised revenue, applied like a payment gateway charge."
     : 'Not opted into Pay with a Post — no fee applies.';
 
-  const drivers = {
+  const drivers = applyStrategy({
     ...output.drivers,
     postBarterFeePct,
     rationale: { ...output.driverRationale, postBarter: postBarterRationale },
-  };
+  });
   const { months, quarterTotals } = computePlanFromDrivers(drivers, splitPctFor(app));
 
   return db.saveBusinessPlan({

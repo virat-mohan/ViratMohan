@@ -252,6 +252,32 @@ export async function generateBusinessPlan(app: BrandContext, apiKey: string): P
   }
 }
 
+// DevShop's operating strategy: COGS ≤ 25%, CAC ≤ 25%, and admin plus every
+// other cost (fees, shipping, packing, RTO, platform) held to 10% of revenue,
+// so the benchmark profit pool is never below 40%. Researched drivers above
+// these caps are pulled down to them; lower ones are kept.
+export const STRATEGY = { cogsPct: 25, cacPct: 25, adminAndOtherPct: 10 };
+export function applyStrategy<T extends PlanDrivers>(d: T): T {
+  const x: T = { ...d, cogsPct: Math.min(d.cogsPct, STRATEGY.cogsPct), cacPct: Math.min(d.cacPct, STRATEGY.cacPct) };
+  const probe = computePlanFromDrivers({ ...x, adminTechPct: 0 }, 0).quarterTotals;
+  const opexPct = probe.revenueInr > 0 ? (probe.operatingExpensesInr / probe.revenueInr) * 100 : 0;
+  if (opexPct > STRATEGY.adminAndOtherPct) {
+    const f = STRATEGY.adminAndOtherPct / opexPct;
+    const r1 = (n: number) => Math.round(n * f * 100) / 100;
+    x.paymentGatewayFeePct = r1(d.paymentGatewayFeePct);
+    x.codHandlingFeePct = r1(d.codHandlingFeePct);
+    x.postBarterFeePct = r1(d.postBarterFeePct);
+    x.rtoCostPerOrderInr = Math.round(d.rtoCostPerOrderInr * f);
+    x.shippingCostPerOrderInr = Math.round(d.shippingCostPerOrderInr * f);
+    x.packagingCostPerOrderInr = Math.round(d.packagingCostPerOrderInr * f);
+    x.platformToolsFixedInrPerMonth = Math.round(d.platformToolsFixedInrPerMonth * f);
+    x.adminTechPct = 0;
+  } else {
+    x.adminTechPct = Math.min(d.adminTechPct, Math.round((STRATEGY.adminAndOtherPct - opexPct) * 10) / 10);
+  }
+  return x;
+}
+
 // The one place monthly figures and shares are ever computed — called on
 // initial generation AND on every human edit to the drivers, so "editing a
 // number updates the plan" and "the LLM's plan" are always the same code
