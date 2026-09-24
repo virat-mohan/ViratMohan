@@ -1,27 +1,26 @@
 import type { RetailOsApplication } from './retail-os-db';
 import { getRetailOsDb } from './retail-os-db';
-import { generateBusinessPlan, computePlanFromDrivers, applyStrategy, BUSINESS_PLAN_PROMPT_VERSION } from './retail-os-business-plan';
+import { generateBusinessPlan, computePlanFromDrivers, applyStrategy, STANDARD_SPLIT_PCT, BUSINESS_PLAN_PROMPT_VERSION } from './retail-os-business-plan';
 import { generateDesignDirection, DESIGN_DIRECTION_PROMPT_VERSION } from './retail-os-design-direction';
 
 type Db = ReturnType<typeof getRetailOsDb>;
 
 // The split a plan is computed at: the sent/signed terms, else whatever was
-// last set on the plan, else the midpoint of the brand's indicative range.
-export function planSplitPct(plan: { drivers: { splitPct?: number } } | null, app: RetailOsApplication): number {
+// negotiated on the plan, else the 40% standard.
+export function planSplitPct(plan: { drivers: { splitPct?: number; lockedByAdmin?: boolean } } | null, app: RetailOsApplication): number {
   if (app.ai_enabler_track) return 0;
   if (app.terms?.splitPct != null) return app.terms.splitPct;
-  if (plan?.drivers?.splitPct != null) return plan.drivers.splitPct;
+  if (plan?.drivers?.lockedByAdmin && plan.drivers.splitPct != null) return plan.drivers.splitPct;
   return splitPctFor(app);
 }
 
-// DevShop's split % — midpoint of the stored indicative range, or the final
-// % once terms have been sent. The AI-Enabler track has no profit-pool split
-// (its economics run on brand-IP equity), so 0%.
+// DevShop's split % — 40% as standard until negotiated (sent terms or an
+// edit on the plan). The AI-Enabler track has no profit-pool split (its
+// economics run on brand-IP equity), so 0%.
 export function splitPctFor(app: RetailOsApplication): number {
   if (app.ai_enabler_track) return 0;
   if (app.terms?.splitPct != null) return app.terms.splitPct;
-  if (app.split_range_lo != null && app.split_range_hi != null) return (app.split_range_lo + app.split_range_hi) / 2;
-  return 37.5;
+  return STANDARD_SPLIT_PCT;
 }
 
 export async function createPlanForApplication(db: Db, app: RetailOsApplication, apiKey: string, extraNotes = ''): Promise<string> {

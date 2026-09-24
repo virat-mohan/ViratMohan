@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { applyStrategy, belowStrategy, computePlanFromDrivers } from './retail-os-business-plan';
+import { applyStrategy, belowStrategy, computePlanFromDrivers, STANDARD_SPLIT_PCT } from './retail-os-business-plan';
 
 export type StageStatus = 'pending' | 'done' | 'skipped';
 
@@ -438,12 +438,14 @@ export function getRetailOsDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE
       return this.withStrategy(data as RetailOsBusinessPlan | null);
     },
 
-    // Plans saved before the strategy (25/25/10 costs, 25-orders-a-day ramp)
-    // was enforced are brought onto it and persisted the first time they load.
+    // Plans not yet negotiated by Virat are kept on the standard strategy
+    // (25/25/10 costs, 25-orders-a-day ramp, 40% split), persisted on load.
     async withStrategy(plan: RetailOsBusinessPlan | null): Promise<RetailOsBusinessPlan | null> {
-      if (!plan || plan.drivers?.lockedByAdmin || ((plan.quarter_totals?.profitPoolInr ?? 0) > 0 && !belowStrategy(plan.drivers))) return plan;
-      const qt = plan.quarter_totals || {};
-      const splitPct = plan.drivers.splitPct ?? (qt.profitPoolInr ? Math.round((qt.devshopShareInr / qt.profitPoolInr) * 1000) / 10 : 32.5);
+      if (!plan || plan.drivers?.lockedByAdmin) return plan;
+      const aiEnabler = (plan.quarter_totals?.devshopShareInr ?? 0) === 0 && (plan.quarter_totals?.profitPoolInr ?? 0) > 0;
+      const splitOff = !aiEnabler && plan.drivers?.splitPct !== STANDARD_SPLIT_PCT;
+      if ((plan.quarter_totals?.profitPoolInr ?? 0) > 0 && !belowStrategy(plan.drivers) && !splitOff) return plan;
+      const splitPct = aiEnabler ? 0 : STANDARD_SPLIT_PCT;
       const drivers = { ...applyStrategy(plan.drivers), splitPct };
       const { months, quarterTotals } = computePlanFromDrivers(drivers, splitPct || 25);
       const labelled = months.map((m, i) => ({ ...m, label: plan.months[i]?.label ?? m.label }));

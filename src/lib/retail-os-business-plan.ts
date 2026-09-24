@@ -259,6 +259,7 @@ export async function generateBusinessPlan(app: BrandContext, apiKey: string): P
 // Orders ramp from 25 a day in month 1 (750, 1,000, 1,250 on a 30-day
 // month); researched volumes above the ramp are kept.
 export const DAYS_PER_MONTH = 30;
+export const STANDARD_SPLIT_PCT = 40;
 export const STRATEGY = { cogsPct: 25, cacPct: 25, adminAndOtherPct: 10, ordersFloor: [750, 1000, 1250] as const };
 export const perDay = (ordersInMonth: number) => Math.round((ordersInMonth / DAYS_PER_MONTH) * 10) / 10;
 export function belowStrategy(d: PlanDrivers): boolean {

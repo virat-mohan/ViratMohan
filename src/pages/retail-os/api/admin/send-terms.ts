@@ -37,7 +37,7 @@ export const POST: APIRoute = async ({ request }) => {
   if (splitPct != null) {
     const plan = await db.getLatestBusinessPlan(id).catch(() => null);
     if (plan) {
-      const drivers = { ...plan.drivers, splitPct };
+      const drivers = { ...plan.drivers, splitPct, lockedByAdmin: true };
       const { months, quarterTotals } = computePlanFromDrivers(drivers, splitPct);
       const labelled = months.map((m, i) => ({ ...m, label: plan.months[i]?.label ?? m.label }));
       await db.updatePlanDrivers(plan.id, drivers, labelled, quarterTotals).catch((err) => console.error('send-terms plan resplit failed', err));

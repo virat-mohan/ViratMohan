@@ -133,7 +133,7 @@ if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
               {app.ai_enabler_track ? (
                 <p style="margin:0 0 6px; font-size:12px;">AI-Enabler track: 50% of brand IP, no profit-pool split.</p>
               ) : (
-                <label style="font-size:12px;">DevShop share of profit pool (%) <input type="text" name="splitPct" size="5" value={String(app.terms?.splitPct ?? (app.split_range_lo != null && app.split_range_hi != null ? (app.split_range_lo + app.split_range_hi) / 2 : ''))} /> <span style="color:var(--ink-soft);">indicative {app.split_range_lo ?? '?'}–{app.split_range_hi ?? '?'}%</span></label>
+                <label style="font-size:12px;">DevShop share of profit pool (%) <input type="text" name="splitPct" size="5" value={String(app.terms?.splitPct ?? 40)} /> <span style="color:var(--ink-soft);">standard 40%; lower only if negotiated</span></label>
               )}
               <textarea name="notes" placeholder="Anything else agreed (optional) — shown to the founder as part of the terms">{app.terms?.notes ?? ''}</textarea>
               <button class="abtn" type="submit">{app.terms ? 'Resend terms' : 'Send terms to founder'}</button> <span class="save-msg"></span>
