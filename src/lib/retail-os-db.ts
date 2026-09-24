@@ -40,7 +40,7 @@ export type ReportSchedule = {
 
 export type BrandStatus = 'existing' | 'new_sub_brand' | 'from_zero';
 export type RetailOsTerms = { splitPct: number | null; aiEnabler: boolean; notes: string | null; sentAt: string };
-export type RetailOsAgreement = { signedName: string; signedAt: string; ip: string | null; userAgent: string | null; terms: Record<string, unknown> };
+export type RetailOsAgreement = { signedName: string; signedAt: string; ip: string | null; userAgent: string | null; portfolioConsent?: boolean; terms: Record<string, unknown> };
 export type RetailOsDeposit = { amountInr: number; utr: string; submittedAt: string; confirmedAt: string | null };
 
 export type RetailOsApplication = {

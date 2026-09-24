@@ -15,10 +15,11 @@ import { renderRetailOsEmail } from '../../../../lib/retail-os-email';
 export const POST: APIRoute = async ({ params, request }) => {
   const id = params.id;
   if (!id) return json({ error: 'Missing id' }, 400);
-  const body = await readJson<{ signedName?: string; accept?: boolean }>(request);
+  const body = await readJson<{ signedName?: string; accept?: boolean; portfolioConsent?: boolean }>(request);
   const signedName = (body?.signedName || '').trim().slice(0, 120);
   if (!signedName || signedName.length < 3) return json({ error: 'Type your full legal name to sign.' }, 400);
   if (body?.accept !== true) return json({ error: 'Tick the box to accept the terms.' }, 400);
+  if (body?.portfolioConsent !== true) return json({ error: 'Tick the portfolio and marketing consent box to sign.' }, 400);
 
   const env = getEnv();
   if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) return json({ error: 'Backend not configured' }, 503);
@@ -35,6 +36,7 @@ export const POST: APIRoute = async ({ params, request }) => {
     signedAt,
     ip: clientIp(request),
     userAgent: (request.headers.get('user-agent') || '').slice(0, 400) || null,
+    portfolioConsent: true,
     terms: { ...app.terms, lines },
   });
   if (!ok) return json({ error: 'These terms are already signed.' }, 409);

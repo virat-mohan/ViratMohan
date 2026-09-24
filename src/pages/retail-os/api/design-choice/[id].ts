@@ -22,5 +22,14 @@ export const POST: APIRoute = async ({ params, request }) => {
 
   const ok = await db.chooseDesignOption(id, body.designId);
   if (!ok) return json({ error: 'That design option was not found.' }, 404);
-  return json({ ok: true }, 200);
+
+  // Choosing a direction is real progress on the build — reflect it on the
+  // checklist immediately rather than leaving "Design direction proposed"
+  // sitting at pending until someone in admin updates it by hand.
+  await db.setStageStatus(id, 'design', 'done').catch((err) => console.error('retail-os design-choice setStageStatus failed', err));
+
+  const next = app.agreement
+    ? 'Saved. Your build will use this direction.'
+    : 'Saved. Next: review and sign your commercial terms below to start the 7-day build.';
+  return json({ ok: true, next }, 200);
 };

@@ -142,11 +142,19 @@ if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
           {app.agreement && (
             <div><h3>Signed</h3><p style="margin:0; font-size:12px;">{app.agreement.signedName} · {new Date(app.agreement.signedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST · IP {app.agreement.ip ?? '—'}</p></div>
           )}
-          {app.deposit && (
+          {app.agreement && app.deposit && (
             <div>
               <h3>Deposit</h3>
               <p style="margin:0 0 6px; font-size:12px;">UTR <b class="mono">{app.deposit.utr}</b> reported {new Date(app.deposit.submittedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}{app.deposit.confirmedAt ? ` · confirmed ${new Date(app.deposit.confirmedAt).toLocaleDateString('en-IN')}` : ''}</p>
               {!app.deposit.confirmedAt && <button class="abtn confirm-deposit" data-app={app.id}>Confirm deposit and start the 7-day build</button>}<span class="save-msg"></span>
+            </div>
+          )}
+          {app.agreement && !app.deposit && (
+            <div>
+              <h3>Deposit</h3>
+              <p style="margin:0 0 6px; font-size:12px; color:var(--ink-soft);">Not reported by the founder yet. Collected it in person (cash, UPI shown on your phone, etc.)? Mark it paid directly — this starts the 7-day build immediately.</p>
+              <input type="text" class="mark-paid-ref" data-app={app.id} placeholder="Reference (optional) — e.g. UPI ref, cash" style="border:1.5px solid var(--ink); padding:6px 8px; font-family:'IBM Plex Mono'; font-size:11px; margin-right:6px;" />
+              <button class="abtn mark-deposit-paid" data-app={app.id}>Mark deposit paid &amp; start build</button><span class="save-msg"></span>
             </div>
           )}
           {app.agreement && (
@@ -250,6 +258,27 @@ if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
       try {
         var res = await fetch('/retail-os/api/admin/confirm-deposit', {
           method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id: btn.getAttribute('data-app') })
+        });
+        if (!res.ok) throw new Error('failed');
+        location.reload();
+      } catch (err) {
+        if (msg) msg.textContent = 'Failed';
+        btn.disabled = false;
+      }
+    });
+  });
+
+  document.querySelectorAll('button.mark-deposit-paid').forEach(function (btn) {
+    btn.addEventListener('click', async function () {
+      var appId = btn.getAttribute('data-app');
+      var refInput = document.querySelector('.mark-paid-ref[data-app="' + appId + '"]');
+      if (!confirm('Mark the ₹5,000 deposit as paid and start the 7-day build now?')) return;
+      var msg = btn.nextElementSibling;
+      btn.disabled = true;
+      try {
+        var res = await fetch('/retail-os/api/admin/mark-deposit-paid', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ id: appId, reference: refInput ? refInput.value : '' })
         });
         if (!res.ok) throw new Error('failed');
         location.reload();

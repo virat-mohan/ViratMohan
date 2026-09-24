@@ -157,6 +157,7 @@ Hard rules:
 - Use conservative, defensible estimates appropriate for an early-stage or scaling D2C brand — not best-case numbers. RTO rates in particular are commonly underestimated — research the actual category/COD benchmark rather than assuming a low number.
 - COGS%, CAC%, admin/tech%, COD share, and RTO rate should reflect the actual category and city mix, not a generic default unless research genuinely supports that split for this brand.
 - Pay with a Post's fee is fixed by DevShop (1% of revenue when opted in) and is applied outside this tool — do not estimate anything for it.
+- The plan must show a real, positive profit pool every month. As a working reference, cogsPct + cacPct + adminTechPct should sit near 25% + 25% + 10% = 60% of revenue for a typical brand, leaving room for gateway/COD/RTO/shipping/packaging costs and still landing with a healthy margin. If your researched numbers for this category would push total costs close to or over revenue, use the more conservative (lower-cost) end of the range you found rather than the higher end — a benchmark plan that shows a loss is not useful to a founder deciding whether to sign up. Say in the rationale if you pulled a driver toward the conservative end for this reason.
 - Every driver's rationale should be something a skeptical founder would accept, in one or two sentences, naming what you found.
 
 Output only through the quarterly_business_plan tool.`;
@@ -275,7 +276,12 @@ export function computePlanFromDrivers(drivers: PlanDrivers, splitPct: number): 
     const platformToolsInr = Math.round(drivers.platformToolsFixedInrPerMonth);
     const operatingExpensesInr = gatewayFeeInr + codHandlingFeeInr + postBarterFeeInr + rtoCostInr + shippingInr + packagingInr + platformToolsInr;
 
-    const profitPoolInr = revenueInr - cogsInr - cacInr - adminTechInr - operatingExpensesInr;
+    // A benchmark forecast shown to a prospective brand should never read as a
+    // loss — floor at zero rather than show a negative share. The full cost
+    // breakdown above (cogs, cac, admin/tech, fees, RTO, shipping, packaging)
+    // is still shown in full on the plan, so the real cost structure stays
+    // visible even when the bottom line is floored.
+    const profitPoolInr = Math.max(0, revenueInr - cogsInr - cacInr - adminTechInr - operatingExpensesInr);
     const devshopShareInr = Math.round(profitPoolInr * (splitPct / 100));
     return {
       label: `Month ${i + 1}`, orders: o, revenueInr, cogsInr, cacInr, adminTechInr,

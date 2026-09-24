@@ -340,6 +340,7 @@ const planWhy = d ? ([
               <label for="signedName">Your full legal name</label>
               <input type="text" id="signedName" autocomplete="name" required />
               <label class="check" style="text-transform:none; letter-spacing:0; font-size:13.5px; color:var(--ink);"><input type="checkbox" id="accept" /> <span>I have read and accept these terms on behalf of {app.brand_name}.</span></label>
+              <label class="check" style="text-transform:none; letter-spacing:0; font-size:13.5px; color:var(--ink);"><input type="checkbox" id="portfolioConsent" /> <span>I agree DevShop may reference {app.brand_name}'s name, logo and results as part of its own portfolio and marketing communications.</span></label>
               <button type="submit" class="btn">Sign terms</button>
               <div class="msg" id="signMsg"></div>
             </form>
@@ -452,6 +453,9 @@ const planWhy = d ? ([
             );
           })}
           <div class="msg" id="designMsg"></div>
+          {chosenDesign && !app.agreement && (
+            <p class="note" style="margin-top:14px;"><b>Next:</b> review and sign the commercial terms below to start the 7-day build.</p>
+          )}
         </div>
       )}
 
@@ -562,6 +566,7 @@ const planWhy = d ? ([
       post('/retail-os/api/sign/' + appId, {
         signedName: document.getElementById('signedName').value,
         accept: document.getElementById('accept').checked,
+        portfolioConsent: document.getElementById('portfolioConsent').checked,
       }).then(function (res) {
         if (res.ok) return location.reload();
         msg.textContent = (res.data && res.data.error) || 'Could not sign. Try again.';

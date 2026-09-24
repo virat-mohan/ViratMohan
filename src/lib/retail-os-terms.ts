@@ -36,6 +36,10 @@ export function buildTermLines(app: RetailOsApplication, terms: RetailOsTerms): 
   if (app.post_ack) {
     lines.push({ label: 'Pay with a Post™', value: '1% of the sales it drives, charged only once payment is received.' });
   }
+  lines.push({
+    label: 'Portfolio & marketing consent',
+    value: `You agree DevShop may reference ${app.brand_name}'s name, logo and results (e.g. revenue growth, before/after) as part of DevShop's own portfolio and marketing communications, including its website and case studies. Nothing you tell DevShop in confidence beyond these public-facing facts is shared without your separate approval.`,
+  });
   if (terms.notes) {
     lines.push({ label: 'Also agreed', value: terms.notes });
   }
