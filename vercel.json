@@ -1,5 +1,11 @@
 {
   "crons": [
     { "path": "/retail-os/api/cron/reports", "schedule": "0 3 * * *" }
+  ],
+  "rewrites": [
+    {
+      "source": "/devshop/ceremonykitchen/:path*",
+      "destination": "https://ceremony-os.vercel.app/devshop/ceremonykitchen/:path*"
+    }
   ]
 }
