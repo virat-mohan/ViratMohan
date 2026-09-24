@@ -16,6 +16,14 @@ export type RetailOsEmail = {
 };
 
 const FONT = "Arial, Helvetica, sans-serif";
+export const LOGO_URL = 'https://www.viratmohan.com/retail-os/email/devshop-logo.png';
+
+// Every DevShop Retail OS email is signed by Virat as Founder.
+export const SIGNATURE_HTML = `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:22px 0 0;border-top:1px solid #D9CDB4;width:100%;"><tr><td style="padding:14px 0 0;">
+  <p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:14px;font-weight:bold;color:#1A1410;">Virat Mohan</p>
+  <p style="margin:2px 0 0;font-family:Arial, Helvetica, sans-serif;font-size:13px;color:#4A4038;">Founder, DevShop Retail OS&trade;</p>
+  <p style="margin:6px 0 0;font-family:Arial, Helvetica, sans-serif;font-size:12px;color:#7A6E62;">+91 99992 77240 &middot; <a href="mailto:viratmohan@gmail.com" style="color:#7A6E62;">viratmohan@gmail.com</a> &middot; <a href="https://www.viratmohan.com/retail-os" style="color:#7A6E62;">viratmohan.com/retail-os</a></p>
+</td></tr></table>`;
 const DISPLAY = "Anton, Impact, 'Arial Narrow', Arial, sans-serif";
 
 export function renderRetailOsEmail(e: RetailOsEmail): string {
@@ -47,17 +55,18 @@ export function renderRetailOsEmail(e: RetailOsEmail): string {
         <td height="6" bgcolor="#9C7A4A" style="background:#9C7A4A;font-size:0;line-height:0;">&nbsp;</td>
       </tr></table>
     </td></tr>
-    <tr><td style="padding:22px 0 16px;">
-      <span style="font-family:${DISPLAY};font-size:24px;letter-spacing:0.5px;text-transform:uppercase;color:#C99A3D;">Dev</span><span style="font-family:${DISPLAY};font-size:24px;letter-spacing:0.5px;text-transform:uppercase;color:#1A1410;">Shop</span>
-      <span style="font-family:${FONT};font-size:12px;font-style:italic;font-weight:bold;color:#4A4038;padding-left:6px;">Retail OS&trade;</span>
+    <tr><td style="padding:20px 0 14px;">
+      <img src="${LOGO_URL}" width="180" height="69" alt="DevShop" style="display:block;border:0;width:180px;height:auto;">
+      <span style="font-family:${FONT};font-size:12px;font-style:italic;font-weight:bold;color:#4A4038;">Retail OS&trade;</span>
     </td></tr>
     <tr><td style="border:2px solid #1A1410;background:#FBF6EA;padding:26px 24px 24px;">
       ${e.eyebrow ? `<p style="margin:0 0 8px;font-family:${FONT};font-size:11px;font-weight:bold;letter-spacing:1.5px;text-transform:uppercase;color:#D9714B;">${escapeHtml(e.eyebrow)}</p>` : ''}
       <h1 style="margin:0 0 14px;font-family:${DISPLAY};font-weight:normal;font-size:28px;line-height:1.1;text-transform:uppercase;color:#1A1410;">${escapeHtml(e.heading)}</h1>
       ${lines}${e.bodyHtml ?? ''}${rows}${cta}${note}
+      ${SIGNATURE_HTML}
     </td></tr>
     <tr><td style="padding:18px 0 0;font-family:${FONT};font-size:11px;letter-spacing:0.5px;color:#7A6E62;">
-      Virat Mohan &middot; <a href="https://www.viratmohan.com/retail-os" style="color:#7A6E62;">viratmohan.com/retail-os</a><br>DEVSHOP RETAIL OS&trade; &mdash; BUILT FAST, FOR REAL BUSINESSES
+      <a href="https://www.viratmohan.com/retail-os" style="color:#7A6E62;">viratmohan.com/retail-os</a><br>DEVSHOP RETAIL OS&trade; &mdash; BUILT FAST, FOR REAL BUSINESSES
     </td></tr>
   </table>
 </td></tr></table>
