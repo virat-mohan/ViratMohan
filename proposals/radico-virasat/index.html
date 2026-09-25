@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rampur 1943 Virasat Proposal</title>
+<meta name="description" content="One-page social and digital growth proposal for Radico Khaitan's Rampur 1943 Virasat, from Virat Mohan / DevShop.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* viratmohan.com tokens (src/styles/global.css) + a Virasat ruby accent */
+  :root {
+    --ink:#1a1410; --paper:#f4ead4; --gold:#d4af37; --dim:#5a4c3c;
+    --line:rgba(23,19,15,.14); --bronze:#9c7a4a;
+    --ruby:#6b1e2a;            /* nod to the Ruby Port Pipe finish */
+    --display:'Anton','Arial Narrow',sans-serif;
+    --serif:'Instrument Serif',Georgia,serif;
+    --sans:'Inter',system-ui,sans-serif;
+    color-scheme:light;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font:400 15px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+  body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background-image:radial-gradient(circle,rgba(23,19,15,.09) 1.4px,transparent 1.4px);background-size:13px 13px}
+  .page{max-width:980px;margin:0 auto;padding:40px 24px 56px}
+  header{display:flex;justify-content:space-between;align-items:center;gap:16px;border-bottom:1px solid var(--line);padding-bottom:16px}
+  .from{font:500 12px/1.3 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+  .lockup{display:flex;align-items:center;gap:12px}
+  .lockup img{height:44px;width:auto}
+  .wordmark{font-family:var(--serif);font-size:22px;line-height:1;color:var(--ruby)}
+  .wordmark small{display:block;font:600 10px/1.4 var(--sans);letter-spacing:.3em;color:var(--bronze);margin-top:4px}
+
+  .hero{background:var(--ruby);color:var(--paper);margin:28px 0 8px;padding:36px 32px;border-radius:2px;position:relative;overflow:hidden}
+  .hero::after{content:'1943';position:absolute;right:-10px;bottom:-40px;font:400 180px/1 var(--display);color:rgba(212,175,55,.14)}
+  .eyebrow{font:600 11px/1 var(--sans);letter-spacing:.24em;text-transform:uppercase;color:var(--gold)}
+  h1{font:400 clamp(34px,6vw,58px)/1 var(--display);text-transform:uppercase;margin:12px 0 14px;letter-spacing:.01em}
+  .hero p{font:400 20px/1.35 var(--serif);max-width:40ch;margin:0;position:relative;z-index:1}
+
+  h2{font:400 22px/1.1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:34px 0 12px}
+  h2 span{color:var(--ruby)}
+  .note{border-left:3px solid var(--gold);padding:10px 14px;background:rgba(212,175,55,.1);font-size:14px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+  .card{border:1px solid var(--line);background:rgba(255,255,255,.35);padding:16px}
+  .card h3{font:400 21px/1.15 var(--serif);margin:0 0 6px;color:var(--ruby)}
+  .card p,.card li{margin:0;font-size:14px;color:var(--dim)}
+  .card ul{margin:6px 0 0;padding-left:18px}
+  .num{font:400 13px/1 var(--display);color:var(--gold);letter-spacing:.1em}
+  ol.steps{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0;border-top:2px solid var(--ink)}
+  ol.steps li{padding:14px 14px 0 0;font-size:14px}
+  ol.steps b{display:block;font:400 16px/1.2 var(--display);text-transform:uppercase}
+  .cta{margin-top:34px;background:var(--ink);color:var(--paper);padding:22px 26px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:center}
+  .cta p{margin:0;font:400 20px/1.3 var(--serif)}
+  .cta a{color:var(--gold)}
+  .src{margin-top:26px;font-size:11.5px;color:var(--dim)}
+  .src a{color:var(--dim)}
+  @media print{body::before{display:none}.page{padding:16px}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <div class="from">Proposal · Virat Mohan / DevShop · Sep 2026</div>
+  <div class="lockup">
+    <!-- Drop the official Virasat logo at ./virasat-logo.svg; wordmark shows until then -->
+    <img src="virasat-logo.svg" alt="Rampur 1943 Virasat" onerror="this.remove()">
+    <div class="wordmark">Rampur 1943 <em>Virasat</em><small>RADICO KHAITAN</small></div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="eyebrow">Social &amp; digital growth · for discussion</div>
+  <h1>Make Virasat the malt<br>North India talks about</h1>
+  <p>Heritage from 1943, six-row Himalayan barley, a Ruby Port finish. The story is there. We'd build the always-on engine that tells it every week.</p>
+</section>
+
+<h2>Where it <span>stands</span></h2>
+<div class="grid">
+  <div class="card"><h3>New launch</h3><p>Announced Nov 2025. Rolling out in UP, Haryana and Delhi first, then national.</p></div>
+  <div class="card"><h3>Premium price</h3><p>₹3,500–4,500 a bottle. Buyers research before they buy, so discovery and credibility matter.</p></div>
+  <div class="card"><h3>Rich story</h3><p>Bourbon barrels, Ruby Port pipes, 80+ years of Rampur Distillery. Plenty to film and write about.</p></div>
+</div>
+
+<h2>The <span>ground rule</span></h2>
+<p class="note">Alcohol ads are banned in India (Cable TV Networks rules), surrogate ads are banned under the 2022 CCPA guidelines, and Meta does not allow alcohol ads in India. So no paid Meta/Google ads for Virasat in India. The plan below is built for that: organic, owned and retail-led, age-gated, with every piece cleared by Radico's legal team.</p>
+
+<h2>What we <span>propose</span></h2>
+<div class="grid">
+  <div class="card"><div class="num">01</div><h3>Always-on social</h3>
+    <ul><li>Monthly content calendar for Instagram and LinkedIn, you approve every post</li>
+    <li>Reels on the craft: barley, casks, climate, the Rampur master blender</li>
+    <li>Tasting-note and food-pairing series, no drinking visuals or lifestyle claims</li></ul></div>
+  <div class="card"><div class="num">02</div><h3>Content from what you have</h3>
+    <ul><li>From existing bottle and distillery shots we produce stills and short video</li>
+    <li>Same system we run for Ceremony Kitchen: brand profile sets look and tone</li></ul></div>
+  <div class="card"><div class="num">03</div><h3>Owned audience</h3>
+    <ul><li>QR on shelf-talkers and bar menus into a 25+ age-gated WhatsApp / email list</li>
+    <li>Tasting invites, new-batch news, store locator</li></ul></div>
+  <div class="card"><div class="num">04</div><h3>Trade &amp; on-premise</h3>
+    <ul><li>Bartender and retailer content kits for Delhi NCR, UP, Haryana</li>
+    <li>Tracked QR per outlet so we see which venues drive interest</li></ul></div>
+  <div class="card"><div class="num">05</div><h3>Performance, done legally</h3>
+    <ul><li>Optimise what we can measure: follower growth, saves, QR scans, list sign-ups, outlet enquiries</li>
+    <li>Paid ads only in export markets that allow them, if Virasat goes abroad</li></ul></div>
+  <div class="card"><div class="num">06</div><h3>Monthly report</h3>
+    <ul><li>One page: what went out, what worked, what we change next month</li></ul></div>
+</div>
+
+<h2>First <span>90 days</span></h2>
+<ol class="steps">
+  <li><b>Weeks 1–2</b>Brand profile, legal guardrails, audit of current handles</li>
+  <li><b>Weeks 3–6</b>First calendar live, QR pilot in 10 NCR outlets</li>
+  <li><b>Weeks 7–12</b>Scale what works, first monthly report, plan for next markets</li>
+</ol>
+
+<div class="cta">
+  <p>Commercials after a 30-minute call. No cost to explore.</p>
+  <a href="https://viratmohan.com">viratmohan.com</a>
+</div>
+
+<p class="src">Sources:
+<a href="https://www.business-standard.com/markets/capital-market-news/radico-khaitan-launches-rampur-1943-virasat-indian-single-malt-125112400426_1.html">Business Standard (launch, price, markets)</a> ·
+<a href="https://www.hotelierindia.com/fb/radico-khaitan-limited-launches-rampur-1943-virasat-indian-single-malt">Hotelier India</a> ·
+<a href="https://corporate.cyrilamarchandblogs.com/2025/06/pouring-over-the-law-navigating-alcohol-advertising-packaging-regulations-in-india-part-1/">Cyril Amarchand Mangaldas (ad law)</a> ·
+<a href="https://www.mondaq.com/india/advertising-marketing-branding/1231928/regulating-surrogate-advertising-in-india">Mondaq (2022 surrogate guidelines)</a> ·
+<a href="https://www.exchange4media.com/marketing-news/we-respect-local-laws-meta-clarifies-stance-on-alcohol-and-gambling-ads-in-india-136635.html">exchange4media (Meta India stance)</a> ·
+<a href="https://transparency.meta.com/policies/ad-standards/restricted-goods-services/alcohol/">Meta alcohol policy</a>
+</p>
+</div>
+</body>
+</html>
