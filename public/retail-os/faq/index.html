@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Partner FAQ — DevShop Retail OS</title>
+<meta name="description" content="Straight answers for DevShop Retail OS partners: the deal, settlement, ads, WhatsApp, storefront, shipping and Pay with a Post.">
+<link rel="icon" href="/devshop-favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#F4EAD4; --ink:#1A1410; --ink-soft:#4A4038;
+  --gold:#D4AF37; --gold-deep:#C99A3D; --terracotta:#D9714B;
+  --blue:#3E6FA6; --pink:#E91E8C; --olive:#9C7A4A; --teal:#2B8C86; --purple:#7C5CBF;
+  --line:rgba(26,20,16,0.14);
+}
+*{box-sizing:border-box;}
+body{margin:0; background:var(--cream); color:var(--ink); font-family:'Inter',system-ui,sans-serif; font-size:15.5px; line-height:1.6; -webkit-font-smoothing:antialiased;}
+h1,h2,h3{font-family:'Anton','Arial Narrow',sans-serif; font-weight:400; text-transform:uppercase; margin:0; line-height:1; text-wrap:balance;}
+a{color:inherit;}
+.wrap{max-width:960px; margin-inline:auto; padding-inline:16px;}
+.stripe{display:flex; height:7px;} .stripe span{flex:1;}
+.stripe span:nth-child(1){background:var(--gold);} .stripe span:nth-child(2){background:var(--blue);}
+.stripe span:nth-child(3){background:var(--pink);} .stripe span:nth-child(4){background:var(--olive);}
+nav{display:flex; align-items:center; justify-content:space-between; gap:16px; padding-block:18px; flex-wrap:wrap;}
+.wordmark{display:flex; align-items:baseline; gap:2px; font-family:'Anton'; font-size:22px; text-transform:uppercase; text-decoration:none;}
+.wordmark .w1{color:var(--gold-deep);} .wordmark small{font-family:'Inter'; font-style:italic; font-weight:500; font-size:11px; color:var(--ink-soft); text-transform:none; margin-left:8px;}
+.navlinks{display:flex; gap:20px; font-size:13.5px; font-weight:600;} .navlinks a{text-decoration:none;} .navlinks a:hover{color:var(--terracotta);}
+.eyebrow{font-weight:700; font-size:11.5px; letter-spacing:.14em; text-transform:uppercase;}
+.hero{background:var(--terracotta); color:var(--cream); background-image:radial-gradient(rgba(244,234,212,.28) 1.4px,transparent 1.4px); background-size:16px 16px; border-top:2px solid var(--ink); border-bottom:2px solid var(--ink);}
+.hero-inner{padding-block:48px 40px; display:flex; flex-direction:column; gap:18px;}
+.hero h1{font-size:clamp(2.3rem,6vw,4rem); max-width:16ch;} .hero h1 span{color:var(--ink);}
+.hero p{margin:0; max-width:56ch; font-weight:500; color:rgba(244,234,212,.94);}
+.search{position:relative;}
+.search input{width:100%; font:600 17px 'Inter',sans-serif; padding:16px 18px 16px 48px; border:2px solid var(--ink); background:var(--cream); color:var(--ink); outline:none;}
+.search input:focus{box-shadow:4px 4px 0 var(--ink);}
+.search svg{position:absolute; left:16px; top:50%; transform:translateY(-50%);}
+.chips{display:flex; flex-wrap:wrap; gap:8px; padding-block:22px 6px;}
+.chip{font:700 11.5px 'Inter'; letter-spacing:.04em; text-transform:uppercase; padding:7px 12px; border:1.5px solid var(--ink); background:transparent; color:var(--ink); cursor:pointer;}
+.chip[aria-pressed="true"]{background:var(--ink); color:var(--cream);}
+.count{font-size:12.5px; font-weight:600; color:var(--ink-soft); margin:10px 0 0;}
+section.topic{padding-block:26px 8px;}
+section.topic h2{font-size:1.5rem; padding-bottom:10px; border-bottom:2px solid var(--ink); display:flex; align-items:center; gap:10px;}
+section.topic h2 i{width:12px; height:12px; display:inline-block;}
+details{border-bottom:1.5px solid var(--line);}
+summary{list-style:none; cursor:pointer; padding:14px 30px 14px 0; font-weight:700; font-size:15.5px; position:relative;}
+summary::-webkit-details-marker{display:none;}
+summary::after{content:"+"; position:absolute; right:4px; top:10px; font:400 22px 'Anton'; color:var(--terracotta);}
+details[open] summary::after{content:"–";}
+summary:hover{color:var(--terracotta);}
+.ans{padding:0 0 16px; color:var(--ink-soft); font-weight:500; max-width:70ch;}
+.ans p{margin:0 0 10px;}
+mark{background:var(--gold); color:var(--ink); padding:0 2px;}
+.empty{border:2px dashed var(--ink); padding:22px; margin-top:26px; font-weight:500;}
+.cta{margin-block:48px 40px; border:2px solid var(--ink); background:var(--gold); padding:24px; display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;}
+.cta h3{font-size:1.4rem;}
+.btn{display:inline-flex; padding:13px 22px; font-weight:700; font-size:14px; text-decoration:none; background:var(--ink); color:var(--cream); border:2px solid var(--ink);}
+footer{padding-block:24px; border-top:2px solid var(--ink);} footer p{margin:0; font-size:11px; font-weight:700; letter-spacing:.03em; color:var(--ink-soft);}
+@media (max-width:640px){ .navlinks{display:none;} }
+</style>
+</head>
+<body>
+<div class="stripe"><span></span><span></span><span></span><span></span></div>
+<div class="wrap">
+  <nav>
+    <a class="wordmark" href="/retail-os/"><span class="w1">Dev</span><span class="w2">Shop</span><small>Retail OS™</small></a>
+    <div class="navlinks"><a href="/retail-os/">Retail OS</a><a href="/retail-os/apply/">Apply →</a></div>
+  </nav>
+</div>
+<header class="hero">
+  <div class="wrap hero-inner">
+    <div class="eyebrow">Partner FAQ</div>
+    <h1>Ask it straight. <span>Get it straight.</span></h1>
+    <p>Everything partners and future partners ask me about DevShop Retail OS: the deal, getting paid, ads, WhatsApp, the store, shipping and Pay with a Post.</p>
+    <div class="search">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1410" stroke-width="2.5" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+      <input id="q" type="search" placeholder="Search: settlement, Meta ads, Shopify, deposit…" aria-label="Search the FAQ" autocomplete="off">
+    </div>
+  </div>
+</header>
+<main class="wrap">
+  <div class="chips" id="chips" role="group" aria-label="Filter by topic"></div>
+  <p class="count" id="count"></p>
+  <div id="list"></div>
+  <div class="empty" id="empty" hidden>Nothing matches that. Try a simpler word, or just ask me on <a href="https://wa.me/919999277240">WhatsApp</a>.</div>
+  <div class="cta">
+    <h3>Still have a question?</h3>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <a class="btn" href="https://wa.me/919999277240">WhatsApp me</a>
+      <a class="btn" href="/retail-os/apply/">Apply →</a>
+    </div>
+  </div>
+</main>
+<div class="wrap"><footer><p>PAY WITH A POST™, RETAIL OS™ AND AI-ENABLER™ ARE TRADEMARKS OF DEVSHOP</p></footer></div>
+
+<script src="./faq-data.js"></script>
+<script>
+(function(){
+  var FAQ = window.RETAIL_OS_FAQ || [];
+  var COLORS = ['var(--terracotta)','var(--blue)','var(--pink)','var(--olive)','var(--teal)','var(--purple)','var(--gold-deep)'];
+  var topics = []; FAQ.forEach(function(f){ if (topics.indexOf(f.topic) < 0) topics.push(f.topic); });
+  var active = 'All';
+  var qEl = document.getElementById('q'), list = document.getElementById('list');
+
+  function esc(s){ return s.replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function hi(text, terms){
+    var out = esc(text);
+    terms.forEach(function(t){ if (t.length < 2) return;
+      out = out.replace(new RegExp('(' + t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')(?![^<]*>)', 'gi'), '<mark>$1</mark>'); });
+    return out;
+  }
+  function norm(s){ return s.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g,''); }
+
+  var chips = document.getElementById('chips');
+  ['All'].concat(topics).forEach(function(t){
+    var b = document.createElement('button'); b.className='chip'; b.textContent=t; b.type='button';
+    b.setAttribute('aria-pressed', t===active); b.onclick=function(){ active=t;
+      [].forEach.call(chips.children, function(c){ c.setAttribute('aria-pressed', c.textContent===t); }); render(); };
+    chips.appendChild(b);
+  });
+
+  function render(){
+    var raw = qEl.value.trim(), terms = norm(raw).split(/\s+/).filter(Boolean);
+    var hits = FAQ.map(function(f){
+      if (active !== 'All' && f.topic !== active) return null;
+      if (!terms.length) return {f:f, s:0};
+      var hay = norm(f.q + ' ' + f.a + ' ' + f.topic + ' ' + (f.tags||[]).join(' '));
+      var s = 0;
+      for (var i=0;i<terms.length;i++){ if (hay.indexOf(terms[i]) < 0) return null;
+        if (norm(f.q).indexOf(terms[i])>=0) s+=3; if ((f.tags||[]).join(' ').toLowerCase().indexOf(terms[i])>=0) s+=2; s+=1; }
+      return {f:f, s:s};
+    }).filter(Boolean);
+    list.innerHTML = '';
+    topics.forEach(function(t, ti){
+      var group = hits.filter(function(h){ return h.f.topic===t; });
+      if (!group.length) return;
+      if (terms.length) group.sort(function(a,b){ return b.s-a.s; });
+      var sec = document.createElement('section'); sec.className='topic';
+      sec.innerHTML = '<h2><i style="background:'+COLORS[ti%COLORS.length]+'"></i>'+esc(t)+'</h2>';
+      group.forEach(function(h){
+        var d = document.createElement('details'); if (terms.length) d.open = true;
+        d.innerHTML = '<summary>'+hi(h.f.q, terms)+'</summary><div class="ans">'+
+          h.f.a.split('\n\n').map(function(p){ return '<p>'+hi(p, terms)+'</p>'; }).join('')+'</div>';
+        sec.appendChild(d);
+      });
+      list.appendChild(sec);
+    });
+    document.getElementById('empty').hidden = hits.length > 0;
+    document.getElementById('count').textContent = hits.length + (hits.length===1?' answer':' answers') + (raw ? ' for "'+raw+'"' : '');
+    try { history.replaceState(null,'', raw ? '?q='+encodeURIComponent(raw) : location.pathname); } catch(e){}
+  }
+  var init = new URLSearchParams(location.search).get('q'); if (init) qEl.value = init;
+  qEl.addEventListener('input', render);
+  render();
+})();
+</script>
+</body>
+</html>
