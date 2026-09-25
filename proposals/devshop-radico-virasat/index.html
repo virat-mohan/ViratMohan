@@ -5,78 +5,76 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>DevShop · Rampur 1943 Virasat Proposal</title>
 <meta name="description" content="One-page social and digital growth proposal for Radico Khaitan's Rampur 1943 Virasat, from Virat Mohan / DevShop.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  @font-face{font-family:'Anton';src:url(fonts/anton-latin-400-normal.woff2) format('woff2')}
+  @font-face{font-family:'DM Sans';font-weight:400;src:url(fonts/dm-sans-latin-400-normal.woff2) format('woff2')}
+  @font-face{font-family:'DM Sans';font-weight:500;src:url(fonts/dm-sans-latin-500-normal.woff2) format('woff2')}
+  @font-face{font-family:'DM Sans';font-weight:600;src:url(fonts/dm-sans-latin-600-normal.woff2) format('woff2')}
+  @font-face{font-family:'Crimson Text';src:url(fonts/crimson-text-latin-400-normal.woff2) format('woff2')}
   @font-face{font-family:'Instrument Serif';src:url(fonts/instrument-serif-latin-400-normal.woff2) format('woff2')}
   @font-face{font-family:'Instrument Serif';font-style:italic;src:url(fonts/instrument-serif-latin-400-italic.woff2) format('woff2')}
-  @font-face{font-family:'Inter';font-weight:100 900;src:url(fonts/inter-latin-wght-normal.woff2) format('woff2')}
-  /* viratmohan.com tokens (src/styles/global.css) + a Virasat ruby accent */
-  :root {
-    --ink:#1a1410; --paper:#f4ead4; --gold:#d4af37; --dim:#5a4c3c;
-    --line:rgba(23,19,15,.14); --bronze:#9c7a4a;
-    --ruby:#6b1e2a;            /* nod to the Ruby Port Pipe finish */
-    --display:'Anton','Arial Narrow',sans-serif;
-    --serif:'Instrument Serif',Georgia,serif;
-    --sans:'Inter',system-ui,sans-serif;
-    color-scheme:light;
-  }
+  @font-face{font-family:'JetBrains Mono';font-weight:400;src:url(fonts/jetbrains-mono-latin-400-normal.woff2) format('woff2')}
+  @font-face{font-family:'JetBrains Mono';font-weight:600;src:url(fonts/jetbrains-mono-latin-600-normal.woff2) format('woff2')}
+  /* DevShop tokens (src/pages/devshop.astro) */
+  :root{--bg:#f5f2ea;--panel:#fff;--text:#1e211a;--m1:#52564a;--m2:#767a6c;--m3:#9a9d90;
+    --olive:#4f5f42;--tan:#b08a63;--rose:#a3573f;--hair:rgba(30,33,26,.12);--ruby:#6b1e2a;color-scheme:light}
   *{box-sizing:border-box}
-  body{margin:0;background:var(--paper);color:var(--ink);font:400 15px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
-  body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
-    background-image:radial-gradient(circle,rgba(23,19,15,.09) 1.4px,transparent 1.4px);background-size:13px 13px}
-  .page{max-width:980px;margin:0 auto;padding:40px 24px 56px}
-  header{display:flex;justify-content:space-between;align-items:center;gap:16px;border-bottom:1px solid var(--line);padding-bottom:16px}
-  .from{font:500 12px/1.3 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
-  .lockup{display:flex;align-items:center;gap:12px}
-  .lockup img{height:44px;width:auto}
-  .wordmark{font-family:var(--serif);font-size:22px;line-height:1;color:var(--ruby)}
-  .wordmark small{display:block;font:600 10px/1.4 var(--sans);letter-spacing:.3em;color:var(--bronze);margin-top:4px}
-
-  .hero{background:var(--ruby);color:var(--paper);margin:28px 0 8px;padding:36px 32px;border-radius:2px;position:relative;overflow:hidden}
-  .hero::after{content:'1943';position:absolute;right:-10px;bottom:-40px;font:400 180px/1 var(--display);color:rgba(212,175,55,.14)}
-  .eyebrow{font:600 11px/1 var(--sans);letter-spacing:.24em;text-transform:uppercase;color:var(--gold)}
-  h1{font:400 clamp(34px,6vw,58px)/1 var(--display);text-transform:uppercase;margin:12px 0 14px;letter-spacing:.01em}
-  .hero p{font:400 20px/1.35 var(--serif);max-width:40ch;margin:0;position:relative;z-index:1}
-
-  h2{font:400 22px/1.1 var(--display);text-transform:uppercase;letter-spacing:.03em;margin:34px 0 12px}
-  h2 span{color:var(--ruby)}
-  .note{border-left:3px solid var(--gold);padding:10px 14px;background:rgba(212,175,55,.1);font-size:14px}
+  body{margin:0;background:var(--bg);color:var(--text);font:400 15px/1.6 'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(ellipse 800px 500px at 15% 0%,rgba(79,95,66,.06),transparent 60%),radial-gradient(ellipse 800px 500px at 85% 100%,rgba(176,138,99,.08),transparent 60%)}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .page{max-width:980px;margin:0 auto;padding:0 0 48px}
+  header{background:#15130f;color:#f5f2ea;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 32px}
+  header .ds{height:50px;background:#fff;padding:4px 8px;border-radius:4px}
+  .from{font:400 11px/1.3 'JetBrains Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:#c9c4b4}
+  .body{padding:0 32px}
+  .hero{padding:48px 0 12px}
+  .eyebrow{font:400 11px/1 'JetBrains Mono',monospace;letter-spacing:.2em;text-transform:uppercase;color:var(--m2)}
+  .for{display:flex;align-items:center;gap:12px;margin-top:22px}
+  .lockup img{height:40px}
+  .wordmark{font-family:'Instrument Serif',serif;font-size:22px;line-height:1;color:var(--ruby)}
+  .wordmark small{display:block;font:600 10px/1.4 'JetBrains Mono',monospace;letter-spacing:.24em;color:var(--m2);margin-top:4px}
+  h1{font:400 clamp(38px,6vw,64px)/1.06 'Crimson Text',Georgia,serif;letter-spacing:-.01em;margin:16px 0 14px;max-width:18ch}
+  h1 em{font-style:normal;color:var(--olive)}
+  .hero p{font-size:17px;color:var(--m1);max-width:52ch;margin:0}
+  h2{font:italic 400 26px/1.1 'Instrument Serif',serif;margin:36px 0 14px}
+  h2 span{color:var(--olive)}
+  .note{margin-top:16px;border:1px solid var(--hair);border-left:3px solid var(--rose);background:var(--panel);padding:14px 18px;font-size:14px;color:var(--m1)}
+  .note b{display:block;font:600 11px/1 'JetBrains Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--rose);margin-bottom:8px}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
   .g3{grid-template-columns:repeat(3,1fr)}
   @media(max-width:700px){.g3{grid-template-columns:1fr}}
-  .card{border:1px solid var(--line);background:rgba(255,255,255,.35);padding:16px}
-  .card h3{font:400 21px/1.15 var(--serif);margin:0 0 6px;color:var(--ruby)}
-  .card p,.card li{margin:0;font-size:14px;color:var(--dim)}
+  .card{border:1px solid var(--hair);background:var(--panel);padding:18px;border-radius:6px;box-shadow:0 1px 3px rgba(30,33,26,.06)}
+  .card h3{font:400 22px/1.15 'Crimson Text',serif;margin:0 0 6px}
+  .card p,.card li{margin:0;font-size:14px;color:var(--m1)}
   .card ul{margin:6px 0 0;padding-left:18px}
-  .num{font:400 13px/1 var(--display);color:var(--gold);letter-spacing:.1em}
-  ol.steps{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0;border-top:2px solid var(--ink)}
-  ol.steps li{padding:14px 14px 0 0;font-size:14px}
-  ol.steps b{display:block;font:400 16px/1.2 var(--display);text-transform:uppercase}
-  .cta{margin-top:34px;background:var(--ink);color:var(--paper);padding:22px 26px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:center}
-  .cta p{margin:0;font:400 20px/1.3 var(--serif)}
-  .cta a{color:var(--gold)}
-  .src{margin-top:26px;font-size:11.5px;color:var(--dim)}
-  .src a{color:var(--dim)}
-  @media print{body::before{display:none}.page{padding:16px}}
+  .num{display:inline-block;font:600 10px/1 'JetBrains Mono',monospace;letter-spacing:.04em;color:#fdfcf8;background:var(--olive);border-radius:4px;padding:4px 7px;margin-bottom:10px}
+  .card:nth-child(6) .num{background:var(--rose)}
+  ol.steps{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+  ol.steps li{padding:12px 0 0;font-size:14px;color:var(--m1);border-top:3px solid var(--olive)}
+  ol.steps li:nth-child(2){border-color:var(--tan)} ol.steps li:nth-child(3){border-color:var(--rose)}
+  ol.steps b{display:block;font:600 11px/1.6 'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--text)}
+  .cta{margin-top:36px;background:var(--panel);border:1px solid var(--hair);border-radius:6px;padding:22px 26px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:center}
+  .cta p{margin:0;font:400 24px/1.3 'Instrument Serif',serif}
+  .cta p em{color:var(--olive)}
+  .btn{font-size:14px;font-weight:600;padding:12px 24px;background:var(--olive);color:#fdfcf8;border-radius:999px;text-decoration:none}
+  .src{margin-top:24px;font-size:11px;color:var(--m2)}
+  .src a{color:var(--m2)}
 </style>
 </head>
 <body>
 <div class="page">
 
 <header>
-  <div class="from">DevShop · Proposal for Radico Khaitan · Sep 2026</div>
-  <div class="lockup">
-    <!-- Drop the official Virasat logo at ./virasat-logo.svg; wordmark shows until then -->
+  <img class="ds" src="devshop-logo.png" alt="DevShop">
+  <div class="from">Proposal · Sep 2026</div>
+</header>
+<div class="body">
+<section class="hero">
+  <div class="eyebrow">Social &amp; digital growth · for discussion</div>
+  <div class="for lockup">
     <img src="virasat-logo.svg" alt="Rampur 1943 Virasat" onerror="this.remove()">
     <div class="wordmark">Rampur 1943 <em>Virasat</em><small>RADICO KHAITAN</small></div>
   </div>
-</header>
-
-<section class="hero">
-  <div class="eyebrow">Social &amp; digital growth · for discussion</div>
-  <h1>Make Virasat the malt<br>North India talks about</h1>
+  <h1>Make Virasat the malt <em>North India talks about</em></h1>
   <p>Heritage from 1943, six-row Himalayan barley, a Ruby Port finish. The story is there. We'd tell it every week, with content your team approves.</p>
 </section>
 
@@ -87,8 +85,7 @@
   <div class="card"><h3>Rich story</h3><p>Bourbon barrels, Ruby Port pipes, 80+ years of Rampur Distillery. Plenty to film and write about.</p></div>
 </div>
 
-<h2>The <span>ground rule</span></h2>
-<p class="note">Alcohol ads are banned in India (Cable TV Networks rules), surrogate ads are banned under the 2022 CCPA guidelines, and Meta does not allow alcohol ads in India. So no paid Meta/Google ads for Virasat in India. This plan is fully online: content, creators and search, and Radico's legal team clears every piece.</p>
+<p class="note"><b>Ground rule</b>Alcohol ads are banned in India (Cable TV Networks rules), surrogate ads are banned under the 2022 CCPA guidelines, and Meta does not allow alcohol ads in India. So no paid Meta/Google ads for Virasat in India. This plan is fully online: content, creators and search, and Radico's legal team clears every piece.</p>
 
 <h2>What we <span>propose</span></h2>
 <div class="grid g3">
@@ -119,8 +116,8 @@
 </ol>
 
 <div class="cta">
-  <p>Commercials after a 30-minute call. No cost to explore.</p>
-  <a href="https://viratmohan.com">viratmohan.com</a>
+  <p>Commercials after a 30-minute call. <em>No cost to explore.</em></p>
+  <a class="btn" href="https://viratmohan.com/devshop">viratmohan.com/devshop</a>
 </div>
 
 <p class="src">Sources:
@@ -131,6 +128,7 @@
 <a href="https://www.exchange4media.com/marketing-news/we-respect-local-laws-meta-clarifies-stance-on-alcohol-and-gambling-ads-in-india-136635.html">exchange4media (Meta India stance)</a> ·
 <a href="https://transparency.meta.com/policies/ad-standards/restricted-goods-services/alcohol/">Meta alcohol policy</a>
 </p>
+</div>
 </div>
 </body>
 </html>
