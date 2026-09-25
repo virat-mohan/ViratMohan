@@ -73,8 +73,8 @@ window.RETAIL_OS_FAQ = [
 
   // ---- Content
   { topic: 'Content', q: 'Do I need a photoshoot?', visual: 'imageGen',
-    a: 'Usually not. From one product photo we generate model shots, lifestyle images and short videos.',
-    tags: ['photos', 'ai content', 'shoot', 'video', 'image generator'] },
+    a: 'Usually not. From one product photo we generate images and short videos. You can put the product on a model, change the model, or leave the model out and use a lifestyle or studio shot.',
+    tags: ['photos', 'ai content', 'shoot', 'video', 'image generator', 'model', 'no model', 'change model', 'lifestyle'] },
   { topic: 'Content', q: 'Who plans the posts?', visual: 'calendar',
     a: 'The system drafts posts and ads and places them on a content calendar. You approve them before anything goes out.',
     tags: ['content calendar', 'posts', 'instagram', 'social'] },
