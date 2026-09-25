@@ -56,6 +56,35 @@ mark{background:var(--gold); color:var(--ink); padding:0 2px;}
 .cta{margin-block:48px 40px; border:2px solid var(--ink); background:var(--gold); padding:24px; display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;}
 .cta h3{font-size:1.4rem;}
 .btn{display:inline-flex; padding:13px 22px; font-weight:700; font-size:14px; text-decoration:none; background:var(--ink); color:var(--cream); border:2px solid var(--ink);}
+
+.sec{font-size:13px; font-weight:600; color:var(--ink-soft);}
+.gallery-wrap{padding-top:32px;}
+.gh{font-size:1.6rem;} .gs{margin:6px 0 16px; font-size:13px; font-weight:500; color:var(--ink-soft);}
+.gallery{display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px;}
+.gcard{all:unset; cursor:pointer; display:flex; flex-direction:column; gap:8px; min-width:0;}
+.gcard .mk{margin:0; pointer-events:none;} .gcard:hover .mk{box-shadow:5px 5px 0 var(--ink);}
+.gcard .mk-body{max-height:230px; overflow:hidden;}
+.gq{font-size:13px; font-weight:700;} .gcard:hover .gq{color:var(--terracotta);}
+.ans .mk{margin-top:14px;}
+.mk{border:2px solid var(--ink); background:#fffdf8; margin:0; font-size:12px; color:var(--ink); transition:box-shadow .15s;}
+.mk-bar{display:flex; align-items:center; gap:5px; padding:7px 10px; border-bottom:2px solid var(--ink); background:var(--cream); font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:.05em;}
+.mk-bar i{width:8px; height:8px; border-radius:50%; border:1.5px solid var(--ink);} .mk-bar span{margin-left:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.mk-body{padding:12px; overflow-x:auto;}
+.mk figcaption{padding:8px 12px; border-top:1.5px solid var(--line); font-size:11.5px; font-weight:600; color:var(--ink-soft);}
+.mk figcaption em{font-style:normal; color:var(--terracotta); white-space:nowrap;}
+.mk-t{width:100%; border-collapse:collapse; font-size:11.5px;} .mk-t th{text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-soft); padding:4px 6px; border-bottom:1.5px solid var(--ink);} .mk-t td{padding:6px; border-bottom:1px solid var(--line); white-space:nowrap;}
+.mk-p{display:inline-block; font-size:10px; font-weight:700; padding:2px 7px; border:1px solid var(--ink); background:var(--cream);} .mk-p.ok{background:var(--teal); color:#fff; border-color:var(--teal);} .mk-p.hot{background:var(--terracotta); color:#fff; border-color:var(--terracotta);}
+.mk-b{display:inline-block; font-size:10.5px; font-weight:700; padding:5px 9px; background:var(--ink); color:var(--cream); border:1.5px solid var(--ink);} .mk-b.o{background:transparent; color:var(--ink);}
+.mk-row{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; align-items:center;}
+.mk-admin .mk-nav{display:grid; grid-template-columns:1fr 1fr; gap:10px;} .mk-nav div{display:flex; flex-direction:column; gap:2px;} .mk-nav b{font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--terracotta);} .mk-nav span{font-size:11px; color:var(--ink-soft); line-height:1.4;}
+.mk-conn{display:flex; flex-direction:column; gap:10px;} .mk-conn .g>b{font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--terracotta);} .mk-conn .c{display:flex; align-items:center; gap:8px; padding:5px 0; border-bottom:1px solid var(--line);} .mk-conn .c span{flex:1; font-weight:700; font-size:11.5px;} .mk-conn small{display:block; font-weight:500; color:var(--ink-soft); font-size:10.5px;} .dot{width:7px; height:7px; background:var(--teal); border-radius:50%;}
+.mk-cal{display:grid; grid-template-columns:repeat(7,1fr); gap:3px;} .mk-cal b{font-size:9.5px; text-align:center; color:var(--ink-soft);} .mk-cal div{min-height:38px; border:1px solid var(--line); padding:2px; display:flex; flex-direction:column; gap:2px;} .mk-cal small{font-size:9px; color:var(--ink-soft);} .ev{font-size:8px; font-weight:700; padding:1px 3px; line-height:1.2; color:#fff;} .ev.q{background:var(--blue);} .ev.l{background:var(--purple);} .ev.ok{background:var(--teal);}
+.mk-brief{display:flex; gap:12px;} .mk-brief .img{width:84px; flex-shrink:0; background:linear-gradient(160deg,var(--gold),var(--terracotta)); min-height:120px;} .mk-brief p{margin:4px 0 8px; font-style:italic; color:var(--ink-soft);}
+.mk-gen{display:flex; align-items:center; gap:8px;} .mk-gen>div{flex:1; aspect-ratio:3/4; display:flex; flex-direction:column; justify-content:flex-end; padding:6px; color:#fff; font-weight:700; font-size:10.5px;} .mk-gen small{font-size:9px; opacity:.85;} .mk-gen .src{background:repeating-linear-gradient(45deg,#e8dcc0,#e8dcc0 6px,#f1e7cf 6px,#f1e7cf 12px); color:var(--ink);} .mk-gen .o0{background:linear-gradient(170deg,#c9a27c,#7c5c46);} .mk-gen .o1{background:linear-gradient(170deg,#8aa0b3,#3e5670);} .mk-gen .arrow{flex:0 0 auto; aspect-ratio:auto; color:var(--ink); font-size:18px;}
+.mk-wa{background:#ece5dd; padding:10px; display:flex; flex-direction:column; gap:6px;} .mk-wa>div{max-width:80%; padding:7px 9px; font-size:11.5px; background:#fff;} .mk-wa .out{align-self:flex-end; background:#dcf8c6;} .mk-wa .card{display:flex; flex-direction:column; gap:2px;} .mk-wa .card .img{height:60px; background:linear-gradient(135deg,#9c7a4a,#d4af37);} .mk-wa .card span{color:var(--blue); font-weight:700;}
+.mk-steps{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:10px;} .mk-steps div{background:var(--pink); color:#fff; padding:8px; display:flex; flex-direction:column; gap:2px;} .mk-steps b{font-size:11px;} .mk-steps span{font-size:10px; opacity:.9;} .mk-steps small{font-size:9px; opacity:.8;}
+.mk-store .hero{background:var(--ink); color:var(--cream); padding:18px 12px; display:flex; flex-direction:column; gap:4px;} .mk-store .hero b{font-family:'Anton'; font-size:20px; font-weight:400;} .mk-store .lbl{display:block; margin:8px 0 4px; font-weight:700; font-size:10px; text-transform:uppercase;} .mk-store .grid{display:grid; grid-template-columns:repeat(4,1fr); gap:5px;} .mk-store .grid i{aspect-ratio:1; background:linear-gradient(150deg,#e8dcc0,#c99a3d);} .mk-store .ugc i{background:linear-gradient(150deg,#d9714b,#7c5cbf);}
+.mk-track{list-style:none; margin:0; padding:0;} .mk-track li{padding:5px 0 5px 22px; position:relative; border-bottom:1px solid var(--line); color:var(--ink-soft);} .mk-track li::before{content:""; position:absolute; left:0; top:7px; width:12px; height:12px; border:1.5px solid var(--ink);} .mk-track li.d{color:var(--ink); font-weight:700;} .mk-track li.d::before{background:var(--teal); border-color:var(--teal);}
 footer{padding-block:24px; border-top:2px solid var(--ink);} footer p{margin:0; font-size:11px; font-weight:700; letter-spacing:.03em; color:var(--ink-soft);}
 @media (max-width:640px){ .navlinks{display:none;} }
 </style>
@@ -65,14 +94,14 @@ footer{padding-block:24px; border-top:2px solid var(--ink);} footer p{margin:0; 
 <div class="wrap">
   <nav>
     <a class="wordmark" href="/retail-os/"><span class="w1">Dev</span><span class="w2">Shop</span><small>Retail OS™</small></a>
-    <div class="navlinks"><a href="/retail-os/">Retail OS</a><a href="/retail-os/apply/">Apply →</a></div>
+    <div class="navlinks"><a href="/retail-os/">Retail OS</a><a href="https://wa.me/919999277240">WhatsApp me</a></div>
   </nav>
 </div>
 <header class="hero">
   <div class="wrap hero-inner">
     <div class="eyebrow">Partner FAQ</div>
     <h1>Ask it straight. <span>Get it straight.</span></h1>
-    <p>Everything partners and future partners ask me about DevShop Retail OS: the deal, getting paid, ads, WhatsApp, the store, shipping and Pay with a Post.</p>
+    <p>What partners ask me most about DevShop Retail OS, answered plainly. Search, or scroll through what it looks like below.</p>
     <div class="search">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1410" stroke-width="2.5" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
       <input id="q" type="search" placeholder="Search: settlement, Meta ads, Shopify, deposit…" aria-label="Search the FAQ" autocomplete="off">
@@ -80,24 +109,30 @@ footer{padding-block:24px; border-top:2px solid var(--ink);} footer p{margin:0; 
   </div>
 </header>
 <main class="wrap">
+  <section class="gallery-wrap">
+    <h2 class="gh">What it looks like</h2>
+    <p class="gs">Mockups of the actual screens. Figures are sample data.</p>
+    <div class="gallery" id="gallery"></div>
+  </section>
   <div class="chips" id="chips" role="group" aria-label="Filter by topic"></div>
   <p class="count" id="count"></p>
   <div id="list"></div>
   <div class="empty" id="empty" hidden>Nothing matches that. Try a simpler word, or just ask me on <a href="https://wa.me/919999277240">WhatsApp</a>.</div>
   <div class="cta">
     <h3>Still have a question?</h3>
-    <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center">
       <a class="btn" href="https://wa.me/919999277240">WhatsApp me</a>
-      <a class="btn" href="/retail-os/apply/">Apply →</a>
+      <a class="sec" href="/retail-os/apply/">or apply online</a>
     </div>
   </div>
 </main>
 <div class="wrap"><footer><p>PAY WITH A POST™, RETAIL OS™ AND AI-ENABLER™ ARE TRADEMARKS OF DEVSHOP</p></footer></div>
 
 <script src="./faq-data.js"></script>
+<script src="./faq-visuals.js"></script>
 <script>
 (function(){
-  var FAQ = window.RETAIL_OS_FAQ || [];
+  var FAQ = window.RETAIL_OS_FAQ || [], VIS = window.RETAIL_OS_VISUALS || {};
   var COLORS = ['var(--terracotta)','var(--blue)','var(--pink)','var(--olive)','var(--teal)','var(--purple)','var(--gold-deep)'];
   var topics = []; FAQ.forEach(function(f){ if (topics.indexOf(f.topic) < 0) topics.push(f.topic); });
   var active = 'All';
@@ -141,7 +176,7 @@ footer{padding-block:24px; border-top:2px solid var(--ink);} footer p{margin:0; 
       group.forEach(function(h){
         var d = document.createElement('details'); if (terms.length) d.open = true;
         d.innerHTML = '<summary>'+hi(h.f.q, terms)+'</summary><div class="ans">'+
-          h.f.a.split('\n\n').map(function(p){ return '<p>'+hi(p, terms)+'</p>'; }).join('')+'</div>';
+          h.f.a.split('\n\n').map(function(p){ return '<p>'+hi(p, terms)+'</p>'; }).join('')+(h.f.visual && VIS[h.f.visual] ? VIS[h.f.visual] : '')+'</div>';
         sec.appendChild(d);
       });
       list.appendChild(sec);
@@ -150,6 +185,13 @@ footer{padding-block:24px; border-top:2px solid var(--ink);} footer p{margin:0; 
     document.getElementById('count').textContent = hits.length + (hits.length===1?' answer':' answers') + (raw ? ' for "'+raw+'"' : '');
     try { history.replaceState(null,'', raw ? '?q='+encodeURIComponent(raw) : location.pathname); } catch(e){}
   }
+  var gal = document.getElementById('gallery');
+  FAQ.filter(function(f){ return f.visual && VIS[f.visual]; }).forEach(function(f){
+    var a = document.createElement('button'); a.type='button'; a.className='gcard';
+    a.innerHTML = VIS[f.visual] + '<span class="gq">'+esc(f.q)+' →</span>';
+    a.onclick = function(){ qEl.value = f.q; render(); document.getElementById('chips').scrollIntoView({behavior:'smooth'}); };
+    gal.appendChild(a);
+  });
   var init = new URLSearchParams(location.search).get('q'); if (init) qEl.value = init;
   qEl.addEventListener('input', render);
   render();
