@@ -49,7 +49,7 @@ window.RETAIL_OS_FAQ = [
     a: 'You get a tracker page with a quarterly forecast for your brand and three design options for your store. You see both before signing anything.',
     tags: ['next', 'forecast', 'business plan', 'design'] },
   { topic: 'Onboarding', q: 'How long until the store is live?',
-    a: 'About two weeks. The build is around 7 days. The rest depends on your setup answers and on approvals from the payment gateway, Meta and WhatsApp.',
+    a: '7 days. That assumes your setup answers come in on time and the payment gateway, Meta and WhatsApp approve without delays.',
     tags: ['timeline', 'how long', 'live', 'launch'] },
   { topic: 'Onboarding', q: 'How do I follow progress?', visual: 'tracker',
     a: 'On your tracker page. Each stage is marked done as it happens: catalog, design, payments, shipping, Meta, WhatsApp, go-live.',
