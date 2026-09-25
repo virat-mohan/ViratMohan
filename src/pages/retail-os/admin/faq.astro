@@ -1,0 +1,127 @@
+---
+export const prerender = false;
+import { getEnv } from '../../../lib/env';
+import { getFaqDb, FAQ_TOPICS, type FaqQuestion } from '../../../lib/retail-os-faq';
+
+// FAQ inbox (gated by src/middleware.ts). Questions the public FAQ could not
+// answer land here. Answer on WhatsApp, paste the reply, reword, publish.
+let rows: FaqQuestion[] = [];
+let loadError = '';
+try { rows = await getFaqDb(getEnv()).list(); } catch (err) { loadError = err instanceof Error ? err.message : String(err); }
+const open = rows.filter((r) => r.status === 'open');
+const published = rows.filter((r) => r.status === 'published');
+const dismissed = rows.filter((r) => r.status === 'dismissed');
+const fmt = (d: string) => new Date(d).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' });
+const REASON: Record<string, string> = { no_match: 'No answer found', weak_match: 'Weak match', sent_to_whatsapp: 'Sent to WhatsApp', manual: 'Added by you' };
+---
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FAQ Inbox — Retail OS admin</title>
+<meta name="robots" content="noindex">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--cream:#F4EAD4;--ink:#1A1410;--ink-soft:#4A4038;--gold:#D4AF37;--terracotta:#D9714B;--teal:#2B8C86;--line:rgba(26,20,16,.14);}
+*{box-sizing:border-box;} body{margin:0;background:var(--cream);color:var(--ink);font:15px/1.55 'Inter',system-ui,sans-serif;}
+.wrap{max-width:980px;margin:0 auto;padding:24px 16px 60px;}
+h1,h2{font-family:'Anton',sans-serif;font-weight:400;text-transform:uppercase;margin:0;}
+h1{font-size:2.2rem;} h2{font-size:1.3rem;margin:34px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--ink);}
+.sub{color:var(--ink-soft);font-weight:500;margin:6px 0 0;}
+.card{border:2px solid var(--ink);background:#fffdf8;padding:16px;margin-bottom:12px;}
+.meta{font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft);display:flex;gap:10px;flex-wrap:wrap;}
+.q{font-weight:800;font-size:16px;margin:6px 0 10px;}
+label{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin:10px 0 4px;}
+textarea,input,select{width:100%;font:inherit;padding:10px;border:1.5px solid var(--ink);background:var(--cream);}
+textarea{min-height:80px;resize:vertical;}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center;}
+button{font:700 13px 'Inter';padding:9px 14px;border:2px solid var(--ink);background:var(--ink);color:var(--cream);cursor:pointer;}
+button.o{background:transparent;color:var(--ink);} button.g{background:var(--teal);border-color:var(--teal);}
+button:disabled{opacity:.5;cursor:wait;}
+.msg{font-size:13px;font-weight:600;color:var(--terracotta);}
+.pub .a{color:var(--ink-soft);margin:4px 0 0;}
+.err{border:2px solid var(--terracotta);padding:14px;background:#fff;}
+.how{border:2px dashed var(--ink);padding:14px 16px;margin-top:18px;font-size:14px;} .how ol{margin:6px 0 0;padding-left:20px;}
+a{color:inherit;}
+</style>
+</head>
+<body><div class="wrap">
+<p class="meta"><a href="/retail-os/admin/">← Retail OS admin</a> · <a href="/retail-os/faq/" target="_blank">View FAQ</a></p>
+<h1>FAQ Inbox</h1>
+<p class="sub">Questions partners asked that the FAQ could not answer. {open.length} open · {published.length} published.</p>
+<div class="how"><b>How it works</b><ol>
+<li>A partner searches the FAQ, finds no good answer, and taps "Ask on WhatsApp". The question lands here and on your WhatsApp.</li>
+<li>Reply to them on WhatsApp as usual.</li>
+<li>Paste your reply below and tap Reword. Check the wording, then Publish. It goes live on the FAQ within a minute.</li>
+</ol></div>
+
+{loadError && <p class="err">Could not load the inbox: {loadError}. Run migrations/0027_retail_os_faq.sql in Supabase if you have not yet.</p>}
+
+<h2>Add a question yourself</h2>
+<div class="card"><label for="newQ">A question you got on WhatsApp</label><input id="newQ" placeholder="e.g. Can I sell on Amazon too?"><div class="row"><button id="addBtn">Add to inbox</button><span class="msg" id="addMsg"></span></div></div>
+
+<h2>Open ({open.length})</h2>
+{open.length === 0 && <p class="sub">Nothing waiting.</p>}
+{open.map((r) => (
+  <div class="card item" data-id={r.id}>
+    <div class="meta"><span>{REASON[r.reason ?? ''] ?? r.reason}</span><span>Asked {r.ask_count}×</span><span>Last {fmt(r.last_asked_at)}</span></div>
+    <div class="q">{r.question}</div>
+    <label>Your WhatsApp reply</label>
+    <textarea class="raw" placeholder="Paste what you replied on WhatsApp">{r.raw_answer ?? ''}</textarea>
+    <div class="row"><button class="reword">Reword in my voice</button><button class="o dismiss">Dismiss</button><span class="msg"></span></div>
+    <div class="draft" hidden>
+      <label>Question as shown on the site</label><input class="pq" value={r.question}>
+      <label>Answer as shown on the site</label><textarea class="ans"></textarea>
+      <label>Category</label><select class="topic">{FAQ_TOPICS.map((t) => <option>{t}</option>)}</select>
+      <div class="row"><button class="g publish">Publish to FAQ</button></div>
+    </div>
+  </div>
+))}
+
+<h2>Published ({published.length})</h2>
+{published.map((r) => (
+  <div class="card pub item" data-id={r.id}>
+    <div class="meta"><span>{r.topic}</span><span>Published {r.published_at ? fmt(r.published_at) : ''}</span></div>
+    <div class="q">{r.published_question || r.question}</div>
+    <p class="a">{r.answer}</p>
+    <div class="row"><button class="o reopen">Unpublish</button><span class="msg"></span></div>
+  </div>
+))}
+
+{dismissed.length > 0 && <h2>Dismissed ({dismissed.length})</h2>}
+{dismissed.map((r) => (
+  <div class="card item" data-id={r.id}><div class="q">{r.question}</div><div class="row"><button class="o reopen">Reopen</button><span class="msg"></span></div></div>
+))}
+</div>
+<script>
+  const api = (body: Record<string, unknown>) => fetch('/retail-os/api/admin/faq', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
+    .then(async (r) => { const d = await r.json().catch(() => ({})); if (!r.ok) throw new Error(d.error || 'Failed'); return d; });
+
+  document.getElementById('addBtn')?.addEventListener('click', async (e) => {
+    const input = document.getElementById('newQ') as HTMLInputElement; const msg = document.getElementById('addMsg')!;
+    if (!input.value.trim()) return; (e.target as HTMLButtonElement).disabled = true;
+    try { await api({ action: 'add', question: input.value }); location.reload(); } catch (err) { msg.textContent = (err as Error).message; (e.target as HTMLButtonElement).disabled = false; }
+  });
+
+  document.querySelectorAll<HTMLElement>('.item').forEach((card) => {
+    const id = card.dataset.id; const msg = card.querySelector('.msg') as HTMLElement;
+    const run = async (btn: HTMLButtonElement, fn: () => Promise<void>) => { btn.disabled = true; msg.textContent = ''; try { await fn(); } catch (err) { msg.textContent = (err as Error).message; } btn.disabled = false; };
+    card.querySelector<HTMLButtonElement>('.reword')?.addEventListener('click', (e) => run(e.target as HTMLButtonElement, async () => {
+      const raw = (card.querySelector('.raw') as HTMLTextAreaElement).value.trim(); if (!raw) throw new Error('Paste your reply first.');
+      msg.textContent = 'Rewording…';
+      const out = await api({ action: 'reword', id, question: card.querySelector('.q')!.textContent, rawAnswer: raw });
+      (card.querySelector('.pq') as HTMLInputElement).value = out.question;
+      (card.querySelector('.ans') as HTMLTextAreaElement).value = out.answer;
+      (card.querySelector('.topic') as HTMLSelectElement).value = out.topic;
+      (card.querySelector('.draft') as HTMLElement).hidden = false; msg.textContent = 'Check it, edit if needed, then publish.';
+    }));
+    card.querySelector<HTMLButtonElement>('.publish')?.addEventListener('click', (e) => run(e.target as HTMLButtonElement, async () => {
+      await api({ action: 'publish', id, question: (card.querySelector('.pq') as HTMLInputElement).value, answer: (card.querySelector('.ans') as HTMLTextAreaElement).value,
+        topic: (card.querySelector('.topic') as HTMLSelectElement).value, rawAnswer: (card.querySelector('.raw') as HTMLTextAreaElement).value });
+      location.reload();
+    }));
+    card.querySelector<HTMLButtonElement>('.dismiss')?.addEventListener('click', (e) => run(e.target as HTMLButtonElement, async () => { await api({ action: 'dismiss', id }); location.reload(); }));
+    card.querySelector<HTMLButtonElement>('.reopen')?.addEventListener('click', (e) => run(e.target as HTMLButtonElement, async () => { await api({ action: 'reopen', id }); location.reload(); }));
+  });
+</script>
+</body></html>

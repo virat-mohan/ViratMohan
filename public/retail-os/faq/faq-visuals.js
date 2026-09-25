@@ -55,6 +55,9 @@ window.RETAIL_OS_VISUALS = (function(){
     shipping: T('Shipments & RTO', 'Courier assigned the second an order confirms.',
       tbl(['Order','Courier','Status','Label'],[['#1042','Delhivery',pill('In transit',''),'Printed'],['#1041','Xpressbees',pill('Delivered','ok'),'Printed'],['#1039','Delhivery',pill('RTO risk · nudged','hot'),'Printed']])+'<div class="mk-row">'+btn('Print Labels (A4 × 2)')+'</div>'),
 
+    checkout: T('Checkout', 'Guest checkout, live shipping rate, pay how you like.',
+      '<div class="mk-co"><div><small>Delivery</small><b>110017 · New Delhi</b><span>Shipping ₹0 · arrives Thu</span></div><div><small>Pay with</small><div class="mk-row" style="margin:4px 0 0">'+pill('UPI','ok')+pill('Card')+pill('Netbanking')+pill('Wallet')+pill('COD + ₹99 advance')+'</div></div><div><small>Gift note</small><span>Happy birthday, Tara!</span></div><div class="tot"><span>Total</span><b>₹1,790</b></div>'+btn('Pay ₹1,790')+'</div>'),
+
     tracker: T('Your Onboarding Tracker', 'Every stage marked done as it happens.',
       '<ul class="mk-track">'+[['Brand identity set up',1],['Catalog connected',1],['Design direction proposed',1],['Payments configured',1],['Shipping configured',0],['Meta linked',0],['WhatsApp provisioned',0],['Go-live review',0],['Live & selling',0]].map(function(s){return '<li class="'+(s[1]?'d':'')+'">'+s[0]+'</li>';}).join('')+'</ul>')
   };

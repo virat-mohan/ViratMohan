@@ -16,6 +16,7 @@
   --line:rgba(26,20,16,0.14);
 }
 *{box-sizing:border-box;}
+[hidden]{display:none!important;}
 body{margin:0; background:var(--cream); color:var(--ink); font-family:'Inter',system-ui,sans-serif; font-size:15.5px; line-height:1.6; -webkit-font-smoothing:antialiased;}
 h1,h2,h3{font-family:'Anton','Arial Narrow',sans-serif; font-weight:400; text-transform:uppercase; margin:0; line-height:1; text-wrap:balance;}
 a{color:inherit;}
@@ -86,6 +87,16 @@ mark{background:var(--gold); color:var(--ink); padding:0 2px;}
 .mk-steps{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:10px;} .mk-steps div{background:var(--pink); color:#fff; padding:8px; display:flex; flex-direction:column; gap:2px;} .mk-steps b{font-size:11px;} .mk-steps span{font-size:10px; opacity:.9;} .mk-steps small{font-size:9px; opacity:.8;}
 .mk-store .hero{background:var(--ink); color:var(--cream); padding:18px 12px; display:flex; flex-direction:column; gap:4px;} .mk-store .hero b{font-family:'Anton'; font-size:20px; font-weight:400;} .mk-store .lbl{display:block; margin:8px 0 4px; font-weight:700; font-size:10px; text-transform:uppercase;} .mk-store .grid{display:grid; grid-template-columns:repeat(4,1fr); gap:5px;} .mk-store .grid i{aspect-ratio:1; background:linear-gradient(150deg,#e8dcc0,#c99a3d);} .mk-store .ugc i{background:linear-gradient(150deg,#d9714b,#7c5cbf);}
 .mk-track{list-style:none; margin:0; padding:0;} .mk-track li{padding:5px 0 5px 22px; position:relative; border-bottom:1px solid var(--line); color:var(--ink-soft);} .mk-track li::before{content:""; position:absolute; left:0; top:7px; width:12px; height:12px; border:1.5px solid var(--ink);} .mk-track li.d{color:var(--ink); font-weight:700;} .mk-track li.d::before{background:var(--teal); border-color:var(--teal);}
+.mk-co{display:flex; flex-direction:column; gap:8px;} .mk-co>div{border-bottom:1px solid var(--line); padding-bottom:6px; display:flex; flex-direction:column;} .mk-co small{font-size:9.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); font-weight:700;} .mk-co span{color:var(--ink-soft);} .mk-co .tot{flex-direction:row; justify-content:space-between; border:none;}
+.toc{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:0; border:2px solid var(--ink); margin-top:28px;}
+.toc a{display:flex; align-items:center; gap:8px; padding:12px 14px; font-weight:700; font-size:14px; text-decoration:none; border-right:1.5px solid var(--line); border-bottom:1.5px solid var(--line);}
+.toc a:hover{background:var(--ink); color:var(--cream);} .toc a i{width:10px; height:10px; flex-shrink:0;} .toc a small{margin-left:auto; font-size:11px; color:var(--ink-soft);} .toc a:hover small{color:var(--cream);}
+.tgrid{display:grid; grid-template-columns:1fr 380px; gap:28px; align-items:start;} .tvis .mk{position:sticky; top:16px; margin-top:12px;}
+@media (max-width:860px){ .tgrid{grid-template-columns:1fr;} .tvis{order:-1;} .tvis .mk{position:static;} }
+.new{font-size:10px; font-weight:800; text-transform:uppercase; background:var(--teal); color:#fff; padding:1px 6px; margin-left:6px;}
+.ask{display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; margin-top:22px; padding:18px 20px; border:2px solid var(--ink); background:#fffdf8;}
+.ask div{display:flex; flex-direction:column; gap:2px; max-width:56ch;} .ask span{font-size:13.5px; color:var(--ink-soft); font-weight:500;}
+.ask.loud{background:var(--gold);} .ask .btn{background:#1f7a4d; border-color:#1f7a4d;}
 footer{padding-block:24px; border-top:2px solid var(--ink);} footer p{margin:0; font-size:11px; font-weight:700; letter-spacing:.03em; color:var(--ink-soft);}
 @media (max-width:640px){ .navlinks{display:none;} }
 </style>
@@ -102,27 +113,26 @@ footer{padding-block:24px; border-top:2px solid var(--ink);} footer p{margin:0; 
   <div class="wrap hero-inner">
     <div class="eyebrow">Partner FAQ</div>
     <h1>Ask it straight. <span>Get it straight.</span></h1>
-    <p>What partners ask me most about DevShop Retail OS, answered plainly. Search, or scroll through what it looks like below.</p>
+    <p>Everything DevShop Retail OS does and how it works, by category. Search anything. If it is not here, ask me on WhatsApp.</p>
     <div class="search">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1410" stroke-width="2.5" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
-      <input id="q" type="search" placeholder="Search: settlement, Meta ads, Shopify, deposit…" aria-label="Search the FAQ" autocomplete="off">
+      <input id="q" type="search" placeholder="Search anything: Meta ads, photoshoot, Shopify, shipping…" aria-label="Search the FAQ" autocomplete="off">
     </div>
   </div>
 </header>
 <main class="wrap">
-  <section class="gallery-wrap">
-    <h2 class="gh">What it looks like</h2>
-    <p class="gs">Mockups of the actual screens. Figures are sample data.</p>
-    <div class="gallery" id="gallery"></div>
-  </section>
-  <div class="chips" id="chips" role="group" aria-label="Filter by topic"></div>
+  <nav class="toc" id="toc" aria-label="Categories"></nav>
+  <div class="chips" id="chips" role="group" aria-label="Filter by category"></div>
   <p class="count" id="count"></p>
   <div id="list"></div>
-  <div class="empty" id="empty" hidden>Nothing matches that. Try one simple word like ads, shipping, WhatsApp or photos, or just ask me on <a href="https://wa.me/919999277240">WhatsApp</a>.</div>
+  <div class="ask" id="ask" hidden>
+    <div><b id="askTitle">Didn't find your answer?</b><span>Send it to me on WhatsApp. I will answer personally.</span></div>
+    <a class="btn" id="askBtn" href="#" target="_blank" rel="noopener">Ask on WhatsApp</a>
+  </div>
   <div class="cta">
     <h3>Still have a question?</h3>
     <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center">
-      <a class="btn" href="https://wa.me/919999277240">WhatsApp me</a>
+      <a class="btn" id="ctaWa" href="https://wa.me/919999277240" target="_blank" rel="noopener">WhatsApp me</a>
       <a class="sec" href="/retail-os/apply/">or apply online</a>
     </div>
   </div>
@@ -133,86 +143,173 @@ footer{padding-block:24px; border-top:2px solid var(--ink);} footer p{margin:0; 
 <script src="/retail-os/faq/faq-visuals.js"></script>
 <script>
 (function(){
-  var FAQ = window.RETAIL_OS_FAQ || [], VIS = window.RETAIL_OS_VISUALS || {};
+  var WA = '919999277240';
+  var FAQ = (window.RETAIL_OS_FAQ || []).slice(), VIS = window.RETAIL_OS_VISUALS || {};
+  var TOPICS = (window.RETAIL_OS_TOPICS || []).slice();
   var COLORS = ['var(--terracotta)','var(--blue)','var(--pink)','var(--olive)','var(--teal)','var(--purple)','var(--gold-deep)'];
-  var topics = []; FAQ.forEach(function(f){ if (topics.indexOf(f.topic) < 0) topics.push(f.topic); });
   var active = 'All';
   var qEl = document.getElementById('q'), list = document.getElementById('list');
+  var logged = {}, logTimer = null;
 
-  function esc(s){ return s.replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function slug(s){ return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
+  function norm(s){ return s.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g,''); }
   function hi(text, terms){
     var out = esc(text);
-    terms.forEach(function(t){ if (t.length < 2) return;
+    terms.forEach(function(t){ if (t.length < 3) return;
       out = out.replace(new RegExp('(' + t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')(?![^<]*>)', 'gi'), '<mark>$1</mark>'); });
     return out;
   }
-  function norm(s){ return s.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g,''); }
+  function waLink(question){
+    var text = question ? 'Hi Virat, a question about DevShop Retail OS: ' + question : 'Hi Virat, I have a question about DevShop Retail OS.';
+    return 'https://wa.me/' + WA + '?text=' + encodeURIComponent(text);
+  }
+  function logQuestion(question, reason){
+    var key = norm(question); if (!key || logged[key]) return; logged[key] = 1;
+    try { fetch('/retail-os/api/faq/ask', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ question: question, reason: reason }), keepalive:true }).catch(function(){}); } catch(e){}
+  }
+  var STOP = ['the','a','an','is','are','do','does','did','can','could','would','should','i','you','we','my','your','our','to','of','for','and','or','in','on','how','what','which','when','where','why','with','it','be','will','there','any','have','has','me','about','this','that','if','get','need','want','please','hi','hello','virat','devshop','retail','os','us','at','by','from','so','am','im','its','yes','no','not','go','much','many','really','also','just','like','know','tell','there'];
+  // Synonyms: each group is treated as one idea, so any word finds the others.
+  var SYN = [
+    ['price','pricing','cost','costs','fee','fees','charge','charges','pay you','commission','split','share','margin','money','expensive','cheap','budget','deposit','rate','rates','subscription','plan'],
+    ['ads','ad','advert','advertising','adverts','campaign','campaigns','meta','facebook','fb','instagram','insta','ig','performance','marketing','paid','roas','cac','boost','promote','promotion','media buying'],
+    ['website','site','store','storefront','shop','front','frontend','front end','page','pages','theme','template','design','look','ui','homepage','landing'],
+    ['admin','backend','back end','dashboard','panel','backoffice','console','manage','management','control'],
+    ['report','reports','reporting','analytics','numbers','metrics','data','stats','insights','kpi','p&l','pnl','profit','revenue','sales','results','tracking','performance report','daily report'],
+    ['social','content','post','posts','posting','reel','reels','video','videos','photo','photos','photography','shoot','photoshoot','image','images','creative','creatives','model','models','calendar','instagram posts','ugc','blog','journal','newsletter'],
+    ['integration','integrations','connect','connects','connector','connectors','api','apps','app','plugin','plugins','tools','software','razorpay','shiprocket','google','gateway'],
+    ['onboard','onboarding','start','starting','setup','set up','launch','live','begin','join','apply','application','signup','sign up','timeline','how long','time','days','weeks','process','steps'],
+    ['payment','payments','pay','upi','card','cards','cod','cash','netbanking','wallet','checkout','gateway','razorpay','refund','refunds'],
+    ['ship','shipping','delivery','deliver','courier','logistics','dispatch','fulfilment','fulfillment','warehouse','label','labels','pickup','rto','return','returns','exchange','delhivery'],
+    ['whatsapp','wa','message','messages','chat','inbox','support','customer service','otp'],
+    ['customer','customers','loyalty','points','rewards','referral','referrals','refer','repeat','retention','winback','vip','review','reviews','crm'],
+    ['brand','ownership','own','ip','control','exit','leave','contract','agreement','terms','lock','lockin','lock in'],
+    ['shopify','woocommerce','woo','wordpress','wix','migrate','migration','import','move','switch','existing store'],
+    ['abandoned','abandon','cart','carts','recovery','dropoff','drop off','left'],
+    ['inventory','stock','product','products','catalog','catalogue','sku','skus','listing','listings'],
+  ];
+  var SYNMAP = {}; SYN.forEach(function(g, gi){ g.forEach(function(w){ (SYNMAP[w] = SYNMAP[w] || []).push(gi); }); });
+  function expand(t){
+    var out = [t], gs = SYNMAP[t] || (t.length > 3 && SYNMAP[t.replace(/(ing|ed|es|s)$/,'')]) || [];
+    gs.forEach(function(gi){ SYN[gi].forEach(function(w){ if (out.indexOf(w) < 0) out.push(w); }); });
+    return out;
+  }
+  function stem(t){ return t.length > 4 ? t.replace(/(ing|ed|es|s|ly)$/,'') : t; }
+  function near(a, b){ // edit distance <= 1 (or 2 for long words)
+    if (Math.abs(a.length - b.length) > 2) return false;
+    var m = a.length, n = b.length, prev = [], cur = [], i, j;
+    for (j = 0; j <= n; j++) prev[j] = j;
+    for (i = 1; i <= m; i++){ cur = [i]; for (j = 1; j <= n; j++) cur[j] = Math.min(prev[j]+1, cur[j-1]+1, prev[j-1] + (a[i-1]===b[j-1]?0:1)); prev = cur; }
+    return prev[n] <= (m > 7 ? 2 : 1);
+  }
+  var INDEX = new Map();
+  function indexOf(f){
+    if (INDEX.has(f)) return INDEX.get(f);
+    var q = norm(f.q), tags = norm((f.tags||[]).join(' | ')), all = norm(f.q + ' ' + f.a + ' ' + f.topic + ' ' + (f.tags||[]).join(' '));
+    var x = { q:q, tags:tags, all:all, words: all.split(/[^a-z0-9&]+/).filter(function(w){ return w.length > 3; }) };
+    INDEX.set(f, x); return x;
+  }
+  function termScore(x, t){
+    var s = stem(t);
+    if (x.q.indexOf(s) >= 0) return 5;
+    if (x.tags.indexOf(s) >= 0) return 4;
+    if (x.all.indexOf(s) >= 0) return 2;
+    var syn = expand(t);
+    for (var i = 1; i < syn.length; i++){ var w = syn[i];
+      if (x.q.indexOf(w) >= 0 || x.tags.indexOf(w) >= 0) return 3;
+      if (w.length > 3 && x.all.indexOf(w) >= 0) return 1.5; }
+    if (t.length >= 4) for (var k = 0; k < x.words.length; k++) if (near(t, x.words[k])) return 1.5;
+    return 0;
+  }
+  function score(f, terms){
+    var x = indexOf(f), s = 0, hit = 0;
+    terms.forEach(function(t){ var v = termScore(x, t); if (v) { s += v; hit++; } });
+    if (!hit) return 0;
+    var phrase = terms.join(' '); if (terms.length > 1 && (x.q + ' ' + x.tags).indexOf(phrase) >= 0) s += 6;
+    return s + (hit === terms.length ? 100 : hit * 10);
+  }
+  function item(f, terms, open, skip){
+    var d = document.createElement('details'); if (open) d.open = true;
+    d.innerHTML = '<summary>' + hi(f.q, terms) + (terms.length ? ' <small class="tp">' + esc(f.topic) + '</small>' : '') + (f.fresh ? ' <small class="new">New</small>' : '') + '</summary><div class="ans">' +
+      f.a.split('\n\n').map(function(p){ return '<p>' + hi(p, terms) + '</p>'; }).join('') +
+      (f.visual && VIS[f.visual] && f.visual !== skip ? VIS[f.visual] : '') + '</div>';
+    return d;
+  }
 
-  var chips = document.getElementById('chips');
-  ['All'].concat(topics).forEach(function(t){
-    var b = document.createElement('button'); b.className='chip'; b.textContent=t; b.type='button';
-    b.setAttribute('aria-pressed', t===active); b.onclick=function(){ active=t;
-      [].forEach.call(chips.children, function(c){ c.setAttribute('aria-pressed', c.textContent===t); }); render(); };
-    chips.appendChild(b);
-  });
+  function buildNav(){
+    var chips = document.getElementById('chips'), toc = document.getElementById('toc');
+    chips.innerHTML = ''; toc.innerHTML = '';
+    ['All'].concat(TOPICS).forEach(function(t){
+      var b = document.createElement('button'); b.className='chip'; b.textContent=t; b.type='button';
+      b.setAttribute('aria-pressed', t===active);
+      b.onclick = function(){ active = t; [].forEach.call(chips.children, function(c){ c.setAttribute('aria-pressed', c.textContent===t); }); render(); };
+      chips.appendChild(b);
+    });
+    TOPICS.forEach(function(t, ti){
+      var n = FAQ.filter(function(f){ return f.topic===t; }).length; if (!n) return;
+      var a = document.createElement('a'); a.href = '#' + slug(t);
+      a.innerHTML = '<i style="background:'+COLORS[ti%COLORS.length]+'"></i>' + esc(t) + ' <small>' + n + '</small>';
+      a.onclick = function(e){ e.preventDefault(); qEl.value=''; active='All'; buildNav(); render(); var el=document.getElementById(slug(t)); if (el) el.scrollIntoView({behavior:'smooth'}); };
+      toc.appendChild(a);
+    });
+  }
 
   function render(){
-    var raw = qEl.value.trim(), terms = norm(raw).split(/\s+/).filter(Boolean);
-    var hits = FAQ.map(function(f){
-      if (active !== 'All' && f.topic !== active) return null;
-      if (!terms.length) return {f:f, s:0};
-      var hay = norm(f.q + ' ' + f.a + ' ' + f.topic + ' ' + (f.tags||[]).join(' '));
-      var s = 0, all = true;
-      for (var i=0;i<terms.length;i++){ var t = terms[i], t2 = t.length > 4 ? t.slice(0, -1) : t;
-        if (hay.indexOf(t2) < 0) { all = false; continue; }
-        if (norm(f.q).indexOf(t2)>=0) s+=3; if (norm((f.tags||[]).join(' ')).indexOf(t2)>=0) s+=2; s+=1; }
-      if (!s) return null;
-      return {f:f, s:s + (all ? 100 : 0)};
-    }).filter(Boolean);
+    var raw = qEl.value.trim();
+    var terms = norm(raw).split(/[^a-z0-9&]+/).filter(function(t){ return t && STOP.indexOf(t) < 0; });
+    var pool = FAQ.filter(function(f){ return active === 'All' || f.topic === active; });
     list.innerHTML = '';
-    if (terms.length) {
-      if (hits.some(function(x){ return x.s >= 100; })) hits = hits.filter(function(x){ return x.s >= 100; });
-      hits.sort(function(a,b){ return b.s-a.s; });
-      var sec0 = document.createElement('section'); sec0.className='topic';
-      hits.forEach(function(h, i){
-        var d = document.createElement('details'); if (i < 3) d.open = true;
-        d.innerHTML = '<summary>'+hi(h.f.q, terms)+' <small class="tp">'+esc(h.f.topic)+'</small></summary><div class="ans">'+
-          h.f.a.split('\n\n').map(function(p){ return '<p>'+hi(p, terms)+'</p>'; }).join('')+
-          (h.f.visual && VIS[h.f.visual] ? VIS[h.f.visual] : '')+'</div>';
-        sec0.appendChild(d);
-      });
-      list.appendChild(sec0);
-    } else
-    topics.forEach(function(t, ti){
-      var group = hits.filter(function(h){ return h.f.topic===t; });
-      if (!group.length) return;
-      if (terms.length) group.sort(function(a,b){ return b.s-a.s; });
-      var sec = document.createElement('section'); sec.className='topic';
-      sec.innerHTML = '<h2><i style="background:'+COLORS[ti%COLORS.length]+'"></i>'+esc(t)+'</h2>';
-      group.forEach(function(h){
-        var d = document.createElement('details'); if (terms.length) d.open = true;
-        d.innerHTML = '<summary>'+hi(h.f.q, terms)+'</summary><div class="ans">'+
-          h.f.a.split('\n\n').map(function(p){ return '<p>'+hi(p, terms)+'</p>'; }).join('')+(h.f.visual && VIS[h.f.visual] ? VIS[h.f.visual] : '')+'</div>';
-        sec.appendChild(d);
-      });
+    var ask = document.getElementById('ask');
+    document.getElementById('toc').hidden = !!raw || active !== 'All';
+    document.getElementById('chips').hidden = !raw && active === 'All';
+
+    if (raw) {
+      var hits = pool.map(function(f){ return { f:f, s: terms.length ? score(f, terms) : 0 }; }).filter(function(h){ return h.s > 0; });
+      var strong = hits.some(function(h){ return h.s >= 100; });
+      if (strong) hits = hits.filter(function(h){ return h.s >= 100; });
+      hits.sort(function(a,b){ return b.s - a.s; }); hits = hits.slice(0, 8);
+      var sec = document.createElement('section'); sec.className = 'topic';
+      hits.forEach(function(h, i){ sec.appendChild(item(h.f, terms, i < 3)); });
       list.appendChild(sec);
-    });
-    document.getElementById('empty').hidden = hits.length > 0;
-    document.querySelector('.gallery-wrap').hidden = !!raw;
-    document.getElementById('count').textContent = hits.length + (hits.length===1?' answer':' answers') + (raw ? ' for "'+raw+'"' : '');
-    try { history.replaceState(null,'', raw ? '?q='+encodeURIComponent(raw) : location.pathname); } catch(e){}
+      document.getElementById('count').textContent = hits.length ? (strong ? 'Best answers for "' + raw + '"' : 'Closest answers for "' + raw + '"') : 'No answer yet for "' + raw + '"';
+      document.getElementById('askTitle').textContent = hits.length ? (strong ? 'Not quite what you asked?' : 'No exact answer for that yet.') : 'I have not answered that one here yet.';
+      document.getElementById('askBtn').href = waLink(raw);
+      ask.hidden = false; ask.classList.toggle('loud', !strong);
+      if (strong) list.after(ask); else list.before(ask);
+      clearTimeout(logTimer);
+      if (!strong && raw.length > 6) logTimer = setTimeout(function(){ logQuestion(raw, hits.length ? 'weak_match' : 'no_match'); }, 1500);
+    } else {
+      ask.hidden = true;
+      document.getElementById('count').textContent = pool.length + ' questions' + (active !== 'All' ? ' in ' + active : '');
+      TOPICS.forEach(function(t, ti){
+        var group = pool.filter(function(f){ return f.topic === t; }); if (!group.length) return;
+        var vk = null; group.some(function(f){ if (f.visual && VIS[f.visual]) { vk = f.visual; return true; } }); var vis = vk ? VIS[vk] : null;
+        var sec = document.createElement('section'); sec.className = 'topic'; sec.id = slug(t);
+        sec.innerHTML = '<h2><i style="background:' + COLORS[ti%COLORS.length] + '"></i>' + esc(t) + '</h2><div class="tgrid"><div class="qs"></div>' + (vis ? '<div class="tvis">' + vis + '</div>' : '') + '</div>';
+        var qs = sec.querySelector('.qs'); group.forEach(function(f){ qs.appendChild(item(f, [], false, vk)); });
+        list.appendChild(sec);
+      });
+    }
+    document.getElementById('ctaWa').href = waLink(raw);
+    try { history.replaceState(null, '', raw ? '?q=' + encodeURIComponent(raw) : location.pathname + location.hash); } catch(e){}
   }
-  var gal = document.getElementById('gallery');
-  FAQ.filter(function(f){ return f.visual && VIS[f.visual]; }).forEach(function(f){
-    var a = document.createElement('button'); a.type='button'; a.className='gcard';
-    a.innerHTML = VIS[f.visual] + '<span class="gq">'+esc(f.q)+' →</span>';
-    a.onclick = function(){ qEl.value = f.q; render(); document.getElementById('chips').scrollIntoView({behavior:'smooth'}); };
-    gal.appendChild(a);
-  });
+
+  document.getElementById('askBtn').addEventListener('click', function(){ var raw = qEl.value.trim(); if (raw) logQuestion(raw, 'sent_to_whatsapp'); });
   var init = new URLSearchParams(location.search).get('q'); if (init) qEl.value = init;
   qEl.addEventListener('input', render);
   qEl.addEventListener('keydown', function(e){ if (e.key === 'Enter') { render(); document.getElementById('count').scrollIntoView({behavior:'smooth', block:'start'}); qEl.blur(); } });
-  render();
+  buildNav(); render();
+
+  // Answers Virat has published from WhatsApp replies (admin → FAQ inbox).
+  fetch('/retail-os/api/faq/published').then(function(r){ return r.ok ? r.json() : null; }).then(function(d){
+    if (!d || !d.items || !d.items.length) return;
+    d.items.forEach(function(x){
+      if (FAQ.some(function(f){ return norm(f.q) === norm(x.q); })) return;
+      if (TOPICS.indexOf(x.topic) < 0) TOPICS.push(x.topic);
+      FAQ.push({ topic: x.topic, q: x.q, a: x.a, tags: x.tags || [], fresh: true });
+    });
+    buildNav(); render();
+  }).catch(function(){});
 })();
 </script>
 </body>
