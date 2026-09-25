@@ -8,6 +8,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+  @font-face{font-family:'Anton';src:url(fonts/anton-latin-400-normal.woff2) format('woff2')}
+  @font-face{font-family:'Instrument Serif';src:url(fonts/instrument-serif-latin-400-normal.woff2) format('woff2')}
+  @font-face{font-family:'Instrument Serif';font-style:italic;src:url(fonts/instrument-serif-latin-400-italic.woff2) format('woff2')}
+  @font-face{font-family:'Inter';font-weight:100 900;src:url(fonts/inter-latin-wght-normal.woff2) format('woff2')}
   /* viratmohan.com tokens (src/styles/global.css) + a Virasat ruby accent */
   :root {
     --ink:#1a1410; --paper:#f4ead4; --gold:#d4af37; --dim:#5a4c3c;
@@ -40,6 +44,8 @@
   h2 span{color:var(--ruby)}
   .note{border-left:3px solid var(--gold);padding:10px 14px;background:rgba(212,175,55,.1);font-size:14px}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:700px){.g3{grid-template-columns:1fr}}
   .card{border:1px solid var(--line);background:rgba(255,255,255,.35);padding:16px}
   .card h3{font:400 21px/1.15 var(--serif);margin:0 0 6px;color:var(--ruby)}
   .card p,.card li{margin:0;font-size:14px;color:var(--dim)}
@@ -85,7 +91,7 @@
 <p class="note">Alcohol ads are banned in India (Cable TV Networks rules), surrogate ads are banned under the 2022 CCPA guidelines, and Meta does not allow alcohol ads in India. So no paid Meta/Google ads for Virasat in India. The plan below is built for that: organic, owned and retail-led, age-gated, with every piece cleared by Radico's legal team.</p>
 
 <h2>What we <span>propose</span></h2>
-<div class="grid">
+<div class="grid g3">
   <div class="card"><div class="num">01</div><h3>Always-on social</h3>
     <ul><li>Monthly content calendar for Instagram and LinkedIn, you approve every post</li>
     <li>Reels on the craft: barley, casks, climate, the Rampur master blender</li>
