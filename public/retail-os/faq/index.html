@@ -57,6 +57,7 @@ mark{background:var(--gold); color:var(--ink); padding:0 2px;}
 .cta h3{font-size:1.4rem;}
 .btn{display:inline-flex; padding:13px 22px; font-weight:700; font-size:14px; text-decoration:none; background:var(--ink); color:var(--cream); border:2px solid var(--ink);}
 
+.tp{font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--terracotta); margin-left:6px;}
 .sec{font-size:13px; font-weight:600; color:var(--ink-soft);}
 .gallery-wrap{padding-top:32px;}
 .gh{font-size:1.6rem;} .gs{margin:6px 0 16px; font-size:13px; font-weight:500; color:var(--ink-soft);}
@@ -117,7 +118,7 @@ footer{padding-block:24px; border-top:2px solid var(--ink);} footer p{margin:0; 
   <div class="chips" id="chips" role="group" aria-label="Filter by topic"></div>
   <p class="count" id="count"></p>
   <div id="list"></div>
-  <div class="empty" id="empty" hidden>Nothing matches that. Try a simpler word, or just ask me on <a href="https://wa.me/919999277240">WhatsApp</a>.</div>
+  <div class="empty" id="empty" hidden>Nothing matches that. Try one simple word like ads, shipping, WhatsApp or photos, or just ask me on <a href="https://wa.me/919999277240">WhatsApp</a>.</div>
   <div class="cta">
     <h3>Still have a question?</h3>
     <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center">
@@ -161,12 +162,27 @@ footer{padding-block:24px; border-top:2px solid var(--ink);} footer p{margin:0; 
       if (active !== 'All' && f.topic !== active) return null;
       if (!terms.length) return {f:f, s:0};
       var hay = norm(f.q + ' ' + f.a + ' ' + f.topic + ' ' + (f.tags||[]).join(' '));
-      var s = 0;
-      for (var i=0;i<terms.length;i++){ if (hay.indexOf(terms[i]) < 0) return null;
-        if (norm(f.q).indexOf(terms[i])>=0) s+=3; if ((f.tags||[]).join(' ').toLowerCase().indexOf(terms[i])>=0) s+=2; s+=1; }
-      return {f:f, s:s};
+      var s = 0, all = true;
+      for (var i=0;i<terms.length;i++){ var t = terms[i], t2 = t.length > 4 ? t.slice(0, -1) : t;
+        if (hay.indexOf(t2) < 0) { all = false; continue; }
+        if (norm(f.q).indexOf(t2)>=0) s+=3; if (norm((f.tags||[]).join(' ')).indexOf(t2)>=0) s+=2; s+=1; }
+      if (!s) return null;
+      return {f:f, s:s + (all ? 100 : 0)};
     }).filter(Boolean);
     list.innerHTML = '';
+    if (terms.length) {
+      if (hits.some(function(x){ return x.s >= 100; })) hits = hits.filter(function(x){ return x.s >= 100; });
+      hits.sort(function(a,b){ return b.s-a.s; });
+      var sec0 = document.createElement('section'); sec0.className='topic';
+      hits.forEach(function(h, i){
+        var d = document.createElement('details'); if (i < 3) d.open = true;
+        d.innerHTML = '<summary>'+hi(h.f.q, terms)+' <small class="tp">'+esc(h.f.topic)+'</small></summary><div class="ans">'+
+          h.f.a.split('\n\n').map(function(p){ return '<p>'+hi(p, terms)+'</p>'; }).join('')+
+          (h.f.visual && VIS[h.f.visual] ? VIS[h.f.visual] : '')+'</div>';
+        sec0.appendChild(d);
+      });
+      list.appendChild(sec0);
+    } else
     topics.forEach(function(t, ti){
       var group = hits.filter(function(h){ return h.f.topic===t; });
       if (!group.length) return;
@@ -182,6 +198,7 @@ footer{padding-block:24px; border-top:2px solid var(--ink);} footer p{margin:0; 
       list.appendChild(sec);
     });
     document.getElementById('empty').hidden = hits.length > 0;
+    document.querySelector('.gallery-wrap').hidden = !!raw;
     document.getElementById('count').textContent = hits.length + (hits.length===1?' answer':' answers') + (raw ? ' for "'+raw+'"' : '');
     try { history.replaceState(null,'', raw ? '?q='+encodeURIComponent(raw) : location.pathname); } catch(e){}
   }
@@ -194,6 +211,7 @@ footer{padding-block:24px; border-top:2px solid var(--ink);} footer p{margin:0; 
   });
   var init = new URLSearchParams(location.search).get('q'); if (init) qEl.value = init;
   qEl.addEventListener('input', render);
+  qEl.addEventListener('keydown', function(e){ if (e.key === 'Enter') { render(); document.getElementById('count').scrollIntoView({behavior:'smooth', block:'start'}); qEl.blur(); } });
   render();
 })();
 </script>

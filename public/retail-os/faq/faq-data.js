@@ -49,7 +49,7 @@ window.RETAIL_OS_FAQ = [
   // ---- Who does what
   { topic: 'Who does what', q: 'What does DevShop do?', visual: 'connectors',
     a: 'The store, hosting and tech, and all connections: payments, shipping, Meta, WhatsApp and Google. We also run marketing, content and reporting.',
-    tags: ['devshop handles', 'scope', 'responsibilities'] },
+    tags: ['devshop handles', 'scope', 'responsibilities', 'marketing', 'services', 'what you do'] },
   { topic: 'Who does what', q: 'What do I do?',
     a: 'Make or source the product, keep stock and pack orders for the courier.',
     tags: ['my responsibilities', 'packing', 'inventory'] },
@@ -60,13 +60,13 @@ window.RETAIL_OS_FAQ = [
   // ---- Ads & Meta
   { topic: 'Ads & Meta', q: 'Do the ads run on their own?', visual: 'metaDaily',
     a: 'Yes. Our system is connected to Meta and handles scheduling and running campaigns. We agree the budget and the target return with you. You do not need to open Ads Manager.',
-    tags: ['ads', 'meta', 'automatic', 'facebook', 'instagram', 'ads manager'] },
+    tags: ['ads', 'meta', 'automatic', 'facebook', 'instagram', 'ads manager', 'performance', 'performance marketing', 'marketing', 'campaigns', 'roas', 'growth', 'sales'] },
   { topic: 'Ads & Meta', q: 'Can anything spend money without my approval?', visual: 'adBrief',
     a: 'No. New campaigns are drafted and held paused until you approve them.',
     tags: ['approve', 'spend', 'budget', 'campaign'] },
   { topic: 'Ads & Meta', q: 'Who do the ads target?',
     a: 'Audiences are built from your own customer and order data, including lookalikes, and focused on the cities you choose.',
-    tags: ['audience', 'lookalike', 'targeting', 'cities', 'woocommerce'] },
+    tags: ['audience', 'lookalike', 'targeting', 'cities', 'woocommerce', 'performance marketing', 'customers'] },
   { topic: 'Ads & Meta', q: 'I do not have a Meta Business account.',
     a: 'That is fine. We set it up during onboarding.',
     tags: ['business manager', 'no meta', 'setup'] },
@@ -77,7 +77,7 @@ window.RETAIL_OS_FAQ = [
     tags: ['photos', 'ai content', 'shoot', 'video', 'image generator', 'model', 'no model', 'change model', 'lifestyle'] },
   { topic: 'Content', q: 'Who plans the posts?', visual: 'calendar',
     a: 'The system drafts posts and ads and places them on a content calendar. You approve them before anything goes out.',
-    tags: ['content calendar', 'posts', 'instagram', 'social'] },
+    tags: ['content calendar', 'posts', 'instagram', 'social', 'social media', 'marketing', 'reels'] },
 
   // ---- WhatsApp
   { topic: 'WhatsApp', q: 'What runs on WhatsApp?', visual: 'waCatalog',
@@ -132,7 +132,7 @@ window.RETAIL_OS_FAQ = [
   // ---- Numbers
   { topic: 'Numbers & reporting', q: 'What reports do I get?', visual: 'statement',
     a: 'A daily summary by email, daily ad spend against sales, a monthly P&L, and a weekly itemised statement.',
-    tags: ['reports', 'p&l', 'roas', 'statement', 'daily digest', 'meta daily report'] },
+    tags: ['reports', 'p&l', 'roas', 'statement', 'daily digest', 'meta daily report', 'performance', 'results', 'metrics', 'analytics', 'sales', 'revenue'] },
   { topic: 'Numbers & reporting', q: 'Can I see my numbers any time?',
     a: 'Yes. Every order and every past statement is in the dashboard.',
     tags: ['dashboard', 'backend', 'access', 'data'] },
