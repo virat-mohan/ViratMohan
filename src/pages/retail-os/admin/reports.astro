@@ -3,7 +3,7 @@ export const prerender = false;
 import { getRetailOsDb } from '../../../lib/retail-os-db';
 import type { ReportSchedule } from '../../../lib/retail-os-db';
 import { getEnv } from '../../../lib/env';
-import { getLiveBrands } from '../../../lib/retail-os-portfolio';
+import { getLiveBrands, checkBrandConnection } from '../../../lib/retail-os-portfolio';
 import { buildBrandReport, renderReportHtml, REPORT_KINDS, type ReportKind } from '../../../lib/retail-os-reports';
 
 // DevShop-only brand reports (gated by src/middleware.ts): view any live
@@ -11,6 +11,7 @@ import { buildBrandReport, renderReportHtml, REPORT_KINDS, type ReportKind } fro
 // against its budget, email it now, and schedule it.
 const env = getEnv();
 const brands = getLiveBrands();
+const conns = await Promise.all(brands.map((b) => checkBrandConnection(b)));
 const url = new URL(Astro.request.url);
 const brandKey = url.searchParams.get('brand') ?? brands[0]?.key ?? '';
 const kindParam = url.searchParams.get('kind') as ReportKind | null;
@@ -64,6 +65,11 @@ const brandName = (k: string) => brands.find((b) => b.key === k)?.name ?? k;
   table.s{width:100%; border-collapse:collapse; font-size:12.5px;} table.s td, table.s th{padding:6px; border-bottom:1px solid var(--line); text-align:left;}
   .note{font-size:12px; color:var(--ink-soft);}
   .msg{font-size:12px; color:var(--terracotta); font-weight:600;}
+  .conn{display:grid; gap:6px; margin:0 0 14px; padding:10px 12px; border:1px solid var(--gold); border-radius:10px; background:rgba(212,175,55,.06);}
+  .c{font-size:12px; display:flex; gap:8px; align-items:baseline; flex-wrap:wrap;}
+  .c::before{content:''; width:8px; height:8px; border-radius:50%; background:var(--terracotta); flex:none; align-self:center;}
+  .c.ok::before{background:#3e8e5a;}
+  .c.bad span{color:var(--terracotta); font-weight:600;}
 </style>
 </head>
 <body>
@@ -78,6 +84,9 @@ const brandName = (k: string) => brands.find((b) => b.key === k)?.name ?? k;
   ) : (
     <>
       <section>
+        <div class="conn" aria-label="Store connections">
+          {conns.map((c) => <div class={`c ${c.ok ? 'ok' : 'bad'}`}><b>{c.name}</b><span>{c.ok ? `Connected · project ${c.urlRef} · ${c.keyType} key · ${c.ms} ms` : c.message}</span></div>)}
+        </div>
         <div class="tabs">
           {brands.map((b) => <a class={b.key === brandKey ? 'on' : ''} href={`?brand=${encodeURIComponent(b.key)}&kind=${kind}`}>{b.name}</a>)}
         </div>
