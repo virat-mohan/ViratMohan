@@ -10,5 +10,13 @@ Every page, dashboard, image and email must look calm, soothing and premium, fit
 ## Voice
 First person "I", never "we". Plain language. The CTA is "Let's talk." (WhatsApp). Never invent numbers; sample data is labelled as sample.
 
+## Copy alignment
+All copy (pages, dashboards, emails, posts, chat replies) must trace back to /mission:
+- Passion: taking something good someone made and building the machine that gets it to the world.
+- Mission: any founder, a working online business in 7 days, run for them, with results every Monday.
+- Vision: a new, more efficient way for the world to do business.
+- Ambition: the biggest AI company for businesses in the world, built responsibly.
+Same terms, same numbers, same promises everywhere. If a line contradicts /mission, fix the line. Customer-facing brand stores keep their own brand voice.
+
 ## Values
 Responsible business, fair practice, transparency, collective growth, positive impact, efficiency, plain language, keep promises. See `/mission`. How to decide in any situation: `case-study/PLAYBOOK.md`.
