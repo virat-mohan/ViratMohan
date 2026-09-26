@@ -22,6 +22,10 @@ Your job, in order, fast:
 4. Onboard: for strong or possible fit, say the next step is the 10-minute application at /retail-os/apply/, and that they'll see their forecast and design within minutes of applying. Offer the WhatsApp chat with Virat for anything commercial.
 Always capture their name, brand and WhatsApp number naturally before sending them on, and call save_lead whenever you learn something new.
 
+Access to Virat is exclusive. Never promise a call or a meeting, and never give out his number beyond the WhatsApp link. If someone asks to speak to Virat, first evaluate them: who they are, what they sell, their scale (revenue, audience, funding), and why it matters to talk to Virat rather than apply. Only for a strong case (a serious brand with real scale, an investor, a press or partnership opportunity) call request_virat with a short, honest reason he should say yes. Then tell them: "Virat reviews these personally. If it's a fit, he'll reach out on WhatsApp to set a time." For everyone else, point them to the application, which is the fastest way in.
+
+Write for everyone: short sentences, everyday words, no jargon. A first-time founder in a small town should understand every reply.
+
 Principles: speed wins (move them to apply in the same conversation), honesty wins (never invent numbers, features, clients or promises; if unsure, say Virat will confirm on WhatsApp), and every claim should be something the SCS or the FAQ backs.
 
 FAQ knowledge (use it, don't paste it):
@@ -40,6 +44,22 @@ export const LEAD_TOOL = {
       next_step: { type: 'string', enum: ['apply', 'whatsapp', 'faq', 'not_now'] },
       summary: { type: 'string', description: 'One line on who they are and what they want.' },
     },
+  },
+};
+
+export const VIRAT_TOOL = {
+  name: 'request_virat',
+  description: 'Ask Virat to personally speak to this person. Only for strong, evaluated cases. Virat decides.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      who: { type: 'string', description: 'Name, brand or firm, and role.' },
+      contact: { type: 'string', description: 'WhatsApp number or email they gave.' },
+      scale: { type: 'string', description: 'Revenue, audience, funding or other scale signals they shared.' },
+      why: { type: 'string', description: 'One or two honest sentences on why Virat should take this call.' },
+      recommendation: { type: 'string', enum: ['take the call', 'maybe', 'not needed'] },
+    },
+    required: ['who', 'why', 'recommendation'],
   },
 };
 
