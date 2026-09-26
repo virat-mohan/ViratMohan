@@ -55,6 +55,7 @@ const projects = (await getCollection('work')).sort(
                 {p.data.category}
               </span>
               <span class="work-teaser__brand">{p.data.brand}</span>
+              {p.data.status && <span class="work-teaser__status">{p.data.status}</span>}
             </a>
           </li>
         ))
@@ -123,6 +124,14 @@ const projects = (await getCollection('work')).sort(
     letter-spacing: 0.1em;
     color: var(--poster-cream);
     opacity: 0.9;
+  }
+  .work-teaser__status {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1rem;
+    color: var(--poster-cream);
+    opacity: 0.85;
+    margin-top: 0.25rem;
   }
   .work-teaser__brand {
     font-family: var(--display);

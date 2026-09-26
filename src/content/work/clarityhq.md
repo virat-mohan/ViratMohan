@@ -5,6 +5,7 @@ tagline: "Acquisition, conversion, and retention run on one shared Brand Intelli
 domain: "https://clarityhq.ai"
 order: 6
 accent: "#C99A3D"
+status: "Built. Not live yet."
 ---
 
 Most growth stacks are three separate tools pretending to be one: an acquisition platform, a CRM for conversion, a retention/lifecycle tool — none of them reading from the same facts about the brand. ClarityHQ is built the other way round: one Brand Intelligence layer that every workflow reads from and writes back to, so a positioning change or a new price is true everywhere the moment it's true anywhere.
