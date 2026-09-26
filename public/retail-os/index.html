@@ -284,6 +284,11 @@
   .way p{font-size:14.5px; margin:0; line-height:1.55;}
   .ways-note{font-size:14px; margin:0 0 30px;} .ways-note a{color:var(--terracotta); font-weight:700;}
   @media (max-width:820px){ .ways{grid-template-columns:1fr;} }
+  .f10{display:flex; flex-wrap:wrap; gap:10px 18px; align-items:center; justify-content:center; padding:12px 20px; background:var(--ink); color:var(--cream); font:500 14px/1.4 'Inter',sans-serif; text-align:center;}
+  .f10-tag{font:700 11px/1 'Inter'; letter-spacing:.14em; text-transform:uppercase; background:var(--terracotta); color:var(--cream); padding:6px 10px; border-radius:999px;}
+  .f10-text{max-width:70ch;}
+  .f10-left b{font-family:'Anton'; font-size:20px; color:var(--gold); font-weight:400;}
+  .f10-cta{color:var(--gold); font-weight:700; text-decoration:none; border-bottom:1px solid var(--gold);}
 </style>
 </head>
 <body>
@@ -305,6 +310,13 @@
   </nav>
 </div>
 
+<div class="f10" role="note">
+  <span class="f10-tag">Founding 10</span>
+  <span class="f10-text">Invites are open for my first 10 brands through the new onboarding. Same published terms for everyone. What the first 10 get: a priority launch slot, and your results featured first.</span>
+  <span class="f10-left"><b id="f10Left">10</b> of 10 places left</span>
+  <a class="f10-cta" href="/retail-os/apply/">Apply in 10 minutes →</a>
+</div>
+<script>fetch('/retail-os/api/stats').then(function(r){return r.json()}).then(function(d){if(typeof d.signed==='number'){var n=Math.max(0,10-d.signed);document.getElementById('f10Left').textContent=n;}}).catch(function(){});</script>
 <header class="hero">
   <div class="wrap hero-inner">
     <div class="eyebrow">DevShop Retail OS™</div>
