@@ -32,15 +32,21 @@ create table if not exists brain_entities (
   attributes jsonb not null default '{}'::jsonb,
   source text not null check (length(source) > 0),        -- where this entity was learned (path, table:id, correction:id)
   visibility text not null default 'public' check (visibility in ('public','partner','staff')),
-  search tsvector generated always as (
-    to_tsvector('simple', coalesce(name,'') || ' ' || array_to_string(aliases, ' ') || ' ' || coalesce(attributes::text,''))
-  ) stored,
+  search tsvector,  -- maintained by brain_entities_search trigger (array_to_string is not immutable)
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (kind, name),
   -- customer records never leave staff audiences
   constraint brain_entities_customer_staff check (kind <> 'customer' or visibility = 'staff')
 );
+create or replace function brain_entities_search() returns trigger language plpgsql as $$
+begin
+  new.search := to_tsvector('simple', coalesce(new.name,'') || ' ' || array_to_string(new.aliases, ' ') || ' ' || coalesce(new.attributes::text,''));
+  return new;
+end $$;
+drop trigger if exists brain_entities_search on brain_entities;
+create trigger brain_entities_search before insert or update on brain_entities
+  for each row execute function brain_entities_search();
 create index if not exists brain_entities_search_idx on brain_entities using gin (search);
 create index if not exists brain_entities_aliases_idx on brain_entities using gin (aliases);
 
@@ -71,7 +77,7 @@ create table if not exists brain_facts (
   valid_to timestamptz,                                     -- null = still valid
   confirmed_by text,                                        -- 'virat', staff email, 'seed'
   visibility text not null default 'public' check (visibility in ('public','partner','staff')),
-  search tsvector generated always as (to_tsvector('english', coalesce(topic,'') || ' ' || statement)) stored,
+  search tsvector generated always as (to_tsvector('english'::regconfig, coalesce(topic,'') || ' ' || statement)) stored,
   created_at timestamptz not null default now(),
   unique (source, statement)
 );
