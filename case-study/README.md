@@ -7,3 +7,5 @@ New image: import `frame` and `clean` from `brand.py`, then run `python3 <name>.
 ## Voice
 
 First person singular: "I", never "we". Virat builds DevShop and Retail OS alone. Plain, understated, founder voice.
+
+CTA: end every SCS post with "Let's talk." Nothing else.
