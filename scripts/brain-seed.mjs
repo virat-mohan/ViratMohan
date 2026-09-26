@@ -109,10 +109,10 @@ entity('channel', 'Email', 'case-study/PLAYBOOK.md', { attributes: { use: 'Forma
     for (const f of ctx.window.RETAIL_OS_FAQ ?? []) {
       facts.push({ topic: `faq: ${f.topic}`, statement: `Q: ${f.q}\nA: ${f.a}`, source: `${src}#${f.q}`, source_quote: null, confidence: 1, confirmed_by: 'seed', visibility: 'public' });
     }
-    const brands = t.match(/Travaholic Caps and Moonglasses run on the full system\. Ceremony Kitchen uses it for social and performance marketing\. India Contemporary and Flowerbasket are launching/);
+    const brands = t.match(/Travaholic Caps runs on the full system\. Moonglasses is live and selling offline today, and its online store goes live soon\. Ceremony Kitchen uses it for social and performance marketing\. India Contemporary and Flowerbasket are launching/);
     if (brands) {
       entity('brand', 'Travaholic Caps', src, { aliases: ['Travaholic'], attributes: { status: 'live on the full system' } });
-      entity('brand', 'Moonglasses', src, { aliases: ['Moon Glasses', 'moon-glasses'], attributes: { status: 'live on the full system' } });
+      entity('brand', 'Moonglasses', src, { aliases: ['Moon Glasses', 'moon-glasses'], attributes: { status: 'live, selling offline today; online store going live soon' } });
       entity('brand', 'Ceremony Kitchen', src, { aliases: ['Ceremony'], attributes: { status: 'uses Retail OS for social and performance marketing' } });
       entity('brand', 'India Contemporary', src, { attributes: { status: 'launching' } });
       entity('brand', 'Flowerbasket', src, { aliases: ['Flower Basket'], attributes: { status: 'launching' } });

@@ -23,7 +23,7 @@ window.RETAIL_OS_FAQ = [
     a: 'Founder-owned brands that sell online, already selling or just starting. It supports your own store, a marketplace or a subscription.',
     tags: ['fit', 'eligibility', 'who', 'marketplace', 'subscription'] },
   { topic: 'Getting started', q: 'Which brands use it today?',
-    a: 'Travaholic Caps and Moonglasses run on the full system. Ceremony Kitchen uses it for social and performance marketing. India Contemporary and Flowerbasket are launching, and I am onboarding more brands right now.\n\nYou do not have to take everything. You can use just the parts you need, like social and ads. The commercials are different for that, and I will go through them with you.',
+    a: 'Travaholic Caps runs on the full system. Moonglasses is live and selling offline today, and its online store goes live soon. Ceremony Kitchen uses it for social and performance marketing. India Contemporary and Flowerbasket are launching, and I am onboarding more brands right now.\n\nYou do not have to take everything. You can use just the parts you need, like social and ads. The commercials are different for that, and I will go through them with you.',
     tags: ['brands', 'proof', 'travaholic', 'moonglasses', 'ceremony kitchen', 'ceremony', 'india contemporary', 'flowerbasket', 'clients', 'only ads', 'only social', 'modules', 'part'] },
   { topic: 'Getting started', q: 'Which categories fit best?',
     a: 'Products with good margins, low returns, and that are easy to photograph and gift. Open right now: jewellery, beauty and skincare, men\'s grooming, pet accessories, home décor and apparel. If yours is not listed, ask me anyway.',
