@@ -39,9 +39,8 @@ import coachYourPsycheShot from '../assets/screenshots/Coachyourpsyche.png';
 // ---- Easily-editable config, per prompt instructions ----
 const CURRENCY = '₹'; // INR is the standard currency for this product.
 const PRICING = {
-  // One family with Retail OS: every DevShop engagement is a monthly retainer that
-  // covers building and running. The same floor Retail OS publishes for retainers.
-  retainer: '2,50,000',
+  // Build is priced on request; this is the flat monthly fee to keep it running.
+  retainer: '50,000',
 };
 
 // Regional pricing — deliberately NOT a raw FX conversion of the INR price
@@ -55,9 +54,9 @@ const PRICING = {
 // AMC figures derived by applying each region's own multiple to the INR
 // AMC floor (₹50,000/mo), then rounded to a clean number.
 const REGION_PRICING: Record<string, { currency: string; retainer: string }> = {
-  US: { currency: '$', retainer: '8,500' },
-  UK: { currency: '£', retainer: '6,000' },
-  UAE: { currency: 'AED ', retainer: '25,000' },
+  US: { currency: '$', retainer: '1,700' },
+  UK: { currency: '£', retainer: '1,200' },
+  UAE: { currency: 'AED ', retainer: '5,000' },
 };
 // Vercel's x-vercel-ip-country ISO code -> which region config to use.
 const COUNTRY_TO_REGION: Record<string, keyof typeof REGION_PRICING> = {
@@ -280,7 +279,7 @@ const canonical = new URL('/devshop', site.domain).href;
       <div class="step"><div class="num">01</div><div class="rule"></div><h3>Problem in</h3><p>Tell me what's broken.<br />No specs. No decks.</p></div>
       <div class="step"><div class="num">02</div><div class="rule"></div><h3><span class="tint-gold">Instant</span> demo</h3><p>I diagnose and show you<br />a working demo right there.</p></div>
       <div class="step"><div class="num">03</div><div class="rule"></div><h3>Approve & staff</h3><p>You approve the demo and pay the deposit.<br /><br />I staff your build — an FDE/client lead, a solution architect, engineers, and a <span class="tint-gold">subject matter expert in your industry and business function</span>, not just an engineering team guessing at your domain.</p></div>
-      <div class="step"><div class="num">04</div><div class="rule"></div><h3>Build & handover</h3><p>I ship within 30 days, walk your team<br />through it live, then keep it running and improving on the same retainer.</p></div>
+      <div class="step"><div class="num">04</div><div class="rule"></div><h3>Build & handover</h3><p>I ship within 30 days, walk your team<br />through it live, then keep it running and improving for a flat monthly fee.</p></div>
     </div>
   </section>
 
@@ -374,9 +373,14 @@ const canonical = new URL('/devshop', site.domain).href;
       <script type="application/json" id="regionPricingData" set:html={JSON.stringify({ regions: REGION_PRICING, countryMap: COUNTRY_TO_REGION })} />
       <div class="pricing-tiers">
         <div>
-          <div class="eyebrow" style="margin-bottom:14px;">DEVSHOP RETAINER</div>
-          <div class="serif" style="font-size:clamp(28px,3.2vw,44px);">from <span id="priceRetainer">{CURRENCY}{PRICING.retainer}</span><span style="font-size:16px; opacity:0.6;">/mo</span></div>
-          <p class="sub" style="max-width:340px;">Build and run, one price. Your first module is live within 30 days, then I keep it running, improving and adding to it every month.</p>
+          <div class="eyebrow" style="margin-bottom:14px;">BUILD</div>
+          <div class="serif" style="font-size:clamp(28px,3.2vw,44px);">On request</div>
+          <p class="sub" style="max-width:340px;">Every business is different, so the build is priced for yours. <a href={site.letsTalk} target="_blank" rel="noopener">Let's talk →</a></p>
+        </div>
+        <div>
+          <div class="eyebrow" style="margin-bottom:14px;">KEEP IT RUNNING</div>
+          <div class="serif" style="font-size:clamp(28px,3.2vw,44px);"><span id="priceRetainer">{CURRENCY}{PRICING.retainer}</span><span style="font-size:16px; opacity:0.6;">/mo</span></div>
+          <p class="sub" style="max-width:340px;">Once it's live, I keep it running, fix what breaks and keep improving it.</p>
         </div>
         <div>
           <div class="eyebrow" style="margin-bottom:14px;">REVENUE SHARE</div>
@@ -401,14 +405,14 @@ const canonical = new URL('/devshop', site.domain).href;
           <div class="module-def-item"><span class="module-def-item-title">Training &amp; handoff</span><span class="module-def-item-body">I walk your team through it directly at launch.</span></div>
         </div>
       </div>
-      <p class="sub" style="margin-top:28px;">Genuinely complex or custom systems are human-priced after a short scoping call, not forced into the standard retainer.</p>
+      <p class="sub" style="margin-top:28px;">Genuinely complex or custom systems are human-priced after a short scoping call, priced after a short call.</p>
       <div class="payment-terms">
         <p class="payment-terms-label">Payment terms</p>
         <div class="payment-terms-grid">
-          <div class="payment-terms-item"><span class="payment-terms-pct">Month 1</span><span class="payment-terms-when">Paid in advance on confirmation. Secures your slot and starts the 30-day clock.</span></div>
-          <div class="payment-terms-item"><span class="payment-terms-pct">Monthly</span><span class="payment-terms-when">Billed in advance from month 2. Running, improving and new work included.</span></div>
+          <div class="payment-terms-item"><span class="payment-terms-pct">Build</span><span class="payment-terms-when">Price agreed with you first. Paying it secures your slot and starts the 30-day clock.</span></div>
+          <div class="payment-terms-item"><span class="payment-terms-pct">Monthly</span><span class="payment-terms-when">₹50,000 a month once it's live, billed in advance, to keep it running and improving.</span></div>
         </div>
-        <p class="payment-terms-note">No separate build fee and no separate care plan: the retainer covers both.</p>
+        <p class="payment-terms-note">Two simple parts: the build (priced for you) and a flat monthly fee to keep it running.</p>
       </div>
       <div style="margin-top:40px;"><button class="btn" data-go="intake">Start →</button></div>
     </div>
