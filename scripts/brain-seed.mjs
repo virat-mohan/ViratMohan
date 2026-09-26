@@ -6,7 +6,7 @@
 //   node scripts/brain-seed.mjs --out seed.json write JSON to a file
 //   node scripts/brain-seed.mjs --apply         upsert into Supabase (needs migrations/0033 applied,
 //                                               SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY)
-import { readFileSync, existsSync, writeFileSync } from 'node:fs';
+import { readFileSync, existsSync, writeFileSync, readdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
@@ -132,6 +132,56 @@ entity('channel', 'Email', 'case-study/PLAYBOOK.md', { attributes: { use: 'Forma
   const src = 'case-study/LEARNINGS.md', t = read(src);
   if (t) for (const m of t.matchAll(/^- (\d{4}-\d{2}-\d{2}):\s*(.+)$/gm)) fact(src, 'learning', `${m[1]}: ${m[2].trim()}`, { visibility: 'staff' });
   else warnings.push(`missing source ${src} (no learnings seeded)`);
+}
+
+// ---- Every other section of the house docs, harvested line by line (source = path#heading).
+// A line is one fact. Already-seeded lines are skipped by the (source, statement) upsert key.
+// CLAUDE.md holds the internal north star, so it is staff only.
+function harvest(src, visibility, skip = []) {
+  const t = read(src);
+  if (t == null) { warnings.push(`missing source ${src}`); return; }
+  let heading = '';
+  for (const raw of t.split('\n')) {
+    const h = raw.match(/^#{1,3}\s+(.+)/);
+    if (h) { heading = h[1].trim(); continue; }
+    if (skip.some((s) => heading.startsWith(s))) continue;
+    const line = raw.replace(/^\s*(?:[-*]|\d+\.)\s+/, '').replace(/\*\*/g, '').trim();
+    if (line.length < 25 || line.startsWith('|') || line.startsWith('```')) continue;
+    const topic = `${src.split('/').pop().replace(/\.md$/, '').toLowerCase()}: ${heading || 'intro'}`;
+    if (facts.some((f) => f.source === src && f.statement.includes(line))) continue;
+    fact(src, topic, line, { visibility });
+  }
+}
+harvest('CLAUDE.md', 'staff');
+harvest('case-study/PLAYBOOK.md', 'public', ['The decision test']);
+harvest('case-study/README.md', 'staff');
+
+// ---- Proof targets (case-study/WOW-TARGETS.md): one fact per row, staff only until proven in public
+{
+  const src = 'case-study/WOW-TARGETS.md', t = read(src);
+  if (t) for (const m of t.matchAll(/^\|\s*(\d+)\s*\|([^|]+)\|([^|]+)\|([^|]+)\|([^|]+)\|([^|]+)\|/gm)) {
+    const [, n, cat, comp, target, where, status] = m.map((x) => x.replace(/\*\*/g, '').trim());
+    fact(src, `wow target: ${cat}`, `Target ${n}, ${cat}: ${target}. Competitor best: ${comp}. Proven at: ${where}. Status: ${status}.`, { quote: m[0], visibility: 'staff' });
+  }
+  else warnings.push(`missing source ${src}`);
+}
+
+// ---- DevShop industry verticals (src/data/devshop-verticals.ts)
+{
+  const src = 'src/data/devshop-verticals.ts', t = read(src);
+  if (t) for (const m of t.matchAll(/name:\s*'([^']+)',[\s\S]*?slug:\s*'([^']+)',[\s\S]*?status:\s*'(live|soon)',\s*blurb:\s*'([^']+)'/g)) {
+    entity('product', `DevShop for ${m[1]}`, src, { attributes: { page: `/devshop/${m[2]}`, status: m[3] } });
+    fact(src, 'devshop verticals', `DevShop for ${m[1]} (/devshop/${m[2]}, ${m[3]}): ${m[4]}`, { quote: m[4], entity: `DevShop for ${m[1]}` });
+  }
+  else warnings.push(`missing source ${src}`);
+}
+
+// ---- Self-audit: knowledge files in the repo the Brain does not read yet.
+{
+  const seeded = new Set([...facts.map((f) => f.source.split('#')[0]), ...entities.map((e) => e.source)]);
+  const docs = ['CLAUDE.md', 'README.md', ...readdirSync(resolve(ROOT, 'case-study')).filter((f) => f.endsWith('.md')).map((f) => `case-study/${f}`)];
+  const notKnowledge = new Set(['README.md']); // dev setup, not business knowledge
+  for (const d of docs) if (!seeded.has(d) && !notKnowledge.has(d)) warnings.push(`gap: ${d} is not read by the Brain`);
 }
 
 const out = { generated_at: new Date().toISOString(), counts: { entities: entities.length, facts: facts.length }, entities, facts, warnings };
