@@ -41,3 +41,27 @@ export async function seedBrandSetupTasks(sb: SupabaseClient, brandName: string,
   if (error) throw new Error(`ops seed: ${error.message}`);
   return rows.length;
 }
+
+// A new team member's own first week, on the same tracker as their brand work, so the
+// morning team report shows onboarding progress too. Idempotent per member.
+export const EMPLOYEE_ONBOARDING_TASKS: Seed[] = [
+  { stage: 0, stage_label: 'Paperwork', task: 'Engagement letter and NDA signed and filed', owner: 'founder', note: 'Why: access to brand data starts only after both are signed.', day: 0 },
+  { stage: 0, stage_label: 'Paperwork', task: 'Payment details and invoicing cadence agreed', owner: 'founder', note: 'Why: paying on time is a promise, not a favour.', day: 1 },
+  { stage: 1, stage_label: 'Access', task: 'Tracker link bookmarked; first daily update posted from it', owner: 'team', note: 'Why: the tracker is the only place work is reported; the 9:30 report reads it.', day: 0 },
+  { stage: 1, stage_label: 'Access', task: 'Access granted to the tools the brand tasks need (GitHub, Vercel, Supabase, Cloudflare, Meta, Shiprocket) and confirmed working', owner: 'founder', note: 'Why: a task blocked on access wastes a day; grant it up front.', day: 1 },
+  { stage: 2, stage_label: 'Context', task: 'Read /mission and the Hospitality section of the Playbook', owner: 'team', note: 'Why: every brand touchpoint follows them.', day: 1 },
+  { stage: 2, stage_label: 'Context', task: 'Walk through one live brand store and admin end to end with Virat', owner: 'founder', note: 'Why: seeing a finished build makes every setup task make sense.', day: 2 },
+  { stage: 3, stage_label: 'First week', task: 'Daily update posted every working day of week 1', owner: 'team', note: 'Why: the habit matters more than the length.', day: 5 },
+  { stage: 3, stage_label: 'First week', task: 'Week-1 review with Virat: what went well, what was unclear, what to change', owner: 'founder', note: 'Why: every mistake becomes a rule; the next hire starts from what this one learned.', day: 7 },
+];
+
+/** Seed a team member's onboarding checklist. Returns how many were added (0 if already seeded). */
+export async function seedEmployeeOnboarding(sb: SupabaseClient, memberId: string, startedOn: string): Promise<number> {
+  const { count } = await sb.from('retail_os_ops_tasks').select('id', { count: 'exact', head: true }).eq('member_id', memberId).eq('brand_key', 'onboarding');
+  if (count && count > 0) return 0;
+  const start = new Date(`${startedOn}T00:00:00Z`).getTime();
+  const rows = EMPLOYEE_ONBOARDING_TASKS.map((t, i) => ({ member_id: memberId, brand_key: 'onboarding', brand_name: 'Onboarding', stage: t.stage, stage_label: t.stage_label, task: t.task, owner: t.owner, status: 'todo', note: t.note, due_on: new Date(start + t.day * 86_400_000).toISOString().slice(0, 10), sort: i + 1 }));
+  const { error } = await sb.from('retail_os_ops_tasks').insert(rows);
+  if (error) throw new Error(`onboarding seed: ${error.message}`);
+  return rows.length;
+}
