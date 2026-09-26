@@ -274,7 +274,8 @@ const canonical = new URL('/devshop', site.domain).href;
     <div class="eyebrow">PROOF</div>
     <h1 class="hero serif">Built fast. <span class="tint-blue">Shipped</span> for real.</h1>
     <p class="sub" style="max-width:640px; margin-top:8px;">Every one of these is a fully functional platform — a real backend, a database, payments, and an integrated tech stack — not a marketing site with a form on it. I can do customer-facing design too, but that's not the core of what I sell; the core is solving the business problem underneath it.</p>
-    <a class="ros-feature" href="/retail-os/">
+    <div class="ros-feature">
+      <a class="ros-feature__stretch" href="/retail-os/" aria-label="See Retail OS"></a>
       <div class="ros-feature__head">
         <span class="ros-feature__tag">Featured project</span>
         <span class="ros-feature__name">Retail OS</span>
@@ -286,8 +287,8 @@ const canonical = new URL('/devshop', site.domain).href;
         <div><b data-ros="applications">—</b><span>brand applications</span></div>
         <div><b>+59%</b><span>sales per day on autopilot ads</span></div>
       </div>
-      <span class="ros-feature__cta">See Retail OS →</span>
-    </a>
+      <span class="ros-feature__cta">See Retail OS → <a class="ros-feature__talk" href={site.letsTalk} target="_blank" rel="noopener">Let's talk →</a></span>
+    </div>
     <div class="proof-grid">
       {proof.map((p) => (
         <a
@@ -1217,6 +1218,8 @@ const canonical = new URL('/devshop', site.domain).href;
   .ros-feature__stats { display:grid; grid-template-columns: 1fr 1fr; gap: 18px 22px; }
   .ros-feature__stats b { display:block; font-family:'Anton', sans-serif; font-weight:400; font-size: 2.4rem; line-height:1; color:#d9714b; }
   .ros-feature__stats span { font: 400 13px/1.3 'Inter', sans-serif; color:#e9dcc0; }
+  .ros-feature__stretch { position:absolute; inset:0; border-radius:16px; z-index:0; }
+  .ros-feature__talk { position:relative; z-index:1; margin-left:22px; color:#d9714b; text-decoration:none; border-bottom:1px solid #d4af37; }
   .ros-feature__cta { grid-column: 1 / -1; font: 600 14px/1 'Inter', sans-serif; color:#d4af37; }
   @media (max-width: 760px) { .ros-feature { grid-template-columns: 1fr; padding: 22px 18px; } }
 </style>

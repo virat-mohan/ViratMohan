@@ -10,6 +10,8 @@ export const site = {
     'AI has made capability cheap and judgment scarce. The businesses that compound are the ones that put humans in front of the machine, not behind it.',
   email: 'viratmohan@gmail.com',
   whatsapp: '919999277240',
+  // "Let's talk" CTA everywhere: WhatsApp click-to-chat with a prefilled line.
+  letsTalk: 'https://wa.me/919999277240?text=Hi%20Virat%2C%20I%20saw%20your%20Successful%20Case%20Study%20(SCS).%20Let%27s%20talk.',
   linkedin: 'https://www.linkedin.com/in/viratmohan/', // TODO: confirm exact handle
   instagram: 'https://www.instagram.com/vmviews/',
   clarityhq: 'https://clarityhq.ai',

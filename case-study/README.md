@@ -8,4 +8,4 @@ New image: import `frame` and `clean` from `brand.py`, then run `python3 <name>.
 
 First person singular: "I", never "we". Virat builds DevShop and Retail OS alone. Plain, understated, founder voice.
 
-CTA: end every SCS post with "Let's talk." Nothing else.
+CTA: end every SCS post with "Let's talk." Nothing else. On the web it always links to site.letsTalk (WhatsApp click-to-chat, src/data/site.ts); in LinkedIn/Instagram captions include that link.

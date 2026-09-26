@@ -1,14 +1,17 @@
 ---
+import { site } from '../../data/site';
 // Floating announcement for the latest SCS (Successful Case Study). Dismissible; remembers per visitor.
 const id = 'scs-retail-os-autopilot';
 ---
-<a class="scs-float" href="/scs" data-scs={id} aria-label="New Successful Case Study (SCS): plus 59 percent sales per day on autopilot">
+<div class="scs-float" data-scs={id}>
+  <a class="scs-main" href="/scs" aria-label="New Successful Case Study (SCS): plus 59 percent sales per day on autopilot"></a>
   <span class="scs-dot" aria-hidden="true"></span>
   <span class="scs-kicker">New Successful Case Study (SCS)</span>
   <span class="scs-big">+59%</span>
   <span class="scs-text">sales per day after Retail OS took over the ads from a human.<span class="scs-go"> See the numbers →</span></span>
+  <a class="scs-talk" href={site.letsTalk} target="_blank" rel="noopener">Let's talk →</a>
   <button class="scs-x" type="button" aria-label="Dismiss">×</button>
-</a>
+</div>
 
 <style>
   .scs-float {
@@ -28,7 +31,9 @@ const id = 'scs-retail-os-autopilot';
   .scs-big { font-family: var(--display); font-size: 44px; line-height: .9; color: #d9714b; align-self: center; }
   .scs-text { font: 400 13.5px/1.35 var(--sans); align-self: center; }
   .scs-go { color: #d4af37; font-weight: 600; white-space: nowrap; }
-  .scs-x { position: absolute; top: 6px; right: 8px; background: none; border: 0; color: #f4ead4; opacity: .6; font-size: 20px; line-height: 1; cursor: pointer; padding: 4px; }
+  .scs-main { position: absolute; inset: 0; z-index: 0; border-radius: 14px; }
+  .scs-talk { position: relative; z-index: 1; grid-column: 1 / -1; margin-top: 10px; font: 700 13px/1 var(--sans); color: #d9714b; text-decoration: none; justify-self: start; border-bottom: 1px solid #d4af37; padding-bottom: 2px; }
+  .scs-x { z-index: 1; position: absolute; top: 6px; right: 8px; background: none; border: 0; color: #f4ead4; opacity: .6; font-size: 20px; line-height: 1; cursor: pointer; padding: 4px; }
   .scs-x:hover { opacity: 1; }
   @keyframes scs-in { from { opacity: 0; transform: translateY(24px) scale(.96); } to { opacity: 1; transform: none; } }
   @keyframes scs-ping { from { transform: scale(1); opacity: .7; } to { transform: scale(2.6); opacity: 0; } }
@@ -37,7 +42,7 @@ const id = 'scs-retail-os-autopilot';
 </style>
 
 <script>
-  const el = document.querySelector<HTMLAnchorElement>('.scs-float');
+  const el = document.querySelector<HTMLElement>('.scs-float');
   if (el) {
     const key = 'dismissed:' + el.dataset.scs;
     try { if (localStorage.getItem(key)) el.remove(); } catch {}
