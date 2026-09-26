@@ -245,7 +245,7 @@ window.RETAIL_OS_FAQ = [
     a: 'Yes. Your brand stays yours. Brands I build with you from zero are the exception, and that is covered in the agreement.',
     tags: ['ip', 'ownership', 'brand'] },
   { topic: 'Commercials', q: 'Who owns DevShop, Retail OS and Pay with a Post?',
-    a: 'I own 100% of DevShop. DevShop owns 100% of Retail OS and Pay with a Post.',
+    a: 'I own 100% of DevShop, Retail OS and Pay with a Post.',
     tags: ['owner', 'ownership', 'founder', 'company', 'who owns', 'shareholding', 'investors', 'pay with a post', 'retail os', 'devshop'] },
   { topic: 'Commercials', q: 'Can I earn by referring brands?',
     a: 'Yes. Partners earn 25% of what I earn from every brand they bring, for as long as that brand works with me. You sign the NCNDA, bring the brand, and see every rupee on your partner dashboard.\n\nDetails at viratmohan.com/partners.',
