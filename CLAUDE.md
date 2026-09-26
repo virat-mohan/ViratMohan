@@ -17,7 +17,7 @@ All copy (pages, dashboards, emails, posts, chat replies) must trace back to /mi
 - Passion: taking something good someone made and building the machine that gets it to the world.
 - Mission: any founder, a working online business in 7 days, run for them, with results every Monday.
 - Vision: a new, more efficient way for the world to do business.
-- Ambition: build the machine behind a thousand good brands, the responsible way. (Internal north star, not stated publicly yet: the largest AI company for businesses. Do not say it in any public copy.)
+- Ambition: build success stories with brands around the world, the responsible way. (Internal north star, not stated publicly yet: the largest AI company for businesses. Do not say it in any public copy, and never put a number on the ambition.)
 Same terms, same numbers, same promises everywhere. If a line contradicts /mission, fix the line. Customer-facing brand stores keep their own brand voice.
 
 ## Hospitality
