@@ -274,7 +274,32 @@ const help = [
         <div class="posts">${POSTS.map((p) => `<button class="card post" data-ask="Change for post “${p.t}”: "><div class="thumb" style="--c:${p.c}"><span>${p.kind}</span></div><div class="pbody"><small>${p.day}</small><b>${p.t}</b>${chip(p.st)}</div></button>`).join('')}</div>`;
     }
 
+    // Real Monday statement when the link carries a statement token (?s=…) and a
+    // settlement exists; otherwise the labelled sample below.
+    let LIVE: null | { week_start: string; week_end: string; status: string; lines: { key: string; label: string; amountPaise: number; count?: number }[]; payout_paise: number; paid_at: string | null } = null;
+    const stmtToken = new URLSearchParams(location.search).get('s');
+    if (stmtToken) {
+      fetch('/dashboard/api/statement?t=' + encodeURIComponent(stmtToken)).then((r) => (r.ok ? r.json() : null)).then((d) => {
+        if (d && Array.isArray(d.lines)) { LIVE = d; if (current === 'money') show('money', false); }
+      }).catch(() => {});
+    }
+    const day = (d: string) => new Date(d + 'T00:00:00Z').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+
+    function renderLiveMoney(S: NonNullable<typeof LIVE>) {
+      const rupees = (p: number) => (p < 0 ? '− ' : '') + inr(Math.abs(p) / 100);
+      const state = S.status === 'paid' ? `Paid ${S.paid_at ? day(S.paid_at.slice(0, 10)) : ''}` : S.status === 'held' ? 'On hold, I am checking' : S.status === 'approved' ? 'Payout on its way' : 'Being prepared';
+      const cls = (k: string, a: number) => (k === 'payout' ? 'yours' : k === 'profit_pool' ? 'total' : a < 0 ? 'neg' : '');
+      return `${head('money', 'Money', `Your Monday statement for ${day(S.week_start)} – ${day(S.week_end)}. Every rupee, in plain sight.`)}
+        <article class="card statement">
+          <div class="ch">${ICON('transparency')}<h2>Monday statement</h2><span class="soft">${esc(state)}</span></div>
+          <dl>${S.lines.map((l) => `<div class="li ${cls(l.key, l.amountPaise)}"><dt>${esc(l.label)}${l.count ? ` (${l.count})` : ''}</dt><dd>${rupees(l.amountPaise)}</dd></div>`).join('')}</dl>
+          <p class="soft note">From your orders, the payment gateway, the courier and the ad account. Question about a line? Ask below — I'll show you the receipts.</p>
+          <button class="btn ghost" data-ask="Question about my Monday statement: ">Ask about this statement</button>
+        </article>`;
+    }
+
     function renderMoney() {
+      if (LIVE) return renderLiveMoney(LIVE);
       const L = [
         ['Sales (47 orders)', 84250, ''], ['Returns & refunds', -1899, 'neg'], ['Product cost', -24100, 'neg'], ['Shipping', -5640, 'neg'],
         ['Ad spend', -19800, 'neg'], ['Payment & platform fees', -1950, 'neg'],
