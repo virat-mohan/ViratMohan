@@ -36,7 +36,13 @@ const id = 'scs-retail-os-autopilot';
   .scs-x:hover { opacity: 1; }
   @keyframes scs-in { from { opacity: 0; transform: translateY(24px) scale(.96); } to { opacity: 1; transform: none; } }
   @keyframes scs-ping { from { transform: scale(1); opacity: .7; } to { transform: scale(2.6); opacity: 0; } }
-  @media (max-width: 520px) { .scs-float { left: 16px; right: 16px; bottom: 76px; max-width: none; } .scs-big { font-size: 38px; } }
+  @media (max-width: 520px) {
+    .scs-float { left: 16px; right: 16px; bottom: 76px; max-width: none; padding: 10px 36px 10px 12px; column-gap: 10px; }
+    .scs-kicker { display: none; }
+    .scs-big { font-size: 28px; }
+    .scs-text { font-size: 12.5px; }
+    .scs-float.scs-wait { display: none; }
+  }
   @media (prefers-reduced-motion: reduce) { .scs-float, .scs-dot::after { animation: none; } }
 </style>
 
@@ -45,6 +51,18 @@ const id = 'scs-retail-os-autopilot';
   if (el) {
     const key = 'dismissed:' + el.dataset.scs;
     try { if (localStorage.getItem(key)) el.remove(); } catch {}
+    // On phones, stay out of the way until the visitor has read past "Why I build" (or 10s pass).
+    if (el.isConnected && window.matchMedia('(max-width: 520px)').matches) {
+      el.classList.add('scs-wait');
+      const show = () => { el.classList.remove('scs-wait'); window.removeEventListener('scroll', onScroll); clearTimeout(timer); };
+      const band = document.querySelector('.vm-mission');
+      const onScroll = () => {
+        const limit = band ? band.getBoundingClientRect().bottom : window.innerHeight;
+        if (limit < 0 || window.scrollY > window.innerHeight * 1.2) show();
+      };
+      const timer = setTimeout(show, 10000);
+      window.addEventListener('scroll', onScroll, { passive: true });
+    }
     el.querySelector('.scs-x')?.addEventListener('click', (e) => {
       e.preventDefault(); e.stopPropagation(); el.remove();
       try { localStorage.setItem(key, '1'); } catch {}
