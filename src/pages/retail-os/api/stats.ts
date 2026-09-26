@@ -9,12 +9,13 @@ export const GET: APIRoute = async () => {
     const env = getEnv();
     const db = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
     const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-    const [all, recent, plans] = await Promise.all([
+    const [all, recent, plans, signed] = await Promise.all([
       db.from('retail_os_applications').select('id', { count: 'exact', head: true }),
       db.from('retail_os_applications').select('id', { count: 'exact', head: true }).gte('created_at', since),
       db.from('retail_os_business_plans').select('id', { count: 'exact', head: true }),
+      db.from('retail_os_applications').select('id', { count: 'exact', head: true }).not('agreement', 'is', null),
     ]);
-    return new Response(JSON.stringify({ applications: all.count ?? 0, applications30d: recent.count ?? 0, plans: plans.count ?? 0 }), {
+    return new Response(JSON.stringify({ applications: all.count ?? 0, applications30d: recent.count ?? 0, plans: plans.count ?? 0, signed: signed.count ?? 0, founding: 10 }), {
       status: 200,
       headers: { 'content-type': 'application/json', 'cache-control': 'public, s-maxage=300, stale-while-revalidate=600' },
     });
