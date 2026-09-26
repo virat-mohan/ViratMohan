@@ -134,8 +134,8 @@ const OWNER: Record<string, string> = { team: 'You', founder: 'Virat', brand: 'B
       </div>
 
       <div class="panel">
-        <h2>Ask Virat</h2>
-        <p class="note" style="margin:0 0 8px;">Anything you're unsure about. It's emailed to Virat straight away, and you can also write to <a href="mailto:viratmohan@gmail.com">viratmohan@gmail.com</a>.</p>
+        <h2>Ask a question</h2>
+        <p class="note" style="margin:0 0 8px;">Anything you're unsure about. My assistant emails you an answer if it knows one; if not, it comes to me and I reply. You can also write to <a href="mailto:viratmohan@gmail.com">viratmohan@gmail.com</a>.</p>
         <textarea class="big" id="query" placeholder="Your question"></textarea>
         <button type="button" class="btn light" id="queryBtn">Send question</button>
         <div class="msg" id="queryMsg"></div>
@@ -183,7 +183,8 @@ const OWNER: Record<string, string> = { team: 'You', founder: 'Virat', brand: 'B
       btn.disabled = true; msg.textContent = 'Sending…';
       post('/retail-os/api/ops/' + token + '/log', { kind: kind, body: ta.value }).then(function (r) {
         btn.disabled = false;
-        if (r.ok) { ta.value = ''; msg.style.color = 'var(--teal)'; msg.textContent = kind === 'query' ? 'Sent to Virat.' : 'Posted.'; setTimeout(function () { location.reload(); }, 900); }
+        if (r.ok) { ta.value = ''; msg.style.color = 'var(--teal)'; if (kind === 'query' && r.data && r.data.answered) { msg.textContent = 'Answered, also in your email: ' + r.data.answer; return; }
+          msg.textContent = kind === 'query' ? (r.data && r.data.answered === false ? 'Sent to Virat. You will get an email when he replies.' : 'Sent.') : 'Posted.'; setTimeout(function () { location.reload(); }, 900); }
         else { msg.style.color = ''; msg.textContent = (r.data && r.data.error) || 'Could not send.'; }
       });
     });

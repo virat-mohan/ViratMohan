@@ -5,12 +5,13 @@ import { getEnv } from '../../../../../lib/env';
 import { getOpsDb } from '../../../../../lib/retail-os-ops';
 import { json, readJson } from '../../../../../lib/retail-os-http';
 import { sendEmail } from '../../../../../lib/email';
-import { renderRetailOsEmail } from '../../../../../lib/retail-os-email';
 import { getOrigin } from '../../../../../lib/http';
 import { mailConfigured } from '../../../../../lib/mail/send';
+import { serverBrain } from '../../../../../lib/brain';
+import { handleTeamQuestion } from '../../../../../lib/team-support';
 
-// Daily update or a question from a team member. Questions are also emailed
-// to the founder so nothing waits on someone opening the console.
+// Daily update or a question from a team member. Questions get an emailed
+// answer from the Brain, or go to the founder as a nudge (lib/team-support.ts).
 export const POST: APIRoute = async ({ params, request }) => {
   const token = params.token;
   const body = await readJson<{ kind?: string; body?: string }>(request);
@@ -26,22 +27,22 @@ export const POST: APIRoute = async ({ params, request }) => {
 
   await db.addLog(member.id, kind, text);
 
-  if (kind === 'query' && mailConfigured(env) && env.ADMIN_NOTIFY_EMAIL) {
-    sendEmail(
-      {
-        to: env.ADMIN_NOTIFY_EMAIL,
-        subject: `Question from ${member.name}`,
-        html: renderRetailOsEmail({
-          preheader: text.slice(0, 90),
-          eyebrow: 'Team',
-          heading: `${member.name} asked`,
-          lines: [text],
-          cta: { label: 'Open the console', url: `${getOrigin(request)}/retail-os/admin/console` },
-        }),
-        replyTo: member.email,
-      },
-      env
-    ).catch((err) => console.error('ops query email failed', err));
+  if (kind === 'query' && mailConfigured(env)) {
+    const origin = getOrigin(request);
+    const brain = serverBrain(env);
+    try {
+      const r = await handleTeamQuestion(member, text, {
+        answer: (q) => brain.answer(q, { audience: { audience: 'staff', authenticated: true } }),
+        send: (m) => sendEmail(m, env),
+        log: (k, b) => db.addLog(member.id, k, b),
+        viratEmail: env.ADMIN_NOTIFY_EMAIL || 'viratmohan@gmail.com',
+        trackerUrl: `${origin}/retail-os/ops/${member.token}`,
+        consoleUrl: `${origin}/retail-os/admin/console`,
+      });
+      return json({ ok: true, ...r }, 200);
+    } catch (err) {
+      console.error('ops query support failed', err);
+    }
   }
   return json({ ok: true }, 200);
 };
