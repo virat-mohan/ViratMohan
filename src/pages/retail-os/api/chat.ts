@@ -5,6 +5,7 @@ import { CHAT_SYSTEM, LEAD_TOOL, VIRAT_TOOL, chatDb, viratRequestEmail } from '.
 import { sendEmail } from '../../../lib/email';
 import { serverBrain } from '../../../lib/brain';
 import { mailConfigured } from '../../../lib/mail/send';
+import { knowledgeLoop, questionIn } from '../../../lib/knowledge-loop';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { 'content-type': 'application/json' } });
@@ -26,11 +27,15 @@ export const POST: APIRoute = async ({ request }) => {
   const db = chatDb(env);
 
   // Ground the chat in the Brain (public audience: no customer data). If the Brain fails, use the static prompt alone.
+  // A question with no Brain evidence goes to the shared inbox (same one the email assistant and the FAQ feed),
+  // so Virat answers it once and every channel learns it.
   let system: unknown = CHAT_SYSTEM;
+  const lastUser = messages[messages.length - 1].content;
+  const loop = knowledgeLoop(env);
   try {
-    const lastUser = messages[messages.length - 1].content;
     const ctx = await serverBrain(env).chatContext(lastUser, { audience: 'public' });
     if (ctx.block) system = [{ type: 'text', text: CHAT_SYSTEM, cache_control: { type: 'ephemeral' } }, { type: 'text', text: ctx.block }];
+    else if (questionIn(lastUser)) loop.noteUnanswered(lastUser, 'chat', { source: `chat:${sessionId}` }).catch((e) => console.error('chat inbox log', e));
   } catch (e) { console.error('chat brain fallback', e); }
 
   // Up to two rounds so the model can save the lead and still reply.
@@ -50,6 +55,8 @@ export const POST: APIRoute = async ({ request }) => {
       if (u.name === 'request_virat') {
         const r = u.input || {};
         escalated = true;
+        // "I don't know" is a gap in shared knowledge, not just a booking: log what they wanted to know.
+        if (r.reason === 'unknown' && (r.wants || questionIn(lastUser))) loop.noteUnanswered(questionIn(lastUser) ?? String(r.wants), 'chat', { source: `chat:${sessionId}` }).catch((e) => console.error('chat inbox log', e));
         // Save the context first, then tell Virat. The person only gets a time after Virat taps approve.
         try { await db.upsert(sessionId, page, { founder_name: r.name, brand: r.brand, next_step: 'whatsapp', summary: `Wants Virat (${r.reason || 'asked'}): ${r.summary || ''}`.slice(0, 500), ...(String(r.contact || '').includes('@') ? { email: r.contact } : { phone: r.contact }) }, messages); } catch (e) { console.error('chat lead save', e); }
         if (mailConfigured(env) && env.ADMIN_NOTIFY_EMAIL) {

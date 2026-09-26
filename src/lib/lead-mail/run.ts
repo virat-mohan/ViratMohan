@@ -11,6 +11,7 @@ import {
 import { gmailThreadUrl, type ApprovalNotice } from './notice';
 import type { LeadStore } from './store';
 import { signToken, verifyToken } from './token';
+import { questionIn } from '../knowledge-loop';
 
 export const DEFAULT_QUERY = 'newer_than:2d -in:drafts -in:chats -in:spam -in:trash';
 
@@ -19,11 +20,18 @@ export type LeadBrain = {
   answer?(q: string, opts: { audience: { audience: 'public' } }): Promise<{ answer: string; known: boolean }>;
 };
 
+/** The shared question inbox (src/lib/knowledge-loop.ts). Optional: the assistant runs without it. */
+export type LeadKnowledge = {
+  noteUnanswered(question: string, via: 'email', ctx: { source?: string; leadId?: string }): Promise<void>;
+  noteAnswered(question: string, rawAnswer: string, ctx: { source?: string; leadId?: string; answerSource?: string }): Promise<void>;
+};
+
 export type RunDeps = {
   gmail: GmailApi; store: LeadStore; brain: LeadBrain;
   mailbox: string; now: Date; baseUrl: string;
   approvalSecret: string; autosend: boolean;
   notifyVirat: (n: ApprovalNotice) => Promise<unknown>;
+  knowledge?: LeadKnowledge;
   query?: string;
 };
 
@@ -89,6 +97,7 @@ export async function runLeadMail(d: RunDeps): Promise<RunResult> {
       res.logged++;
       idx.leadIdByThread.set(m.threadId, match.lead.id);
       if (!outbound) await handleInbound(d, match.lead, m, res);
+      else await learnFromVirat(d, match.lead, m);
     } catch (e) {
       res.errors.push(`${id}: ${String(e).slice(0, 200)}`);
     }
@@ -118,16 +127,20 @@ async function handleInbound(d: RunDeps, lead: Lead, m: MailMessage, res: RunRes
   }
 
   // Grounded facts for a direct question, only if the Brain knows and it reads in Virat's voice.
+  // A question the Brain cannot answer goes to the shared inbox so Virat answers it once, for every channel.
   let facts: string | null = null;
-  if (d.brain.answer && (intent === 'general') && /\?/.test(m.body)) {
-    const q = m.body.split('\n').find((l) => l.includes('?'))?.trim().slice(0, 400);
-    if (q) {
+  const q = questionIn(m.body);
+  if (q && intent === 'general') {
+    let known = false;
+    if (d.brain.answer) {
       try {
         const a = await d.brain.answer(q, { audience: { audience: 'public' } });
         const text = a.answer.replace(/\s*\[[^\]]+\]/g, '').trim();
+        known = a.known;
         if (a.known && !voiceIssues(text).length && !/\d/.test(text.replace(/\b7 days\b/gi, ''))) facts = text; // no numbers beyond the standard promise
       } catch { /* answer is optional */ }
     }
+    if (!known && d.knowledge) await d.knowledge.noteUnanswered(q, 'email', { source: `email:${m.threadId}`, leadId: lead.id }).catch(() => {});
   }
 
   const body = draftReply({ lead, message: m, intent, now: d.now, facts });
@@ -160,6 +173,22 @@ async function handleInbound(d: RunDeps, lead: Lead, m: MailMessage, res: RunRes
     kind: 'approval', leadName: lead.brand_name, subject: m.subject, context, draft: body,
     approveUrl: `${d.baseUrl}/api/leads/approve?t=${encodeURIComponent(token)}`, gmailUrl: gmailThreadUrl(m.threadId),
   });
+}
+
+/**
+ * Virat replied to a lead himself. If the lead had asked a question in that thread, keep the
+ * question and his answer together in the shared inbox, so one "reword and publish" teaches
+ * the FAQ, the site chat and future email drafts. (Replies the assistant sent are already
+ * logged by id, so they never reach here.)
+ */
+async function learnFromVirat(d: RunDeps, lead: Lead, m: MailMessage) {
+  if (!d.knowledge) return;
+  try {
+    const thread = (await d.store.messagesFor(lead.id)).filter((x) => x.gmail_thread_id === m.threadId && x.direction === 'inbound' && x.at <= m.date);
+    const asked = [...thread].reverse().map((x) => questionIn(x.body)).find(Boolean);
+    if (!asked) return;
+    await d.knowledge.noteAnswered(asked, m.body, { source: `email:${m.threadId}`, leadId: lead.id, answerSource: `email:${m.id}` });
+  } catch (e) { console.error('lead-mail learn from Virat', e); }
 }
 
 async function escalate(d: RunDeps, lead: Lead, m: MailMessage, context: [string, string], reasons: string[], res: RunResult) {

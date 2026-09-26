@@ -6,6 +6,7 @@ import { liveGmail } from '../mail/send';
 import { serverBrain } from '../brain';
 import { decide } from '../brain/decide';
 import { SupabaseLeadStore } from './store';
+import { knowledgeLoop } from '../knowledge-loop';
 import { noticeEmailHtml, noticeSubject, noticeText, type ApprovalNotice } from './notice';
 import type { LeadBrain, RunDeps } from './run';
 
@@ -32,5 +33,6 @@ export async function liveRunDeps(env: Env, baseUrl: string, now = new Date()): 
     gmail, brain, store: new SupabaseLeadStore(serviceDb(env)), mailbox: env.GMAIL_ADDRESS, now, baseUrl,
     approvalSecret: env.LEAD_APPROVAL_SECRET, autosend: env.LEAD_AUTOSEND === 'on',
     notifyVirat: viratNotifier(env, now),
+    knowledge: knowledgeLoop(env), // same question inbox and answers as the site chat
   };
 }

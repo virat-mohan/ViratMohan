@@ -3,8 +3,10 @@ export const prerender = false;
 import { getEnv } from '../../../lib/env';
 import { getFaqDb, FAQ_TOPICS, type FaqQuestion } from '../../../lib/retail-os-faq';
 
-// FAQ inbox (gated by src/middleware.ts). Questions the public FAQ could not
-// answer land here. Answer on WhatsApp, paste the reply, reword, publish.
+// FAQ inbox (gated by src/middleware.ts). One inbox for every channel: questions the
+// public FAQ, the site chat or the email assistant could not answer land here. When Virat
+// has already answered by email, his reply is pre-filled. Reword, publish: the answer then
+// reaches the FAQ page, the chat and email drafts through the Brain (src/lib/knowledge-loop.ts).
 let rows: FaqQuestion[] = [];
 let loadError = '';
 try { rows = await getFaqDb(getEnv()).list(); } catch (err) { loadError = err instanceof Error ? err.message : String(err); }
@@ -12,7 +14,10 @@ const open = rows.filter((r) => r.status === 'open');
 const published = rows.filter((r) => r.status === 'published');
 const dismissed = rows.filter((r) => r.status === 'dismissed');
 const fmt = (d: string) => new Date(d).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' });
-const REASON: Record<string, string> = { no_match: 'No answer found', weak_match: 'Weak match', sent_to_whatsapp: 'Sent to WhatsApp', manual: 'Added by you' };
+const REASON: Record<string, string> = {
+  no_match: 'FAQ page: no answer found', weak_match: 'FAQ page: weak match', sent_to_whatsapp: 'Sent to WhatsApp', manual: 'Added by you',
+  chat_no_match: 'Site chat could not answer', email_no_match: 'Email assistant could not answer', email_answer: 'You answered by email: reword and publish',
+};
 ---
 <!doctype html>
 <html lang="en">
@@ -48,7 +53,7 @@ a{color:inherit;}
 <body><div class="wrap">
 <p class="meta"><a href="/retail-os/admin/">← Retail OS admin</a> · <a href="/retail-os/faq/" target="_blank">View FAQ</a></p>
 <h1>FAQ Inbox</h1>
-<p class="sub">Questions partners asked that the FAQ could not answer. {open.length} open · {published.length} published.</p>
+<p class="sub">Questions from the FAQ page, the site chat and email that had no answer yet. Publish once and every channel learns it. {open.length} open · {published.length} published.</p>
 <div class="how"><b>How it works</b><ol>
 <li>A partner searches the FAQ, finds no good answer, and taps "Ask on WhatsApp". The question lands here and on your WhatsApp.</li>
 <li>Reply to them on WhatsApp as usual.</li>
@@ -67,7 +72,7 @@ a{color:inherit;}
     <div class="meta"><span>{REASON[r.reason ?? ''] ?? r.reason}</span><span>Asked {r.ask_count}×</span><span>Last {fmt(r.last_asked_at)}</span></div>
     <div class="q">{r.question}</div>
     <label>Your WhatsApp reply</label>
-    <textarea class="raw" placeholder="Paste what you replied on WhatsApp">{r.raw_answer ?? ''}</textarea>
+    <textarea class="raw" placeholder="Paste what you replied (WhatsApp or email)">{r.raw_answer ?? ''}</textarea>
     <div class="row"><button class="reword">Reword in my voice</button><button class="o dismiss">Dismiss</button><span class="msg"></span></div>
     <div class="draft" hidden>
       <label>Question as shown on the site</label><input class="pq" value={r.question}>
