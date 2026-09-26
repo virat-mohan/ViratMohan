@@ -68,7 +68,7 @@
       '<div class="vma-log" role="log" aria-live="polite" aria-relevant="additions" tabindex="-1"></div>' +
       '<form class="vma-row"><label for="vma-q">Your message</label><textarea id="vma-q" name="q" rows="1" autocomplete="off" placeholder="What do you sell?"></textarea>' +
       '<button class="vma-send" type="submit" aria-label="Send message">Send</button></form>' +
-      '<div class="vma-foot">Prefer WhatsApp? <a href="' + WA + '" target="_blank" rel="noopener">Message Virat directly</a></div>' +
+      '<div class="vma-foot">Prefer WhatsApp? <a href="' + WA + '" target="_blank" rel="noopener">Message Virat directly</a> · <a href="/mission">Read my mission →</a></div>' +
     '</div>';
   document.body.appendChild(root);
   var btn = root.querySelector('.vma-btn'), panel = root.querySelector('.vma-panel'), log = root.querySelector('.vma-log'),
