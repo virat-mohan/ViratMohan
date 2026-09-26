@@ -4,7 +4,7 @@ import { RETAIL_OS_STAGE_DEFS } from '../../lib/retail-os-db';
 
 const retailSteps = RETAIL_OS_STAGE_DEFS.map((s) => s.label);
 const help = [
-  { q: 'When do I get paid?', a: 'Every Monday. Your share of last week\'s profit lands in your bank account by evening. The Money tab shows every line that went into it.' },
+  { q: 'When do I get paid?', a: 'Every Monday. Your share of last week\'s profit lands in your bank account before 1 PM IST. The Money tab shows every line that went into it.' },
   { q: 'How do I change a product price?', a: 'Tell me the product and the new price in the box below. I update it the same day and confirm on WhatsApp.' },
   { q: 'Why is an order not shipped?', a: 'Usually the courier hasn\'t picked it up yet, or the address needs checking. Tap the order in Sales to see its status. If it\'s older than 2 days, tell me.' },
   { q: 'How much am I spending on ads?', a: 'The Ads tab shows this week\'s spend next to the sales it brought in, in plain rupees.' },
@@ -28,12 +28,12 @@ const help = [
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="robots" content="noindex" />
   <title>Your Dashboard</title>
-  <meta name="theme-color" content="#f4ead4" media="(prefers-color-scheme: light)" />
-  <meta name="theme-color" content="#15110e" media="(prefers-color-scheme: dark)" />
-  <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#f4ead4" />
+  <meta name="color-scheme" content="light" />
+  <link rel="stylesheet" href="/brand/tokens.css" />
   <script src="/assistant.js" defer></script>
 </head>
-<body class="dash">
+<body class="dash vm-page">
   <a class="skip" href="#main">Skip to content</a>
   <header class="top">
     <div class="top-row">
@@ -53,7 +53,7 @@ const help = [
       </button>
       <span class="sample" title="All numbers on this page are sample data">Sample data</span>
     </div>
-    <div class="hairline" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <div class="vm-band" aria-hidden="true"></div>
   </header>
 
   <div class="shell">
@@ -69,6 +69,8 @@ const help = [
       <section data-view="help" hidden></section>
     </main>
   </div>
+
+  <footer class="vm-signature"><a href="https://viratmohan.com/mission"><b>Virat Mohan</b> · I build the machine that gets good products to the world. →</a></footer>
 
   <button class="fab" id="fab" type="button">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>Need help?
@@ -144,7 +146,7 @@ const help = [
           { k: 'Sales this week', v: 84250, fmt: 'inr', d: '+12% on last week', s: [9, 12, 10, 14, 13, 17, 19] },
           { k: 'Orders', v: 47, fmt: 'n', d: '6 today', s: [4, 6, 5, 8, 7, 9, 8] },
           { k: 'Ad spend', v: 19800, fmt: 'inr', d: '₹4.20 back per ₹1', s: [3, 3, 2.8, 3.1, 3, 2.9, 2.6] },
-          { k: 'Your payout on Monday', v: 21603, fmt: 'inr', d: 'Lands by evening', s: [12, 15, 14, 16, 18, 19, 21] },
+          { k: 'Your payout on Monday', v: 21603, fmt: 'inr', d: 'Lands before 1 PM IST', s: [12, 15, 14, 16, 18, 19, 21] },
         ],
         launch: { day: 3, of: 7, steps: retailSteps, done: 5 },
         todo: [
@@ -425,7 +427,7 @@ const help = [
   </script>
 
   <style is:global>
-    /* Dashboard tokens — the site palette, softened. Light is paper; dark is warm ink with a faint indigo undertone. */
+    /* Dashboard tokens — the site palette, softened. One authored look, no dark mode — same as the homepage. */
     body.dash {
       --bg: var(--paper); --surface: #fbf6ea; --surface-2: #f7efdc; --fg: var(--ink); --dim: #6a5b49;
       --hair: rgba(23, 19, 15, .08); --hair-2: rgba(23, 19, 15, .14);
@@ -441,22 +443,6 @@ const help = [
       background: var(--bg); color: var(--fg); font-family: var(--sans); margin: 0; min-height: 100vh; -webkit-text-size-adjust: 100%;
       line-height: 1.5;
     }
-    @media (prefers-color-scheme: dark) {
-      body.dash {
-        --bg: #15110e; --surface: #1d1814; --surface-2: #231d18; --fg: #efe6d2; --dim: #b2a48c;
-        --hair: rgba(244, 234, 212, .08); --hair-2: rgba(244, 234, 212, .14);
-        --accent: #d88a68; --accent-soft: color-mix(in srgb, var(--terracotta) 18%, transparent);
-        --gold-ink: #d9bb6a; --solid: #efe6d2; --on-solid: #15110e;
-        --shadow: 0 1px 2px rgba(0, 0, 0, .2), 0 10px 30px rgba(0, 0, 0, .18);
-        --focus: color-mix(in srgb, var(--gold) 70%, transparent);
-        --p1: color-mix(in srgb, var(--gold) 70%, #15110e); --p2: color-mix(in srgb, var(--magenta) 55%, #15110e);
-        --p3: color-mix(in srgb, var(--cobalt) 80%, #efe6d2 20%); --p4: color-mix(in srgb, var(--terracotta) 75%, #15110e);
-        --tint: 20%;
-        color-scheme: dark;
-        background: radial-gradient(1200px 600px at 80% -10%, color-mix(in srgb, var(--indigo) 22%, transparent), transparent 70%), var(--bg);
-        background-attachment: fixed;
-      }
-    }
     body.dash.locked { overflow: hidden; }
     .dash *, .dash *::before, .dash *::after { box-sizing: border-box; }
     .dash h1, .dash h2, .dash h3 { margin: 0; font-weight: 400; }
@@ -471,8 +457,8 @@ const help = [
     .top { position: sticky; top: 0; z-index: 30; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
     .top-row { display: flex; align-items: center; gap: 16px; padding: 14px 32px; max-width: 1360px; margin: 0 auto; }
     .brand { display: flex; align-items: center; gap: 12px; color: var(--fg); text-decoration: none; min-height: 44px; }
-    .mark { font-family: var(--display); background: var(--solid); color: var(--on-solid); width: 36px; height: 36px; display: grid; place-items: center; border-radius: 10px; letter-spacing: .04em; }
-    .brand-name { font-family: var(--serif); font-size: 1.5rem; letter-spacing: .005em; }
+    .mark { font-family: var(--display); color: var(--terracotta); font-size: 2.5rem; line-height: 1; letter-spacing: .01em; }
+    .brand-name { font-family: var(--serif); font-style: italic; font-size: 1.5rem; color: var(--dim); }
     .pill { appearance: none; min-height: 44px; border: 1px solid var(--hair-2); background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%239a8a74' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 14px center / 11px; border-radius: 999px; padding: 0 38px 0 16px; font: 500 .94rem var(--sans); color: var(--fg); cursor: pointer; max-width: 100%; }
     .search { flex: 1; display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 0 16px; border: 1px solid var(--hair); background: var(--surface); border-radius: 999px; color: var(--dim); font: 400 .98rem var(--sans); cursor: text; text-align: left; min-width: 0; max-width: 520px; margin-left: auto; }
     .search:hover { border-color: var(--hair-2); }
@@ -480,9 +466,6 @@ const help = [
     .search-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .search kbd { font: 500 .78rem var(--sans); border: 1px solid var(--hair-2); border-radius: 6px; padding: 1px 7px; background: transparent; color: var(--dim); }
     .sample { flex: none; font: 600 .7rem var(--sans); letter-spacing: .1em; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); border: 1px dashed color-mix(in srgb, var(--terracotta) 55%, transparent); padding: 6px 11px; border-radius: 999px; }
-    .hairline { display: grid; grid-template-columns: repeat(4, 1fr); height: 3px; opacity: .8; }
-    .hairline i:nth-child(1) { background: var(--p1); } .hairline i:nth-child(2) { background: var(--p2); }
-    .hairline i:nth-child(3) { background: var(--p3); } .hairline i:nth-child(4) { background: var(--p4); }
 
     /* Shell */
     .shell { display: grid; grid-template-columns: 232px 1fr; max-width: 1360px; margin: 0 auto; }
@@ -497,10 +480,13 @@ const help = [
     main > section:not([hidden]) { animation: rise .45s cubic-bezier(.2, .7, .2, 1); }
     @keyframes rise { from { opacity: 0; transform: translateY(6px); } }
     .vh { margin-bottom: 36px; }
-    .vh h1 { font-family: var(--serif); font-size: clamp(2.4rem, 4.6vw, 3.4rem); line-height: 1.05; letter-spacing: -.005em; margin-bottom: 8px; }
+    .vh h1 { font-family: var(--display); text-transform: uppercase; font-size: clamp(2.6rem, 5.5vw, 4.5rem); line-height: .9; letter-spacing: .005em; margin-bottom: 12px; }
+    .vh .soft { font-size: clamp(1.2rem, 2vw, 1.45rem); }
+    .vh::after { content: ''; display: block; height: 1px; background: var(--gold); margin-top: 20px; }
+    .dash .vm-signature { padding-bottom: 110px; }
 
     /* Cards */
-    .card { background: var(--surface); border: 1px solid var(--hair); border-radius: 20px; padding: 26px; min-width: 0; box-shadow: var(--shadow); }
+    .card { background: var(--surface); border: 1px solid var(--hair); border-top: 3px solid var(--k, var(--gold)); border-radius: 2px; padding: 26px; min-width: 0; box-shadow: var(--shadow); }
     .card.flush { padding: 0; overflow: hidden; }
     .card h2 { font: 600 .74rem var(--sans); text-transform: uppercase; letter-spacing: .12em; color: var(--dim); }
     .ch { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
@@ -642,7 +628,7 @@ const help = [
     .drawer { max-width: 480px; border-radius: 22px 0 0 22px; overflow: auto; overscroll-behavior: contain; padding: 32px 28px; animation: slide .35s cubic-bezier(.2, .7, .2, 1); }
     @keyframes slide { from { transform: translateX(28px); opacity: 0; } }
     .drawer-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-    .drawer-head h2 { font-family: var(--serif); font-size: 2rem; }
+    .drawer-head h2 { font-family: var(--display); text-transform: uppercase; font-size: 2rem; }
     .x { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--hair-2); background: transparent; font-size: 1.4rem; font-weight: 300; cursor: pointer; color: var(--dim); }
     .x:hover { color: var(--fg); background: var(--surface); }
 

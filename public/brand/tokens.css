@@ -1,0 +1,208 @@
+/* =========================================================================
+   Virat Mohan — shared brand tokens
+   https://viratmohan.com/brand/tokens.css
+
+   The homepage (src/pages/index.astro + src/styles/global.css) is the single
+   source of truth. This file MIRRORS the tokens in global.css so standalone
+   pages and external apps can wear the same look. Keep it in sync:
+   `node scripts/check-brand-tokens.mjs` fails if any value drifts.
+
+   One authored look, no dark mode — a poster is a fixed artifact.
+   ========================================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --ink: #1a1410;
+  --paper: #f4ead4;
+  --gold: #d4af37;
+  --sage: #a8b5a0;
+  --dim: #5a4c3c;
+  --line: rgba(23, 19, 15, 0.14);
+  --terracotta: #d9714b;
+  --cobalt: #3e6fa6;
+  --magenta: #e91e8c;
+  --bronze: #9c7a4a;
+  --poster-cream: #f4ead4;
+  --poster-ink: #17130f;
+
+  --display: 'Anton', 'Arial Narrow', sans-serif;
+  --serif: 'Instrument Serif', 'Newsreader', Georgia, 'Times New Roman', serif;
+  --sans: 'Inter Variable', 'Inter', system-ui, -apple-system, sans-serif;
+
+  color-scheme: light;
+}
+
+/* Poster paper ground + faint halftone, as on every homepage section. */
+.vm-page {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+.vm-page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(23, 19, 15, 0.09) 1.4px, transparent 1.4px);
+  background-size: 13px 13px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Poster colour band — the homepage nav bar (5px, 4 equal swatches:
+   gold, magenta, cobalt, terracotta). Add .vm-band--hero for the 10px
+   hero swatch strip (terracotta, cobalt, magenta, bronze). */
+.vm-band {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  height: 5px;
+  background: linear-gradient(90deg,
+    var(--gold) 0 25%, var(--magenta) 25% 50%,
+    var(--cobalt) 50% 75%, var(--terracotta) 75% 100%);
+}
+.vm-band--hero {
+  height: 10px;
+  background: linear-gradient(90deg,
+    var(--terracotta) 0 25%, var(--cobalt) 25% 50%,
+    var(--magenta) 50% 75%, var(--bronze) 75% 100%);
+}
+/* Gold hairline rule (.rule-gold) */
+.vm-rule {
+  border: 0;
+  height: 1px;
+  background: var(--gold);
+  margin: 0;
+}
+
+/* Wordmark — the nav's "VM" in Anton terracotta */
+.vm-mark {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 2.5rem;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  color: var(--terracotta);
+  text-decoration: none;
+}
+
+/* Eyebrow / kicker (.eyebrow) */
+.vm-kicker {
+  font-family: var(--sans);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--dim);
+  margin: 0;
+}
+
+/* Display heading — Anton uppercase, as h1/h2 site-wide */
+.vm-display {
+  font-family: var(--display);
+  font-weight: 400;
+  text-transform: uppercase;
+  font-size: clamp(3rem, 7.5vw, 6.5rem);
+  line-height: 0.88;
+  letter-spacing: 0.005em;
+  margin: 0;
+}
+
+/* Instrument Serif italic lede */
+.vm-serif-lede {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.25rem, 2.2vw, 1.6rem);
+  line-height: 1.3;
+  color: var(--dim);
+  margin: 0;
+}
+
+/* Card — paper with a hairline and a gold top rule, no rounded SaaS look */
+.vm-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--c, var(--gold));
+  padding: 1.5rem;
+}
+
+/* Chip — small uppercase badge, as the homepage "New" badge */
+.vm-chip {
+  display: inline-block;
+  font-family: var(--sans);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.3em 0.7em;
+  background: var(--c, var(--terracotta));
+  color: var(--poster-cream);
+}
+
+/* Signature footer line — links to the mission page */
+.vm-signature {
+  display: block;
+  border-top: 1px solid var(--line);
+  padding: 2rem clamp(1.5rem, 5vw, 4rem);
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.125rem;
+  line-height: 1.4;
+  color: var(--dim);
+  text-align: center;
+}
+.vm-signature a {
+  color: inherit;
+  text-decoration: none;
+  background-image: linear-gradient(var(--gold), var(--gold));
+  background-size: 0% 1px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.vm-signature a:hover,
+.vm-signature a:focus-visible { background-size: 100% 1px; }
+.vm-signature b {
+  font-family: var(--display);
+  font-style: normal;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+
+/* Site header — mirrors src/components/Nav.astro for standalone pages.
+   <header class="vm-head"><div class="vm-head__in"><a class="vm-mark" href="/">VM</a>
+   <nav class="vm-nav">…links with style="--c:…"…</nav></div><div class="vm-band"></div></header> */
+.vm-head { background: var(--paper); }
+.vm-head__in {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  min-height: 5.5rem;
+  max-width: 1240px;
+  margin-inline: auto;
+  padding-inline: clamp(1.5rem, 5vw, 4rem);
+}
+.vm-nav { margin-left: auto; display: flex; flex-wrap: wrap; gap: 0.6rem clamp(1.25rem, 3vw, 2.5rem); }
+.vm-nav a {
+  font-family: var(--sans);
+  font-size: 1.1875rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: var(--c, var(--ink));
+  text-decoration: none;
+  padding-bottom: 4px;
+  border-bottom: 3px solid transparent;
+  transition: border-color 0.25s ease;
+}
+.vm-nav a:hover,
+.vm-nav a:focus-visible,
+.vm-nav a[aria-current='page'] { border-bottom-color: var(--c, var(--ink)); }
+@media (max-width: 620px) {
+  .vm-head__in { flex-wrap: wrap; justify-content: center; padding-block: 1.25rem; row-gap: 1rem; }
+  .vm-head .vm-mark { flex: 1 0 100%; text-align: center; font-size: 2rem; }
+  .vm-nav { margin-left: 0; justify-content: center; gap: 0.6rem 1.1rem; }
+  .vm-nav a { font-size: 1rem; }
+}

@@ -4,10 +4,11 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>DevShop Retail OS</title>
-<meta name="description" content="DevShop Retail OS — plug your brand into the same stack behind Travaholic Caps, Moonglasses, India Contemporary and Flowerbasket. Live in 7 days, results every Monday, honest numbers." />
+<meta name="description" content="DevShop Retail OS — plug your brand into the same stack behind Travaholic Caps, Moonglasses, India Contemporary and Flowerbasket. Live in 3–7 days, results every Monday, honest numbers." />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/brand/tokens.css" />
 <style>
   :root{
     --cream:#F4EAD4;
@@ -291,11 +292,30 @@
   .f10-cta{color:var(--gold); font-weight:700; text-decoration:none; border-bottom:1px solid var(--gold);}
   .val{display:inline-flex; align-items:center; gap:6px; font:700 11px/1 'Inter',sans-serif; letter-spacing:.08em; text-transform:uppercase; color:var(--ink); background:rgba(217,113,75,.12); border:1px solid rgba(217,113,75,.35); padding:5px 9px; border-radius:999px; margin:0 6px 8px 0;}
   .vals{margin:0 0 6px;}
+
+  /* Shared brand system — /brand/tokens.css (mirrors the homepage) */
+  :root{ --cream:var(--paper); --ink-soft:var(--dim); --blue:var(--cobalt); --pink:var(--magenta); --olive:var(--bronze); }
+  body{ background:var(--paper); font-family:var(--sans); }
+  .hero p.lede, .lede, .hero-sub{ font-family:var(--serif) !important; font-style:italic; font-weight:400 !important; font-size:clamp(1.2rem,2vw,1.5rem) !important; line-height:1.35 !important; }
+  .wordmark{ font-size:18px; }
+  section{ border-top-color:var(--gold) !important; border-top-width:1px !important; }
 </style>
 </head>
-<body>
+<body class="vm-page">
 
-<div class="stripe"><span></span><span></span><span></span><span></span></div>
+<header class="vm-head">
+  <div class="vm-head__in">
+    <a class="vm-mark" href="/" aria-label="Virat Mohan — home">VM</a>
+    <nav class="vm-nav" aria-label="Primary">
+      <a href="/devshop" style="--c:var(--gold)">Dev Shop</a>
+      <a href="/retail-os/" style="--c:var(--bronze)" aria-current="page">Retail OS</a>
+      <a href="/clarityhq" style="--c:var(--magenta)">ClarityHQ</a>
+      <a href="/advisory" style="--c:var(--cobalt)">Advisory</a>
+      <a href="/writing" style="--c:var(--terracotta)">My Writing</a>
+    </nav>
+  </div>
+  <div class="vm-band" aria-hidden="true"></div>
+</header>
 <div class="wrap">
   <nav>
     <div class="wordmark"><span class="w1">Dev</span><span class="w2">Shop</span><small>Retail OS™</small></div>
@@ -325,7 +345,7 @@
     <h1>I've built this <span style="color:var(--cream);-webkit-text-stroke:2px var(--ink);">myself,</span><br>more than once. Yours could be next.</h1>
     <p class="lede">One stack — storefront, payments, shipping, WhatsApp, Meta, abandoned-cart recovery, AI content — two brands selling on it today, two more launching. Zero capex: the only thing you pay upfront is a ₹5,000 deposit, fully adjusted against your actual onboarding tech costs — DevShop keeps none of it. I can start your brand on it this week.</p>
     <div class="cta-row">
-      <a class="btn btn-primary" href="/retail-os/apply/">Start — zero capex, live in 7 days →</a>
+      <a class="btn btn-primary" href="/retail-os/apply/">Start — zero capex, live in 3–7 days →</a>
       <a class="btn btn-ghost" href="#modules">See what's inside</a>
     </div>
     <div class="proof-strip">
@@ -357,7 +377,7 @@
       <div>
         <div class="vals"><span class="val"><img src="/icons/values/responsible-business.svg" alt="" width="16" height="16">Responsible business</span><span class="val"><img src="/icons/values/keep-promises.svg" alt="" width="16" height="16">Keep promises</span><span class="val"><img src="/icons/values/efficiency.svg" alt="" width="16" height="16">Efficiency</span></div>
         <div class="eyebrow">How it works</div>
-        <h2>From application to live store in about two weeks</h2>
+        <h2>From signing to live store in 3–7 days</h2>
       </div>
       <p>You see your numbers and your store's design before you sign anything. Everything after that happens on one page, one step at a time.</p>
     </div>
@@ -623,7 +643,7 @@
       <div class="week-day week-day-end">Sun</div>
       <div class="week-day week-day-settle">Mon<span>Settled<br>by 1 PM</span></div>
     </div>
-    <p class="week-caption">The week runs Monday 12:00 AM to Sunday 11:59 PM. Settlement for that week lands the following Monday, before 1 PM — every week, no exceptions.</p>
+    <p class="week-caption">The week runs Monday 12:00 AM to Sunday 11:59 PM. Settlement for that week lands the following Monday, before 1 PM IST — every week, no exceptions.</p>
 
     <div class="settle-grid">
       <div class="settle-report">
@@ -692,7 +712,7 @@
         <div class="row"><span>What you keep</span><span>Full brand IP</span></div>
         <div class="row"><span>Commitment</span><span>12 mo, renewable on mutual terms · 30-day break clause, fee 5% of revenue to date</span></div>
         <div class="row"><span>Capex</span><span>Zero — ₹5,000 deposit, fully adjusted against tech costs</span></div>
-        <a class="btn" href="/retail-os/apply/">Start — zero capex, live in 7 days →</a>
+        <a class="btn" href="/retail-os/apply/">Start — zero capex, live in 3–7 days →</a>
         <div class="row" style="border-top:1.5px solid var(--ink); border-bottom:none; margin-top:14px;"><span>Documents</span><span><a href="/retail-os/docs/DevShop-Retail-OS-NCNDA.docx" download>NCNDA</a> · <a href="/retail-os/docs/DevShop-Retail-OS-Partnership-Terms.docx" download>Partnership terms (summary)</a></span></div>
       </div>
     </div>
@@ -705,5 +725,6 @@
 </div>
 
 <script src="/assistant.js" defer></script>
+<footer class="vm-signature"><a href="https://viratmohan.com/mission"><b>Virat Mohan</b> · I build the machine that gets good products to the world. →</a></footer>
 </body>
 </html>
