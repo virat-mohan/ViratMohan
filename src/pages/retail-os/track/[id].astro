@@ -82,7 +82,7 @@ const stageStatus = (k: string) => app?.stages.find((s) => s.key === k)?.status 
 const dayDate = (n: number) => new Date(clockStart.getTime() + n * 86400000).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' });
 type CkItem = { key: string; label: string; day: [number, number]; owner: 'DevShop' | 'You' | 'Together'; status: 'done' | 'pending' | 'skipped'; we: string; you: string; detail?: 'application' | 'plan' | 'design' | 'terms' | 'deposit' | 'setup' };
 const checklist: CkItem[] = app ? [
-  { key: 'submitted', label: 'Application', day: [0, 0], owner: 'You', status: 'done', we: 'Read your answers and research your category and cities.', you: 'Tell us about the brand, catalog, payments and shipping.', detail: 'application' },
+  { key: 'submitted', label: 'Application', day: [0, 0], owner: 'You', status: 'done', we: 'Read your answers and research your category and cities.', you: 'Tell me about the brand, catalog, payments and shipping.', detail: 'application' },
   { key: 'plan', label: 'Business plan & forecast', day: [0, 0], owner: 'Together', status: plan ? 'done' : 'pending', we: `Build a 3-month P&L on DevShop's strategy: product ≤25%, marketing ≤25%, admin and all other costs ≤10% of revenue.`, you: 'Go through the assumptions with Virat and agree the numbers.', detail: 'plan' },
   { key: 'design', label: 'Design direction', day: [0, 0], owner: 'You', status: chosenDesign || stageStatus('design') === 'done' ? 'done' : 'pending', we: 'Propose three directions, each based on a real brand that works.', you: 'Pick the one that feels most like your brand.', detail: 'design' },
   { key: 'agreement', label: 'Terms signed', day: [0, 0], owner: 'Together', status: app.agreement ? 'done' : 'pending', we: 'Send your terms with the agreed lane and split.', you: 'Read, type your name, tick both boxes and sign.', detail: 'terms' },
@@ -137,8 +137,8 @@ const fields: Field[] = app ? [
   { key: 'has_revenue', label: 'Selling today', raw: app.has_revenue ?? '', shown: pick(O.yesno, app.has_revenue), explain: 'Brands already selling go on Full Operate; brands from zero can take the AI-Enabler route.', options: O.yesno },
   { key: 'revenue_range', label: 'Monthly revenue', raw: app.revenue_range ?? '', shown: app.revenue_range, explain: 'Current online sales, used as the starting point.' },
   { key: 'following', label: 'Following', raw: app.following ?? '', shown: app.following, explain: 'Instagram audience size; affects how fast orders ramp.' },
-  { key: 'catalog_mode', label: 'Catalog', raw: app.catalog_mode ?? '', shown: pick(O.catalog_mode, app.catalog_mode), explain: 'Shopify import: we copy products, photos and prices from the current store.', options: O.catalog_mode },
-  { key: 'shopify_url', label: 'Store URL', raw: app.shopify_url ?? '', shown: app.shopify_url, explain: 'The current store we import from.' },
+  { key: 'catalog_mode', label: 'Catalog', raw: app.catalog_mode ?? '', shown: pick(O.catalog_mode, app.catalog_mode), explain: 'Shopify import: I copy products, photos and prices from the current store.', options: O.catalog_mode },
+  { key: 'shopify_url', label: 'Store URL', raw: app.shopify_url ?? '', shown: app.shopify_url, explain: 'The current store I import from.' },
   { key: 'product_count', label: 'Products', raw: app.product_count ?? '', shown: app.product_count, explain: 'Number of products (SKUs) at launch.' },
   { key: 'store_categories', label: 'Store categories', raw: app.store_categories?.join(', ') ?? '', shown: app.store_categories?.join(', '), explain: 'How the store menu is organised. Separate with commas.' },
   { key: 'product_noun_singular', label: 'One product is called', raw: app.product_noun_singular ?? '', shown: app.product_noun_singular, explain: 'Used in store copy, e.g. "Add 2 packs".' },
@@ -149,7 +149,7 @@ const fields: Field[] = app ? [
   { key: 'free_shipping_threshold', label: 'Free shipping from (₹)', raw: app.free_shipping_threshold ?? '', shown: app.free_shipping_threshold ? `₹${app.free_shipping_threshold}` : null, explain: 'Order value at which shipping becomes free.' },
   { key: 'return_window', label: 'Returns window', raw: app.return_window ?? '', shown: pick(O.returns, app.return_window), explain: 'How long after delivery a customer can ask for a return.', options: O.returns },
   { key: 'same_day_delivery', label: 'Same-day delivery', raw: app.same_day_delivery ?? '', shown: pick(O.yesno, app.same_day_delivery), explain: 'Same-day delivery in selected cities, if offered.', options: O.yesno },
-  { key: 'carrier', label: 'Courier', raw: app.carrier ?? '', shown: pick(O.carrier, app.carrier), explain: "DevShop aggregator: we book couriers on DevShop's rates; you just pack and hand over.", options: O.carrier },
+  { key: 'carrier', label: 'Courier', raw: app.carrier ?? '', shown: pick(O.carrier, app.carrier), explain: "DevShop aggregator: I book couriers on DevShop's rates; you just pack and hand over.", options: O.carrier },
   { key: 'pincode', label: 'Pickup pincode', raw: app.pincode ?? '', shown: app.pincode, explain: 'Where couriers collect orders.' },
   { key: 'meta_bm', label: 'Meta Business Manager', raw: app.meta_bm ?? '', shown: pick(O.meta_bm, app.meta_bm), explain: 'Needed for Instagram/Facebook ads and catalog. DevShop sets it up if missing.', options: O.meta_bm },
   { key: 'ad_budget', label: 'Ad budget', raw: app.ad_budget ?? '', shown: app.ad_budget, explain: 'Monthly ad spend comes from the 25% marketing budget in the forecast.' },
@@ -373,7 +373,7 @@ const planWhy = d ? ([
       {step === 'confirming' && (
         <div class="next">
           <h2>Confirming your deposit</h2>
-          <p>We're matching reference <span class="mono">{app.deposit?.utr}</span> against our bank statement, usually within one working day. Start the setup questions below meanwhile: the more you answer now, the faster the build.</p>
+          <p>I'm matching reference <span class="mono">{app.deposit?.utr}</span> against my bank statement, usually within one working day. Start the setup questions below meanwhile: the more you answer now, the faster the build.</p>
         </div>
       )}
       {step === 'building' && targetDate && (
@@ -426,7 +426,7 @@ const planWhy = d ? ([
       {app.agreement && sections.length > 0 && (
         <div class="panel" id="setup">
           <h2>Setup questions <span class={`tag ${answeredCount === sections.length ? 'ok' : ''}`}>{answeredCount} of {sections.length} done</span></h2>
-          <p class="note">One section at a time. Never enter passwords, API keys or card details here: where we need access to an account, we request it through the provider.</p>
+          <p class="note">One section at a time. Never enter passwords, API keys or card details here: where I need access to an account, I request it through the provider.</p>
           {sections.map((s) => {
             const saved = answered[s.key];
             return (
@@ -500,7 +500,7 @@ const planWhy = d ? ([
                   {qrUrl && <img src={qrUrl} alt="DevShop UPI QR code" width="200" height="200" style="display:block; margin:12px 0; border:1.5px solid var(--ink); background:#fff;" />}
                   {upiLink && <a class="btn light" href={upiLink}>Open my UPI app →</a>}
                   {waLink && (
-                    <div style="margin-top:14px;"><b>2.</b> Send the payment screenshot on WhatsApp so we can confirm it quickly.<br /><a class="btn light" href={waLink} target="_blank" rel="noopener noreferrer">Send screenshot on WhatsApp →</a></div>
+                    <div style="margin-top:14px;"><b>2.</b> Send the payment screenshot on WhatsApp so I can confirm it quickly.<br /><a class="btn light" href={waLink} target="_blank" rel="noopener noreferrer">Send screenshot on WhatsApp →</a></div>
                   )}
                   <div style="margin-top:14px;"><b>{waLink ? '3.' : '2.'}</b> Enter the reference number below.</div>
                 </div>
@@ -537,7 +537,7 @@ const planWhy = d ? ([
           </div>
           {planWhy.length > 0 && (
             <>
-              <div class="sub-h">How we got these numbers</div>
+              <div class="sub-h">How I got these numbers</div>
               <dl class="why">{planWhy.map(([k, v]) => <><dt>{k}</dt><dd>{v}</dd></>)}</dl>
             </>
           )}
@@ -556,7 +556,7 @@ const planWhy = d ? ([
             {design.has_existing_site
               ? 'Built from your existing look, and two bolder alternatives. Each is based on a real, successful brand in or near your category.'
               : 'Each starts from a real, successful brand in or near your category that is worth building on.'}
-            {designs.length > 1 && !chosenDesign && ' Pick the one that feels most like your brand; we refine it with you during the build.'}
+            {designs.length > 1 && !chosenDesign && ' Pick the one that feels most like your brand; I refine it with you during the build.'}
           </p>
           {designs.map((o, i) => {
             const isChosen = o.chosen;
@@ -616,7 +616,7 @@ const planWhy = d ? ([
             <ul class="plain">
               <li>Product sourcing, manufacturing and inventory</li>
               <li>Packing orders and handing them to the courier</li>
-              <li>Product photos, unless we agree otherwise</li>
+              <li>Product photos, unless you and I agree otherwise</li>
               <li>Answering the setup questions on this page</li>
             </ul>
           </div>
@@ -624,7 +624,7 @@ const planWhy = d ? ([
             <h3>Decided together</h3>
             <ul class="plain">
               <li>Discount and promotion rules</li>
-              <li>Any freelancers we hire, and what they cost</li>
+              <li>Any freelancers I hire, and what they cost</li>
             </ul>
           </div>
         </div>
@@ -802,7 +802,7 @@ const planWhy = d ? ([
     post('/retail-os/api/prepare/' + appId).then(function (res) {
       var st = res.data && res.data.status;
       if (st === 'ready' || st === 'partial' || st === 'failed') return location.reload();
-      if (st === 'queued' && prepMsg) prepMsg.textContent = "We're preparing several brands right now. Yours starts shortly; keep this page open or come back in a few minutes.";
+      if (st === 'queued' && prepMsg) prepMsg.textContent = "I'm preparing several brands right now. Yours starts shortly; keep this page open or come back in a few minutes.";
       if (st === 'unavailable' && prepMsg) prepMsg.textContent = 'Your forecast is being prepared by hand and will appear here soon.';
       setTimeout(poll, st === 'queued' ? 60000 : 15000);
     }).catch(function () { setTimeout(poll, 20000); });
@@ -925,7 +925,7 @@ const planWhy = d ? ([
       var msg = document.getElementById('lookupMsg');
       msg.textContent = 'Sending…';
       post('/retail-os/api/resend-link', { email: document.getElementById('lookupEmail').value }).finally(function () {
-        msg.textContent = "If that email has an application, we've sent the link.";
+        msg.textContent = "If that email has an application, I've sent the link.";
       });
     });
   }

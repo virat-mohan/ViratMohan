@@ -166,7 +166,7 @@
             <label class="choice"><input type="radio" name="brandStatus" value="new_sub_brand"> A new sub-brand of my business</label>
             <label class="choice"><input type="radio" name="brandStatus" value="from_zero"> Starting from zero</label>
           </div>
-          <div class="hint" id="brandStatusHint">For a new brand we also set up the domain, brand email, Instagram and Meta accounts.</div>
+          <div class="hint" id="brandStatusHint">For a new brand I also set up the domain, brand email, Instagram and Meta accounts.</div>
         </div>
         <div class="row2">
           <div class="field"><label for="brandName" id="brandNameLabel">Brand name *</label><input type="text" id="brandName" required></div>
@@ -240,7 +240,7 @@
         <div class="field" id="shopifyUrlField" style="margin-top:18px;" hidden>
           <label for="shopifyUrl">Shopify store URL</label>
           <input type="url" id="shopifyUrl" placeholder="https://yourstore.myshopify.com">
-          <div class="hint">We'll request read-access API credentials separately once the agreement is signed — nothing connects yet.</div>
+          <div class="hint">I'll request read-access API credentials separately once the agreement is signed — nothing connects yet.</div>
         </div>
         <div class="field" id="productCountField" style="margin-top:18px;">
           <label for="productCount">Roughly how many SKUs?</label>
@@ -251,7 +251,7 @@
         </div>
 
         <div style="border-top:1.5px solid var(--line); margin-top:26px; padding-top:22px;">
-          <p class="sub" style="margin-bottom:18px;">How your store should describe what you sell. Your storefront is built on our own platform, so these words replace any template wording.</p>
+          <p class="sub" style="margin-bottom:18px;">How your store should describe what you sell. Your storefront is built on my own platform, so these words replace any template wording.</p>
           <div class="field">
             <label for="storeCategories">Store categories</label>
             <input type="text" id="storeCategories" placeholder="e.g. Caps, Bucket hats, Accessories">
@@ -352,7 +352,7 @@
       <div class="step-meta"><span class="step-count mono">STEP 03 / 09</span></div>
       <div class="card">
         <h2>Commercial terms</h2>
-        <p class="sub">An indicative range based on what you've told us so far — final terms are set in the Master Brand Partnership Agreement.</p>
+        <p class="sub">An indicative range based on what you've told me so far — final terms are set in the Master Brand Partnership Agreement.</p>
         <div id="splitPreview" class="split-preview">
           <div class="range" id="splitRangeText">25%–50%</div>
           <p id="splitExplainText">Fill in Step 1 to see your indicative range.</p>
@@ -518,7 +518,7 @@
           <div class="field">
             <label for="loyaltyRedeemValue">…for this much off (₹)</label>
             <input type="text" inputmode="numeric" id="loyaltyRedeemValue" placeholder="e.g. 200">
-            <div class="hint">Every point you give away is a real discount, and it comes out of gross profit. We'll review these numbers with you before launch.</div>
+            <div class="hint">Every point you give away is a real discount, and it comes out of gross profit. I'll review these numbers with you before launch.</div>
           </div>
         </div>
         <div style="border-top:1.5px solid var(--line); margin-top:22px; padding-top:20px;">
@@ -781,7 +781,7 @@
     var s = steps[i];
     if (s === "1") {
       if (!document.querySelector('input[name="brandStatus"]:checked')) {
-        alert("Tell us whether this is an existing brand or a new one.");
+        alert("Tell me whether this is an existing brand or a new one.");
         return false;
       }
       if (!document.getElementById("brandName").value || !document.getElementById("founderName").value ||

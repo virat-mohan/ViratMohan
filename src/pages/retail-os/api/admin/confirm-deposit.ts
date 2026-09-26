@@ -34,7 +34,7 @@ export const POST: APIRoute = async ({ request }) => {
           preheader: `Target go-live: ${targetText}.`,
           eyebrow: 'Build started',
           heading: `Live by ${targetText}`,
-          lines: ['Your deposit is confirmed and your 7-day build has started.', 'The setup questions on your page open one at a time. Answering them quickly is what keeps us on that date.'],
+          lines: ['Your deposit is confirmed and your 7-day build has started.', 'The setup questions on your page open one at a time. Answering them quickly is what keeps me on that date.'],
           cta: { label: 'Answer the first questions', url: trackUrl },
         }),
       },
