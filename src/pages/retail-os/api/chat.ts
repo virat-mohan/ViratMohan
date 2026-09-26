@@ -1,7 +1,7 @@
 export const prerender = false;
 import type { APIRoute } from 'astro';
 import { getEnv } from '../../../lib/env';
-import { CHAT_SYSTEM, LEAD_TOOL, VIRAT_TOOL, chatDb } from '../../../lib/retail-os-chat';
+import { CHAT_SYSTEM, LEAD_TOOL, VIRAT_TOOL, chatDb, viratRequestEmail } from '../../../lib/retail-os-chat';
 import { sendEmail } from '../../../lib/email';
 import { serverBrain } from '../../../lib/brain';
 
@@ -34,6 +34,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   // Up to two rounds so the model can save the lead and still reply.
   let convo: unknown[] = messages;
+  let escalated = false;
   for (let round = 0; round < 3; round++) {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -47,25 +48,23 @@ export const POST: APIRoute = async ({ request }) => {
     for (const u of uses) {
       if (u.name === 'request_virat') {
         const r = u.input || {};
-        try { await db.upsert(sessionId, page, { next_step: 'whatsapp', summary: `Wants Virat: ${r.why || ''}`.slice(0, 500) }, messages); } catch (e) { console.error('chat lead save', e); }
+        escalated = true;
+        // Save the context first, then tell Virat. The person only gets a time after Virat taps approve.
+        try { await db.upsert(sessionId, page, { founder_name: r.name, brand: r.brand, next_step: 'whatsapp', summary: `Wants Virat (${r.reason || 'asked'}): ${r.summary || ''}`.slice(0, 500), ...(String(r.contact || '').includes('@') ? { email: r.contact } : { phone: r.contact }) }, messages); } catch (e) { console.error('chat lead save', e); }
         if (env.RESEND_API_KEY && env.RESEND_FROM_EMAIL && env.ADMIN_NOTIFY_EMAIL) {
-          const esc = (v: unknown) => String(v ?? '').replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c] as string));
-          await sendEmail({
-            to: env.ADMIN_NOTIFY_EMAIL,
-            subject: `Call request (${esc(r.recommendation)}): ${esc(r.who)}`.slice(0, 180),
-            html: `<p><b>Who:</b> ${esc(r.who)}<br><b>Contact:</b> ${esc(r.contact)}<br><b>Scale:</b> ${esc(r.scale)}<br><b>Why talk:</b> ${esc(r.why)}<br><b>My recommendation:</b> ${esc(r.recommendation)}</p><p>Page: ${esc(page)} · Session: ${esc(sessionId)}</p>${(() => { const digits = String(r.contact ?? '').replace(/\D/g, ''); const book = process.env.CALL_BOOKING_URL; if (digits.length < 10) return ''; const num = digits.length === 10 ? '91' + digits : digits; const text = `Hi, it's Virat. Happy to talk.${book ? ' Pick a time that suits you: ' + book : ' When works for you this week?'}`; return `<p><a href="https://wa.me/${num}?text=${encodeURIComponent(text)}"><b>Approve: reply on WhatsApp${book ? ' with your booking link' : ''} →</b></a><br>Ignore this email to decline.</p>`; })()}<p>Full transcript is in retail_os_chat_leads.</p>`,
-          }, env).catch((e) => console.error('call request email failed', e));
-        }
+          await sendEmail({ to: env.ADMIN_NOTIFY_EMAIL, ...viratRequestEmail(r, page, sessionId, process.env.CALL_BOOKING_URL) }, env)
+            .catch((e) => console.error('call request email failed', e));
+        } else console.error('call request: email not configured, request saved in retail_os_chat_leads only');
         continue;
       }
       try { await db.upsert(sessionId, page, u.input || {}, messages); } catch (e) { console.error('chat lead save', e); }
     }
     if (data.stop_reason !== 'tool_use') {
       try { await db.upsert(sessionId, page, {}, [...messages, { role: 'assistant', content: text }]); } catch {}
-      return json({ reply: text });
+      return json({ reply: text, escalated });
     }
     convo = [...(convo as unknown[]), { role: 'assistant', content: data.content },
       { role: 'user', content: uses.map((u: { id: string }) => ({ type: 'tool_result', tool_use_id: u.id, content: 'saved' })) }];
   }
-  return json({ reply: "Thanks. The quickest next step is the 10-minute application at /retail-os/apply/." });
+  return json({ reply: escalated ? "Thanks, I've sent this to Virat. Virat will look at this today and I'll send you a time." : "Thanks. The quickest next step is the 10-minute application at /retail-os/apply/.", escalated });
 };
