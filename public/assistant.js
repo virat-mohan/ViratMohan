@@ -29,7 +29,7 @@
   document.head.appendChild(css);
 
   var root = document.createElement('div');
-  root.innerHTML = '<button class="vma-btn" type="button" aria-label="Chat with Virat\'s AI assistant"><i>VM</i>Ask me anything</button>' +
+  root.innerHTML = '<button class="vma-btn" type="button" aria-label="Let\'s talk: chat with Virat\'s AI assistant"><i>VM</i>Let\'s talk</button>' +
     '<div class="vma-panel" role="dialog" aria-label="Virat\'s AI assistant"><div class="vma-head"><div><b>Virat Mohan</b><small>AI assistant · Virat reviews every brand</small></div><button class="vma-x" type="button" aria-label="Close">×</button></div>' +
     '<div class="vma-log" aria-live="polite"></div><form class="vma-row"><input name="q" autocomplete="off" placeholder="What do you sell?" aria-label="Your message"><button type="submit">Send</button></form>' +
     '<div class="vma-foot">Prefer a human? <a href="' + WA + '" target="_blank" rel="noopener">Let\'s talk on WhatsApp →</a></div></div>';
@@ -46,6 +46,8 @@
   var HELLO = "Hi, I'm Virat's AI assistant. Virat personally reviews every brand, and I can get you from question to application in a few minutes. What do you sell?";
   function open() { root.classList.add('vma-open'); if (!state.messages.length) { state.messages.push({ role: 'assistant', content: HELLO }); save(); } render(); setTimeout(function () { input.focus(); }, 50); }
   root.querySelector('.vma-btn').onclick = open;
+  window.vmOpenChat = open;
+  document.addEventListener('click', function (e) { var a = e.target.closest && e.target.closest('[data-chat]'); if (a) { e.preventDefault(); open(); } });
   root.querySelector('.vma-x').onclick = function () { root.classList.remove('vma-open'); };
 
   var busy = false;
