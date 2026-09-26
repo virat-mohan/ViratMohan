@@ -9,6 +9,7 @@ import { buildTermLines } from '../../../../lib/retail-os-terms';
 import { json, clientIp, readJson } from '../../../../lib/retail-os-http';
 import { renderRetailOsEmail } from '../../../../lib/retail-os-email';
 import { mailConfigured } from '../../../../lib/mail/send';
+import { syncLeadFromApplication } from '../../../../lib/lead-sync';
 
 // The founder accepts their commercial terms by typing their full legal name.
 // The exact terms shown, the name, time, IP address and browser are frozen
@@ -80,5 +81,6 @@ export const POST: APIRoute = async ({ params, request }) => {
     }
   }
 
+  syncLeadFromApplication(db.client, app, 'signed').catch(() => {});
   return json({ ok: true }, 200);
 };

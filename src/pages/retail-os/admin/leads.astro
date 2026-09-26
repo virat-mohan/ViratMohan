@@ -2,36 +2,42 @@
 export const prerender = false;
 import { getEnv } from '../../../lib/env';
 import { serviceDb } from '../../../lib/ledger';
+import { JOURNEY, EXITS, daysToLive, goLiveTarget, health, pipeline, stepFor, indexOf } from '../../../lib/lead-journey';
 
-// Leads (gated by src/middleware.ts). Every lead with its stage, next step and
-// due date, and the whole conversation: emails in and out, drafts waiting for
-// approval, and notes where a message needed Virat.
-type Lead = { id: string; brand_name: string; contact_name: string | null; contact_email: string | null; stage: string; next_step: string | null; next_step_due: string | null; source: string | null; updated_at: string };
-type Msg = { id: string; lead_id: string; at: string; direction: string; channel: string; status: string; subject: string | null; body: string; gmail_thread_id: string | null };
+// Leads (gated by src/middleware.ts): the front door and the whole journey.
+// Add a lead in three fields; the NDA goes out on your one-tap approval; every later step
+// (access, plan, application, terms, deposit, build) moves the stage by itself. The target
+// is live in 7 days from NDA signed + data connected, and every lead shows its clock.
+type Lead = { id: string; brand_name: string; contact_name: string | null; contact_email: string | null; contact_phone: string | null; website: string | null; instagram: string | null; stage: string; next_step: string | null; next_step_due: string | null; source: string | null; updated_at: string; stage_changed_at: string | null; clock_started_at: string | null; application_id: string | null; nda_sent_at: string | null; nda_signed_at: string | null };
+type Msg = { id: string; lead_id: string; at: string; direction: string; channel: string; status: string; subject: string | null; body: string; gmail_thread_id: string | null; purpose: string | null };
 
 let leads: Lead[] = [];
 let msgs: Msg[] = [];
 let loadError = '';
 try {
   const sb = serviceDb(getEnv());
-  const l = await sb.from('leads').select('id, brand_name, contact_name, contact_email, stage, next_step, next_step_due, source, updated_at').order('updated_at', { ascending: false }).limit(200);
+  const l = await sb.from('leads').select('id, brand_name, contact_name, contact_email, contact_phone, website, instagram, stage, next_step, next_step_due, source, updated_at, stage_changed_at, clock_started_at, application_id, nda_sent_at, nda_signed_at').order('updated_at', { ascending: false }).limit(200);
   if (l.error) throw l.error;
   leads = (l.data ?? []) as Lead[];
   if (leads.length) {
-    const m = await sb.from('lead_messages').select('id, lead_id, at, direction, channel, status, subject, body, gmail_thread_id').in('lead_id', leads.map((x) => x.id)).order('at');
+    const m = await sb.from('lead_messages').select('id, lead_id, at, direction, channel, status, subject, body, gmail_thread_id, purpose').in('lead_id', leads.map((x) => x.id)).order('at');
     if (m.error) throw m.error;
     msgs = (m.data ?? []) as Msg[];
   }
 } catch (err) { loadError = err instanceof Error ? err.message : String(err); }
 
+const now = new Date();
 const byLead = new Map<string, Msg[]>();
 for (const m of msgs) byLead.set(m.lead_id, [...(byLead.get(m.lead_id) ?? []), m]);
-const today = new Date().toISOString().slice(0, 10);
 const waiting = msgs.filter((m) => m.status === 'awaiting_approval').length;
+const active = leads.filter((l) => !(EXITS as readonly string[]).includes(l.stage));
+const late = active.filter((l) => health(l, now).late);
+const counts = pipeline(active);
 const fmt = (d: string) => new Date(d).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' });
-const day = (d: string) => new Date(d + 'T00:00:00+05:30').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' });
-const stageLabel = (s: string) => s.replace(/_/g, ' ');
+const day = (d: string | Date) => new Date(typeof d === 'string' && d.length === 10 ? d + 'T00:00:00+05:30' : d).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' });
 const who = (m: Msg) => m.direction === 'inbound' ? 'They wrote' : m.direction === 'internal' ? 'Note' : m.status === 'awaiting_approval' ? 'Draft, waiting for you' : 'I wrote';
+const sortKey = (l: Lead) => { const h = health(l, now); return (h.late ? 0 : 1) * 1000 + (h.step?.owner === 'virat' ? 0 : 1) * 100 - indexOf(l.stage); };
+const ordered = [...active].sort((a, b) => sortKey(a) - sortKey(b)).concat(leads.filter((l) => (EXITS as readonly string[]).includes(l.stage)));
 ---
 <!doctype html>
 <html lang="en">
@@ -42,32 +48,47 @@ const who = (m: Msg) => m.direction === 'inbound' ? 'They wrote' : m.direction =
 <link rel="stylesheet" href="/brand/tokens.css">
 <style>
 body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.6 var(--sans);-webkit-font-smoothing:antialiased;}
-.wrap{max-width:860px;margin:0 auto;padding:56px 16px 96px;}
+.wrap{max-width:900px;margin:0 auto;padding:56px 16px 96px;}
 .eyebrow{font:600 11px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--terracotta);margin:0 0 12px;}
 h1{font-family:var(--serif);font-weight:400;font-size:clamp(2.2rem,6vw,3rem);line-height:1.05;margin:0 0 10px;}
-.sub{color:var(--dim);margin:0 0 40px;}
-.sub a{color:var(--ink);text-underline-offset:3px;}
+h2{font-family:var(--serif);font-weight:400;font-size:1.5rem;margin:0 0 12px;}
+.sub{color:var(--dim);margin:0 0 28px;} .sub a,.quiet{color:var(--ink);text-underline-offset:3px;}
+.err{color:var(--terracotta);}
+/* pipeline */
+.pipe{display:flex;gap:6px;overflow-x:auto;padding:4px 0 14px;margin:0 0 30px;scrollbar-width:thin;}
+.pipe div{flex:0 0 auto;min-width:74px;border:1px solid var(--line);border-radius:12px;padding:10px 10px 8px;background:rgba(255,255,255,.35);}
+.pipe b{display:block;font-family:var(--serif);font-size:1.4rem;line-height:1;margin-bottom:6px;} .pipe span{font-size:11px;color:var(--dim);letter-spacing:.02em;}
+.pipe div.has{border-color:var(--ink);}
+/* add lead */
+.add{border:1px solid var(--line);border-radius:16px;padding:22px;margin:0 0 36px;background:rgba(255,255,255,.4);}
+.add .grid{display:grid;grid-template-columns:1fr;gap:12px;} @media(min-width:640px){.add .grid{grid-template-columns:1fr 1fr 1fr;}}
+.add label{display:block;font:600 12px/1.3 var(--sans);margin:0 0 5px;color:var(--dim);}
+.add input{width:100%;box-sizing:border-box;font:15px/1.4 var(--sans);padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);}
+.add .why{color:var(--dim);font-size:13px;margin:12px 0 0;}
+.btn{font:600 14px var(--sans);padding:11px 20px;border-radius:999px;border:1px solid var(--ink);background:var(--ink);color:var(--paper);cursor:pointer;} .btn[disabled]{opacity:.6;}
+.btn.ghost{background:transparent;color:var(--ink);} .btn.small{padding:8px 14px;font-size:13px;}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px;} .msg{font-size:13px;color:var(--terracotta);}
+/* leads */
 .lead{border-top:1px solid var(--line);padding:26px 0;}
 .lead summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:6px 16px;align-items:baseline;}
-.lead summary::-webkit-details-marker{display:none;}
-.lead summary>*{min-width:0;}
+.lead summary::-webkit-details-marker{display:none;} .lead summary>*{min-width:0;}
 .name{font-family:var(--serif);font-size:1.5rem;line-height:1.2;}
 .who{color:var(--dim);font-size:13px;overflow-wrap:anywhere;}
 .stage{font:600 11px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:7px 12px;white-space:nowrap;}
-.next{grid-column:1/-1;color:var(--dim);font-size:14px;}
-.next b{color:var(--ink);font-weight:600;}
-.due.late{color:var(--terracotta);}
+.stage.late{border-color:var(--terracotta);color:var(--terracotta);} .stage.exit{color:var(--dim);}
+.next{grid-column:1/-1;color:var(--dim);font-size:14px;} .next b{color:var(--ink);font-weight:600;}
 .flag{display:inline-block;margin-left:8px;color:var(--gold);font-size:12px;font-weight:600;}
-ol{list-style:none;margin:22px 0 0;padding:0 0 0 18px;border-left:1px solid var(--line);}
-li{margin:0 0 22px;position:relative;}
-li::before{content:'';position:absolute;left:-22px;top:8px;width:7px;height:7px;border-radius:50%;background:var(--line);}
+.clock{display:inline-block;margin-left:8px;font-size:12px;font-weight:600;color:var(--sage,#2B8C86);} .clock.over{color:var(--terracotta);}
+/* journey strip */
+.strip{display:flex;gap:3px;margin:16px 0 6px;} .strip i{flex:1;height:5px;border-radius:3px;background:var(--line);} .strip i.done{background:var(--ink);} .strip i.now{background:var(--gold);}
+.stripl{display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-bottom:12px;}
+.ctl{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 6px;}
+ol{list-style:none;margin:18px 0 0;padding:0 0 0 18px;border-left:1px solid var(--line);}
+li{margin:0 0 20px;position:relative;} li::before{content:'';position:absolute;left:-22px;top:8px;width:7px;height:7px;border-radius:50%;background:var(--line);}
 li.inbound::before{background:var(--gold);} li.awaiting_approval::before{background:var(--terracotta);} li.internal::before{background:var(--ink);}
-.meta{font-size:12px;color:var(--dim);letter-spacing:.02em;}
-.meta a{color:var(--dim);}
-.subj{font-weight:600;margin:2px 0 4px;}
+.meta{font-size:12px;color:var(--dim);} .meta a{color:var(--dim);} .subj{font-weight:600;margin:2px 0 4px;}
 .body{white-space:pre-wrap;color:var(--ink);font-size:14px;max-height:14em;overflow:auto;overflow-wrap:anywhere;}
 .empty{color:var(--dim);font-family:var(--serif);font-size:1.3rem;padding:40px 0;}
-.err{color:var(--terracotta);}
 @media (prefers-reduced-motion:no-preference){.lead{animation:rise .45s ease-out both;}@keyframes rise{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}}
 </style>
 </head>
@@ -75,27 +96,70 @@ li.inbound::before{background:var(--gold);} li.awaiting_approval::before{backgro
 <main class="wrap">
   <p class="eyebrow">Retail OS admin</p>
   <h1>Leads</h1>
-  <p class="sub">{leads.length} {leads.length === 1 ? 'lead' : 'leads'}{waiting ? `, ${waiting} ${waiting === 1 ? 'reply' : 'replies'} waiting for your approval` : ''}. Replies are drafted in Gmail and sent only when you approve. <a href="/api/admin/gmail/connect">Gmail connection</a></p>
+  <p class="sub">{active.length} in the journey{late.length ? `, ${late.length} slipping` : ''}{waiting ? `, ${waiting} ${waiting === 1 ? 'email' : 'emails'} waiting for your tap` : ''}. Target: live in 7 days from NDA signed and data connected. <a href="/api/admin/gmail/connect">Gmail</a> · <a href="/retail-os/admin/console">Console</a></p>
   {loadError && <p class="err">Could not load leads: {loadError}</p>}
-  {!loadError && !leads.length && <p class="empty">No leads yet. When someone writes in, they will appear here.</p>}
-  {leads.map((l) => {
+
+  <div class="pipe" aria-label="Pipeline">
+    {counts.map((c) => (<div class={c.count ? 'has' : ''}><b>{c.count}</b><span>{c.label}</span></div>))}
+  </div>
+
+  <section class="add" id="add">
+    <h2>Add a lead</h2>
+    <form id="addForm" autocomplete="off">
+      <div class="grid">
+        <div><label for="brand_name">Brand</label><input id="brand_name" name="brand_name" required placeholder="Kora Living" /></div>
+        <div><label for="contact_name">Founder</label><input id="contact_name" name="contact_name" placeholder="Asha Rao" /></div>
+        <div><label for="contact_email">Email</label><input id="contact_email" name="contact_email" type="email" placeholder="asha@koraliving.in" /></div>
+        <div><label for="contact_phone">WhatsApp</label><input id="contact_phone" name="contact_phone" placeholder="+91 …" /></div>
+        <div><label for="website">Website</label><input id="website" name="website" placeholder="koraliving.in" /></div>
+        <div><label for="instagram">Instagram</label><input id="instagram" name="instagram" placeholder="@koraliving" /></div>
+      </div>
+      <div class="actions"><button class="btn" type="submit">Add and draft the NDA</button><span class="msg" id="addMsg" aria-live="polite"></span></div>
+      <p class="why">Why: three fields, then the NDA is drafted and you get a one-tap Approve &amp; send. From there the journey runs itself: signed NDA → access checklist → plan → application → terms → deposit → build tasks for the team.</p>
+    </form>
+  </section>
+
+  {!loadError && !leads.length && <p class="empty">No leads yet. Add one above, or wait for the site chat and your inbox to bring them in.</p>}
+  {ordered.map((l) => {
     const t = byLead.get(l.id) ?? [];
     const pending = t.some((m) => m.status === 'awaiting_approval');
+    const h = health(l, now);
+    const exit = (EXITS as readonly string[]).includes(l.stage);
+    const idx = indexOf(l.stage);
+    const steps = JOURNEY.filter((s) => s.stage !== 'contacted');
+    const left = daysToLive(l, now);
+    const target = goLiveTarget(l);
+    const signed = !!l.nda_signed_at;
     return (
-      <details class="lead" open={pending}>
+      <details class="lead" data-id={l.id} open={pending || h.late}>
         <summary>
           <div>
-            <div class="name">{l.brand_name}{pending && <span class="flag">Reply waiting</span>}</div>
-            <div class="who">{[l.contact_name, l.contact_email, l.source].filter(Boolean).join(' · ')}</div>
+            <div class="name">{l.brand_name}{pending && <span class="flag">Waiting for your tap</span>}{left !== null && <span class={`clock${left < 0 ? ' over' : ''}`}>{left < 0 ? `${-left}d past go-live` : `${left}d to go-live`}</span>}</div>
+            <div class="who">{[l.contact_name, l.contact_email, l.contact_phone, l.source].filter(Boolean).join(' · ')}</div>
           </div>
-          <span class="stage">{stageLabel(l.stage)}</span>
-          <div class="next">Next: <b>{l.next_step ?? 'Not set'}</b>{l.next_step_due && <span class={`due${l.next_step_due < today ? ' late' : ''}`}> · due {day(l.next_step_due)}</span>}</div>
+          <span class={`stage${h.late ? ' late' : ''}${exit ? ' exit' : ''}`}>{stepFor(l.stage)?.label ?? l.stage}{!exit && h.daysIn > 0 ? ` · ${h.daysIn}d` : ''}</span>
+          <div class="next">{exit ? h.does : <>With <b>{h.owner}</b>: {h.does}{l.next_step && <> · Next: <b>{l.next_step}</b></>}{l.next_step_due && <span> · due {day(l.next_step_due)}</span>}{target && <span> · Go-live target <b>{day(target)}</b></span>}</>}</div>
         </summary>
+        {!exit && (
+          <>
+            <div class="strip" aria-hidden="true">{steps.map((s) => (<i class={indexOf(s.stage) < idx ? 'done' : indexOf(s.stage) === idx ? 'now' : ''}></i>))}</div>
+            <div class="stripl"><span>New</span><span>NDA</span><span>Data</span><span>Plan</span><span>Call</span><span>Apply</span><span>Sign</span><span>Deposit</span><span>Build</span><span>Live</span></div>
+          </>
+        )}
+        <div class="ctl">
+          {!signed && l.contact_email && idx <= indexOf('nda_sent') && <button class="btn ghost small act" data-act="send-nda">{l.nda_sent_at ? 'Nudge on the NDA' : 'Draft the NDA email'}</button>}
+          {signed && idx <= indexOf('access_requested') && <button class="btn ghost small act" data-act="request-access">{l.stage === 'access_requested' ? 'Re-draft access request' : 'Draft access request'}</button>}
+          {l.application_id && <a class="btn ghost small" href={`/retail-os/track/${l.application_id}?edit=1`}>Open their page</a>}
+          {!exit && <button class="btn ghost small act" data-act="stage" data-to="paused">Pause</button>}
+          {!exit && <button class="btn ghost small act" data-act="stage" data-to="lost">Lost</button>}
+          {exit && <button class="btn ghost small act" data-act="stage" data-to="new">Resume</button>}
+          <span class="msg"></span>
+        </div>
         {t.length ? (
           <ol>
             {t.map((m) => (
               <li class={`${m.direction} ${m.status}`}>
-                <div class="meta">{who(m)} · {m.channel} · {fmt(m.at)}{m.gmail_thread_id && <> · <a href={`https://mail.google.com/mail/u/0/#all/${m.gmail_thread_id}`}>Gmail</a></>}</div>
+                <div class="meta">{who(m)} · {m.channel}{m.purpose ? ` · ${m.purpose.replace(/_/g, ' ')}` : ''} · {fmt(m.at)}{m.gmail_thread_id && <> · <a href={`https://mail.google.com/mail/u/0/#all/${m.gmail_thread_id}`}>Gmail</a></>}</div>
                 {m.subject && <div class="subj">{m.subject}</div>}
                 <div class="body">{m.body}</div>
               </li>
@@ -106,5 +170,25 @@ li.inbound::before{background:var(--gold);} li.awaiting_approval::before{backgro
     );
   })}
 </main>
+<script>
+  const post = async (url: string, body: unknown) => { const r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body ?? {}) }); const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || `Failed (${r.status})`); return j; };
+  const addForm = document.getElementById('addForm') as HTMLFormElement | null;
+  addForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = addForm.querySelector('button')!, msg = document.getElementById('addMsg')!;
+    btn.disabled = true; msg.textContent = 'Saving…';
+    try { const j = await post('/retail-os/api/admin/leads/create', Object.fromEntries(new FormData(addForm).entries())); msg.textContent = j.warning || j.note || 'Saved.'; setTimeout(() => location.reload(), 900); }
+    catch (err) { msg.textContent = (err as Error).message; btn.disabled = false; }
+  });
+  document.querySelectorAll<HTMLButtonElement>('.act').forEach((b) => b.addEventListener('click', async () => {
+    const card = b.closest<HTMLElement>('.lead')!, id = card.dataset.id!, msg = card.querySelector<HTMLElement>('.ctl .msg')!;
+    b.disabled = true; msg.textContent = '…';
+    try {
+      const act = b.dataset.act;
+      const j = act === 'stage' ? await post(`/retail-os/api/admin/leads/${id}/stage`, { stage: b.dataset.to }) : await post(`/retail-os/api/admin/leads/${id}/${act}`, {});
+      msg.textContent = j.note || 'Done.'; setTimeout(() => location.reload(), 900);
+    } catch (err) { msg.textContent = (err as Error).message; b.disabled = false; }
+  }));
+</script>
 </body>
 </html>

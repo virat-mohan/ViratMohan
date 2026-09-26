@@ -211,6 +211,8 @@ export function getRetailOsDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE
   });
 
   return {
+    /** The service-role client, for hooks that keep other records in step (leads, ops tasks). */
+    client: supabase,
     async insert(row: {
       brand_name: string; founder_name: string; founder_email: string; founder_phone: string | null;
       category: string | null; format: string | null; handle: string | null;

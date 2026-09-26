@@ -1,0 +1,142 @@
+---
+export const prerender = false;
+import LeadShell from '../../../components/lead/LeadShell.astro';
+import { getEnv } from '../../../lib/env';
+import { verifyLeadToken } from '../../../lib/lead-token';
+import { leadSb } from '../../../lib/lead-audit-db';
+import { getNda, type NdaRow } from '../../../lib/lead-nda-db';
+import { DEVSHOP_PARTY, NDA_VERSION, ndaSections } from '../../../lib/lead-nda';
+import { LIVE_IN_DAYS } from '../../../lib/lead-journey';
+
+// The mutual NCNDA, signed online. Before signing: the full text with the brand's details
+// to fill in. After: the signed record, printable, at the same link forever.
+const env = getEnv();
+const token = Astro.params.token ?? '';
+const leadId = verifyLeadToken(token, 'nda', env.LEAD_TOKEN_SECRET);
+let lead: { id: string; brand_name: string; contact_name: string | null; contact_email: string | null } | null = null;
+let nda: NdaRow | null = null;
+if (leadId) {
+  try {
+    const sb = leadSb(env);
+    const { data } = await sb.from('leads').select('id, brand_name, contact_name, contact_email').eq('id', leadId).maybeSingle();
+    lead = data as typeof lead;
+    if (lead) nda = await getNda(sb, lead.id);
+  } catch (err) { console.error('nda page load failed', err); }
+}
+if (!lead) Astro.response.status = 404;
+const first = lead?.contact_name?.trim().split(/\s+/)[0];
+const fmtDate = (d: Date | string) => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' });
+const fmtTime = (d: string) => new Date(d).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' });
+const effective = nda ? fmtDate(nda.signed_at) : fmtDate(new Date());
+const party = nda ? { name: nda.entity_name, address: nda.entity_address, represented: nda.signatory_name } : { name: `${lead?.brand_name ?? 'the Brand'} (legal entity name as entered below)`, address: '(registered address as entered below)' };
+const sections = ndaSections(party, effective);
+---
+<LeadShell title={`NDA · ${lead?.brand_name ?? 'DevShop Retail OS'}`} description="Mutual Non-Compete & Non-Disclosure Agreement with DevShop Retail OS.">
+  {!lead ? (
+    <div class="fade">
+      <p class="vm-kicker">Agreement</p>
+      <h1 class="vm-display">This link is not valid</h1>
+      <p class="vm-serif-lede lede">Reply to my email and I will send you a fresh one.</p>
+    </div>
+  ) : (
+    <div class="fade">
+      <p class="vm-kicker">{lead.brand_name} · mutual agreement</p>
+      <h1 class="vm-display">{nda ? 'Signed. We are both covered.' : 'Before I see your numbers, we cover each other'}</h1>
+      {nda ? (
+        <p class="vm-serif-lede lede">Signed by {nda.signatory_name}{nda.signatory_title ? `, ${nda.signatory_title}` : ''} for {nda.entity_name} on {fmtTime(nda.signed_at)} IST. This page is your copy; it never changes.</p>
+      ) : (
+        <p class="vm-serif-lede lede">{first ? `${first}, this` : 'This'} is a mutual non-compete and non-disclosure agreement. It protects what you share with me, and binds me the same way. It commits neither of us to anything further. Three minutes: read it, fill in your entity, type your name.</p>
+      )}
+      {!nda && <p class="muted">Why now: with it signed, you can give me read-only access to your store and ads freely. From the moment your data is connected, my target is your store live within {LIVE_IN_DAYS} days, with results every Monday.</p>}
+
+      <section class="vm-card doc" id="agreement">
+        <p class="vm-kicker">Mutual Non-Compete &amp; Non-Disclosure Agreement · {NDA_VERSION}</p>
+        {sections.map((s) => (<div class="sec"><h2>{s.heading}</h2><p>{s.body}</p></div>))}
+        <div class="parties">
+          <div>
+            <h3>For DevShop</h3>
+            <p><b>Virat Mohan</b><br>Founder, DevShop Retail OS™<br>{DEVSHOP_PARTY.address}<br>{DEVSHOP_PARTY.email} · {DEVSHOP_PARTY.phone}</p>
+            <p class="sig">Signed electronically on issue of this agreement.</p>
+          </div>
+          <div>
+            <h3>For the Brand</h3>
+            {nda ? (
+              <p><b>{nda.signatory_name}</b>{nda.signatory_title ? <><br>{nda.signatory_title}</> : null}<br>{nda.entity_name}<br>{nda.entity_address}<br>Signed {fmtTime(nda.signed_at)} IST{nda.ip ? ` · from ${nda.ip}` : ''}<br>Record {nda.text_hash.slice(0, 16)}</p>
+            ) : (
+              <p class="muted">Your details appear here once signed.</p>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {nda ? (
+        <p class="row"><button class="btn" type="button" onclick="window.print()">Save as PDF</button></p>
+      ) : (
+        <form class="vm-card sign" id="sign" autocomplete="on">
+          <h2>Sign for {lead.brand_name}</h2>
+          <label for="entity_name">Legal name of your brand or company</label>
+          <input id="entity_name" name="entity_name" required placeholder={`e.g. ${lead.brand_name} Pvt Ltd, or your name if a proprietorship`} />
+          <label for="entity_address">Registered address</label>
+          <input id="entity_address" name="entity_address" required placeholder="Street, city, state, PIN" />
+          <div class="two">
+            <div><label for="signatory_name">Your full name</label><input id="signatory_name" name="signatory_name" required value={lead.contact_name ?? ''} /></div>
+            <div><label for="signatory_title">Your title</label><input id="signatory_title" name="signatory_title" placeholder="Founder" /></div>
+          </div>
+          <label for="signatory_email">Email for your signed copy</label>
+          <input id="signatory_email" name="signatory_email" type="email" value={lead.contact_email ?? ''} />
+          <label class="check"><input type="checkbox" id="accept" name="accept" required /> <span>I have read the agreement above and sign it on behalf of the entity named. Typing my name is my electronic signature.</span></label>
+          <p class="actions"><button class="btn" type="submit">Sign the agreement</button> <span class="msg" id="msg" aria-live="polite"></span></p>
+          <p class="muted small">What is recorded: the exact text above (as a hash), your details, the time and your IP address. You get a copy by email and at this link.</p>
+        </form>
+      )}
+    </div>
+  )}
+</LeadShell>
+
+<style>
+  .fade { animation: rise .5s ease-out both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .lede { margin: 12px 0 10px; }
+  .muted { color: var(--dim); }
+  .small { font-size: 13px; }
+  .doc { margin-top: 28px; padding: clamp(20px, 4vw, 36px); }
+  .sec { margin: 18px 0 0; }
+  .sec h2 { font: 600 14px/1.3 var(--sans); letter-spacing: .02em; margin: 0 0 6px; }
+  .sec p { margin: 0; font-family: var(--serif); font-size: 1.02rem; line-height: 1.6; color: var(--ink); }
+  .parties { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--line); }
+  @media (min-width: 640px) { .parties { grid-template-columns: 1fr 1fr; } }
+  .parties h3 { font: 600 11px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--terracotta); margin: 0 0 10px; }
+  .parties p { margin: 0 0 8px; font-size: 14px; line-height: 1.55; overflow-wrap: anywhere; }
+  .sig { color: var(--dim); font-size: 13px; }
+  .sign { margin-top: 24px; padding: clamp(20px, 4vw, 32px); }
+  .sign h2 { font-family: var(--serif); font-weight: 400; font-size: 1.6rem; margin: 0 0 14px; }
+  .sign label { display: block; font: 600 13px/1.3 var(--sans); margin: 14px 0 6px; }
+  .sign input[type="text"], .sign input:not([type]), .sign input[type="email"] { width: 100%; box-sizing: border-box; font: 15px/1.4 var(--sans); padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink); }
+  .two { display: grid; grid-template-columns: 1fr; gap: 0 16px; } @media (min-width: 640px) { .two { grid-template-columns: 1fr 1fr; } }
+  .check { display: flex; gap: 10px; align-items: flex-start; font-weight: 500 !important; font-size: 14px !important; line-height: 1.5; margin-top: 18px !important; }
+  .check input { margin-top: 4px; }
+  .actions { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin: 20px 0 8px; }
+  .btn { font: 600 15px var(--sans); padding: 13px 24px; border-radius: 999px; border: 1px solid var(--ink); background: var(--ink); color: var(--paper); cursor: pointer; }
+  .btn[disabled] { opacity: .6; cursor: default; }
+  .msg { font-size: 14px; color: var(--terracotta); }
+  .row { margin-top: 18px; }
+  @media print { .vm-head, .vm-signature, .sign, .row, .lede, .muted { display: none !important; } .doc { border: 0; padding: 0; } body { background: #fff; } }
+</style>
+
+<script>
+  const form = document.getElementById('sign') as HTMLFormElement | null;
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = form.querySelector('button') as HTMLButtonElement; const msg = document.getElementById('msg')!;
+    const fd = new FormData(form);
+    const body = Object.fromEntries(fd.entries()) as Record<string, string | boolean>;
+    body.accept = (form.querySelector('#accept') as HTMLInputElement).checked;
+    btn.disabled = true; msg.textContent = 'Signing…';
+    try {
+      const res = await fetch(`/retail-os/api/nda/${location.pathname.split('/').pop()}/sign`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+      const j = await res.json();
+      if (!res.ok) throw new Error(j.error || 'Something went wrong');
+      location.reload();
+    } catch (err) { msg.textContent = (err as Error).message; btn.disabled = false; }
+  });
+</script>

@@ -42,6 +42,7 @@ export type Env = {
   // Lead email assistant (src/lib/lead-mail)
   LEAD_APPROVAL_SECRET: string; // signs Approve & send links
   LEAD_AUTOSEND: string; // 'off' (default). 'on' sends routine replies without approval. Keep off.
+  LEAD_JOURNEY_AUTOSEND: string; // 'off' (default): every journey email waits for a one-tap approval. 'on': the standard post-NDA access request goes out by itself.
   VIRAT_WHATSAPP_TO: string; // Virat's own WhatsApp for approval requests; unset → email
   // Post-NDA lead data audit (src/lib/lead-*.ts)
   LEAD_TOKEN_SECRET: string; // 32+ chars; signs /retail-os/access/[token] and /retail-os/plan/[token], and encrypts pasted Shopify tokens
@@ -88,6 +89,7 @@ export function getEnv(): Env {
     GMAIL_TOKEN_KEY: process.env.GMAIL_TOKEN_KEY ?? '',
     LEAD_APPROVAL_SECRET: process.env.LEAD_APPROVAL_SECRET ?? '',
     LEAD_AUTOSEND: process.env.LEAD_AUTOSEND ?? 'off',
+    LEAD_JOURNEY_AUTOSEND: process.env.LEAD_JOURNEY_AUTOSEND ?? 'off',
     VIRAT_WHATSAPP_TO: process.env.VIRAT_WHATSAPP_TO ?? '',
     LEAD_TOKEN_SECRET: process.env.LEAD_TOKEN_SECRET ?? '',
     META_ACCESS_TOKEN: process.env.META_ACCESS_TOKEN ?? '',
