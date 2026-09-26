@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+const tints = ['var(--terracotta)', 'var(--cobalt)', 'var(--magenta)'];
 const ways = [
   ['Responsible business', 'Profit is how I measure, not why I exist. People and the planet come first.'],
   ['Hospitality', 'Every person feels welcome, known and looked after.'],
@@ -13,67 +14,160 @@ const ways = [
 ];
 ---
 <Base title="Mission, vision & how I work · Virat Mohan" description="Why I build, what I'm building towards, and the fundamentals I won't compromise on." path="/mission">
+  <div class="vm-band vm-band--hero" aria-hidden="true"></div>
+
+  <section class="mv mv-hero">
+    <p class="mv-k" data-reveal>Passion</p>
+    <h1 class="mv-p" data-reveal style="--reveal-delay: 60ms">I love taking something good that someone made, and building the machine that gets it to the world.</h1>
+    <figure class="mv-flow" data-reveal style="--reveal-delay: 140ms" aria-label="A good product goes into the machine, and the machine gets it to the world.">
+      <svg viewBox="0 0 720 220" role="img" aria-hidden="true">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#d4af37"/></marker>
+        </defs>
+        <path class="mv-flow__line" d="M170 95H268" marker-end="url(#arr)"/>
+        <path class="mv-flow__line" d="M452 95H550" marker-end="url(#arr)"/>
+        <!-- product -->
+        <circle cx="95" cy="95" r="70" fill="rgba(217,113,75,.12)"/>
+        <g fill="none" stroke="#d9714b" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+          <path d="M65 80l30-16 30 16v34l-30 16-30-16z"/><path d="M65 80l30 16 30-16M95 96v34"/>
+        </g>
+        <!-- machine -->
+        <circle cx="360" cy="95" r="80" fill="rgba(62,111,166,.12)"/>
+        <g class="mv-gear" fill="none" stroke="#3e6fa6" stroke-width="3">
+          <circle cx="360" cy="95" r="26"/><circle cx="360" cy="95" r="9"/>
+          <path d="M360 57v12M360 121v12M322 95h12M386 95h12M333 68l8 8M379 114l8 8M387 68l-8 8M341 114l-8 8" stroke-linecap="round"/>
+        </g>
+        <!-- world -->
+        <circle cx="625" cy="95" r="70" fill="rgba(233,30,140,.10)"/>
+        <g fill="none" stroke="#e91e8c" stroke-width="3">
+          <circle cx="625" cy="95" r="34"/><ellipse cx="625" cy="95" rx="14" ry="34"/><path d="M591 95h68M597 78h56M597 112h56"/>
+        </g>
+        <g class="mv-flow__t">
+          <text x="95" y="200">A good product</text>
+          <text x="360" y="200">The machine</text>
+          <text x="625" y="200">The world</text>
+        </g>
+      </svg>
+    </figure>
+    <p class="mv-s mv-center" data-reveal>120+ kitchens, a newspaper at metro stations, brands online in days. Every time, the product was the easy part. Making it run is what I live for.</p>
+  </section>
+
+  <section class="mv mv-cards">
+    <article class="mv-card" style="--c: var(--terracotta)" data-reveal>
+      <span class="mv-card__n" aria-hidden="true">7</span>
+      <p class="mv-k">Mission</p>
+      <h2 class="mv-h">Give any founder a working online business in 7 days, run for them.</h2>
+      <p class="mv-s">With results they can see every Monday, proven in public with real numbers.</p>
+    </article>
+    <article class="mv-card" style="--c: var(--cobalt); --reveal-delay: 80ms" data-reveal>
+      <svg class="mv-card__i" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="20"/><circle cx="24" cy="24" r="11"/><circle cx="24" cy="24" r="3" class="f"/></svg>
+      <p class="mv-k">Vision</p>
+      <h2 class="mv-h">A new, more efficient way for the world to do business.</h2>
+      <p class="mv-s">One operating system running thousands of brands better than a full team each, paid only from the value it creates, and sharing that value with everyone who helps.</p>
+    </article>
+    <article class="mv-card" style="--c: var(--magenta); --reveal-delay: 160ms" data-reveal>
+      <svg class="mv-card__i" viewBox="0 0 48 48" aria-hidden="true"><path d="M8 40L20 22l8 10 12-20"/><path d="M32 12h8v8"/></svg>
+      <p class="mv-k">Ambition</p>
+      <h2 class="mv-h">The biggest AI company for businesses in the world.</h2>
+      <p class="mv-s">Built the responsible way. AI is changing how every business runs. I want that change to lift small makers, not just the giants. I'll get there by keeping every promise below, one brand at a time.</p>
+    </article>
+  </section>
+
   <section class="mv">
-    <p class="mv-k">Passion</p>
-    <h1 class="mv-p">I love taking something good that someone made, and building the machine that gets it to the world.</h1>
-    <p class="mv-s">120+ kitchens, a newspaper at metro stations, brands online in days. Every time, the product was the easy part. Making it run is what I live for.</p>
-
-    <hr />
-    <p class="mv-k">Mission</p>
-    <h2 class="mv-h">Give any founder a working online business in 7 days, run for them.</h2>
-    <p class="mv-s">With results they can see every Monday, proven in public with real numbers.</p>
-
-    <hr />
-    <p class="mv-k">Vision</p>
-    <h2 class="mv-h mv-t">A new, more efficient way for the world to do business.</h2>
-    <p class="mv-s">One operating system running thousands of brands better than a full team each, paid only from the value it creates, and sharing that value with everyone who helps.</p>
-
-    <hr />
-    <p class="mv-k">Ambition</p>
-    <h2 class="mv-h">The biggest AI company for businesses in the world.</h2>
-    <p class="mv-s">Built the responsible way. AI is changing how every business runs. I want that change to lift small makers, not just the giants. I'll get there by keeping every promise below, one brand at a time.</p>
-
-    <hr />
-    <p class="mv-k">How I work</p>
+    <p class="mv-k mv-center" data-reveal>How I work</p>
     <ol class="mv-ways">
       {ways.map(([t, d], i) => (
-        <li><img src={`/icons/values/${t.toLowerCase().replace(/ /g, '-')}.svg`} alt="" width="40" height="40" /><div><h3><span class="mv-n">{String(i + 1).padStart(2, '0')}</span> {t}</h3><p>{d}</p></div></li>
+        <li style={`--c: ${tints[i % 3]}; --reveal-delay: ${(i % 3) * 70}ms`} data-reveal>
+          <span class="mv-ways__i"><img src={`/icons/values/${t.toLowerCase().replace(/ /g, '-')}.svg`} alt="" width="36" height="36" /></span>
+          <h3><span class="mv-n">{String(i + 1).padStart(2, '0')}</span> {t}</h3>
+          <p>{d}</p>
+        </li>
       ))}
     </ol>
-    <hr />
-    <p class="mv-k">How the machine thinks</p>
+  </section>
+
+  <section class="mv">
+    <p class="mv-k mv-center" data-reveal>How the machine thinks</p>
+    <figure class="mv-loop" data-reveal aria-label="Audit, learn, improve, repeat. Humans decide at the centre.">
+      <svg viewBox="0 0 400 400" aria-hidden="true">
+        <circle class="mv-loop__ring" cx="200" cy="200" r="140"/>
+        <circle cx="200" cy="200" r="78" fill="rgba(212,175,55,.14)"/>
+        <text class="mv-loop__c" x="200" y="194">Humans</text>
+        <text class="mv-loop__c" x="200" y="226">decide</text>
+        <g class="mv-loop__nodes">
+          <g transform="translate(200 60)"><circle r="34" style="fill:#d9714b"/><text y="6">Audit</text></g>
+          <g transform="translate(340 200)"><circle r="34" style="fill:#3e6fa6"/><text y="6">Learn</text></g>
+          <g transform="translate(200 340)"><circle r="34" style="fill:#e91e8c"/><text y="6">Improve</text></g>
+          <g transform="translate(60 200)"><circle r="34" style="fill:#9c7a4a"/><text y="6">Repeat</text></g>
+        </g>
+      </svg>
+    </figure>
     <ul class="mv-beliefs">
-      <li><h3>Always learning</h3><p>Every mistake becomes a rule. The same mistake never happens twice.</p></li>
-      <li><h3>Always auditing</h3><p>The system checks its own work, all the time, not once a quarter.</p></li>
-      <li><h3>Better every time</h3><p>Each run starts from what the last one learned.</p></li>
-      <li><h3>Ideal state</h3><p>Know what perfect looks like, measure the gap, close it a little every day.</p></li>
-      <li><h3>Humans decide</h3><p>Machines do the work. Money, people and promises stay with me.</p></li>
+      <li data-reveal><h3>Always learning</h3><p>Every mistake becomes a rule. The same mistake never happens twice.</p></li>
+      <li data-reveal style="--reveal-delay: 70ms"><h3>Always auditing</h3><p>The system checks its own work, all the time, not once a quarter.</p></li>
+      <li data-reveal><h3>Better every time</h3><p>Each run starts from what the last one learned.</p></li>
+      <li data-reveal style="--reveal-delay: 70ms"><h3>Ideal state</h3><p>Know what perfect looks like, measure the gap, close it a little every day.</p></li>
+      <li data-reveal class="mv-beliefs__h"><h3>Humans decide</h3><p>Machines do the work. Money, people and promises stay with me.</p></li>
     </ul>
-    <p class="mv-cta"><a href="/retail-os/">See Retail OS →</a></p>
+    <p class="mv-cta mv-center"><a href="/retail-os/">See Retail OS →</a></p>
   </section>
 </Base>
 
 <style>
-  .mv { max-width: 980px; margin: 0 auto; padding: 7rem 16px 5rem; }
-  .mv-k { font: 700 12px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--terracotta); margin: 0 0 12px; }
-  .mv-p { font-family: var(--serif); font-style: italic; font-weight: 400; font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1.1; margin: 0 0 16px; }
-  .mv-h { font-family: var(--display); text-transform: uppercase; font-weight: 400; font-size: clamp(2rem, 5.5vw, 3.6rem); line-height: .98; margin: 0 0 14px; }
-  .mv-t { color: var(--terracotta); }
-  .mv-s { font-family: var(--serif); font-style: italic; font-size: 1.25rem; color: var(--muted); max-width: 62ch; margin: 0; }
-  .mv hr { border: 0; border-top: 1.5px solid var(--gold); margin: 3rem 0 2.2rem; }
-  .mv-ways { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 26px 40px; }
-  .mv-ways li { display: flex; gap: 16px; }
-  .mv-ways img { flex: none; margin-top: 2px; }
-  .mv-n { color: var(--terracotta); margin-right: 6px; }
-  .mv-ways b { font-family: var(--display); font-weight: 400; font-size: 2rem; color: var(--terracotta); line-height: 1; }
-  .mv-ways h3 { font-family: var(--display); text-transform: uppercase; font-weight: 400; font-size: 1.35rem; margin: 0 0 4px; }
-  .mv-ways p { margin: 0; color: var(--muted); }
-  .mv-cta { margin-top: 3rem; font-family: var(--serif); font-size: 1.6rem; }
+  .mv { max-width: 1080px; margin: 0 auto; padding: clamp(4rem, 9vw, 7rem) 16px; }
+  .mv-center { text-align: center; margin-left: auto !important; margin-right: auto !important; }
+  .mv-k { font: 700 12px/1 var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--terracotta); margin: 0 0 14px; }
+  .mv-hero { text-align: center; padding-top: clamp(4rem, 10vw, 8rem); }
+  .mv-p { font-family: var(--serif); font-style: italic; font-weight: 400; font-size: clamp(2.1rem, 5.4vw, 4rem); line-height: 1.08; margin: 0 auto; max-width: 22ch; }
+  .mv-s { font-family: var(--serif); font-style: italic; font-size: 1.25rem; line-height: 1.45; color: var(--dim); max-width: 58ch; margin: 0; }
+  .mv-h { font-family: var(--display); text-transform: uppercase; font-weight: 400; font-size: clamp(1.8rem, 3vw, 2.3rem); line-height: 1; margin: 0 0 16px; color: var(--ink); }
+
+  .mv-flow { margin: clamp(3rem, 7vw, 5rem) auto; max-width: 760px; }
+  .mv-flow svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .mv-flow__line { stroke: var(--gold); stroke-width: 2.5; fill: none; stroke-dasharray: 6 7; animation: mv-flow 2.4s linear infinite; }
+  .mv-flow__t text { font-family: var(--display); font-size: 21px; letter-spacing: .03em; text-transform: uppercase; fill: var(--ink); text-anchor: middle; }
+  .mv-gear { transform-origin: 360px 95px; animation: mv-spin 24s linear infinite; }
+  @keyframes mv-flow { to { stroke-dashoffset: -26; } }
+  @keyframes mv-spin { to { transform: rotate(360deg); } }
+
+  .mv-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; border-top: 1px solid var(--gold); }
+  .mv-card { position: relative; min-width: 0; padding: 2.2rem 1.8rem 2.4rem; background: color-mix(in srgb, var(--c) 9%, var(--paper)); border-top: 8px solid var(--c); border-radius: 2px; }
+  .mv-card .mv-k { color: var(--c); }
+  .mv-card__n { display: block; font-family: var(--display); font-size: 6.5rem; line-height: .9; color: var(--c); margin-bottom: 1.4rem; height: 88px; }
+  .mv-card__i { display: block; width: 88px; height: 88px; margin-bottom: 1.4rem; fill: none; stroke: var(--c); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  .mv-card__i .f { fill: var(--c); }
+  .mv-card .mv-s { font-size: 1.12rem; }
+
+  .mv-ways { list-style: none; padding: 0; margin: 2rem 0 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+  .mv-ways li { min-width: 0; padding: 1.8rem 1.5rem; background: color-mix(in srgb, var(--c) 7%, var(--paper)); border-radius: 2px; }
+  .mv-ways__i { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: color-mix(in srgb, var(--c) 16%, var(--paper)); margin-bottom: 1.2rem; }
+  .mv-n { color: var(--c); margin-right: 6px; }
+  .mv-ways h3 { font-family: var(--display); text-transform: uppercase; font-weight: 400; font-size: 1.4rem; margin: 0 0 6px; }
+  .mv-ways p { margin: 0; color: var(--dim); }
+
+  .mv-loop { max-width: 420px; margin: 2rem auto 3.5rem; }
+  .mv-loop svg { width: 100%; height: auto; display: block; }
+  .mv-loop__ring { fill: none; stroke: var(--gold); stroke-width: 2; stroke-dasharray: 5 9; animation: mv-flow 3s linear infinite; }
+  .mv-loop__c { font-family: var(--display); font-size: 30px; text-transform: uppercase; fill: var(--ink); text-anchor: middle; }
+  .mv-loop__nodes text { font-family: var(--sans); font-weight: 700; font-size: 13px; fill: var(--paper); text-anchor: middle; }
+  .mv-beliefs { list-style: none; padding: 0; margin: 0 auto; max-width: 880px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 48px; }
+  .mv-beliefs li { min-width: 0; border-left: 2px solid var(--gold); padding-left: 16px; }
+  .mv-beliefs h3 { font-family: var(--display); text-transform: uppercase; font-weight: 400; font-size: 1.25rem; margin: 0 0 4px; }
+  .mv-beliefs p { margin: 0; color: var(--dim); }
+  .mv-beliefs__h { grid-column: 1 / -1; justify-self: center; max-width: 440px; border-left: 0 !important; padding: 1.2rem 0 0 !important; border-top: 2px solid var(--gold); text-align: center; }
+  .mv-cta { margin-top: 4rem; font-family: var(--serif); font-size: 1.6rem; }
   .mv-cta a { color: var(--terracotta); border-bottom: 1px solid var(--gold); text-decoration: none; }
-  .mv-beliefs { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 22px 40px; }
-  .mv-beliefs li { border-left: 2px solid var(--gold); padding-left: 14px; }
-  .mv-beliefs h3 { font-family: var(--display); text-transform: uppercase; font-weight: 400; font-size: 1.2rem; margin: 0 0 4px; }
-  .mv-beliefs p { margin: 0; color: var(--muted); }
-  @media (max-width: 700px) { .mv-beliefs { grid-template-columns: 1fr; } }
-  @media (max-width: 700px) { .mv-ways { grid-template-columns: 1fr; } }
+
+  @media (max-width: 900px) {
+    .mv-cards, .mv-ways { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (max-width: 700px) {
+    .mv-beliefs { grid-template-columns: minmax(0, 1fr); }
+    .mv-ways li { display: grid; grid-template-columns: 52px minmax(0, 1fr); column-gap: 14px; padding: 1.2rem; }
+    .mv-ways__i { width: 52px; height: 52px; margin: 0; grid-row: span 2; }
+    .mv-flow__t text { font-size: 30px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .mv-flow__line, .mv-gear, .mv-loop__ring { animation: none; }
+  }
 </style>

@@ -10,13 +10,20 @@ const year = new Date().getFullYear();
       <span aria-hidden="true">·</span>
       <span>India</span>
       <span aria-hidden="true">·</span>
-      <a href="/mission">Mission, vision &amp; how I work</a>
+      <a class="footer__mission" href="/mission">Read my mission →</a>
     </p>
   </div>
   <p class="vm-signature footer__sig"><a href="https://viratmohan.com/mission"><b>Virat Mohan</b> · I build the machine that gets good products to the world. →</a></p>
 </footer>
 
 <style>
+  .footer__mission {
+    color: var(--terracotta);
+    font-weight: 700;
+    text-decoration: none;
+    border-bottom: 1.5px solid var(--gold);
+  }
+  .footer__meta { flex-wrap: wrap; }
   .footer__sig {
     margin: 0;
   }
