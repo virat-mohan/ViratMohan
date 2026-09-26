@@ -15,4 +15,4 @@ def slide(path, out, lines, kicker, sub, top=True):
     fig.text(.07, y0 + .035, sub, family=SERIF, fontsize=15, style="italic", color=TERRACOTTA)
     fig.savefig(out, dpi=150); plt.close(fig)
 
-slide("photos/shoot-desk.jpg", "ig-kitchens-1.png", ["I RAN 120+ KITCHENS", "ACROSS MULTIPLE FOOD BRANDS."], "THE REAL WORLD TAUGHT ME", "Now: 100 brands, one operating system.")
+slide("photos/shoot-desk.jpg", "ig-kitchens-1.png", ["I RAN 120+ KITCHENS", "ACROSS MULTIPLE FOOD BRANDS."], "THE REAL WORLD TAUGHT ME", "Next: 100 brands, one operating system.")
