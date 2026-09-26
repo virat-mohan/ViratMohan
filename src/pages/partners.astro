@@ -1,0 +1,126 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../data/site';
+const wa = `https://wa.me/${site.whatsapp}?text=${encodeURIComponent("Hi Virat, I'd like to become a DevShop partner.")}`;
+---
+<Base
+  title="Partners — earn 25%, for as long as the brand stays · Virat Mohan"
+  description="Bring brands to DevShop Retail OS and earn 25% of what I earn from them, for as long as they work with me. Transparent dashboard."
+  path="/partners"
+>
+  <section class="pp">
+    <p class="pp-eyebrow">DevShop partners</p>
+    <h1 class="pp-h">Bring a brand.<br /><span>Earn 25%. For as long as it stays.</span></h1>
+    <p class="pp-dek">You know founders who need an online business that actually runs. I build and run it on Retail OS. You earn 25% of everything I earn from every brand you bring, every month, for as long as that brand works with me. Every rupee visible on your dashboard.</p>
+
+    <div class="pp-steps">
+      <div><b>01</b><h3>Sign the NCNDA</h3><p>Two minutes, on screen. It protects the brands you bring and the system they run on.</p></div>
+      <div><b>02</b><h3>Bring the lead</h3><p>Introduce the founder or share your link. I handle evaluation, terms, build and launch.</p></div>
+      <div><b>03</b><h3>Earn, monthly</h3><p>25% of my earnings from that brand, settled with my own, every month it stays live.</p></div>
+    </div>
+
+    <div class="pp-dash" aria-label="Example partner dashboard (sample data)">
+      <div class="pp-dash-top"><span>Partner dashboard</span><em>Sample data, for illustration</em></div>
+      <div class="pp-kpis">
+        <div><small>Brands referred</small><b>6</b></div>
+        <div><small>Live</small><b>4</b></div>
+        <div><small>Your earnings, this month</small><b>₹38,400</b></div>
+        <div><small>Lifetime paid</small><b>₹1,12,900</b></div>
+      </div>
+      <table>
+        <thead><tr><th>Brand</th><th>Status</th><th>My earnings</th><th>Your 25%</th></tr></thead>
+        <tbody>
+          <tr><td>Brand A · Beauty</td><td><i class="ok">Live</i></td><td>₹62,000</td><td>₹15,500</td></tr>
+          <tr><td>Brand B · Fashion</td><td><i class="ok">Live</i></td><td>₹48,000</td><td>₹12,000</td></tr>
+          <tr><td>Brand C · Food</td><td><i class="ok">Live</i></td><td>₹27,600</td><td>₹6,900</td></tr>
+          <tr><td>Brand D · Home</td><td><i class="ok">Live</i></td><td>₹16,000</td><td>₹4,000</td></tr>
+          <tr><td>Brand E · Wellness</td><td><i>Building</i></td><td>—</td><td>—</td></tr>
+          <tr><td>Brand F · Fashion</td><td><i>Terms sent</i></td><td>—</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pp-grid">
+      <form class="pp-form" id="ppForm">
+        <h2>Become a partner</h2>
+        <label>Name<input name="name" required autocomplete="name"></label>
+        <label>WhatsApp number<input name="phone" required inputmode="tel" autocomplete="tel"></label>
+        <label>Email<input name="email" type="email" autocomplete="email"></label>
+        <label>City<input name="city"></label>
+        <label>Who do you know? (founders, categories, communities)<textarea name="network" rows="3"></textarea></label>
+        <label>Brands you could bring in the next 3 months
+          <select name="brands"><option>1–2</option><option>3–5</option><option>6–10</option><option>10+</option></select></label>
+        <label class="pp-nda"><input type="checkbox" name="nda" required> I accept the <a href="/retail-os/docs/DevShop-Retail-OS-NCNDA.docx" download>Non-Compete &amp; Non-Disclosure Agreement (NCNDA)</a>.</label>
+        <button type="submit">Sign &amp; get started →</button>
+        <p class="pp-msg" id="ppMsg" role="status"></p>
+      </form>
+      <div class="pp-side">
+        <h3>The fine print, plainly</h3>
+        <ul>
+          <li>25% of what I earn from the brand: profit share, revenue share or retainer. Not a one-time fee.</li>
+          <li>Paid monthly, for as long as the brand works with me.</li>
+          <li>A brand counts as yours when you introduce it first and it signs.</li>
+          <li>Ad spend and pass-through costs aren't earnings, so they're not shared.</li>
+          <li>Your dashboard shows every brand, every rupee, every month.</li>
+        </ul>
+        <p><a class="pp-talk" href={wa} target="_blank" rel="noopener">Questions? Let's talk →</a></p>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  const f = document.getElementById('ppForm') as HTMLFormElement | null;
+  const msg = document.getElementById('ppMsg');
+  f?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const d = new FormData(f);
+    const body = { name: d.get('name'), phone: d.get('phone'), email: d.get('email'), city: d.get('city'), network: d.get('network'), brands: d.get('brands'), nda: d.get('nda') === 'on' };
+    if (msg) msg.textContent = 'Sending…';
+    try {
+      const r = await fetch('/partners/api/apply', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || 'Something went wrong.');
+      f.reset();
+      if (msg) msg.textContent = "You're in. I'll WhatsApp you within a day with your partner link and dashboard.";
+    } catch (err) { if (msg) msg.textContent = (err as Error).message; }
+  });
+</script>
+
+<style>
+  .pp { max-width: 1100px; margin: 0 auto; padding: 7rem 16px 5rem; }
+  .pp-eyebrow { font: 700 12px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--terracotta); }
+  .pp-h { font-family: var(--display); text-transform: uppercase; font-size: clamp(2.4rem, 6.5vw, 4.8rem); line-height: .95; margin: 14px 0 16px; }
+  .pp-h span { color: var(--terracotta); }
+  .pp-dek { font-family: var(--serif); font-style: italic; font-size: 1.35rem; color: var(--muted); max-width: 62ch; }
+  .pp-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin: 2.5rem 0; }
+  .pp-steps > div { border-top: 2px solid var(--ink); padding-top: 14px; }
+  .pp-steps b { font-family: var(--display); color: var(--terracotta); font-size: 1.6rem; font-weight: 400; }
+  .pp-steps h3 { font-family: var(--display); text-transform: uppercase; font-weight: 400; font-size: 1.4rem; margin: 6px 0; }
+  .pp-steps p { margin: 0; color: var(--muted); }
+  .pp-dash { background: #1a1410; color: #f4ead4; border: 1px solid #d4af37; border-radius: 16px; padding: 22px; margin: 1rem 0 3rem; overflow-x: auto; }
+  .pp-dash-top { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font: 700 12px/1 var(--sans); letter-spacing: .12em; text-transform: uppercase; color: #d9714b; margin-bottom: 16px; }
+  .pp-dash-top em { color: #e9dcc0; opacity: .7; font-weight: 400; letter-spacing: 0; text-transform: none; font-style: italic; }
+  .pp-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
+  .pp-kpis small { display: block; font-size: 12px; color: #e9dcc0; }
+  .pp-kpis b { font-family: var(--display); font-weight: 400; font-size: 2rem; color: #d9714b; }
+  .pp-dash table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 520px; }
+  .pp-dash th { text-align: left; font-weight: 600; color: #e9dcc0; padding: 8px 6px; border-bottom: 1px solid rgba(244,234,212,.25); }
+  .pp-dash td { padding: 9px 6px; border-bottom: 1px solid rgba(244,234,212,.1); }
+  .pp-dash i { font-style: normal; font-size: 12px; padding: 2px 8px; border-radius: 999px; background: rgba(244,234,212,.12); }
+  .pp-dash i.ok { background: #2b8c86; }
+  .pp-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 32px; align-items: start; }
+  .pp-form { background: #fffaf0; border: 1px solid var(--rule); border-radius: 16px; padding: 24px; display: grid; gap: 12px; }
+  .pp-form h2 { font-family: var(--display); text-transform: uppercase; font-weight: 400; margin: 0 0 4px; }
+  .pp-form label { display: grid; gap: 6px; font-size: 14px; font-weight: 600; }
+  .pp-form input, .pp-form textarea, .pp-form select { font: inherit; font-weight: 400; padding: 10px 12px; border: 1px solid var(--rule); border-radius: 10px; background: #fff; }
+  .pp-form .pp-nda { display: flex; gap: 10px; align-items: flex-start; font-weight: 400; }
+  .pp-form .pp-nda input { margin-top: 4px; }
+  .pp-form button { padding: 14px; border: 0; border-radius: 999px; background: #1a1410; color: #f4ead4; font: 700 15px/1 var(--sans); cursor: pointer; }
+  .pp-form button:hover { background: var(--terracotta); }
+  .pp-msg { margin: 0; font-size: 14px; }
+  .pp-side h3 { font-family: var(--display); text-transform: uppercase; font-weight: 400; }
+  .pp-side li { margin-bottom: 8px; }
+  .pp-talk { color: var(--terracotta); font-weight: 700; }
+  @media (max-width: 760px) { .pp-steps, .pp-grid, .pp-kpis { grid-template-columns: 1fr 1fr; } .pp-steps, .pp-grid { grid-template-columns: 1fr; } }
+</style>
