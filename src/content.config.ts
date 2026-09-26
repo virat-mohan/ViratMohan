@@ -34,6 +34,8 @@ const work = defineCollection({
       // a short pill shown on the tile itself, e.g. "New Launch" — for a
       // brand that just went live and should stand out from the rest.
       badge: z.string().optional(),
+      // one honest line under the brand on the homepage tile, e.g. "Built. Not live yet."
+      status: z.string().optional(),
       // override the tile's link — for an entry that's really a module of
       // another product (e.g. a Retail OS feature) rather than its own
       // standalone case study, so the tile can point straight at that
