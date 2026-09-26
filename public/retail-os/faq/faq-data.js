@@ -172,7 +172,7 @@ window.RETAIL_OS_FAQ = [
     a: 'That is fine. I set it up during onboarding.',
     tags: ['business manager', 'meta setup'] },
   { topic: 'Integrations', q: 'Can I keep my existing courier or gateway?',
-    a: 'Yes. Use your own accounts, or ours.',
+    a: 'Yes. Use your own accounts, or mine.',
     tags: ['existing account', 'courier', 'gateway'] },
   { topic: 'Integrations', q: 'Do I need to pay for apps?',
     a: 'No separate app store. The features on this page are part of the system.',
