@@ -43,6 +43,14 @@ export type Env = {
   LEAD_APPROVAL_SECRET: string; // signs Approve & send links
   LEAD_AUTOSEND: string; // 'off' (default). 'on' sends routine replies without approval. Keep off.
   VIRAT_WHATSAPP_TO: string; // Virat's own WhatsApp for approval requests; unset → email
+  // Post-NDA lead data audit (src/lib/lead-*.ts)
+  LEAD_TOKEN_SECRET: string; // 32+ chars; signs /retail-os/access/[token] and /retail-os/plan/[token], and encrypts pasted Shopify tokens
+  META_ACCESS_TOKEN: string; // system-user token (ads_read) in Virat's Business Manager, which leads share ad accounts with
+  LEAD_META_BUSINESS_ID: string; // Virat's Business Manager ID, shown to leads for partner access
+  GOOGLE_CLIENT_ID: string;
+  GOOGLE_CLIENT_SECRET: string;
+  GOOGLE_REFRESH_TOKEN: string; // offline token for LEAD_GOOGLE_EMAIL with analytics.readonly + webmasters.readonly
+  LEAD_GOOGLE_EMAIL: string; // the Google login leads add as GA4 Viewer / Search Console Restricted user
 };
 
 export function getEnv(): Env {
@@ -81,5 +89,12 @@ export function getEnv(): Env {
     LEAD_APPROVAL_SECRET: process.env.LEAD_APPROVAL_SECRET ?? '',
     LEAD_AUTOSEND: process.env.LEAD_AUTOSEND ?? 'off',
     VIRAT_WHATSAPP_TO: process.env.VIRAT_WHATSAPP_TO ?? '',
+    LEAD_TOKEN_SECRET: process.env.LEAD_TOKEN_SECRET ?? '',
+    META_ACCESS_TOKEN: process.env.META_ACCESS_TOKEN ?? '',
+    LEAD_META_BUSINESS_ID: process.env.LEAD_META_BUSINESS_ID ?? '',
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ?? '',
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ?? '',
+    GOOGLE_REFRESH_TOKEN: process.env.GOOGLE_REFRESH_TOKEN ?? '',
+    LEAD_GOOGLE_EMAIL: process.env.LEAD_GOOGLE_EMAIL ?? '',
   };
 }

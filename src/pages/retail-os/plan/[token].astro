@@ -1,0 +1,139 @@
+---
+export const prerender = false;
+import LeadShell from '../../../components/lead/LeadShell.astro';
+import { getEnv } from '../../../lib/env';
+import { verifyLeadToken } from '../../../lib/lead-token';
+import { getLead, latestPlan, leadSb } from '../../../lib/lead-audit-db';
+import type { LeadPlan } from '../../../lib/lead-plan';
+
+const env = getEnv();
+const leadId = verifyLeadToken(Astro.params.token, 'plan', env.LEAD_TOKEN_SECRET);
+let plan: LeadPlan | null = null;
+if (leadId) {
+  try {
+    const sb = leadSb(env);
+    const lead = await getLead(sb, leadId);
+    if (lead) plan = (await latestPlan(sb, lead.id))?.plan ?? null;
+  } catch (err) {
+    console.error('plan page load failed', err);
+  }
+}
+if (!plan) Astro.response.status = 404;
+const wa = env.RETAIL_OS_WHATSAPP_NUMBER ? `https://wa.me/${env.RETAIL_OS_WHATSAPP_NUMBER.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi Virat, I read the plan for ${plan?.brand ?? 'my brand'}.`)}` : null;
+const written = plan ? new Date(plan.generatedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' }) : '';
+---
+<LeadShell title={plan ? `${plan.brand} plan` : 'Plan'} description="Where you stand, the three biggest gaps, and a 90-day plan.">
+  {!plan ? (
+    <div class="fade">
+      <p class="vm-kicker">Plan</p>
+      <h1 class="vm-display">Not ready yet</h1>
+      <p class="vm-serif-lede lede">I am still working through your numbers. I will send the link as soon as it is ready.</p>
+    </div>
+  ) : (
+    <div class="fade">
+      <p class="vm-kicker">{plan.brand} · a plan from Virat · {written}</p>
+      <h1 class="vm-display">Where you stand</h1>
+      <p class="vm-serif-lede lede">{plan.intro}</p>
+
+      <section>
+        <p class="vm-kicker">Your numbers</p>
+        <h2>From your own data</h2>
+        <div class="grid">
+          {plan.standing.map((s) => (
+            <div class="vm-card"><span class="muted">{s.label}</span><span class="num">{s.value}</span><span class="src">Source: {s.source}</span></div>
+          ))}
+        </div>
+        {plan.channelMix.length > 0 && (
+          <div class="vm-card" style="--c:var(--cobalt)">
+            <h3>Channel mix</h3>
+            <ul class="bars">{plan.channelMix.map((c) => (<li><span>{c.channel}</span><span class="bar"><i style={`width:${c.share}`}></i></span><b>{c.share}</b></li>))}</ul>
+          </div>
+        )}
+        {plan.topSkus.length > 0 && (
+          <div class="vm-card" style="--c:var(--bronze)">
+            <h3>Best sellers</h3>
+            <ul class="plain">{plan.topSkus.map((s) => (<li><span>{s.title}</span><b>{s.revenue}</b></li>))}</ul>
+          </div>
+        )}
+        {plan.topQueries.length > 0 && (
+          <div class="vm-card" style="--c:var(--sage)">
+            <h3>What people search to find you</h3>
+            <ul class="plain">{plan.topQueries.map((q) => (<li><span>{q.query}</span><b>{q.clicks} clicks</b></li>))}</ul>
+          </div>
+        )}
+        {plan.missing.length > 0 && <p class="muted">Not connected yet: {plan.missing.join(', ')}. The plan uses only what is connected.</p>}
+      </section>
+
+      <section>
+        <p class="vm-kicker">The three gaps</p>
+        <h2>Where the money is</h2>
+        {plan.gaps.length === 0 && <p>I did not find a gap big enough to size from the data connected so far. Connecting the missing sources will sharpen this.</p>}
+        {plan.gaps.map((g, i) => (
+          <div class="vm-card gap" style="--c:var(--terracotta)">
+            <p class="vm-kicker">Gap {i + 1}</p>
+            <h3>{g.title}</h3>
+            <p class="why">{g.why}</p>
+            <div class="trio">
+              <div><span class="muted">You now</span><span class="num">{g.now}</span></div>
+              <div><span class="muted">Benchmark</span><span class="num">{g.benchmark}</span></div>
+              <div><span class="muted">Worth</span><span class="num">{g.impact}</span></div>
+            </div>
+            <p class="src">How I sized it: {g.basis} Source: {g.sources.join('; ')}</p>
+          </div>
+        ))}
+        <p class="muted">{plan.benchmarksNote}</p>
+      </section>
+
+      <section>
+        <p class="vm-kicker">One goal for the next 90 days</p>
+        <h2>The goal</h2>
+        <div class="vm-card" style="--c:var(--gold)">
+          <p class="vm-serif-lede">{plan.goal.statement}</p>
+          <div class="trio">
+            <div><span class="muted">Now</span><span class="num">{plan.goal.baseline}</span></div>
+            <div><span class="muted">Target</span><span class="num">{plan.goal.target}</span></div>
+            <div><span class="muted">By</span><span class="num small">{plan.goal.byDate}</span></div>
+          </div>
+          <p class="muted">Every Monday you get the target, the actual, the gap and the next step.</p>
+        </div>
+      </section>
+
+      <section>
+        <p class="vm-kicker">How Retail OS would run it</p>
+        <h2>What I would do</h2>
+        <ol>{plan.run.map((r) => <li>{r}</li>)}</ol>
+      </section>
+
+      <section>
+        <p class="vm-kicker">Terms</p>
+        <h2>The standard terms that fit</h2>
+        <p class="muted">These are my standard terms, the same for everyone. No custom terms.</p>
+        {plan.terms.map((t) => (
+          <div class="vm-card term" style={`--c:${t.fits ? 'var(--gold)' : 'var(--line)'}`}>
+            <div class="head"><h3>{t.name}: {t.value}</h3>{t.name === plan.recommendedTerm ? <span class="vm-chip" style="--c:var(--ink)">Best fit</span> : t.fits ? <span class="vm-chip" style="--c:var(--bronze)">Fits</span> : null}</div>
+            <p class="muted">{t.why}</p>
+          </div>
+        ))}
+      </section>
+
+      <section>
+        <p class="vm-serif-lede">{plan.closing}</p>
+        <p style="margin-top:1.5rem">{wa ? <a class="btn" href={wa} rel="noopener">Let's talk.</a> : <span class="btn">Let's talk.</span>}</p>
+      </section>
+    </div>
+  )}
+</LeadShell>
+
+<style>
+  .trio { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-top: 1rem; }
+  .trio > * { min-width: 0; }
+  .num.small { font-size: 1.35rem; }
+  .gap h3 { margin-top: .4rem; }
+  .plain, .bars { list-style: none; padding: 0; margin: .75rem 0 0; }
+  .plain li, .bars li { display: flex; justify-content: space-between; gap: 1rem; padding: .55rem 0; border-top: 1px solid var(--line); margin: 0; }
+  .plain li span, .bars li span:first-child { min-width: 0; overflow-wrap: anywhere; }
+  .bars li { align-items: center; }
+  .bars .bar { flex: 1; height: 6px; background: var(--line); position: relative; min-width: 40px; }
+  .bars .bar i { position: absolute; inset: 0 auto 0 0; background: var(--gold); transition: width .8s ease; }
+  .term .head { display: flex; justify-content: space-between; align-items: baseline; gap: .75rem; flex-wrap: wrap; }
+</style>

@@ -1,0 +1,152 @@
+---
+export const prerender = false;
+import LeadShell from '../../../components/lead/LeadShell.astro';
+import { getEnv } from '../../../lib/env';
+import { verifyLeadToken } from '../../../lib/lead-token';
+import { checklist, withStatus, type AccessStatus } from '../../../lib/lead-access';
+import { getLead, leadSb, listAccess, type Lead } from '../../../lib/lead-audit-db';
+
+const env = getEnv();
+const token = Astro.params.token ?? '';
+const leadId = verifyLeadToken(token, 'access', env.LEAD_TOKEN_SECRET);
+let lead: Lead | null = null;
+let items: ReturnType<typeof withStatus> = [];
+if (leadId) {
+  try {
+    const sb = leadSb(env);
+    lead = await getLead(sb, leadId);
+    if (lead) items = withStatus(checklist({ metaBusinessId: env.LEAD_META_BUSINESS_ID, googleEmail: env.LEAD_GOOGLE_EMAIL }), await listAccess(sb, lead.id));
+  } catch (err) {
+    console.error('access page load failed', err);
+  }
+}
+if (!lead) Astro.response.status = 404;
+const first = lead?.contact_name?.trim().split(/\s+/)[0];
+const done = items.filter((i) => i.status === 'verified').length;
+const LABEL: Record<AccessStatus, string> = { not_started: 'Not started', granted: 'Granted', verified: 'Verified' };
+const COLOR: Record<AccessStatus, string> = { not_started: 'var(--dim)', granted: 'var(--gold)', verified: 'var(--sage)' };
+---
+<LeadShell title="Read-only access" description="A short checklist to give Virat read-only access to your data.">
+  {!lead ? (
+    <div class="fade">
+      <p class="vm-kicker">Access checklist</p>
+      <h1 class="vm-display">This link has expired</h1>
+      <p class="vm-serif-lede lede">Reply to my email and I will send you a fresh one.</p>
+    </div>
+  ) : (
+    <div class="fade">
+      <p class="vm-kicker">{lead.brand_name} · read-only access</p>
+      <h1 class="vm-display">Let me see the real numbers</h1>
+      <p class="vm-serif-lede lede">{first ? `${first}, instead` : 'Instead'} of a long questionnaire, give me view-only access below. I pull the numbers myself and come back with where you stand, the three biggest gaps, and a plan.</p>
+      <p class="muted">Why read-only: I can see, never change. I keep totals only, never customer names, emails or phone numbers. You can remove access any time. Shopify alone is enough to start; each step takes a minute or two.</p>
+      <p class="muted" id="progress" aria-live="polite">{done} of {items.length} connected.</p>
+
+      {items.map((it) => (
+        <section class="vm-card item" data-source={it.source} style={`--c:${COLOR[it.status]}`}>
+          <div class="head">
+            <h2>{it.title}</h2>
+            <span class="vm-chip status" style={`--c:${COLOR[it.status]}`} data-status={it.status}>{LABEL[it.status]}</span>
+          </div>
+          <p class="why">{it.why}</p>
+          <ol>
+            {it.steps.map((s) => (<li>{s.text}{s.why && <span class="why">Why: {s.why}</span>}</li>))}
+          </ol>
+          {it.alt && <p class="muted">{it.alt}</p>}
+
+          {it.fields.length > 0 && (
+            <form class="connect" autocomplete="off">
+              {it.fields.map((f) => (
+                <>
+                  <label for={`${it.source}-${f.key}`}>{f.label}</label>
+                  <input id={`${it.source}-${f.key}`} name={f.key} type={f.secret ? 'password' : 'text'} placeholder={f.placeholder} value={f.secret ? '' : (it.config[f.key] ?? '')} spellcheck="false" />
+                </>
+              ))}
+              <p class="actions"><button class="btn" type="submit">Save and check</button></p>
+            </form>
+          )}
+
+          <div class="row">
+            {it.status !== 'verified' && (
+              <button class="btn ghost mark" type="button" data-to={it.status === 'granted' ? 'not_started' : 'granted'}>
+                {it.status === 'granted' ? 'Mark not started' : 'I have granted access'}
+              </button>
+            )}
+          </div>
+
+          <details>
+            <summary>Or upload a CSV instead</summary>
+            <p class="muted">Export: {it.csv} I read the file, keep the totals and discard the file.</p>
+            <label for={`${it.source}-csv`}>CSV file</label>
+            <input id={`${it.source}-csv`} class="csv" type="file" accept=".csv,.tsv,.txt,text/csv" />
+          </details>
+          <p class="msg muted" aria-live="polite">{it.error ? `Last check: ${it.error}` : ''}</p>
+        </section>
+      ))}
+
+      <section>
+        <p class="vm-kicker">What happens next</p>
+        <p>As soon as the data comes through, each item turns Verified on its own. I then write up where you stand, the three gaps that cost the most, and one clear 90-day goal, and send it to you.</p>
+        <p class="muted">Stuck on a step? Reply to my email. Let's talk.</p>
+      </section>
+    </div>
+  )}
+</LeadShell>
+
+<style>
+  .item .head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .item h2 { margin: 0; }
+  .item .row { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 1rem; }
+  .item .actions { margin-top: 1rem; }
+  .status { transition: background-color .4s ease; }
+</style>
+
+<script define:vars={{ token }}>
+  const LABEL = { not_started: 'Not started', granted: 'Granted', verified: 'Verified' };
+  const COLOR = { not_started: 'var(--dim)', granted: 'var(--gold)', verified: 'var(--sage)' };
+  const api = `/retail-os/api/access/${token}`;
+
+  function setStatus(card, status) {
+    const chip = card.querySelector('.status');
+    chip.textContent = LABEL[status];
+    chip.style.setProperty('--c', COLOR[status]);
+    card.style.setProperty('--c', COLOR[status]);
+    const mark = card.querySelector('.mark');
+    if (mark) {
+      if (status === 'verified') mark.remove();
+      else { mark.dataset.to = status === 'granted' ? 'not_started' : 'granted'; mark.textContent = status === 'granted' ? 'Mark not started' : 'I have granted access'; }
+    }
+    const all = document.querySelectorAll('.item').length;
+    const ok = [...document.querySelectorAll('.status')].filter((c) => c.textContent === 'Verified').length;
+    document.getElementById('progress').textContent = `${ok} of ${all} connected.`;
+  }
+
+  async function post(card, payload) {
+    const msg = card.querySelector('.msg');
+    msg.textContent = 'Checking…';
+    try {
+      const res = await fetch(api, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ source: card.dataset.source, ...payload }) });
+      const data = await res.json().catch(() => ({}));
+      if (data.status) setStatus(card, data.status);
+      msg.textContent = data.ok ? (data.status === 'verified' ? 'Verified. Thank you, the numbers came through.' : 'Saved.') : (data.error || 'That did not work. Please try again.');
+    } catch {
+      msg.textContent = 'Could not reach the server. Please try again.';
+    }
+  }
+
+  document.querySelectorAll('.item').forEach((card) => {
+    card.querySelector('.mark')?.addEventListener('click', (e) => post(card, { action: 'status', status: e.currentTarget.dataset.to }));
+    card.querySelector('.connect')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fields = Object.fromEntries(new FormData(e.currentTarget).entries());
+      const btn = e.currentTarget.querySelector('button');
+      btn.disabled = true;
+      post(card, { action: 'connect', fields }).finally(() => { btn.disabled = false; const s = e.target.querySelector('input[type=password]'); if (s) s.value = ''; });
+    });
+    card.querySelector('.csv')?.addEventListener('change', async (e) => {
+      const file = e.currentTarget.files?.[0];
+      if (!file) return;
+      if (file.size > 8 * 1024 * 1024) { card.querySelector('.msg').textContent = 'That file is over 8 MB. Export the last 90 days only.'; return; }
+      post(card, { action: 'csv', csv: await file.text() });
+    });
+  });
+</script>
