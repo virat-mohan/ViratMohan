@@ -161,7 +161,7 @@ async function metaSpend(db: SupabaseClient, since: string, untilInclusive: stri
 }
 
 export async function brandMetrics(brand: LiveBrand, period: Period): Promise<Metrics> {
-  const db = createClient(brand.supabaseUrl, brand.serviceKey, { auth: { persistSession: false } });
+  const db = brandClient(brand);
 
   const { data: ordersRaw, error } = await db
     .from('orders')
@@ -169,7 +169,9 @@ export async function brandMetrics(brand: LiveBrand, period: Period): Promise<Me
     .gte('created_at', istStart(period.start))
     .lt('created_at', istStart(period.end))
     .neq('status', 'cancelled');
-  if (error) throw new Error(`${brand.name}: orders query failed: ${error.message}`);
+  if (error) throw new Error(/invalid api key/i.test(error.message)
+    ? `${brand.name}: Supabase rejected the service key ("${error.message}"). It is not a current key of project "${describeBrandKey(brand).urlRef}": copy that project's service_role key from Settings → API keys into RETAIL_OS_LIVE_BRANDS in Vercel and redeploy.`
+    : `${brand.name}: orders query failed: ${error.message}`);
   const orders = (ordersRaw ?? []) as Record<string, unknown>[];
   const n = (v: unknown) => Number(v ?? 0) || 0;
 
@@ -255,7 +257,7 @@ function planMonth(d: StorePlanDrivers, i: 0 | 1 | 2): Budget {
 
 // Budget for any IST date range: each day gets its month's plan ÷ days in that month.
 export async function brandBudget(brand: LiveBrand, period: Period): Promise<Budget | null> {
-  const db = createClient(brand.supabaseUrl, brand.serviceKey, { auth: { persistSession: false } });
+  const db = brandClient(brand);
   const { data, error } = await db.from('business_plans').select('quarter_start, drivers').order('quarter_start', { ascending: false }).limit(8);
   if (error || !data?.length) return null;
   const plans = data as { quarter_start: string; drivers: StorePlanDrivers }[];
@@ -295,7 +297,7 @@ export async function brandBudget(brand: LiveBrand, period: Period): Promise<Bud
 export type FrictionPage = { url: string; sessions: number; rageClicks: number; deadClicks: number; quickbacks: number };
 
 export async function clarityFriction(brand: LiveBrand): Promise<{ fetchedAt: string; pages: FrictionPage[] } | null> {
-  const db = createClient(brand.supabaseUrl, brand.serviceKey, { auth: { persistSession: false } });
+  const db = brandClient(brand);
   const raw = await setting(db, 'CLARITY_INSIGHTS_SNAPSHOT').catch(() => null);
   if (!raw) return null;
   try {
@@ -337,4 +339,71 @@ export function leversFor(m: Metrics, budget: Budget | null): Lever[] {
     out.push({ title: 'Average order value below plan', detail: 'Add bundles or a buy-N rule to lift basket size.' });
   }
   return out;
+}
+
+// ── Connection diagnostics ────────────────────────────────────────────────
+// "Invalid API key" from Supabase means the key is not one of THIS project's
+// keys: pasted from another project, truncated, or rotated. Read the key
+// before using it so the error names the exact fix instead of a bare 401.
+
+export type BrandKeyInfo = {
+  urlRef: string;                        // project ref taken from the URL host
+  keyType: 'service_role' | 'anon' | 'secret' | 'unknown';
+  keyRef: string | null;                 // project ref inside a legacy JWT key (null for sb_secret_ keys)
+  problem: string | null;                // null when the key looks right for the URL
+};
+
+function projectRef(url: string): string {
+  const m = url.match(/^https?:\/\/([a-z0-9-]+)\.supabase\.(co|in)/i);
+  return m ? m[1].toLowerCase() : '';
+}
+
+export function describeBrandKey(brand: Pick<LiveBrand, 'name' | 'supabaseUrl' | 'serviceKey'>): BrandKeyInfo {
+  const urlRef = projectRef(brand.supabaseUrl);
+  const key = (brand.serviceKey || '').trim();
+  const fix = `Fix RETAIL_OS_LIVE_BRANDS (or RETAIL_OS_BRAND_*_SERVICE_KEY) in Vercel with the service_role key of the "${brand.name}" Supabase project, then redeploy.`;
+  if (!urlRef) return { urlRef, keyType: 'unknown', keyRef: null, problem: `${brand.name}: supabaseUrl "${brand.supabaseUrl}" is not a Supabase project URL. ${fix}` };
+  if (key.startsWith('sb_secret_')) return { urlRef, keyType: 'secret', keyRef: null, problem: null };
+  if (key.startsWith('sb_publishable_')) return { urlRef, keyType: 'anon', keyRef: null, problem: `${brand.name}: the key is a publishable key; reports need the service_role (or sb_secret_) key. ${fix}` };
+  const parts = key.split('.');
+  if (parts.length !== 3) return { urlRef, keyType: 'unknown', keyRef: null, problem: `${brand.name}: the service key is not a valid Supabase key (${key.length} characters). ${fix}` };
+  let payload: { ref?: string; role?: string } = {};
+  try { payload = JSON.parse(Buffer.from(parts[1].replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8')); } catch {
+    return { urlRef, keyType: 'unknown', keyRef: null, problem: `${brand.name}: the service key could not be decoded. ${fix}` };
+  }
+  const keyRef = (payload.ref || '').toLowerCase() || null;
+  const keyType = payload.role === 'service_role' ? 'service_role' : payload.role === 'anon' ? 'anon' : 'unknown';
+  if (keyRef && keyRef !== urlRef) return { urlRef, keyType, keyRef, problem: `${brand.name}: the service key belongs to Supabase project "${keyRef}" but the URL points at project "${urlRef}". ${fix}` };
+  if (keyType === 'anon') return { urlRef, keyType, keyRef, problem: `${brand.name}: the key is the anon key; reports need the service_role key. ${fix}` };
+  return { urlRef, keyType, keyRef, problem: null };
+}
+
+export function brandClient(brand: LiveBrand): SupabaseClient {
+  const info = describeBrandKey(brand);
+  if (info.problem) throw new Error(info.problem);
+  return createClient(brand.supabaseUrl, brand.serviceKey, { auth: { persistSession: false } });
+}
+
+export type BrandConnection = { key: string; name: string; ok: boolean; message: string; urlRef: string; keyType: BrandKeyInfo['keyType']; ms: number };
+
+// One cheap read per brand, with the error translated into the fix.
+export async function checkBrandConnection(brand: LiveBrand): Promise<BrandConnection> {
+  const info = describeBrandKey(brand);
+  const base = { key: brand.key, name: brand.name, urlRef: info.urlRef, keyType: info.keyType };
+  if (info.problem) return { ...base, ok: false, message: info.problem, ms: 0 };
+  const t = Date.now();
+  try {
+    const db = createClient(brand.supabaseUrl, brand.serviceKey, { auth: { persistSession: false } });
+    const { error } = await db.from('orders').select('id', { count: 'exact', head: true }).limit(1);
+    const ms = Date.now() - t;
+    if (error) {
+      const m = /invalid api key/i.test(error.message)
+        ? `${brand.name}: Supabase rejected the key ("${error.message}"). It is not a current key of project "${info.urlRef}" (rotated or from another project). Copy the service_role key from that project's Settings → API keys into Vercel and redeploy.`
+        : `${brand.name}: ${error.message}`;
+      return { ...base, ok: false, message: m, ms };
+    }
+    return { ...base, ok: true, message: 'Connected', ms };
+  } catch (err) {
+    return { ...base, ok: false, message: `${brand.name}: ${err instanceof Error ? err.message : String(err)}`, ms: Date.now() - t };
+  }
 }
