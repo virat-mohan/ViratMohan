@@ -21,7 +21,7 @@ export async function sendDemoDoneEmail(
   const questions = row.solution_notes?.clarifyingQuestions ?? [];
   const questionsBlock =
     questions.length > 0
-      ? `<p><strong>A few questions that would sharpen the numbers</strong> (the demo currently uses industry-typical assumptions where we didn't have your real figures — answer any of these in your reply and we'll use the real number):</p>
+      ? `<p><strong>A few questions that would sharpen the numbers</strong> (the demo currently uses industry-typical assumptions where I didn't have your real figures — answer any of these in your reply and I'll use the real number):</p>
          <ul>${questions.map((q) => `<li>${escapeHtml(q.question)}</li>`).join('')}</ul>`
       : '';
 
@@ -38,13 +38,13 @@ export async function sendDemoDoneEmail(
         ? `
         <p>Here's the updated demo, incorporating your feedback${row.company ? ` for ${escapeHtml(row.company)}` : ''}:</p>
         <p><a href="${demoUrl}">View your demo here →</a></p>
-        <p>This is the version we build from. The 30-day build clock starts once your deposit is in — no further revision rounds at this stage; if anything material changes, just let us know directly.</p>
+        <p>This is the version I build from. The 30-day build clock starts once your deposit is in — no further revision rounds at this stage; if anything material changes, just let me know directly.</p>
       `
         : `
-        <p>Here's the working demo — and the reasoning behind it — for the problem you sent us${row.company ? ` at ${escapeHtml(row.company)}` : ''}:</p>
+        <p>Here's the working demo — and the reasoning behind it — for the problem you sent me${row.company ? ` at ${escapeHtml(row.company)}` : ''}:</p>
         <p><a href="${demoUrl}">View your demo here →</a></p>
         ${questionsBlock}
-        <p>Have a change or a correction? Reply to this email — we'll fold it into one revised version, and that's the scope for the 30-day build.</p>
+        <p>Have a change or a correction? Reply to this email — I'll fold it into one revised version, and that's the scope for the 30-day build.</p>
       `,
     },
     env

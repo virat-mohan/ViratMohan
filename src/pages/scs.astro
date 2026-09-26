@@ -1,0 +1,33 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base
+  title="SCS — Successful Case Studies · Virat Mohan"
+  description="Successful case studies from DevShop Retail OS. Real numbers, white-labelled."
+  path="/scs"
+>
+  <section class="scs-page">
+    <p class="eyebrow">SCS · Successful Case Studies</p>
+    <h1 class="scs-h">Retail OS took over the ads from a human.</h1>
+    <p class="scs-dek">I handed a D2C brand's ads over to Retail OS. Three days in: +59% sales per day, and the brand's biggest day ever.</p>
+    <div class="scs-grid">
+      <img src="/scs/retail-os-autopilot-1.png" width="1080" height="1350" alt="+59% more sales per day in the first 3 days. Revenue per day ₹880 to ₹1,399. Biggest day ever ₹4,197." />
+      <img src="/scs/retail-os-autopilot-2.png" width="1080" height="1350" alt="Daily revenue chart 11 to 26 September. Average ₹880 a day before autopilot, ₹1,399 a day after." loading="lazy" />
+    </div>
+    <p class="scs-note">Early days and a small base: 8 orders over 13 days before, 1 order over 3 days after. Source: the brand's order database.</p>
+    <p class="scs-cta"><a href="/devshop">Let's talk →</a></p>
+  </section>
+</Base>
+
+<style>
+  .scs-page { max-width: 1100px; margin: 0 auto; padding: 7rem 16px 5rem; }
+  .eyebrow { font: 700 12px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: #d9714b; }
+  .scs-h { font-family: var(--display); text-transform: uppercase; font-size: clamp(2.2rem, 6vw, 4.2rem); line-height: .95; margin: 14px 0 12px; }
+  .scs-dek { font-family: var(--serif); font-style: italic; font-size: 1.35rem; color: var(--muted); max-width: 60ch; }
+  .scs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 2.5rem 0 1.25rem; }
+  .scs-grid img { width: 100%; height: auto; border-radius: 10px; box-shadow: 0 20px 40px -20px rgba(23,19,15,.35); }
+  .scs-note { font-size: .85rem; color: var(--muted); }
+  .scs-cta { margin-top: 1.5rem; font-family: var(--serif); font-size: 1.8rem; }
+  .scs-cta a { color: #d9714b; text-decoration: none; border-bottom: 1px solid #d4af37; }
+  @media (max-width: 700px) { .scs-grid { grid-template-columns: 1fr; } }
+</style>
