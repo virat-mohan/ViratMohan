@@ -11,4 +11,4 @@ Every page, dashboard, image and email must look calm, soothing and premium, fit
 First person "I", never "we". Plain language. The CTA is "Let's talk." (WhatsApp). Never invent numbers; sample data is labelled as sample.
 
 ## Values
-Responsible business, fair practice, transparency, collective growth, positive impact, efficiency, plain language, keep promises. See `/mission`.
+Responsible business, fair practice, transparency, collective growth, positive impact, efficiency, plain language, keep promises. See `/mission`. How to decide in any situation: `case-study/PLAYBOOK.md`.
