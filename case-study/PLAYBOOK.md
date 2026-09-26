@@ -1,6 +1,6 @@
 # Operating playbook
 
-The goal: the biggest AI company for businesses in the world, built responsibly. Every decision runs through this page.
+The goal: build the machine behind a thousand good brands, the responsible way. Every decision runs through this page.
 
 ## The decision test (in order)
 1. Is it honest? No invented numbers, no claims about things not live. If unsure, don't say it.
