@@ -1,0 +1,195 @@
+---
+export const prerender = false;
+import { getEnv } from '../../../lib/env';
+import { getOpsDb, progressByBrand, OPS_STATUSES, STATUS_LABEL } from '../../../lib/retail-os-ops';
+import type { TeamMember, OpsTask, OpsLog } from '../../../lib/retail-os-ops';
+
+// A team member's private workbench: every onboarding task, brand by brand,
+// with a daily update box. The token is the bearer; there is no login.
+const { token } = Astro.params;
+const env = getEnv();
+let member: TeamMember | null = null;
+let tasks: OpsTask[] = [];
+let log: OpsLog[] = [];
+if (token && env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
+  const db = getOpsDb(env);
+  member = await db.memberByToken(token).catch((err) => { console.error('ops member lookup failed', err); return null; });
+  if (member) [tasks, log] = await Promise.all([db.listTasks(member.id), db.listLog(member.id, 20)]);
+}
+const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+const progress = progressByBrand(tasks, today);
+const brandOrder = ['moonglasses', 'caps', 'ceremonykitchen', 'freshforpaws', 'aloochips'];
+progress.sort((a, b) => brandOrder.indexOf(a.brand_key) - brandOrder.indexOf(b.brand_key));
+const all = { total: progress.reduce((n, p) => n + p.total, 0), done: progress.reduce((n, p) => n + p.done, 0) };
+const fmt = (iso: string) => new Date(iso).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' });
+const dayLabel = (d: string) => new Date(`${d}T00:00:00+05:30`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' });
+const OWNER: Record<string, string> = { team: 'You', founder: 'Virat', brand: 'Brand' };
+---
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{member ? `${member.name}: Retail OS work` : 'Retail OS'}</title>
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{ --cream:#F4EAD4; --ink:#1A1410; --ink-soft:#4A4038; --gold:#D4AF37; --terracotta:#D9714B; --teal:#2B8C86; --line:rgba(26,20,16,0.14); }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--cream); color:var(--ink); font-family:'Inter',system-ui,sans-serif; font-size:14.5px; line-height:1.5;}
+  h1,h2,h3{font-family:'Anton','Arial Narrow',sans-serif; font-weight:400; text-transform:uppercase; margin:0;}
+  .wrap{max-width:900px; margin-inline:auto; padding:20px 16px 60px;}
+  .stripe{display:flex; height:6px;} .stripe span{flex:1;}
+  .stripe span:nth-child(1){background:var(--gold);} .stripe span:nth-child(2){background:#3E6FA6;} .stripe span:nth-child(3){background:#E91E8C;} .stripe span:nth-child(4){background:#9C7A4A;}
+  .top{display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap; margin:16px 0 18px;}
+  .wordmark{font-family:'Anton'; font-size:20px; text-transform:uppercase;} .wordmark b{color:#C99A3D; font-weight:400;}
+  .panel{background:#fff; border:2px solid var(--ink); padding:18px; margin-bottom:16px;}
+  .panel h2{font-size:1.15rem; margin-bottom:10px;}
+  .bars{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px;}
+  .bar{border:1.5px solid var(--line); padding:10px;} .bar .n{font-weight:700; font-size:13px;} .bar .track{height:8px; background:var(--line); margin:6px 0 4px;} .bar .fill{height:8px; background:var(--teal);}
+  .bar .s{font-size:11.5px; color:var(--ink-soft);} .bar .s b{color:var(--terracotta);}
+  .tabs{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;}
+  .tabs button{border:1.5px solid var(--ink); background:transparent; padding:7px 12px; font-family:'Inter'; font-weight:700; font-size:12.5px; cursor:pointer;}
+  .tabs button.on{background:var(--ink); color:var(--cream);}
+  .brandsec[hidden]{display:none;}
+  .stage{font-size:11px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:var(--ink-soft); margin:16px 0 6px; padding-bottom:4px; border-bottom:2px solid var(--gold);}
+  .task{display:grid; grid-template-columns:130px 1fr; gap:10px; padding:10px 0; border-bottom:1px solid var(--line); align-items:start;}
+  .task select{border:1.5px solid var(--ink); padding:6px; font-family:'Inter'; font-size:12.5px; font-weight:700; background:#fff; width:100%;}
+  .task select.done{background:var(--teal); color:#fff;} .task select.blocked{background:var(--terracotta); color:#fff;} .task select.doing{background:var(--gold);}
+  .task .t{font-weight:600;} .task .meta{font-size:11.5px; color:var(--ink-soft); margin-top:2px;} .task .meta b{color:var(--terracotta);}
+  .task textarea{width:100%; border:1.5px solid var(--line); padding:6px 8px; font-family:'Inter'; font-size:12.5px; margin-top:6px; min-height:34px; resize:vertical;}
+  .task .saved{font-size:11px; color:var(--teal); font-weight:700; height:14px;}
+  textarea.big{width:100%; border:1.5px solid var(--ink); padding:10px; font-family:'Inter'; font-size:14px; min-height:90px;}
+  .btn{border:2px solid var(--ink); background:var(--ink); color:var(--cream); padding:10px 16px; font-family:'Inter'; font-weight:700; font-size:13.5px; cursor:pointer; margin-top:8px;}
+  .btn.light{background:transparent; color:var(--ink);}
+  .msg{font-size:12.5px; margin-top:6px; min-height:16px; color:var(--terracotta);}
+  .log{font-size:12.5px;} .log div{padding:6px 0; border-bottom:1px solid var(--line);} .log .k{font-family:'IBM Plex Mono'; font-size:10.5px; color:var(--ink-soft); margin-right:8px;}
+  .note{font-size:12.5px; color:var(--ink-soft);}
+  @media (max-width:560px){ .task{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<div class="stripe"><span></span><span></span><span></span><span></span></div>
+<div class="wrap">
+  <div class="top">
+    <div class="wordmark"><b>Dev</b>Shop <span style="font-family:'Inter'; font-style:italic; font-size:11px; text-transform:none; color:var(--ink-soft);">Retail OS™ · Operations</span></div>
+    {member && <div class="note">{member.name} · started {dayLabel(member.started_on)} · today {dayLabel(today)}</div>}
+  </div>
+
+  {member ? (
+    <>
+      <div class="panel">
+        <h2>Your work, brand by brand <span class="note" style="font-family:'Inter'; text-transform:none; font-size:12.5px;">{all.done} of {all.total} done</span></h2>
+        <div class="bars">
+          {progress.map((p) => (
+            <div class="bar"><div class="n">{p.brand_name}</div><div class="track"><div class="fill" style={`width:${p.pct}%`}></div></div><div class="s">{p.done}/{p.total} done · {p.doing} in progress{p.blocked ? <> · <b>{p.blocked} blocked</b></> : null}{p.overdue ? <> · <b>{p.overdue} overdue</b></> : null}</div></div>
+          ))}
+        </div>
+        <p class="note" style="margin:12px 0 0;">Update the status as you go and add a short note on anything Virat or the brand needs to do. Tasks marked <b>Virat</b> or <b>Brand</b> are waiting on them; mark them done when you have what you need.</p>
+      </div>
+
+      <div class="panel">
+        <h2>Checklist</h2>
+        <div class="tabs">{progress.map((p, i) => <button type="button" class={i === 0 ? 'on' : ''} data-brand={p.brand_key}>{p.brand_name}</button>)}</div>
+        {progress.map((p, i) => {
+          const list = tasks.filter((t) => t.brand_key === p.brand_key);
+          const stages = [...new Set(list.map((t) => `${t.stage}|${t.stage_label}`))];
+          return (
+            <div class="brandsec" data-brand={p.brand_key} hidden={i !== 0}>
+              {stages.map((s) => {
+                const [n, label] = s.split('|');
+                return (
+                  <>
+                    <div class="stage">Stage {n} · {label}</div>
+                    {list.filter((t) => String(t.stage) === n).map((t) => (
+                      <div class="task" data-task={t.id}>
+                        <div>
+                          <select class={`status ${t.status}`}>
+                            {OPS_STATUSES.map((s) => <option value={s} selected={t.status === s}>{STATUS_LABEL[s]}</option>)}
+                          </select>
+                          <div class="saved"></div>
+                        </div>
+                        <div>
+                          <div class="t">{t.task}</div>
+                          <div class="meta">Owner: {OWNER[t.owner]}{t.due_on && <> · due {dayLabel(t.due_on)}{t.due_on < today && t.status !== 'done' && t.status !== 'na' ? <b> · overdue</b> : null}</>}{t.status !== 'todo' && <> · updated {fmt(t.updated_at)}</>}</div>
+                          <textarea class="note-in" placeholder="Note, blocker, or what Virat needs to do">{t.note ?? ''}</textarea>
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
+
+      <div class="panel">
+        <h2>End of day</h2>
+        <p class="note" style="margin:0 0 8px;">Three lines: what moved, what's blocked, what you'll do tomorrow. Virat reads this in the console.</p>
+        <textarea class="big" id="daily" placeholder="Done today… Blocked on… Tomorrow…"></textarea>
+        <button type="button" class="btn" id="dailyBtn">Post today's update</button>
+        <div class="msg" id="dailyMsg"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Ask Virat</h2>
+        <p class="note" style="margin:0 0 8px;">Anything you're unsure about. It's emailed to Virat straight away, and you can also write to <a href="mailto:viratmohan@gmail.com">viratmohan@gmail.com</a>.</p>
+        <textarea class="big" id="query" placeholder="Your question"></textarea>
+        <button type="button" class="btn light" id="queryBtn">Send question</button>
+        <div class="msg" id="queryMsg"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Recent activity</h2>
+        <div class="log">{log.length ? log.map((l) => <div><span class="k">{fmt(l.created_at)} · {l.kind}</span>{l.body}</div>) : <div class="note">Nothing yet.</div>}</div>
+      </div>
+    </>
+  ) : (
+    <div class="panel"><h2>Not found</h2><p class="note">This link isn't active. Email viratmohan@gmail.com.</p></div>
+  )}
+</div>
+<script>
+  var token = location.pathname.split('/').pop();
+  function post(url, body) {
+    return fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body || {}) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, data: d }; }); });
+  }
+  document.querySelectorAll('.tabs button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('.tabs button').forEach(function (x) { x.classList.toggle('on', x === b); });
+      document.querySelectorAll('.brandsec').forEach(function (s) { s.hidden = s.getAttribute('data-brand') !== b.getAttribute('data-brand'); });
+    });
+  });
+  document.querySelectorAll('.task').forEach(function (row) {
+    var id = row.getAttribute('data-task'), sel = row.querySelector('select.status'), note = row.querySelector('textarea.note-in'), saved = row.querySelector('.saved');
+    function flash(t) { saved.textContent = t; setTimeout(function () { saved.textContent = ''; }, 2500); }
+    sel.addEventListener('change', function () {
+      sel.className = 'status ' + sel.value;
+      post('/retail-os/api/ops/' + token + '/task', { taskId: id, status: sel.value }).then(function (r) { flash(r.ok ? 'Saved' : 'Not saved'); });
+    });
+    var timer;
+    note.addEventListener('input', function () {
+      clearTimeout(timer);
+      timer = setTimeout(function () {
+        post('/retail-os/api/ops/' + token + '/task', { taskId: id, note: note.value }).then(function (r) { flash(r.ok ? 'Saved' : 'Not saved'); });
+      }, 900);
+    });
+  });
+  function sendLog(kind, taId, btnId, msgId) {
+    var ta = document.getElementById(taId), msg = document.getElementById(msgId), btn = document.getElementById(btnId);
+    btn.addEventListener('click', function () {
+      btn.disabled = true; msg.textContent = 'Sending…';
+      post('/retail-os/api/ops/' + token + '/log', { kind: kind, body: ta.value }).then(function (r) {
+        btn.disabled = false;
+        if (r.ok) { ta.value = ''; msg.style.color = 'var(--teal)'; msg.textContent = kind === 'query' ? 'Sent to Virat.' : 'Posted.'; setTimeout(function () { location.reload(); }, 900); }
+        else { msg.style.color = ''; msg.textContent = (r.data && r.data.error) || 'Could not send.'; }
+      });
+    });
+  }
+  sendLog('daily', 'daily', 'dailyBtn', 'dailyMsg');
+  sendLog('query', 'query', 'queryBtn', 'queryMsg');
+</script>
+</body>
+</html>

@@ -5,6 +5,8 @@ import type { RetailOsApplication, JourneyStep } from '../../../lib/retail-os-db
 import { getEnv } from '../../../lib/env';
 import { getLiveBrands, clarityFriction, type FrictionPage } from '../../../lib/retail-os-portfolio';
 import { buildBrandReport, reportRows, type BrandReport } from '../../../lib/retail-os-reports';
+import { getOpsDb, progressByBrand } from '../../../lib/retail-os-ops';
+import type { TeamMember, OpsTask, OpsLog } from '../../../lib/retail-os-ops';
 
 // DevShop-only founder console (gated by src/middleware.ts). Never linked
 // from anything a brand owner can reach.
@@ -33,6 +35,27 @@ try {
   console.error('console pipeline load failed', err);
   appsError = true;
 }
+
+// Team: each member's tasks and latest updates, for the Team section.
+type TeamView = { member: TeamMember; tasks: OpsTask[]; log: OpsLog[]; progress: ReturnType<typeof progressByBrand>; blocked: OpsTask[]; onYou: OpsTask[] };
+let team: TeamView[] = [];
+try {
+  const ops = getOpsDb(env);
+  const members = await ops.listMembers();
+  const todayIst = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+  team = await Promise.all(members.map(async (member) => {
+    const [tasks, log] = await Promise.all([ops.listTasks(member.id), ops.listLog(member.id, 8)]);
+    return {
+      member, tasks, log,
+      progress: progressByBrand(tasks, todayIst),
+      blocked: tasks.filter((t) => t.status === 'blocked'),
+      onYou: tasks.filter((t) => t.owner === 'founder' && t.status !== 'done' && t.status !== 'na'),
+    };
+  }));
+} catch (err) {
+  console.error('console team load failed', err);
+}
+const fmtTs = (iso: string) => new Date(iso).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' });
 
 const DAY = 86400000;
 const daysSince = (iso: string | null | undefined) => (iso ? Math.floor((Date.now() - Date.parse(iso)) / DAY) : 0);
@@ -192,6 +215,35 @@ const totals = portfolio.reduce((t, p) => {
         )}
       </>
     )}
+  </section>
+
+  <section>
+    <h2>Team</h2>
+    {team.length === 0 ? <p class="note">No team members yet.</p> : team.map((tv) => (
+      <div class="brand" style="margin-bottom:14px;">
+        <h3>{tv.member.name} <span class="note" style="font-family:'Inter'; text-transform:none; font-weight:500;">· {tv.member.role} · since {new Date(tv.member.started_on).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} · <a href={`/retail-os/ops/${tv.member.token}`} target="_blank">open their page →</a></span></h3>
+        <div class="scroll"><table>
+          <tr><th>Brand</th><th>Done</th><th>In progress</th><th>Blocked</th><th>Overdue</th><th>Progress</th></tr>
+          {tv.progress.map((p) => <tr><td>{p.brand_name}</td><td>{p.done}/{p.total}</td><td>{p.doing}</td><td class={p.blocked ? 'bad' : ''}>{p.blocked}</td><td class={p.overdue ? 'bad' : ''}>{p.overdue}</td><td><span class="mono">{p.pct}%</span></td></tr>)}
+        </table></div>
+        {tv.onYou.length > 0 && (
+          <div style="margin-top:10px;">
+            <div class="note" style="font-weight:700; text-transform:uppercase; font-size:10.5px;">Waiting on you ({tv.onYou.length})</div>
+            {tv.onYou.map((t) => <div class="lever"><b>{t.brand_name}</b>{t.task}{t.note && <span class="note"> · {t.note}</span>}</div>)}
+          </div>
+        )}
+        {tv.blocked.length > 0 && (
+          <div style="margin-top:10px;">
+            <div class="note bad" style="font-weight:700; text-transform:uppercase; font-size:10.5px;">Blocked ({tv.blocked.length})</div>
+            {tv.blocked.map((t) => <div class="lever"><b>{t.brand_name}</b>{t.task}{t.note && <span class="note"> · {t.note}</span>}</div>)}
+          </div>
+        )}
+        <div style="margin-top:10px;">
+          <div class="note" style="font-weight:700; text-transform:uppercase; font-size:10.5px;">Latest from {tv.member.name}</div>
+          {tv.log.length ? tv.log.map((l) => <div class="lever"><span class="mono note">{fmtTs(l.created_at)} · {l.kind}</span><br />{l.body}</div>) : <div class="note">No updates yet.</div>}
+        </div>
+      </div>
+    ))}
   </section>
 
   <p class="note">Levers are rule-based for now, read off actuals against each store's plan. Brand owners never see this page.</p>
