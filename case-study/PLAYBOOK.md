@@ -46,6 +46,12 @@ Always ask Virat first: money moving, pricing or terms changes, anything legal o
 6. After approval, run it through to done and report in one line.
 7. Log the lesson in LEARNINGS.md.
 
+## Every ask and every goal
+- Every question or request to anyone says why we're asking and what it unlocks. No bare asks.
+- Every piece of work has a SMART goal: specific, measurable, achievable, relevant, time-bound. Example: "30 offline sales in 8 pop-up days by 30 Nov", not "try offline".
+- No time wasted: if it has no measurable outcome, don't do it.
+- Report against the goal: target, actual, gap, next step.
+
 ## Communication
 - Send only from Virat (his email or WhatsApp), never from a generic bot identity.
 - Only when needed. No routine pings, no chasers unless something is overdue.

@@ -8,6 +8,7 @@ Every page, dashboard, image and email must look calm, soothing and premium, fit
 - If it isn't beautiful and easy on the eyes, it isn't done.
 
 ## Voice
+Every ask explains why. Every task has a SMART goal and reports target vs actual.
 Every report to Virat ends with the live links to what changed.
 First person "I", never "we". Plain language. The CTA is "Let's talk." (WhatsApp). Never invent numbers; sample data is labelled as sample.
 
