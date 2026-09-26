@@ -18,5 +18,13 @@ All copy (pages, dashboards, emails, posts, chat replies) must trace back to /mi
 - Ambition: the biggest AI company for businesses in the world, built responsibly.
 Same terms, same numbers, same promises everywhere. If a line contradicts /mission, fix the line. Customer-facing brand stores keep their own brand voice.
 
+## Tech beliefs
+- Always learning: Every mistake becomes a rule. The same mistake never happens twice.
+- Always auditing: The system checks its own work, all the time, not once a quarter.
+- Better every time: Each run starts from what the last one learned.
+- Ideal state: Know what perfect looks like, measure the gap, close it a little every day.
+- Humans decide: Machines do the work. Money, people and promises stay with me.
+In practice: read case-study/LEARNINGS.md before work, add to it after. Every fix ends with one lesson.
+
 ## Values
 Responsible business, fair practice, transparency, collective growth, positive impact, efficiency, plain language, keep promises. See `/mission`. How to decide in any situation: `case-study/PLAYBOOK.md`.

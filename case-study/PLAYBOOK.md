@@ -38,5 +38,8 @@ Always ask Virat first: money moving, pricing or terms changes, anything legal o
 - Email: anything formal, long, or needing a record (terms, statements, invoices, legal, investors, first contact).
 - One message, one ask. Plain words.
 
+## Continuous improvement
+The self-audit runs every 4 hours across all products. Each run reads LEARNINGS.md, fixes the biggest gap it may fix alone, lists the rest for Virat, and writes what it learned.
+
 ## Rhythm
 Daily: check orders, shipping, ads spend and chat leads. Weekly (Monday): honest statement per brand. Monthly: review values, prices and promises.
