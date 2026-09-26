@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 const ways = [
   ['Responsible business', 'Profit is how I measure, not why I exist. People and the planet come first.'],
+  ['Hospitality', 'Every person feels welcome, known and looked after.'],
   ['Fair practice', 'Standard terms, published openly. No hidden fees.'],
   ['Transparency', 'Every number visible. Every claim sourced.'],
   ['Collective growth', 'Founders, customers, partners and staff all win together.'],
@@ -39,6 +40,15 @@ const ways = [
         <li><img src={`/icons/values/${t.toLowerCase().replace(/ /g, '-')}.svg`} alt="" width="40" height="40" /><div><h3><span class="mv-n">{String(i + 1).padStart(2, '0')}</span> {t}</h3><p>{d}</p></div></li>
       ))}
     </ol>
+    <hr />
+    <p class="mv-k">How the machine thinks</p>
+    <ul class="mv-beliefs">
+      <li><h3>Always learning</h3><p>Every mistake becomes a rule. The same mistake never happens twice.</p></li>
+      <li><h3>Always auditing</h3><p>The system checks its own work, all the time, not once a quarter.</p></li>
+      <li><h3>Better every time</h3><p>Each run starts from what the last one learned.</p></li>
+      <li><h3>Ideal state</h3><p>Know what perfect looks like, measure the gap, close it a little every day.</p></li>
+      <li><h3>Humans decide</h3><p>Machines do the work. Money, people and promises stay with me.</p></li>
+    </ul>
     <p class="mv-cta"><a href="/retail-os/">See Retail OS →</a></p>
   </section>
 </Base>
@@ -60,5 +70,10 @@ const ways = [
   .mv-ways p { margin: 0; color: var(--muted); }
   .mv-cta { margin-top: 3rem; font-family: var(--serif); font-size: 1.6rem; }
   .mv-cta a { color: var(--terracotta); border-bottom: 1px solid var(--gold); text-decoration: none; }
+  .mv-beliefs { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 22px 40px; }
+  .mv-beliefs li { border-left: 2px solid var(--gold); padding-left: 14px; }
+  .mv-beliefs h3 { font-family: var(--display); text-transform: uppercase; font-weight: 400; font-size: 1.2rem; margin: 0 0 4px; }
+  .mv-beliefs p { margin: 0; color: var(--muted); }
+  @media (max-width: 700px) { .mv-beliefs { grid-template-columns: 1fr; } }
   @media (max-width: 700px) { .mv-ways { grid-template-columns: 1fr; } }
 </style>

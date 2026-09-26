@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/brand/tokens.css" />
 <style>
   :root{
     --cream:#F4EAD4; --ink:#1A1410; --ink-soft:#4A4038;
@@ -137,11 +138,30 @@
 
   footer{padding-block:28px; text-align:center;}
   footer p{margin:0; font-size:10.5px; font-weight:700; letter-spacing:0.03em; color:var(--ink-soft);}
+
+  /* Shared brand system — /brand/tokens.css (mirrors the homepage) */
+  :root{ --cream:var(--paper); --ink-soft:var(--dim); --blue:var(--cobalt); --pink:var(--magenta); --olive:var(--bronze); }
+  body{ background:var(--paper); font-family:var(--sans); }
+  .hero p.lede, .lede, .hero-sub{ font-family:var(--serif) !important; font-style:italic; font-weight:400 !important; font-size:clamp(1.2rem,2vw,1.5rem) !important; line-height:1.35 !important; }
+  .wordmark{ font-size:18px; }
+  section{ border-top-color:var(--gold) !important; border-top-width:1px !important; }
 </style>
 </head>
-<body>
+<body class="vm-page">
 
-<div class="stripe"><span></span><span></span><span></span><span></span></div>
+<header class="vm-head">
+  <div class="vm-head__in">
+    <a class="vm-mark" href="/" aria-label="Virat Mohan — home">VM</a>
+    <nav class="vm-nav" aria-label="Primary">
+      <a href="/devshop" style="--c:var(--gold)">Dev Shop</a>
+      <a href="/retail-os/" style="--c:var(--bronze)">Retail OS</a>
+      <a href="/clarityhq" style="--c:var(--magenta)">ClarityHQ</a>
+      <a href="/advisory" style="--c:var(--cobalt)">Advisory</a>
+      <a href="/writing" style="--c:var(--terracotta)">My Writing</a>
+    </nav>
+  </div>
+  <div class="vm-band" aria-hidden="true"></div>
+</header>
 <div class="wrap">
   <nav>
     <div class="wordmark"><span class="w1">Dev</span><span class="w2">Shop</span><small>Retail OS™</small></div>
@@ -1030,5 +1050,6 @@
   }
 })();
 </script>
+<footer class="vm-signature"><a href="https://viratmohan.com/mission"><b>Virat Mohan</b> · I build the machine that gets good products to the world. →</a></footer>
 </body>
 </html>

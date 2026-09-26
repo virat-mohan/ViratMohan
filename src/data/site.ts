@@ -5,9 +5,9 @@
 export const site = {
   name: 'Virat Mohan',
   domain: 'https://viratmohan.com',
-  positioning: 'I build the operating layer between capital and execution.',
+  positioning: 'I build the machine that gets good products to the world.',
   thesis:
-    'AI has made capability cheap and judgment scarce. The businesses that compound are the ones that put humans in front of the machine, not behind it.',
+    'AI makes doing the work cheap. Good judgment is still rare. I let machines do the routine and keep people for what needs people.',
   email: 'viratmohan@gmail.com',
   whatsapp: '919999277240',
   // "Let's talk" CTA everywhere: WhatsApp click-to-chat with a prefilled line.

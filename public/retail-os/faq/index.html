@@ -8,6 +8,7 @@
 <link rel="icon" href="/devshop-favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/brand/tokens.css" />
 <style>
 :root{
   --cream:#F4EAD4; --ink:#1A1410; --ink-soft:#4A4038;
@@ -100,10 +101,29 @@ mark{background:var(--gold); color:var(--ink); padding:0 2px;}
 footer{padding-block:24px; border-top:2px solid var(--ink);} footer p{margin:0; font-size:11px; font-weight:700; letter-spacing:.03em; color:var(--ink-soft);}
 @media (max-width:640px){ .navlinks{display:none;} }
 .tgrid > *{min-width:0;} @media (max-width:520px){ .mk{max-width:100%; overflow-x:auto;} }
+
+  /* Shared brand system — /brand/tokens.css (mirrors the homepage) */
+  :root{ --cream:var(--paper); --ink-soft:var(--dim); --blue:var(--cobalt); --pink:var(--magenta); --olive:var(--bronze); }
+  body{ background:var(--paper); font-family:var(--sans); }
+  .hero p.lede, .lede, .hero-sub{ font-family:var(--serif) !important; font-style:italic; font-weight:400 !important; font-size:clamp(1.2rem,2vw,1.5rem) !important; line-height:1.35 !important; }
+  .wordmark{ font-size:18px; }
+  section{ border-top-color:var(--gold) !important; border-top-width:1px !important; }
 </style>
 </head>
-<body>
-<div class="stripe"><span></span><span></span><span></span><span></span></div>
+<body class="vm-page">
+<header class="vm-head">
+  <div class="vm-head__in">
+    <a class="vm-mark" href="/" aria-label="Virat Mohan — home">VM</a>
+    <nav class="vm-nav" aria-label="Primary">
+      <a href="/devshop" style="--c:var(--gold)">Dev Shop</a>
+      <a href="/retail-os/" style="--c:var(--bronze)">Retail OS</a>
+      <a href="/clarityhq" style="--c:var(--magenta)">ClarityHQ</a>
+      <a href="/advisory" style="--c:var(--cobalt)">Advisory</a>
+      <a href="/writing" style="--c:var(--terracotta)">My Writing</a>
+    </nav>
+  </div>
+  <div class="vm-band" aria-hidden="true"></div>
+</header>
 <div class="wrap">
   <nav>
     <a class="wordmark" href="/retail-os/"><span class="w1">Dev</span><span class="w2">Shop</span><small>Retail OS™</small></a>
@@ -114,7 +134,7 @@ footer{padding-block:24px; border-top:2px solid var(--ink);} footer p{margin:0; 
   <div class="wrap hero-inner">
     <div class="eyebrow">Partner FAQ</div>
     <h1>Ask it straight. <span>Get it straight.</span></h1>
-    <p>Everything DevShop Retail OS does and how it works, by category. Search anything. If it is not here, ask me on WhatsApp.</p>
+    <p class="lede">Everything DevShop Retail OS does and how it works, by category. Search anything. If it is not here, ask me on WhatsApp.</p>
     <div class="search">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1410" stroke-width="2.5" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
       <input id="q" type="search" placeholder="Search anything: Meta ads, photoshoot, Shopify, shipping…" aria-label="Search the FAQ" autocomplete="off">
@@ -314,5 +334,6 @@ footer{padding-block:24px; border-top:2px solid var(--ink);} footer p{margin:0; 
 })();
 </script>
 <script src="/assistant.js" defer></script>
+<footer class="vm-signature"><a href="https://viratmohan.com/mission"><b>Virat Mohan</b> · I build the machine that gets good products to the world. →</a></footer>
 </body>
 </html>

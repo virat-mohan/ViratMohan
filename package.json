@@ -9,6 +9,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
+    "check:brand": "node scripts/check-brand-tokens.mjs",
     "test": "vitest run tests/unit",
     "test:watch": "vitest tests/unit",
     "test:live": "vitest run tests/benchmarks"
