@@ -236,7 +236,7 @@ window.RETAIL_OS_FAQ = [
 
   // ---- Commercials
   { topic: 'Commercials', q: 'What does it cost?',
-    a: 'Pricing, profit share, settlement and contract terms are set out in the partnership agreement. WhatsApp me and I will go through them with you.',
+    a: 'There are three ways to work with me: a profit share (40% of the profit pool is standard), a revenue share (15 to 20% of your D2C revenue), or a retainer from ₹2.5 lakh a month. Ad spend is always yours, at cost.\n\nThe exact terms, settlement and contract length are set out in the partnership agreement. WhatsApp me and I will go through them with you.',
     tags: ['pricing', 'cost', 'fees', 'split', 'contract', 'deposit', 'settlement', 'price', 'charges'] },
   { topic: 'Commercials', q: 'Can I take only some parts, like social or ads?',
     a: 'Yes. The commercials are different when you take only some parts. WhatsApp me and I will go through them with you.',
@@ -244,4 +244,10 @@ window.RETAIL_OS_FAQ = [
   { topic: 'Commercials', q: 'Do I keep my brand?',
     a: 'Yes. Your brand stays yours. Brands I build with you from zero are the exception, and that is covered in the agreement.',
     tags: ['ip', 'ownership', 'brand'] },
+  { topic: 'Commercials', q: 'Who owns DevShop, Retail OS and Pay with a Post?',
+    a: 'I own 100% of DevShop. DevShop owns 100% of Retail OS and Pay with a Post.',
+    tags: ['owner', 'ownership', 'founder', 'company', 'who owns', 'shareholding', 'investors', 'pay with a post', 'retail os', 'devshop'] },
+  { topic: 'Commercials', q: 'Can I earn by referring brands?',
+    a: 'Yes. Partners earn 25% of what I earn from every brand they bring, for as long as that brand works with me. You sign the NCNDA, bring the brand, and see every rupee on your partner dashboard.\n\nDetails at viratmohan.com/partners.',
+    tags: ['affiliate', 'partner', 'referral', 'refer', 'commission', 'earn', 'introduce', 'agency', 'consultant'] },
 ];
