@@ -18,6 +18,9 @@ All copy (pages, dashboards, emails, posts, chat replies) must trace back to /mi
 - Ambition: the biggest AI company for businesses in the world, built responsibly.
 Same terms, same numbers, same promises everywhere. If a line contradicts /mission, fix the line. Customer-facing brand stores keep their own brand voice.
 
+## Hospitality
+Every customer touchpoint follows the Hospitality section of case-study/PLAYBOOK.md: welcome, anticipate, remember, look after. Nothing is emailed, messaged or posted without Virat's approval.
+
 ## Tech beliefs
 - Always learning: Every mistake becomes a rule. The same mistake never happens twice.
 - Always auditing: The system checks its own work, all the time, not once a quarter.
