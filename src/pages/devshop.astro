@@ -39,9 +39,9 @@ import coachYourPsycheShot from '../assets/screenshots/Coachyourpsyche.png';
 // ---- Easily-editable config, per prompt instructions ----
 const CURRENCY = '₹'; // INR is the standard currency for this product.
 const PRICING = {
-  buildFirst: '1,50,000',
-  buildAdditional: '75,000',
-  careMin: '50,000',
+  // One family with Retail OS: every DevShop engagement is a monthly retainer that
+  // covers building and running. The same floor Retail OS publishes for retainers.
+  retainer: '2,50,000',
 };
 
 // Regional pricing — deliberately NOT a raw FX conversion of the INR price
@@ -54,10 +54,10 @@ const PRICING = {
 // US: $5,000 / UK: £3,500 / UAE: AED 15,000 — set by the user directly;
 // AMC figures derived by applying each region's own multiple to the INR
 // AMC floor (₹50,000/mo), then rounded to a clean number.
-const REGION_PRICING: Record<string, { currency: string; buildFirst: string; buildAdditional: string; careMin: string }> = {
-  US: { currency: '$', buildFirst: '5,000', buildAdditional: '2,500', careMin: '1,700' },
-  UK: { currency: '£', buildFirst: '3,500', buildAdditional: '1,750', careMin: '1,200' },
-  UAE: { currency: 'AED ', buildFirst: '15,000', buildAdditional: '7,500', careMin: '5,000' },
+const REGION_PRICING: Record<string, { currency: string; retainer: string }> = {
+  US: { currency: '$', retainer: '8,500' },
+  UK: { currency: '£', retainer: '6,000' },
+  UAE: { currency: 'AED ', retainer: '25,000' },
 };
 // Vercel's x-vercel-ip-country ISO code -> which region config to use.
 const COUNTRY_TO_REGION: Record<string, keyof typeof REGION_PRICING> = {
@@ -265,7 +265,7 @@ const canonical = new URL('/devshop', site.domain).href;
       <div class="step"><div class="num">01</div><div class="rule"></div><h3>Problem in</h3><p>Tell me what's broken.<br />No specs. No decks.</p></div>
       <div class="step"><div class="num">02</div><div class="rule"></div><h3><span class="tint-gold">Instant</span> demo</h3><p>I diagnose and show you<br />a working demo right there.</p></div>
       <div class="step"><div class="num">03</div><div class="rule"></div><h3>Approve & staff</h3><p>You approve the demo and pay the deposit.<br /><br />I staff your build — an FDE/client lead, a solution architect, engineers, and a <span class="tint-gold">subject matter expert in your industry and business function</span>, not just an engineering team guessing at your domain.</p></div>
-      <div class="step"><div class="num">04</div><div class="rule"></div><h3>Build & handover</h3><p>I ship within 30 days, walk your team<br />through it live, then DevShop Care + Optimisation starts.</p></div>
+      <div class="step"><div class="num">04</div><div class="rule"></div><h3>Build & handover</h3><p>I ship within 30 days, walk your team<br />through it live, then keep it running and improving on the same retainer.</p></div>
     </div>
   </section>
 
@@ -374,19 +374,19 @@ const canonical = new URL('/devshop', site.domain).href;
       <script type="application/json" id="regionPricingData" set:html={JSON.stringify({ regions: REGION_PRICING, countryMap: COUNTRY_TO_REGION })} />
       <div class="pricing-tiers">
         <div>
-          <div class="eyebrow" style="margin-bottom:14px;">BUILD</div>
-          <div class="serif" style="font-size:clamp(28px,3.2vw,44px);"><span id="priceBuildFirst">{CURRENCY}{PRICING.buildFirst}</span></div>
-          <p class="sub" style="max-width:340px;">First module. 30-calendar-day working-build commitment from deposit.</p>
+          <div class="eyebrow" style="margin-bottom:14px;">DEVSHOP RETAINER</div>
+          <div class="serif" style="font-size:clamp(28px,3.2vw,44px);">from <span id="priceRetainer">{CURRENCY}{PRICING.retainer}</span><span style="font-size:16px; opacity:0.6;">/mo</span></div>
+          <p class="sub" style="max-width:340px;">Build and run, one price. Your first module is live within 30 days, then I keep it running, improving and adding to it every month.</p>
         </div>
         <div>
-          <div class="eyebrow" style="margin-bottom:14px;">ADDITIONAL MODULE</div>
-          <div class="serif" style="font-size:clamp(28px,3.2vw,44px);"><span id="priceBuildAdditional">{CURRENCY}{PRICING.buildAdditional}</span></div>
-          <p class="sub" style="max-width:340px;">Each additional module, within the same 30-day window.</p>
+          <div class="eyebrow" style="margin-bottom:14px;">REVENUE SHARE</div>
+          <div class="serif" style="font-size:clamp(28px,3.2vw,44px);">15–20%</div>
+          <p class="sub" style="max-width:340px;">Of the revenue the system brings in, instead of a fee. For commerce, this is <a href="/retail-os/">Retail OS</a>.</p>
         </div>
         <div>
-          <div class="eyebrow" style="margin-bottom:14px;">DEVSHOP CARE + OPTIMISATION</div>
-          <div class="serif" style="font-size:clamp(28px,3.2vw,44px);"><span id="priceCareMin">{CURRENCY}{PRICING.careMin}</span><span style="font-size:16px; opacity:0.6;">/mo</span></div>
-          <p class="sub" style="max-width:340px;">Floor, not the price — depends on what the system actually needs to stay useful.</p>
+          <div class="eyebrow" style="margin-bottom:14px;">PROFIT SHARE</div>
+          <div class="serif" style="font-size:clamp(28px,3.2vw,44px);">40%</div>
+          <p class="sub" style="max-width:340px;">Of the profit pool, zero capex. I run your whole online business on <a href="/retail-os/">Retail OS</a>.</p>
         </div>
       </div>
       <p class="sub region-price-note" id="regionPriceNote" hidden style="margin-top:6px; font-size:12.5px;">Priced for your region — not a currency conversion, benchmarked against comparable local rates.</p>
@@ -401,15 +401,14 @@ const canonical = new URL('/devshop', site.domain).href;
           <div class="module-def-item"><span class="module-def-item-title">Training &amp; handoff</span><span class="module-def-item-body">I walk your team through it directly at launch.</span></div>
         </div>
       </div>
-      <p class="sub" style="margin-top:28px;">Genuinely complex or custom systems are human-priced after a short scoping call, not forced into the standard tiers.</p>
+      <p class="sub" style="margin-top:28px;">Genuinely complex or custom systems are human-priced after a short scoping call, not forced into the standard retainer.</p>
       <div class="payment-terms">
         <p class="payment-terms-label">Payment terms</p>
         <div class="payment-terms-grid">
-          <div class="payment-terms-item"><span class="payment-terms-pct">25%</span><span class="payment-terms-when">On confirmation — secures your build slot, starts the 30-day clock</span></div>
-          <div class="payment-terms-item"><span class="payment-terms-pct">50%</span><span class="payment-terms-when">At the shadow run (Day 26) — once it's built and running against your real data</span></div>
-          <div class="payment-terms-item"><span class="payment-terms-pct">25%</span><span class="payment-terms-when">On go-live (Day 30) — once the full run is live and handed over</span></div>
+          <div class="payment-terms-item"><span class="payment-terms-pct">Month 1</span><span class="payment-terms-when">Paid in advance on confirmation. Secures your slot and starts the 30-day clock.</span></div>
+          <div class="payment-terms-item"><span class="payment-terms-pct">Monthly</span><span class="payment-terms-when">Billed in advance from month 2. Running, improving and new work included.</span></div>
         </div>
-        <p class="payment-terms-note"><strong>Ongoing:</strong> DevShop Care + Optimisation is billed monthly in advance — the first payment is due at the end of month 1, covering month 2, not on a delay.</p>
+        <p class="payment-terms-note">No separate build fee and no separate care plan: the retainer covers both.</p>
       </div>
       <div style="margin-top:40px;"><button class="btn" data-go="intake">Start →</button></div>
     </div>
@@ -699,14 +698,14 @@ const canonical = new URL('/devshop', site.domain).href;
     <div class="eyebrow">BILLING</div>
     <h1 class="hero serif" style="font-size:clamp(32px,4.4vw,52px);">Fast Tech Dev Shop</h1>
     <div class="billing-summary">
-      <div class="item"><div class="l">MONTHLY</div><div class="v">{CURRENCY}{PRICING.careMin}</div></div>
+      <div class="item"><div class="l">MONTHLY</div><div class="v">{CURRENCY}{PRICING.retainer}</div></div>
       <div class="item"><div class="l">NEXT BILLING</div><div class="v">04 Oct 2026</div></div>
     </div>
     <table>
       <tr><th>Date</th><th>Amount</th><th>Status</th></tr>
-      <tr><td>04 Sep 2026</td><td>{CURRENCY}{PRICING.careMin}</td><td class="status">Paid</td></tr>
-      <tr><td>04 Aug 2026</td><td>{CURRENCY}{PRICING.careMin}</td><td class="status">Paid</td></tr>
-      <tr><td>04 Jul 2026</td><td>{CURRENCY}{PRICING.careMin}</td><td class="status">Paid</td></tr>
+      <tr><td>04 Sep 2026</td><td>{CURRENCY}{PRICING.retainer}</td><td class="status">Paid</td></tr>
+      <tr><td>04 Aug 2026</td><td>{CURRENCY}{PRICING.retainer}</td><td class="status">Paid</td></tr>
+      <tr><td>04 Jul 2026</td><td>{CURRENCY}{PRICING.retainer}</td><td class="status">Paid</td></tr>
     </table>
   </section>
 
@@ -1448,13 +1447,9 @@ const canonical = new URL('/devshop', site.domain).href;
       var region = data.regions[regionKey];
       if (!region) return;
 
-      var elFirst = document.getElementById('priceBuildFirst');
-      var elAdditional = document.getElementById('priceBuildAdditional');
-      var elCare = document.getElementById('priceCareMin');
+      var elRetainer = document.getElementById('priceRetainer');
       var note = document.getElementById('regionPriceNote');
-      if (elFirst) elFirst.textContent = region.currency + region.buildFirst;
-      if (elAdditional) elAdditional.textContent = region.currency + region.buildAdditional;
-      if (elCare) elCare.textContent = region.currency + region.careMin;
+      if (elRetainer) elRetainer.textContent = region.currency + region.retainer;
       if (note) note.hidden = false;
     }).catch(function () { /* keep default INR pricing already rendered */ });
   })();
