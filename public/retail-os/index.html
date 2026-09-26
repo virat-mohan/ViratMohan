@@ -265,6 +265,14 @@
 
   footer{padding-block:28px; border-top:2px solid var(--ink); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;}
   footer p{margin:0; font-size:11px; font-weight:700; letter-spacing:0.03em; color:var(--ink-soft);}
+  .scs{display:grid; grid-template-columns:1.1fr 1fr; gap:40px; align-items:center;}
+  .scs h2{margin:10px 0 4px;}
+  .scs-big{font-family:'Anton',sans-serif; font-size:clamp(88px,14vw,150px); line-height:.9; color:var(--terracotta);}
+  .scs-sub{font-size:18px; font-weight:500; max-width:44ch;}
+  .scs-note{font-size:13px; opacity:.7; max-width:52ch;}
+  .scs-link{display:inline-block; margin-top:12px; font-weight:700; color:var(--ink); border-bottom:2px solid var(--gold); text-decoration:none;}
+  .scs-img img{width:100%; height:auto; border-radius:12px; box-shadow:0 24px 48px -24px rgba(26,20,16,.45); display:block;}
+  @media (max-width:820px){ .scs{grid-template-columns:1fr;} }
 </style>
 </head>
 <body>
@@ -305,6 +313,18 @@
 </header>
 
 <div class="wrap">
+
+  <section id="scs" class="scs">
+    <div class="scs-copy">
+      <div class="eyebrow" style="color:var(--terracotta)">New Successful Case Study (SCS)</div>
+      <h2>Retail OS took over the ads from a human.</h2>
+      <div class="scs-big">+59%</div>
+      <p class="scs-sub">more sales per day in the first 3 days. Revenue per day went from ₹880 to ₹1,399, and the brand had its biggest day ever: ₹4,197.</p>
+      <p class="scs-note">Early days and a small base: 8 orders over 13 days before, 1 order over 3 days after. Source: the brand's order database.</p>
+      <a class="scs-link" href="/scs">See the numbers →</a>
+    </div>
+    <a class="scs-img" href="/scs"><img src="/scs/retail-os-autopilot-1.png" width="1080" height="1350" alt="+59% more sales per day after Retail OS took over the ads from a human" loading="lazy"></a>
+  </section>
 
   <section id="how">
     <div class="section-head">
