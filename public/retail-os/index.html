@@ -312,11 +312,11 @@
 
 <div class="f10" role="note">
   <span class="f10-tag">Founding 10</span>
-  <span class="f10-text">Invites are open for my first 10 brands through the new onboarding. Same published terms for everyone. What the first 10 get: a priority launch slot, and your results featured first.</span>
-  <span class="f10-left"><b id="f10Left">10</b> of 10 places left</span>
+  <span class="f10-text">5 of my first 10 brands are already on it: three selling, two launching. Invites are open for the rest. Same published terms for everyone; the first 10 get a priority launch slot and their results featured first.</span>
+  <span class="f10-left">Only <b id="f10Left">5</b> of 10 places left</span>
   <a class="f10-cta" href="/retail-os/apply/">Apply in 10 minutes →</a>
 </div>
-<script>fetch('/retail-os/api/stats').then(function(r){return r.json()}).then(function(d){if(typeof d.signed==='number'){var n=Math.max(0,10-d.signed);document.getElementById('f10Left').textContent=n;}}).catch(function(){});</script>
+<script>fetch('/retail-os/api/stats').then(function(r){return r.json()}).then(function(d){if(typeof d.signed==='number'){var n=Math.max(0,10-5-d.signed);document.getElementById('f10Left').textContent=n;}}).catch(function(){});</script>
 <header class="hero">
   <div class="wrap hero-inner">
     <div class="eyebrow">DevShop Retail OS™</div>
