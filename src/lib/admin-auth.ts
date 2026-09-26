@@ -13,6 +13,7 @@ export const PROTECTED_PREFIXES = [
   '/devshop/api/usecase-templates',
   '/retail-os/admin',
   '/retail-os/api/admin',
+  '/api/admin',
 ];
 
 export function isProtectedPath(pathname: string): boolean {

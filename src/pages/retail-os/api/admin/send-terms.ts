@@ -8,6 +8,7 @@ import { sendEmail } from '../../../../lib/email';
 import { getOrigin } from '../../../../lib/http';
 import { renderRetailOsEmail } from '../../../../lib/retail-os-email';
 import { json, readJson } from '../../../../lib/retail-os-http';
+import { mailConfigured } from '../../../../lib/mail/send';
 
 // Gated by src/middleware.ts. Sets the final commercial terms after review and
 // emails the founder that they are ready to sign. Terms can be re-sent with a
@@ -45,7 +46,7 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const trackUrl = `${getOrigin(request)}/retail-os/track/${id}`;
-  if (env.RESEND_API_KEY && env.RESEND_FROM_EMAIL) {
+  if (mailConfigured(env)) {
     sendEmail(
       {
         to: app.founder_email,

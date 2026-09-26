@@ -7,6 +7,7 @@ import { getRetailOsDb } from '../../../../lib/retail-os-db';
 import { getLiveBrands, istToday } from '../../../../lib/retail-os-portfolio';
 import { buildBrandReport, renderReportEmail, type BrandReport } from '../../../../lib/retail-os-reports';
 import { json } from '../../../../lib/retail-os-http';
+import { mailConfigured } from '../../../../lib/mail/send';
 
 // Run once a day by Vercel Cron (vercel.json, 03:00 UTC = 08:30 IST). Sends
 // daily reports every day, weekly reports on Mondays and monthly reports on
@@ -17,7 +18,7 @@ export const GET: APIRoute = async ({ request }) => {
   if (!env.CRON_SECRET || request.headers.get('authorization') !== `Bearer ${env.CRON_SECRET}`) {
     return json({ error: 'Unauthorized' }, 401);
   }
-  if (!env.RESEND_API_KEY || !env.RESEND_FROM_EMAIL) return json({ error: 'Email is not configured' }, 503);
+  if (!mailConfigured(env)) return json({ error: 'Email is not configured' }, 503);
 
   const today = istToday();
   const isMonday = new Date(`${today}T00:00:00Z`).getUTCDay() === 1;

@@ -1,4 +1,5 @@
 import { escapeHtml } from './retail-os-http';
+import { signatureHtml } from './mail/links';
 
 // The one layout every Retail OS email uses, in the viratmohan.com Retail OS
 // look (cream, ink, the four-colour stripe, Anton headings). Rule: every email
@@ -11,6 +12,7 @@ export type RetailOsEmail = {
   lines: string[]; // plain text, one short paragraph each
   rows?: { label: string; value: string }[];
   cta?: { label: string; url: string };
+  secondary?: { label: string; url: string }; // quiet text link under the button
   note?: string; // small print under the button
   bodyHtml?: string; // pre-rendered, already-escaped HTML (reports only)
 };
@@ -18,12 +20,8 @@ export type RetailOsEmail = {
 const FONT = "Arial, Helvetica, sans-serif";
 export const LOGO_URL = 'https://www.viratmohan.com/retail-os/email/devshop-logo.png';
 
-// Every DevShop Retail OS email is signed by Virat as Founder.
-export const SIGNATURE_HTML = `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:22px 0 0;border-top:1px solid #D9CDB4;width:100%;"><tr><td style="padding:14px 0 0;">
-  <p style="margin:0;font-family:Arial, Helvetica, sans-serif;font-size:14px;font-weight:bold;color:#1A1410;">Virat Mohan</p>
-  <p style="margin:2px 0 0;font-family:Arial, Helvetica, sans-serif;font-size:13px;color:#4A4038;">Founder, DevShop Retail OS&trade;</p>
-  <p style="margin:6px 0 0;font-family:Arial, Helvetica, sans-serif;font-size:12px;color:#7A6E62;">+91 99992 77240 &middot; <a href="mailto:viratmohan@gmail.com" style="color:#7A6E62;">viratmohan@gmail.com</a> &middot; <a href="https://www.viratmohan.com/retail-os" style="color:#7A6E62;">viratmohan.com/retail-os</a></p>
-</td></tr></table>`;
+// Every email carries the one canonical signature (mail/links.ts); the address comes from GMAIL_ADDRESS.
+export const SIGNATURE_HTML = signatureHtml(process.env.GMAIL_ADDRESS || 'viratmohan@gmail.com');
 const DISPLAY = "Anton, Impact, 'Arial Narrow', Arial, sans-serif";
 
 export function renderRetailOsEmail(e: RetailOsEmail): string {
@@ -38,6 +36,7 @@ export function renderRetailOsEmail(e: RetailOsEmail): string {
   const cta = e.cta
     ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 4px;"><tr><td bgcolor="#1A1410" style="background:#1A1410;"><a href="${escapeHtml(e.cta.url)}" style="display:inline-block;padding:14px 22px;font-family:${FONT};font-size:15px;font-weight:bold;color:#F4EAD4;text-decoration:none;">${escapeHtml(e.cta.label)} &rarr;</a></td></tr></table>`
     : '';
+  const secondary = e.secondary ? `<p style="margin:12px 0 0;font-family:${FONT};font-size:14px;"><a href="${escapeHtml(e.secondary.url)}" style="color:#1A1410;">${escapeHtml(e.secondary.label)}</a></p>` : '';
   const note = e.note ? `<p style="margin:14px 0 0;font-family:${FONT};font-size:12px;line-height:1.5;color:#7A6E62;">${escapeHtml(e.note)}</p>` : '';
 
   return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -62,7 +61,7 @@ export function renderRetailOsEmail(e: RetailOsEmail): string {
     <tr><td style="border:2px solid #1A1410;background:#FBF6EA;padding:26px 24px 24px;">
       ${e.eyebrow ? `<p style="margin:0 0 8px;font-family:${FONT};font-size:11px;font-weight:bold;letter-spacing:1.5px;text-transform:uppercase;color:#D9714B;">${escapeHtml(e.eyebrow)}</p>` : ''}
       <h1 style="margin:0 0 14px;font-family:${DISPLAY};font-weight:normal;font-size:28px;line-height:1.1;text-transform:uppercase;color:#1A1410;">${escapeHtml(e.heading)}</h1>
-      ${lines}${e.bodyHtml ?? ''}${rows}${cta}${note}
+      ${lines}${e.bodyHtml ?? ''}${rows}${cta}${secondary}${note}
       ${SIGNATURE_HTML}
     </td></tr>
     <tr><td style="padding:18px 0 0;font-family:${FONT};font-size:11px;letter-spacing:0.5px;color:#7A6E62;">

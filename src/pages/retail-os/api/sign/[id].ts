@@ -8,6 +8,7 @@ import { getOrigin } from '../../../../lib/http';
 import { buildTermLines } from '../../../../lib/retail-os-terms';
 import { json, clientIp, readJson } from '../../../../lib/retail-os-http';
 import { renderRetailOsEmail } from '../../../../lib/retail-os-email';
+import { mailConfigured } from '../../../../lib/mail/send';
 
 // The founder accepts their commercial terms by typing their full legal name.
 // The exact terms shown, the name, time, IP address and browser are frozen
@@ -44,7 +45,7 @@ export const POST: APIRoute = async ({ params, request }) => {
   const trackUrl = `${getOrigin(request)}/retail-os/track/${id}`;
   const when = new Date(signedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
 
-  if (env.RESEND_API_KEY && env.RESEND_FROM_EMAIL) {
+  if (mailConfigured(env)) {
     sendEmail(
       {
         to: app.founder_email,

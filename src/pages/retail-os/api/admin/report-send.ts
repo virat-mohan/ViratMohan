@@ -6,6 +6,7 @@ import { sendEmail } from '../../../../lib/email';
 import { getLiveBrands } from '../../../../lib/retail-os-portfolio';
 import { buildBrandReport, renderReportEmail, type ReportKind } from '../../../../lib/retail-os-reports';
 import { json, readJson } from '../../../../lib/retail-os-http';
+import { mailConfigured } from '../../../../lib/mail/send';
 
 // Gated by src/middleware.ts. Emails one brand report right now.
 export const POST: APIRoute = async ({ request }) => {
@@ -17,7 +18,7 @@ export const POST: APIRoute = async ({ request }) => {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return json({ error: 'Enter a valid email address' }, 400);
 
   const env = getEnv();
-  if (!env.RESEND_API_KEY || !env.RESEND_FROM_EMAIL) return json({ error: 'Email is not configured' }, 503);
+  if (!mailConfigured(env)) return json({ error: 'Email is not configured' }, 503);
   try {
     const report = await buildBrandReport(brand, kind);
     await sendEmail({ to, subject: `${brand.name} — ${report.period.label}`, html: renderReportEmail(report) }, env);

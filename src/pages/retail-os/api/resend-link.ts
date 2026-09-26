@@ -6,6 +6,7 @@ import { getEnv } from '../../../lib/env';
 import { sendEmail } from '../../../lib/email';
 import { getOrigin } from '../../../lib/http';
 import { renderRetailOsEmail } from '../../../lib/retail-os-email';
+import { mailConfigured } from '../../../lib/mail/send';
 
 // Public, deliberately vague response either way (never confirms/denies
 // whether an email has an application on file) — same shape as a password-
@@ -26,7 +27,7 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     const db = getRetailOsDb(env);
     const app = await db.findLatestByEmail(email);
-    if (app && env.RESEND_API_KEY && env.RESEND_FROM_EMAIL) {
+    if (app && mailConfigured(env)) {
       const trackUrl = `${origin}/retail-os/track/${app.id}`;
       await sendEmail(
         {

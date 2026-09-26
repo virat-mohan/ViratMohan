@@ -33,6 +33,16 @@ export type Env = {
   WHATSAPP_TOKEN: string;
   WHATSAPP_PHONE_NUMBER_ID: string;
   WHATSAPP_PAYOUT_TEMPLATE: string; // approved template name for "payout sent" outside the 24h window
+  // Gmail: every email leaves from Virat's own mailbox (src/lib/mail). Resend is the fallback.
+  GMAIL_CLIENT_ID: string;
+  GMAIL_CLIENT_SECRET: string;
+  GMAIL_REFRESH_TOKEN: string; // optional: /api/admin/gmail/connect stores a sealed one in Supabase instead
+  GMAIL_ADDRESS: string; // viratmohan@gmail.com
+  GMAIL_TOKEN_KEY: string; // encrypts the stored refresh token (any long random string)
+  // Lead email assistant (src/lib/lead-mail)
+  LEAD_APPROVAL_SECRET: string; // signs Approve & send links
+  LEAD_AUTOSEND: string; // 'off' (default). 'on' sends routine replies without approval. Keep off.
+  VIRAT_WHATSAPP_TO: string; // Virat's own WhatsApp for approval requests; unset → email
 };
 
 export function getEnv(): Env {
@@ -63,5 +73,13 @@ export function getEnv(): Env {
     WHATSAPP_TOKEN: process.env.WHATSAPP_TOKEN ?? '',
     WHATSAPP_PHONE_NUMBER_ID: process.env.WHATSAPP_PHONE_NUMBER_ID ?? '',
     WHATSAPP_PAYOUT_TEMPLATE: process.env.WHATSAPP_PAYOUT_TEMPLATE ?? '',
+    GMAIL_CLIENT_ID: process.env.GMAIL_CLIENT_ID ?? '',
+    GMAIL_CLIENT_SECRET: process.env.GMAIL_CLIENT_SECRET ?? '',
+    GMAIL_REFRESH_TOKEN: process.env.GMAIL_REFRESH_TOKEN ?? '',
+    GMAIL_ADDRESS: process.env.GMAIL_ADDRESS ?? '',
+    GMAIL_TOKEN_KEY: process.env.GMAIL_TOKEN_KEY ?? '',
+    LEAD_APPROVAL_SECRET: process.env.LEAD_APPROVAL_SECRET ?? '',
+    LEAD_AUTOSEND: process.env.LEAD_AUTOSEND ?? 'off',
+    VIRAT_WHATSAPP_TO: process.env.VIRAT_WHATSAPP_TO ?? '',
   };
 }

@@ -8,3 +8,4 @@ Every self-audit reads this first and adds to it last. One line per lesson: date
 - 2026-09-26: A grid overflowed on mobile. Grid children need `min-width:0`; test at 390px.
 - 2026-09-26: Chat escalation emailed Virat an approve link only for phone contacts; email contacts had no way in. Every escalation path needs an approve link for every contact type, and a test for each.
 - 2026-09-26: /mission read as a wall of text. Give every big idea a picture (inline SVG or tinted tile), and link the mission from one shared band (.vm-mission in tokens.css) so the wording stays the same everywhere.
+- 2026-09-26: A lead-reply recap quoted the lead's own "we" and failed the voice check. Retell their words in second person, and run voiceIssues() on every draft before it reaches Gmail.

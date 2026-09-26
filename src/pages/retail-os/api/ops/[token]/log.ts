@@ -7,6 +7,7 @@ import { json, readJson } from '../../../../../lib/retail-os-http';
 import { sendEmail } from '../../../../../lib/email';
 import { renderRetailOsEmail } from '../../../../../lib/retail-os-email';
 import { getOrigin } from '../../../../../lib/http';
+import { mailConfigured } from '../../../../../lib/mail/send';
 
 // Daily update or a question from a team member. Questions are also emailed
 // to the founder so nothing waits on someone opening the console.
@@ -25,7 +26,7 @@ export const POST: APIRoute = async ({ params, request }) => {
 
   await db.addLog(member.id, kind, text);
 
-  if (kind === 'query' && env.RESEND_API_KEY && env.RESEND_FROM_EMAIL && env.ADMIN_NOTIFY_EMAIL) {
+  if (kind === 'query' && mailConfigured(env) && env.ADMIN_NOTIFY_EMAIL) {
     sendEmail(
       {
         to: env.ADMIN_NOTIFY_EMAIL,
