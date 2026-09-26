@@ -7,6 +7,7 @@ import { sendEmail } from '../../../../lib/email';
 import { getOrigin } from '../../../../lib/http';
 import { renderRetailOsEmail } from '../../../../lib/retail-os-email';
 import { json, readJson } from '../../../../lib/retail-os-http';
+import { mailConfigured } from '../../../../lib/mail/send';
 
 // Gated by src/middleware.ts. Confirms the founder's UPI deposit against the
 // bank statement and starts the 7-day build clock.
@@ -24,7 +25,7 @@ export const POST: APIRoute = async ({ request }) => {
   const target = new Date(start.getTime() + BUILD_WINDOW_DAYS * 86400000);
   const targetText = target.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Kolkata' });
 
-  if (env.RESEND_API_KEY && env.RESEND_FROM_EMAIL) {
+  if (mailConfigured(env)) {
     const trackUrl = `${getOrigin(request)}/retail-os/track/${id}`;
     sendEmail(
       {

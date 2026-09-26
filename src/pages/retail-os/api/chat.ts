@@ -4,6 +4,7 @@ import { getEnv } from '../../../lib/env';
 import { CHAT_SYSTEM, LEAD_TOOL, VIRAT_TOOL, chatDb, viratRequestEmail } from '../../../lib/retail-os-chat';
 import { sendEmail } from '../../../lib/email';
 import { serverBrain } from '../../../lib/brain';
+import { mailConfigured } from '../../../lib/mail/send';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { 'content-type': 'application/json' } });
@@ -51,7 +52,7 @@ export const POST: APIRoute = async ({ request }) => {
         escalated = true;
         // Save the context first, then tell Virat. The person only gets a time after Virat taps approve.
         try { await db.upsert(sessionId, page, { founder_name: r.name, brand: r.brand, next_step: 'whatsapp', summary: `Wants Virat (${r.reason || 'asked'}): ${r.summary || ''}`.slice(0, 500), ...(String(r.contact || '').includes('@') ? { email: r.contact } : { phone: r.contact }) }, messages); } catch (e) { console.error('chat lead save', e); }
-        if (env.RESEND_API_KEY && env.RESEND_FROM_EMAIL && env.ADMIN_NOTIFY_EMAIL) {
+        if (mailConfigured(env) && env.ADMIN_NOTIFY_EMAIL) {
           await sendEmail({ to: env.ADMIN_NOTIFY_EMAIL, ...viratRequestEmail(r, page, sessionId, process.env.CALL_BOOKING_URL) }, env)
             .catch((e) => console.error('call request email failed', e));
         } else console.error('call request: email not configured, request saved in retail_os_chat_leads only');

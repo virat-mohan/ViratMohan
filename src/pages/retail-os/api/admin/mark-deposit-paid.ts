@@ -7,6 +7,7 @@ import { sendEmail } from '../../../../lib/email';
 import { getOrigin } from '../../../../lib/http';
 import { renderRetailOsEmail } from '../../../../lib/retail-os-email';
 import { json, escapeHtml, readJson } from '../../../../lib/retail-os-http';
+import { mailConfigured } from '../../../../lib/mail/send';
 
 // Gated by src/middleware.ts. For a deposit collected in person (cash, UPI
 // shown on Virat's own phone, etc.) — records and confirms it in one step, so
@@ -48,7 +49,7 @@ export const POST: APIRoute = async ({ request }) => {
   ];
   const rows = schedule.map(([a, b, label, what]) => ({ label: `${a === b ? `Day ${a}` : `Days ${a}–${b}`} · ${day(b)}`, value: `${label}: ${what}` }));
 
-  if (env.RESEND_API_KEY && env.RESEND_FROM_EMAIL) {
+  if (mailConfigured(env)) {
     const trackUrl = `${getOrigin(request)}/retail-os/track/${id}`;
     sendEmail(
       {

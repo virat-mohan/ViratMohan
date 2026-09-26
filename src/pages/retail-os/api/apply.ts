@@ -6,6 +6,7 @@ import { getEnv } from '../../../lib/env';
 import { sendEmail } from '../../../lib/email';
 import { getOrigin } from '../../../lib/http';
 import { renderRetailOsEmail } from '../../../lib/retail-os-email';
+import { mailConfigured } from '../../../lib/mail/send';
 
 export const POST: APIRoute = async ({ request }) => {
   const env = getEnv();
@@ -142,7 +143,7 @@ export const POST: APIRoute = async ({ request }) => {
     // stage_transitions logging elsewhere in this codebase).
     const trackUrl = `${origin}/retail-os/track/${id}`;
     const brandLabel = brandStatus === 'existing' ? 'Existing brand' : brandStatus === 'new_sub_brand' ? 'New sub-brand' : brandStatus === 'from_zero' ? 'Starting from zero' : '—';
-    if (env.RESEND_API_KEY && env.RESEND_FROM_EMAIL && env.ADMIN_NOTIFY_EMAIL) {
+    if (mailConfigured(env) && env.ADMIN_NOTIFY_EMAIL) {
       sendEmail(
         {
           to: env.ADMIN_NOTIFY_EMAIL,
@@ -166,7 +167,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
     // Founder's own confirmation — the track link doubles as their "login":
     // no password, the URL itself is the bearer token.
-    if (env.RESEND_API_KEY && env.RESEND_FROM_EMAIL) {
+    if (mailConfigured(env)) {
       sendEmail(
         {
           to: founderEmail,

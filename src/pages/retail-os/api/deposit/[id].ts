@@ -7,6 +7,7 @@ import { sendEmail } from '../../../../lib/email';
 import { getOrigin } from '../../../../lib/http';
 import { renderRetailOsEmail } from '../../../../lib/retail-os-email';
 import { json, readJson } from '../../../../lib/retail-os-http';
+import { mailConfigured } from '../../../../lib/mail/send';
 
 // The founder reports their UPI deposit by its reference number (UTR). An
 // admin confirms it against the bank statement, which starts the build clock.
@@ -27,7 +28,7 @@ export const POST: APIRoute = async ({ params, request }) => {
 
   await db.submitDeposit(id, { amountInr: DEPOSIT_INR, utr, submittedAt: new Date().toISOString(), confirmedAt: null });
 
-  if (env.RESEND_API_KEY && env.RESEND_FROM_EMAIL && env.ADMIN_NOTIFY_EMAIL) {
+  if (mailConfigured(env) && env.ADMIN_NOTIFY_EMAIL) {
     sendEmail(
       {
         to: env.ADMIN_NOTIFY_EMAIL,
