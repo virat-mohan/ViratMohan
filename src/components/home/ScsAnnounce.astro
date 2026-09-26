@@ -1,0 +1,49 @@
+---
+// Floating announcement for the latest SCS (Successful Case Study). Dismissible; remembers per visitor.
+const id = 'scs-retail-os-autopilot';
+---
+<a class="scs-float" href="/scs" data-scs={id} aria-label="New successful case study: plus 59 percent sales per day on autopilot">
+  <span class="scs-dot" aria-hidden="true"></span>
+  <span class="scs-kicker">New SCS</span>
+  <span class="scs-big">+59%</span>
+  <span class="scs-text">sales per day after Retail OS took over the ads from a human.<span class="scs-go"> See the numbers →</span></span>
+  <button class="scs-x" type="button" aria-label="Dismiss">×</button>
+</a>
+
+<style>
+  .scs-float {
+    position: fixed; right: 20px; bottom: 20px; z-index: 60;
+    display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 14px;
+    max-width: 360px; padding: 14px 40px 14px 16px;
+    background: #1a1410; color: #f4ead4; text-decoration: none;
+    border: 1px solid #d4af37; border-radius: 14px;
+    box-shadow: 0 18px 40px -12px rgba(23, 19, 15, .45);
+    animation: scs-in .7s cubic-bezier(.2, .9, .2, 1.1) 1.2s both;
+    transition: transform .2s ease;
+  }
+  .scs-float:hover { transform: translateY(-3px); }
+  .scs-dot { position: absolute; top: -5px; left: -5px; width: 12px; height: 12px; border-radius: 50%; background: #d9714b; }
+  .scs-dot::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: #d9714b; animation: scs-ping 1.8s ease-out infinite; }
+  .scs-kicker { grid-column: 1 / -1; font: 700 10px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: #d9714b; margin-bottom: 6px; }
+  .scs-big { font-family: var(--display); font-size: 44px; line-height: .9; color: #d9714b; align-self: center; }
+  .scs-text { font: 400 13.5px/1.35 var(--sans); align-self: center; }
+  .scs-go { color: #d4af37; font-weight: 600; white-space: nowrap; }
+  .scs-x { position: absolute; top: 6px; right: 8px; background: none; border: 0; color: #f4ead4; opacity: .6; font-size: 20px; line-height: 1; cursor: pointer; padding: 4px; }
+  .scs-x:hover { opacity: 1; }
+  @keyframes scs-in { from { opacity: 0; transform: translateY(24px) scale(.96); } to { opacity: 1; transform: none; } }
+  @keyframes scs-ping { from { transform: scale(1); opacity: .7; } to { transform: scale(2.6); opacity: 0; } }
+  @media (max-width: 520px) { .scs-float { left: 16px; right: 16px; bottom: 16px; max-width: none; } .scs-big { font-size: 38px; } }
+  @media (prefers-reduced-motion: reduce) { .scs-float, .scs-dot::after { animation: none; } }
+</style>
+
+<script>
+  const el = document.querySelector<HTMLAnchorElement>('.scs-float');
+  if (el) {
+    const key = 'dismissed:' + el.dataset.scs;
+    try { if (localStorage.getItem(key)) el.remove(); } catch {}
+    el.querySelector('.scs-x')?.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation(); el.remove();
+      try { localStorage.setItem(key, '1'); } catch {}
+    });
+  }
+</script>
