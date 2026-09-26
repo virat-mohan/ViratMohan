@@ -6,3 +6,4 @@ Every self-audit reads this first and adds to it last. One line per lesson: date
 - 2026-09-26: A made-up stat ("Now: 100 brands") slipped into copy. Every number needs a source.
 - 2026-09-26: A pronoun was assumed from a name. Use "they" unless stated.
 - 2026-09-26: A grid overflowed on mobile. Grid children need `min-width:0`; test at 390px.
+- 2026-09-26: Chat escalation emailed Virat an approve link only for phone contacts; email contacts had no way in. Every escalation path needs an approve link for every contact type, and a test for each.
