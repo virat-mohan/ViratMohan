@@ -63,5 +63,8 @@ Always ask Virat first: money moving, pricing or terms changes, anything legal o
 ## Continuous improvement
 The self-audit runs every 4 hours across all products. Each run reads LEARNINGS.md, fixes the biggest gap it may fix alone, lists the rest for Virat, and writes what it learned.
 
+## Manual work goes to the team, not to Virat's inbox
+Any setup step a human must do (accounts, keys, KYC, templates, admin clicks) becomes a task on the ops tracker (retail_os_ops_tasks, brand_key 'platform' for cross-brand work) with the exact steps, links and the why. Tasks only Virat can do are marked owner=founder: the team prepares, then books 15 minutes with him. No manual step is left as a chat message.
+
 ## Rhythm
 Daily: check orders, shipping, ads spend and chat leads. Weekly (Monday): honest statement per brand. Monthly: review values, prices and promises.
