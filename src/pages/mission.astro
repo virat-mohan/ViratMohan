@@ -30,7 +30,7 @@ const ways = [
     <p class="mv-k">How I work</p>
     <ol class="mv-ways">
       {ways.map(([t, d], i) => (
-        <li><b>{String(i + 1).padStart(2, '0')}</b><div><h3>{t}</h3><p>{d}</p></div></li>
+        <li><img src={`/icons/values/${t.toLowerCase().replace(/ /g, '-')}.svg`} alt="" width="40" height="40" /><div><h3><span class="mv-n">{String(i + 1).padStart(2, '0')}</span> {t}</h3><p>{d}</p></div></li>
       ))}
     </ol>
     <p class="mv-cta"><a href="/retail-os/">See Retail OS →</a></p>
@@ -47,6 +47,8 @@ const ways = [
   .mv hr { border: 0; border-top: 1.5px solid var(--gold); margin: 3rem 0 2.2rem; }
   .mv-ways { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 26px 40px; }
   .mv-ways li { display: flex; gap: 16px; }
+  .mv-ways img { flex: none; margin-top: 2px; }
+  .mv-n { color: var(--terracotta); margin-right: 6px; }
   .mv-ways b { font-family: var(--display); font-weight: 400; font-size: 2rem; color: var(--terracotta); line-height: 1; }
   .mv-ways h3 { font-family: var(--display); text-transform: uppercase; font-weight: 400; font-size: 1.35rem; margin: 0 0 4px; }
   .mv-ways p { margin: 0; color: var(--muted); }

@@ -368,6 +368,7 @@ const canonical = new URL('/devshop', site.domain).href;
   <!-- 05 PRICING -->
   <section class="screen screen--scroll" id="pricing" data-marketing-index="6">
     <div class="eyebrow">PRICING</div>
+    <p class="ds-vals"><span class="val"><img src="/icons/values/fair-practice.svg" alt="" width="16" height="16">Fair practice</span><span class="val"><img src="/icons/values/plain-language.svg" alt="" width="16" height="16">Plain language</span></p>
     <div class="pricing-block">
       <h1 class="hero serif" style="font-size:clamp(36px,5vw,72px);">Build once.<br />Keep it <span class="tint-gold">running well.</span></h1>
       <script type="application/json" id="regionPricingData" set:html={JSON.stringify({ regions: REGION_PRICING, countryMap: COUNTRY_TO_REGION })} />
@@ -1213,6 +1214,8 @@ const canonical = new URL('/devshop', site.domain).href;
     :global(.scroll-ph-text) { animation: none; }
   }
 
+  .ds-vals { margin: 10px 0 0; text-align: center; }
+  .val{display:inline-flex; align-items:center; gap:6px; font:700 11px/1 'Inter',sans-serif; letter-spacing:.08em; text-transform:uppercase; color:#1a1410; background:rgba(217,113,75,.12); border:1px solid rgba(217,113,75,.35); padding:5px 9px; border-radius:999px; margin:0 6px 8px 0;}
   .ros-feature--top { max-width: 980px; margin: 28px auto 8px; text-align: left; }
   .ros-feature { display:grid; grid-template-columns: 1.2fr 1fr; gap: 28px; align-items:center; margin: 28px 0 32px; padding: 28px 30px; background: #1a1410; color: #f4ead4; border-radius: 16px; border: 1px solid #d4af37; text-decoration:none; position:relative; transition: transform .2s ease; }
   .ros-feature:hover { transform: translateY(-3px); }
