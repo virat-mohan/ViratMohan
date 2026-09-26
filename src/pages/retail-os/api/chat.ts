@@ -3,6 +3,7 @@ import type { APIRoute } from 'astro';
 import { getEnv } from '../../../lib/env';
 import { CHAT_SYSTEM, LEAD_TOOL, VIRAT_TOOL, chatDb } from '../../../lib/retail-os-chat';
 import { sendEmail } from '../../../lib/email';
+import { serverBrain } from '../../../lib/brain';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { 'content-type': 'application/json' } });
@@ -23,13 +24,21 @@ export const POST: APIRoute = async ({ request }) => {
   const page = body?.page ? String(body.page).slice(0, 200) : null;
   const db = chatDb(env);
 
+  // Ground the chat in the Brain (public audience: no customer data). If the Brain fails, use the static prompt alone.
+  let system: unknown = CHAT_SYSTEM;
+  try {
+    const lastUser = messages[messages.length - 1].content;
+    const ctx = await serverBrain(env).chatContext(lastUser, { audience: 'public' });
+    if (ctx.block) system = [{ type: 'text', text: CHAT_SYSTEM, cache_control: { type: 'ephemeral' } }, { type: 'text', text: ctx.block }];
+  } catch (e) { console.error('chat brain fallback', e); }
+
   // Up to two rounds so the model can save the lead and still reply.
   let convo: unknown[] = messages;
   for (let round = 0; round < 3; round++) {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: 'claude-sonnet-5', max_tokens: 500, system: CHAT_SYSTEM, tools: [LEAD_TOOL, VIRAT_TOOL], messages: convo }),
+      body: JSON.stringify({ model: 'claude-sonnet-5', max_tokens: 500, system, tools: [LEAD_TOOL, VIRAT_TOOL], messages: convo }),
     });
     if (!res.ok) { console.error('chat claude', res.status, (await res.text()).slice(0, 300)); return json({ error: 'upstream' }, 502); }
     const data = await res.json();

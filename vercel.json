@@ -1,6 +1,8 @@
 {
   "crons": [
-    { "path": "/retail-os/api/cron/reports", "schedule": "0 3 * * *" }
+    { "path": "/retail-os/api/cron/reports", "schedule": "0 3 * * *" },
+    { "path": "/api/cron/settle", "schedule": "30 6 * * 1" },
+    { "path": "/api/cron/outbox", "schedule": "35 3 * * *" }
   ],
   "rewrites": [
     {
