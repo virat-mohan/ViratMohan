@@ -29,18 +29,22 @@ const projects = (await getCollection('work')).sort(
     <ul class="work-teaser__list">
       <li class="work-teaser__item" data-reveal style="--c: var(--gold)">
         <a class="work-teaser__link" href="/devshop">
-          <span class="eyebrow work-teaser__category">
-            AI Orchestration Studio
-          </span>
+          <div class="work-teaser__top">
+            <span class="eyebrow work-teaser__category">
+              AI Orchestration Studio
+            </span>
+          </div>
           <span class="work-teaser__brand">Dev Shop</span>
         </a>
       </li>
       <li class="work-teaser__item" data-reveal style="--c: #D9714B">
         <a class="work-teaser__link" href="/retail-os/">
-          <span class="work-teaser__badge">New</span>
-          <span class="eyebrow work-teaser__category">
-            Plug-In Commerce Platform
-          </span>
+          <div class="work-teaser__top">
+            <span class="work-teaser__badge">New</span>
+            <span class="eyebrow work-teaser__category">
+              Plug-In Commerce Platform
+            </span>
+          </div>
           <span class="work-teaser__brand">Retail OS</span>
         </a>
       </li>
@@ -48,12 +52,14 @@ const projects = (await getCollection('work')).sort(
         projects.map((p) => (
           <li class="work-teaser__item" data-reveal style={`--c: ${p.data.accent}`}>
             <a class="work-teaser__link" href={p.data.href ?? `/work/${p.id}`}>
-              {p.data.badge && (
-                <span class="work-teaser__badge">{p.data.badge}</span>
-              )}
-              <span class="eyebrow work-teaser__category">
-                {p.data.category}
-              </span>
+              <div class="work-teaser__top">
+                {p.data.badge && (
+                  <span class="work-teaser__badge">{p.data.badge}</span>
+                )}
+                <span class="eyebrow work-teaser__category">
+                  {p.data.category}
+                </span>
+              </div>
               <span class="work-teaser__brand">{p.data.brand}</span>
               {p.data.status && <span class="work-teaser__status">{p.data.status}</span>}
             </a>
@@ -100,6 +106,14 @@ const projects = (await getCollection('work')).sort(
     position: relative;
     transition: filter 0.3s ease;
   }
+  .work-teaser__top {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+    gap: 0.4rem;
+    min-height: 4.75rem;
+  }
   .work-teaser__badge {
     display: inline-block;
     align-self: flex-start;
@@ -112,7 +126,6 @@ const projects = (await getCollection('work')).sort(
     border: 1px solid rgba(255, 255, 255, 0.4);
     padding: 0.25rem 0.55rem;
     border-radius: 999px;
-    margin-bottom: 0.15rem;
   }
   .work-teaser__link:hover,
   .work-teaser__link:focus-visible {
@@ -121,6 +134,7 @@ const projects = (await getCollection('work')).sort(
   .work-teaser__category {
     margin: 0;
     font-size: 0.9375rem;
+    line-height: 1.35;
     letter-spacing: 0.1em;
     color: var(--poster-cream);
     opacity: 0.9;
