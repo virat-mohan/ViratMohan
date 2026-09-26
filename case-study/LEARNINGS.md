@@ -16,3 +16,5 @@ Every self-audit reads this first and adds to it last. One line per lesson: date
 - 2026-09-26: Access-request and plan drafts were parked in lead_messages with no way to send them (the approver only knew Gmail drafts). Every draft now goes through one submitForApproval() that signs the link, tells Virat, and sends fresh from Gmail on approval; the journey is one list (lead-journey.ts) with a 7-day clock from NDA signed + data connected.
 
 - 2026-09-26: Employee Support Agent: team questions used to go only to Virat, so a new hire waited on him for things the Brain already knew. Rule: a team question gets a sourced Brain answer by email first; only unanswered ones nudge Virat, and both land in the 9:30 team report.
+
+- Brand work was scattered across Gmail, Supabase and the ops board with no single record. Each brand now gets one file in `case-study/brands/` that cites where every fact came from.
