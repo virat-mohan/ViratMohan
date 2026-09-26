@@ -74,6 +74,8 @@ const navItems = [
 
         <a href="/devshop/methodology" class:list={{ active: !spa && homeHref === '/devshop' && currentSlug === null }}>Methodology</a>
 
+        <a href="/retail-os/" class="ds-retailos">Retail OS <span>New</span></a>
+
         <slot name="extra-nav" />
 
         {spa ? (
@@ -374,6 +376,8 @@ const navItems = [
      wants a quick human answer instead of working through the whole
      site. Fixed to the viewport (not the header), so it sits above
      every page's own content. */
+  .ds-retailos { color: #d9714b !important; font-weight: 700; }
+  .ds-retailos span { margin-left: 6px; padding: 2px 6px; border-radius: 999px; background: #d9714b; color: #f4ead4; font-size: 9px; letter-spacing: .08em; vertical-align: middle; }
   .ds-whatsapp-float {
     position: fixed; right: 22px; bottom: 22px; z-index: 200;
     width: 56px; height: 56px; border-radius: 50%;

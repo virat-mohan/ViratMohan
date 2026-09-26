@@ -197,6 +197,21 @@ const canonical = new URL('/devshop', site.domain).href;
       <button class="btn" type="submit">Give me a problem →</button>
     </form>
     <p class="sub" style="margin-top:16px;"><a href="#" data-go="proof" class="btn-plain">See what I've built →</a></p>
+    <div class="ros-feature ros-feature--top">
+      <a class="ros-feature__stretch" href="/retail-os/" aria-label="See Retail OS"></a>
+      <div class="ros-feature__head">
+        <span class="ros-feature__tag">Featured project</span>
+        <span class="ros-feature__name">Retail OS</span>
+        <span class="ros-feature__line">You bring the product. I run the whole online business: store, ads, content, WhatsApp, shipping. Live in 7 days, for a share of the upside.</span>
+      </div>
+      <div class="ros-feature__stats">
+        <div><b>3</b><span>brands running on it</span></div>
+        <div><b>2</b><span>brands launching</span></div>
+        <div><b data-ros="applications">—</b><span>brand applications</span></div>
+        <div><b>+59%</b><span>sales per day on autopilot ads</span></div>
+      </div>
+      <span class="ros-feature__cta">See Retail OS → <a class="ros-feature__talk" href={site.letsTalk} target="_blank" rel="noopener">Let's talk →</a></span>
+    </div>
 
     <div class="hero-visual">
       <div class="hero-visual-backdrop"></div>
@@ -274,21 +289,6 @@ const canonical = new URL('/devshop', site.domain).href;
     <div class="eyebrow">PROOF</div>
     <h1 class="hero serif">Built fast. <span class="tint-blue">Shipped</span> for real.</h1>
     <p class="sub" style="max-width:640px; margin-top:8px;">Every one of these is a fully functional platform — a real backend, a database, payments, and an integrated tech stack — not a marketing site with a form on it. I can do customer-facing design too, but that's not the core of what I sell; the core is solving the business problem underneath it.</p>
-    <div class="ros-feature">
-      <a class="ros-feature__stretch" href="/retail-os/" aria-label="See Retail OS"></a>
-      <div class="ros-feature__head">
-        <span class="ros-feature__tag">Featured project</span>
-        <span class="ros-feature__name">Retail OS</span>
-        <span class="ros-feature__line">You bring the product. I run the whole online business: store, ads, content, WhatsApp, shipping. Live in 7 days, for a share of the upside.</span>
-      </div>
-      <div class="ros-feature__stats">
-        <div><b>3</b><span>brands running on it</span></div>
-        <div><b>2</b><span>brands launching</span></div>
-        <div><b data-ros="applications">—</b><span>brand applications</span></div>
-        <div><b>+59%</b><span>sales per day on autopilot ads</span></div>
-      </div>
-      <span class="ros-feature__cta">See Retail OS → <a class="ros-feature__talk" href={site.letsTalk} target="_blank" rel="noopener">Let's talk →</a></span>
-    </div>
     <div class="proof-grid">
       {proof.map((p) => (
         <a
@@ -1209,6 +1209,7 @@ const canonical = new URL('/devshop', site.domain).href;
     :global(.scroll-ph-text) { animation: none; }
   }
 
+  .ros-feature--top { max-width: 980px; margin: 28px auto 8px; text-align: left; }
   .ros-feature { display:grid; grid-template-columns: 1.2fr 1fr; gap: 28px; align-items:center; margin: 28px 0 32px; padding: 28px 30px; background: #1a1410; color: #f4ead4; border-radius: 16px; border: 1px solid #d4af37; text-decoration:none; position:relative; transition: transform .2s ease; }
   .ros-feature:hover { transform: translateY(-3px); }
   .ros-feature__tag { display:inline-block; font: 700 11px/1 'Inter', sans-serif; letter-spacing:.14em; text-transform:uppercase; color:#d9714b; margin-bottom:10px; }
