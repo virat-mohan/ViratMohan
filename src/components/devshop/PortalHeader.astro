@@ -220,18 +220,22 @@ const navItems = [
     --ds-hair-gradient: linear-gradient(90deg, #91afc0, #b7b5af, #d4af37, #a66a62);
   }
   .ds-portal-header[data-theme='light'] {
-    --ds-bg: #f5f2ea; --ds-scheme: light;
-    --ds-logo: #4f5f42; --ds-tag: #a3573f; --ds-badge: #82806f;
-    --ds-nav: #1e211a; --ds-nav-hover: #4f5f42; --ds-nav-active: #4f5f42;
-    --ds-start: #4f5f42; --ds-start-hover-bg: rgba(79, 95, 66, 0.08);
-    --ds-dropdown-bg: #ffffff; --ds-dropdown-border: rgba(30,33,26,0.12);
-    --ds-dropdown-hover-bg: rgba(30,33,26,0.05); --ds-dropdown-soon: #9a9d90;
-    --ds-hair-gradient: linear-gradient(90deg, #b08a63, #82806f, #4f5f42, #a3573f);
+    /* viratmohan.com site palette — paper ground, ink text, terracotta
+       accents, and the Nav.astro four-colour hairline bar. */
+    --ds-bg: #f4ead4; --ds-scheme: light;
+    --ds-logo: #1a1410; --ds-tag: #d9714b; --ds-badge: #5a4c3c;
+    --ds-nav: #1a1410; --ds-nav-hover: #d9714b; --ds-nav-active: #d9714b;
+    --ds-start: #1a1410; --ds-start-hover-bg: rgba(217, 113, 75, 0.12);
+    --ds-dropdown-bg: #fbf5e6; --ds-dropdown-border: rgba(23,19,15,0.14);
+    --ds-dropdown-hover-bg: rgba(23,19,15,0.05); --ds-dropdown-soon: #9c8a72;
+    --ds-hair-gradient: linear-gradient(90deg, #d4af37 0 25%, #e91e8c 25% 50%, #3e6fa6 50% 75%, #d9714b 75% 100%);
+    --ds-hair-h: 5px; --ds-hair-op: 1;
+    --ds-badge-font: 'Instrument Serif', Georgia, serif;
     /* Nav typography: DM Sans Medium, small-caps-style tracking — clean and
        legible rather than a loud bold sans or an unexpected serif (both
        tried and rejected). The dark theme's uppercase mono-spaced look
        stays the default everywhere else. */
-    --ds-nav-font: 'DM Sans', system-ui, sans-serif; --ds-nav-weight: 600;
+    --ds-nav-font: 'Inter Variable', 'Inter', system-ui, sans-serif; --ds-nav-weight: 600;
     --ds-nav-case: uppercase; --ds-nav-spacing: 0.08em; --ds-nav-size: 12px;
   }
   .ds-portal-header {
@@ -280,7 +284,7 @@ const navItems = [
   .ds-logo-mark { display: block; height: 132px; width: auto; }
   @media (max-width: 560px) { .ds-logo-mark { height: 84px; } }
   .ds-industry-badge {
-    font-family: 'Crimson Text', Georgia, serif; font-size: 22px; font-weight: 600; letter-spacing: 0;
+    font-family: var(--ds-badge-font, 'Crimson Text', Georgia, serif); font-style: italic; font-size: 22px; font-weight: 400; letter-spacing: 0;
     color: var(--ds-nav-active, var(--ds-logo)); text-transform: none;
   }
   @media (max-width: 560px) { .ds-industry-badge { font-size: 17px; } }
@@ -341,9 +345,9 @@ const navItems = [
   .ds-dropdown-soon em { font-style: normal; }
 
   .ds-header-hair {
-    height: 1px;
+    height: var(--ds-hair-h, 1px);
     background: var(--ds-hair-gradient);
-    opacity: 0.55;
+    opacity: var(--ds-hair-op, 0.55);
   }
 
   @media (max-width: 860px) {
