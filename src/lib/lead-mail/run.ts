@@ -239,7 +239,8 @@ export async function approve(d: { store: LeadStore; gmail: GmailApi; secret: st
       const lead = (await d.store.leads()).find((l) => l.id === msg.lead_id);
       if (!lead?.contact_email) throw new Error('lead has no email address');
       const text = cleanTextLinks(`${msg.body}\n\n-- \n${signatureText(d.mailbox)}`);
-      const raw = b64url(buildMime({ from: viratFromHeader(d.mailbox), to: lead.contact_email, subject: msg.subject ?? 'From Virat', text }));
+      const html = typeof msg.meta?.html === 'string' ? msg.meta.html : undefined;
+      const raw = b64url(buildMime({ from: viratFromHeader(d.mailbox), to: lead.contact_email, subject: msg.subject ?? 'From Virat', text, html }));
       const sent = await d.gmail.sendRaw(raw);
       const stage = stageAfterSent(msg.purpose, lead.stage);
       await d.store.updateMessage(msg.id, { status: 'sent', gmail_message_id: sent.id, gmail_thread_id: sent.threadId, at: d.now.toISOString() });

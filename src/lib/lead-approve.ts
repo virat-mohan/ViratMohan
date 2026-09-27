@@ -13,7 +13,7 @@ import { deliver, liveMailDeps } from './mail/send';
 import { signatureText } from './mail/links';
 import { stageAfterSent } from './lead-journey';
 
-export type JourneyDraft = LeadDraftInput & { leadName: string; toEmail: string | null; context: [string, string] };
+export type JourneyDraft = LeadDraftInput & { leadName: string; toEmail: string | null; context: [string, string]; html?: string };
 
 const SITE = 'https://viratmohan.com';
 
@@ -22,12 +22,13 @@ export async function submitForApproval(env: Env, sb: SupabaseClient, d: Journey
   const { data, error } = await sb.from('lead_messages').insert({
     lead_id: d.leadId, direction: 'outbound', channel: 'email', status: 'awaiting_approval',
     subject: d.subject, body: d.body, purpose: d.purpose, send_after: d.sendAfter, created_by: d.createdBy ?? 'lead-journey',
+    meta: d.html ? { html: d.html } : {},
   }).select('id').single();
   if (error) throw new Error(`lead draft: ${error.message}`);
   const messageId = data.id as string;
 
   if (env.LEAD_JOURNEY_AUTOSEND === 'on' && d.toEmail) {
-    await sendNow(env, sb, { id: messageId, lead_id: d.leadId, subject: d.subject, body: d.body, purpose: d.purpose, to: d.toEmail }, now);
+    await sendNow(env, sb, { id: messageId, lead_id: d.leadId, subject: d.subject, body: d.body, purpose: d.purpose, to: d.toEmail, html: d.html }, now);
     return { messageId, approveUrl: null, sent: true };
   }
 
@@ -42,10 +43,10 @@ export async function submitForApproval(env: Env, sb: SupabaseClient, d: Journey
 }
 
 /** Send a parked journey email from Virat's Gmail now, mark it sent and move the stage. */
-export async function sendNow(env: Env, sb: SupabaseClient, m: { id: string; lead_id: string; subject: string; body: string; purpose: string | null; to: string }, now = new Date()) {
+export async function sendNow(env: Env, sb: SupabaseClient, m: { id: string; lead_id: string; subject: string; body: string; purpose: string | null; to: string; html?: string | null }, now = new Date()) {
   const deps = await liveMailDeps(env, now);
   const text = `${m.body}\n\n-- \n${signatureText(env.GMAIL_ADDRESS)}`;
-  const via = await deliver({ to: m.to, subject: m.subject, text }, deps);
+  const via = await deliver({ to: m.to, subject: m.subject, text, html: m.html ?? undefined }, deps);
   await sb.from('lead_messages').update({ status: 'sent', at: now.toISOString(), meta: { via } }).eq('id', m.id);
   const { data: lead } = await sb.from('leads').select('id, stage').eq('id', m.lead_id).maybeSingle();
   if (lead) {

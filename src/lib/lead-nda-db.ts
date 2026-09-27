@@ -1,5 +1,6 @@
 // Server side of the NDA step: the signed link, drafting the request and reminder, recording
 // the signature, and what happens next (the access request, automatically).
+import { firstEmailDraft, type Research } from './lead-first-email';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Env } from './env';
 import { signLeadToken } from './lead-token';
@@ -24,12 +25,12 @@ export async function getNda(sb: SupabaseClient, leadId: string): Promise<NdaRow
 }
 
 /** Draft the NDA email (one-tap approval, or straight out with LEAD_JOURNEY_AUTOSEND=on). */
-export async function sendNdaRequest(env: Env, sb: SupabaseClient, lead: LeadLite, now = new Date()) {
+export async function sendNdaRequest(env: Env, sb: SupabaseClient, lead: LeadLite & { website?: string | null }, now = new Date(), research: Research | null = null) {
   if (!lead.contact_email) throw new Error('This lead has no email address.');
   if (!env.LEAD_TOKEN_SECRET) throw new Error('LEAD_TOKEN_SECRET is not set');
   const link = ndaLink(env, lead.id);
-  const d = ndaRequestDraft(lead, link, now);
-  const r = await submitForApproval(env, sb, { ...d, leadId: lead.id, leadName: lead.brand_name, toEmail: lead.contact_email, context: [`${lead.contact_name || 'Founder'} (${lead.brand_name}), new lead`, 'Draft sends the mutual NCNDA to sign online. Stage moves to NDA sent when it goes.'] }, now);
+  const d = research || lead.website ? firstEmailDraft(lead, research, link, now) : ndaRequestDraft(lead, link, now);
+  const r = await submitForApproval(env, sb, { ...d, leadId: lead.id, leadName: lead.brand_name, toEmail: lead.contact_email, context: [`${lead.contact_name || 'Founder'} (${lead.brand_name}), new lead`, 'Draft is the first email: their site in their words, the offer, terms, and the mutual NCNDA to sign online. Stage moves to NDA sent when it goes.'] }, now);
   return { ...r, link };
 }
 

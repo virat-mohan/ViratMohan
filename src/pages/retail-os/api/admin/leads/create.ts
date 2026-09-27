@@ -5,6 +5,8 @@ import { getEnv } from '../../../../../lib/env';
 import { json, readJson } from '../../../../../lib/retail-os-http';
 import { leadSb } from '../../../../../lib/lead-audit-db';
 import { sendNdaRequest } from '../../../../../lib/lead-nda-db';
+import { fetchWebsiteSnippet } from '../../../../../lib/llm';
+import { parseResearch } from '../../../../../lib/lead-first-email';
 
 // The front door (admin, gated by src/middleware.ts). Three fields make a lead, the NDA is
 // drafted at once and Virat gets a one-tap Approve & send. Nothing else to do by hand.
@@ -25,18 +27,20 @@ export const POST: APIRoute = async ({ request }) => {
   }
   const clean = (s?: string) => (s || '').trim().slice(0, 300) || null;
   const website = clean(b?.website)?.replace(/^(?!https?:\/\/)/, 'https://') ?? null;
+  // Research first (public site only, cited by url), so the first email opens in their own words.
+  const research = website ? parseResearch(website, await fetchWebsiteSnippet(website)) : null;
   const { data: lead, error } = await sb.from('leads').insert({
     brand_name: brand, contact_name: clean(b?.contact_name), contact_email: email || null, contact_phone: clean(b?.contact_phone),
     website, instagram: clean(b?.instagram)?.replace(/^@/, '') ?? null, category: clean(b?.category), source: clean(b?.source) ?? 'virat', notes: clean(b?.notes),
     stage: 'new', next_step: 'Approve the NDA email', next_step_due: new Date().toISOString().slice(0, 10),
-    research: { website, instagram: clean(b?.instagram) },
-  }).select('id, brand_name, contact_name, contact_email, contact_phone, stage').single();
+    research: { website, instagram: clean(b?.instagram), ...(research ? { site: research } : {}) },
+  }).select('id, brand_name, contact_name, contact_email, contact_phone, stage, website').single();
   if (error) return json({ error: error.message }, 500);
   await sb.from('lead_messages').insert({ lead_id: lead.id, direction: 'internal', channel: 'note', status: 'logged', body: `Added by Virat${b?.notes ? `: ${clean(b.notes)}` : ''}.`, created_by: 'admin' });
 
   let nda: { approveUrl: string | null; sent: boolean; link: string } | null = null;
   if (b?.sendNda !== false && email) {
-    try { nda = await sendNdaRequest(env, sb, lead); } catch (e) { return json({ ok: true, leadId: lead.id, warning: `Lead saved, but the NDA draft failed: ${(e as Error).message}` }, 200); }
+    try { nda = await sendNdaRequest(env, sb, lead, new Date(), research); } catch (e) { return json({ ok: true, leadId: lead.id, warning: `Lead saved, but the NDA draft failed: ${(e as Error).message}` }, 200); }
   }
-  return json({ ok: true, leadId: lead.id, nda, note: nda ? (nda.sent ? 'NDA email sent.' : 'NDA email drafted; approve it from the notice I just sent you.') : 'Saved. Add an email to send the NDA.' }, 200);
+  return json({ ok: true, leadId: lead.id, nda, note: nda ? (nda.sent ? 'NDA email sent.' : 'First email drafted with the NDA link; approve it from the notice I just sent you.') : 'Saved. Add an email to send the NDA.' }, 200);
 };
