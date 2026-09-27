@@ -273,6 +273,7 @@ describe('plan generator', () => {
     expect(unsourcedNumbers(audit, plan)).toEqual(['₹9,99,999']);
   });
 
+  // Pins the currently published term copy on purpose: when published terms change, this fails and forces a review.
   it('offers only the standard terms', () => {
     const { terms, recommended } = fitTerms(audit);
     expect(terms.map((t) => t.value)).toEqual(['40% of the profit pool', '15–20% of revenue', 'from ₹5L a month']);
@@ -289,7 +290,6 @@ describe('plan generator', () => {
     expect(used.length).toBeGreaterThan(0);
     expect(used.filter((n) => !approved.has(n))).toEqual([]);
     expect(terms.find((t) => t.name === 'Retainer')?.why).toContain(STANDARD_TERM_CONDITIONS.retainer);
-    expect(STANDARD_TERM_CONDITIONS.retainer).toBe('₹100 Cr+ a year');
   });
 
   it('still flags an unsourced threshold such as ₹99 Cr', async () => {

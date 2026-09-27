@@ -18,8 +18,11 @@ const RETAINER_FLOOR_INR = 500000;
 // Retainer is only offered above ₹100 Cr a year in turnover — set here as the monthly figure it implies.
 const RETAINER_ANNUAL_TURNOVER_FLOOR_INR = 1_000_000_000;
 const RETAINER_MONTHLY_TURNOVER_FLOOR_INR = RETAINER_ANNUAL_TURNOVER_FLOOR_INR / 12;
-// Approved eligibility conditions for the standard terms. Plan text quotes these, never a typed-in figure,
+// Published eligibility conditions for the standard terms. Plan text quotes these, never a typed-in figure,
 // and allowedNumbers() treats them as a source, so a changed threshold can't drift from what is checked.
+// FACT: the retainer price (from ₹5L a month) and its eligibility (₹100 Cr+ a year) are currently published.
+// STATUS: COMMERCIAL TERM UNDER REVIEW. Not approved or final commercial policy. Using them here as the current
+// published source for number traceability is not an approval of the underlying commercial decision.
 export const STANDARD_TERM_CONDITIONS = {
   retainer: `₹${RETAINER_ANNUAL_TURNOVER_FLOOR_INR / 10_000_000} Cr+ a year`,
 } as const;
