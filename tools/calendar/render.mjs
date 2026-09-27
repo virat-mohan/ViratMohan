@@ -31,13 +31,14 @@ for (const c of spec.performance?.campaigns ?? []) if (c.image) c.image = localI
 const outPdf = outIdx >= 0 ? resolve(args[outIdx + 1]) : resolve(HERE, 'out', `${spec.slug}.pdf`);
 
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-const font = (p) => `file://${resolve(ROOT, 'node_modules', p)}`;
+// Fonts are embedded as data URIs: headless Chrome will not load font files from a file:// page.
+const font = (p) => `data:font/woff2;base64,${readFileSync(resolve(ROOT, 'node_modules', p)).toString('base64')}`;
 const inr = (n) => (typeof n === 'number' ? `₹${n.toLocaleString('en-IN')}` : esc(n));
 
 // ── Palette and type: viratmohan.com tokens (paper, ink, gold, terracotta) ─────────────
 const CSS = `
 @font-face{font-family:Anton;src:url(${font('@fontsource/anton/files/anton-latin-400-normal.woff2')}) format('woff2');}
-@font-face{font-family:InterV;src:url(${font('@fontsource-variable/inter/files/inter-latin-wght-normal.woff2')}) format('woff2');font-weight:100 900;}
+@font-face{font-family:InterV;src:url(data:font/ttf;base64,${readFileSync(resolve(HERE, 'fonts/Inter.ttf')).toString('base64')}) format('truetype');font-weight:100 900;font-style:normal;}
 @font-face{font-family:Instrument;font-style:italic;src:url(${font('@fontsource/instrument-serif/files/instrument-serif-latin-400-italic.woff2')}) format('woff2');}
 @page{size:A4 landscape;margin:8mm 9mm 7mm;}
 :root{--paper:#F4EAD4;--paper2:#FBF6EA;--ink:#1A1410;--ink2:#4A4038;--dim:#7A6E62;--line:#D9CDB4;--gold:#D4AF37;--terra:#D9714B;--blue:#3E6FA6;--pink:#E91E8C;--brown:#9C7A4A;--sage:#2B8C86;}
