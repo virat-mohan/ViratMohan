@@ -2,7 +2,7 @@
 
 Based on Raghu's agenda email, 27 Sep 2026, 14:23 IST ("Agenda - Discussion 4PM today ..."), cc Ishaan and Isha.
 Mapped against what Retail OS does today (`src/lib/retail-os-terms.ts`, `src/lib/ops-seed.ts`, `case-study/WOW-TARGETS.md`).
-All targets below are proposed, for discussion. They are not promises until we have measured their current numbers.
+Targets are to be tested first; set with the brand after two weeks of measured data.
 
 ## What they asked, in one line each
 1. **WhatsApp is their main channel, and it leaks.** Their numbers: under 20% of sent messages get delivered, 50% of delivered get seen, 20% of seen get a reply, under 10% of replies order. Under 1% of sent messages become an order. They want it automated, with no extra staff.
@@ -32,17 +32,17 @@ All targets below are proposed, for discussion. They are not promises until we h
 1. Move their WhatsApp to the official Cloud API with Meta Business Verification. Start verification on day 0 because it can take weeks.
 2. Store live on aloochips.com with order and pay from WhatsApp: tap, pick a pack, pay by UPI, done. No one needs to reply by hand.
 3. Add "Who told you about us?" at checkout, so referral data starts on day one.
-- *Target (proposed):* delivered/sent from under 20% to 90%+ within 14 days of the number going live, on opted-in contacts.
+- *To test (not a target yet):* delivered/sent from under 20% to 90%+ within 14 days of the number going live, on opted-in contacts.
 
 **Weeks 2 to 3: turn the database into trial orders**
 4. Clean and segment the old Iredus list (by avatar, city, past interaction). Only message people who agreed to hear from Iredus. Everyone else gets a one-time opt-in ask through a channel they already used.
 5. One trial offer: a small taster pack, priced for trying, with one tap to order. Send in small batches, measure each step, then change one thing at a time.
-- *Target (proposed):* sent → order from under 1% to 3%+ on the first 500 opted-in contacts. Baseline is their own figure.
+- *To test (not a target yet):* sent → order from under 1% to 3%+ on the first 500 opted-in contacts. Baseline is their own figure.
 
 **Weeks 3 to 4: gifting, the high-value order**
 6. A gifting page: custom label with name and message, occasion date, delivery date. Save birthdays and anniversaries and send a reminder 10 days before, next year too.
 7. A bulk and corporate quote form for planners, hotels, restaurants and offices, routed to Raghu for approval.
-- *Target (proposed):* 10 gifting orders and 3 bulk enquiries in the first 30 days live.
+- *To test (not a target yet):* 10 gifting orders and 3 bulk enquiries in the first 30 days live.
 
 **Month 2: referral programme**
 8. Every buyer gets their own code: the friend gets a small discount and the referrer gets credit. Track it in orders.
