@@ -1,0 +1,119 @@
+---
+export const prerender = false;
+import { getEnv } from '../../../lib/env';
+import { brandsDb, termsLine, STATUS_LABEL, MODEL_LABEL, type Brand } from '../../../lib/brands';
+
+// Brands and founder contacts (gated by src/middleware.ts). Every brand DevShop works with
+// or is talking to: status, the money in plain words, and who to call. Edit in place.
+let brands: Brand[] = [];
+let loadError = '';
+try { brands = await brandsDb(getEnv()).list(); } catch (e) { loadError = e instanceof Error ? e.message : String(e); }
+const order: Record<string, number> = { live: 0, building: 1, lead: 2, paused: 3, ended: 4 };
+brands.sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9) || a.name.localeCompare(b.name));
+const STATUSES = Object.entries(STATUS_LABEL), MODELS = Object.entries(MODEL_LABEL);
+const contactsLine = (b: Brand) => (b.contacts.length ? b.contacts.map((c) => [c.name, c.role, c.email, c.phone].filter(Boolean).join(' · ')).join('  |  ') : 'No contacts yet. Add them below.');
+---
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brands</title><meta name="robots" content="noindex">
+<link rel="stylesheet" href="/brand/tokens.css">
+<style>
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.6 var(--sans);-webkit-font-smoothing:antialiased;}
+.wrap{max-width:960px;margin:0 auto;padding:56px 16px 96px;}
+.eyebrow{font:600 11px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--terracotta);margin:0 0 12px;}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(2.2rem,6vw,3rem);line-height:1.05;margin:0 0 10px;}
+.sub{color:var(--dim);margin:0 0 28px;} .sub a{color:var(--ink);}
+.brand{border-top:1px solid var(--line);padding:22px 0;}
+.brand summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:4px 16px;align-items:baseline;}
+.brand summary::-webkit-details-marker{display:none;}
+.name{font-family:var(--serif);font-size:1.5rem;line-height:1.2;} .terms{color:var(--dim);font-size:14px;grid-column:1/-1;}
+.status{font:600 11px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;border:1px solid var(--line);border-radius:999px;padding:7px 12px;white-space:nowrap;} .status.live{border-color:var(--ink);}
+.contacts{font-size:13px;color:#4A4038;grid-column:1/-1;}
+form{margin-top:16px;display:grid;grid-template-columns:1fr;gap:10px;} @media(min-width:640px){form{grid-template-columns:1fr 1fr;} form .full{grid-column:1/-1;}}
+label{display:block;font:600 12px/1.3 var(--sans);color:var(--dim);margin:0 0 4px;}
+input,select,textarea{width:100%;box-sizing:border-box;font:14px/1.4 var(--sans);padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);}
+textarea{min-height:70px;}
+.crow{display:grid;grid-template-columns:1.2fr .8fr 1.4fr 1fr auto;gap:6px;align-items:end;margin-bottom:6px;}
+.btn{font:600 14px var(--sans);padding:10px 18px;border-radius:999px;border:1px solid var(--ink);background:var(--ink);color:var(--paper);cursor:pointer;} .btn.ghost{background:transparent;color:var(--ink);} .btn.small{padding:7px 12px;font-size:12px;}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;} .msg{font-size:13px;color:var(--terracotta);}
+.add{border:1px solid var(--line);border-radius:16px;padding:20px;margin:0 0 30px;background:rgba(255,255,255,.4);}
+.err{color:var(--terracotta);}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <p class="eyebrow">Retail OS admin</p>
+  <h1>Brands</h1>
+  <p class="sub">{brands.length} brands: who DevShop works with, on what terms, and who to call. Changes here show on the <a href="/founder">founder console</a> at once.</p>
+  {loadError && <p class="err">Could not load: {loadError}</p>}
+
+  <details class="add"><summary class="btn ghost small">Add a brand</summary>
+    <form data-brand="" autocomplete="off">
+      <div><label>Name</label><input name="name" required /></div>
+      <div><label>Status</label><select name="status">{STATUSES.map(([k, v]) => <option value={k}>{v}</option>)}</select></div>
+      <div><label>Model</label><select name="model"><option value="">Not set</option>{MODELS.map(([k, v]) => <option value={k}>{v}</option>)}</select></div>
+      <div><label>DevShop %</label><input name="devshop_pct" type="number" min="0" max="100" step="0.5" /></div>
+      <div><label>Retainer ₹ / month</label><input name="retainer_inr" type="number" min="0" /></div>
+      <div><label>Category</label><input name="category" /></div>
+      <div><label>Website</label><input name="website" /></div>
+      <div><label>Instagram</label><input name="instagram" /></div>
+      <div class="full"><label>Terms, in plain words</label><input name="terms_note" /></div>
+      <div class="full"><label>Contacts</label><div class="clist"></div><button type="button" class="btn ghost small addc">+ contact</button></div>
+      <div class="full"><label>Notes</label><textarea name="notes"></textarea></div>
+      <div class="full actions"><button class="btn" type="submit">Save</button><span class="msg"></span></div>
+    </form>
+  </details>
+
+  {brands.map((b) => (
+    <details class="brand">
+      <summary>
+        <div class="name">{b.name}</div>
+        <span class={`status ${b.status}`}>{STATUS_LABEL[b.status]}</span>
+        <div class="terms">{termsLine(b)}{b.category ? ` · ${b.category}` : ''}</div>
+        <div class="contacts">{contactsLine(b)}</div>
+      </summary>
+      <form data-brand={b.id} data-key={b.key} autocomplete="off">
+        <div><label>Name</label><input name="name" value={b.name} required /></div>
+        <div><label>Status</label><select name="status">{STATUSES.map(([k, v]) => <option value={k} selected={k === b.status}>{v}</option>)}</select></div>
+        <div><label>Model</label><select name="model"><option value="">Not set</option>{MODELS.map(([k, v]) => <option value={k} selected={k === b.model}>{v}</option>)}</select></div>
+        <div><label>DevShop %</label><input name="devshop_pct" type="number" min="0" max="100" step="0.5" value={b.devshop_pct ?? ''} /></div>
+        <div><label>Retainer ₹ / month</label><input name="retainer_inr" type="number" min="0" value={b.retainer_inr ?? ''} /></div>
+        <div><label>Category</label><input name="category" value={b.category ?? ''} /></div>
+        <div><label>Website</label><input name="website" value={b.website ?? ''} /></div>
+        <div><label>Instagram</label><input name="instagram" value={b.instagram ?? ''} /></div>
+        <div><label>Live since</label><input name="live_since" type="date" value={b.live_since ?? ''} /></div>
+        <div class="full"><label>Terms, in plain words</label><input name="terms_note" value={b.terms_note ?? ''} /></div>
+        <div class="full"><label>Contacts</label><div class="clist" data-contacts={JSON.stringify(b.contacts)}></div><button type="button" class="btn ghost small addc">+ contact</button></div>
+        <div class="full"><label>Notes</label><textarea name="notes">{b.notes ?? ''}</textarea></div>
+        <div class="full actions"><button class="btn" type="submit">Save</button><button type="button" class="btn ghost del">Delete</button><span class="msg"></span>{b.lead_id && <a class="btn ghost small" href="/retail-os/admin/leads">Lead</a>}{b.application_id && <a class="btn ghost small" href={`/retail-os/track/${b.application_id}?edit=1`}>Their page</a>}</div>
+      </form>
+    </details>
+  ))}
+</main>
+<script>
+  const esc = (s: string) => s.replace(/"/g, '&quot;');
+  const rowHtml = (c: Record<string, string> = {}) => `<div class="crow"><div><label>Name</label><input data-c="name" value="${esc(c.name ?? '')}"></div><div><label>Role</label><input data-c="role" value="${esc(c.role ?? '')}"></div><div><label>Email</label><input data-c="email" value="${esc(c.email ?? '')}"></div><div><label>Phone</label><input data-c="phone" value="${esc(c.phone ?? '')}"></div><button type="button" class="btn ghost small rm">×</button></div>`;
+  document.querySelectorAll<HTMLElement>('.clist').forEach((el) => { const list = JSON.parse(el.dataset.contacts || '[]'); el.innerHTML = list.map(rowHtml).join(''); });
+  document.addEventListener('click', (e) => {
+    const t = e.target as HTMLElement;
+    if (t.classList.contains('addc')) (t.previousElementSibling as HTMLElement).insertAdjacentHTML('beforeend', rowHtml());
+    if (t.classList.contains('rm')) t.closest('.crow')?.remove();
+  });
+  document.querySelectorAll<HTMLFormElement>('form[data-brand]').forEach((form) => {
+    const msg = form.querySelector<HTMLElement>('.msg')!;
+    const post = async (body: unknown) => { const r = await fetch('/retail-os/api/admin/brands', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }); const j = await r.json(); if (!r.ok) throw new Error(j.error || 'Failed'); return j; };
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault(); msg.textContent = 'Saving…';
+      const data: Record<string, unknown> = Object.fromEntries(new FormData(form).entries());
+      data.contacts = [...form.querySelectorAll<HTMLElement>('.crow')].map((r) => Object.fromEntries([...r.querySelectorAll<HTMLInputElement>('input[data-c]')].map((i) => [i.dataset.c, i.value])));
+      if (form.dataset.brand) data.id = form.dataset.brand;
+      if (form.dataset.key) data.key = form.dataset.key;
+      try { await post({ action: 'save', ...data }); msg.textContent = 'Saved.'; setTimeout(() => location.reload(), 600); } catch (err) { msg.textContent = (err as Error).message; }
+    });
+    form.querySelector('.del')?.addEventListener('click', async () => { if (!confirm('Delete this brand record?')) return; try { await post({ action: 'delete', id: form.dataset.brand }); location.reload(); } catch (err) { msg.textContent = (err as Error).message; } });
+  });
+</script>
+</body>
+</html>
