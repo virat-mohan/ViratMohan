@@ -485,7 +485,7 @@ const canonical = new URL('/devshop/retail', site.domain).href;
 
   <!-- 11 BILLING (UI-only — static rows, no real billing system) -->
   <section class="screen" id="billing">
-    <div class="eyebrow">BILLING</div>
+    <div class="eyebrow">BILLING <span class="sim-tag">(sample)</span></div>
     <h1 class="hero serif" style="font-size:clamp(32px,4.4vw,52px);">Retail DevShop</h1>
     <div class="billing-summary">
       <div class="item"><div class="l">MONTHLY</div><div class="v">{CURRENCY}{PRICING.retainerMin}</div></div>
@@ -497,6 +497,7 @@ const canonical = new URL('/devshop/retail', site.domain).href;
       <tr><td>04 Aug 2026</td><td>{CURRENCY}{PRICING.retainerMin}</td><td class="status">Paid</td></tr>
       <tr><td>04 Jul 2026</td><td>{CURRENCY}{PRICING.retainerMin}</td><td class="status">Paid</td></tr>
     </table>
+    <p class="sim-tag" style="font-size:13px; margin-top:12px;">Sample screen for illustration. Not real billing or payment history.</p>
   </section>
 
 </main>
