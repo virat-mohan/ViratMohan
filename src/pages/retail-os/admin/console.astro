@@ -120,6 +120,7 @@ const href = (t: string, extra = '') => `/retail-os/admin/console?tab=${t}${extr
   .wrap{max-width:1180px;margin-inline:auto;padding:28px 16px 72px;}
   .top{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px;margin-bottom:18px;}
   h1{font-family:var(--serif);font-weight:400;font-size:clamp(2rem,5vw,2.6rem);line-height:1.05;margin:0;}
+  .logo{display:flex;align-items:center;gap:8px;text-decoration:none;margin:0 0 10px;}.logo img{height:34px;width:auto;display:block;}.logo i{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--dim);}
   .eyebrow{font:600 11px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--terracotta);margin:0 0 10px;}
   .top nav a{font-size:13px;font-weight:600;margin-left:14px;text-decoration:none;color:var(--ink);text-underline-offset:3px;}
   .tabs{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin:0 0 22px;}
@@ -149,7 +150,7 @@ const href = (t: string, extra = '') => `/retail-os/admin/console?tab=${t}${extr
 <body>
 <div class="wrap">
   <div class="top">
-    <div><p class="eyebrow">DevShop Retail OS</p><h1>Founder console</h1></div>
+    <div><a class="logo" href="/founder" aria-label="DevShop Retail OS"><img src="/retail-os/email/devshop-logo.png" alt="DevShop" width="140" height="54" /><i>Retail OS™</i></a><h1>Founder console</h1></div>
     <nav><a href="/retail-os/admin/leads">Leads</a><a href="/retail-os/admin">Applications</a><a href="/retail-os/admin/brands">Brands</a><a href="/retail-os/admin/faq">FAQ inbox</a><a href="/retail-os/admin/reports">Reports</a></nav>
   </div>
   <div class="tabs">

@@ -22,6 +22,7 @@ const contactsLine = (b: Brand) => (b.contacts.length ? b.contacts.map((c) => [c
 <style>
 body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.6 var(--sans);-webkit-font-smoothing:antialiased;}
 .wrap{max-width:960px;margin:0 auto;padding:56px 16px 96px;}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none;margin:0 0 14px;}.logo img{height:34px;width:auto;display:block;}.logo i{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--dim);}
 .eyebrow{font:600 11px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--terracotta);margin:0 0 12px;}
 h1{font-family:var(--serif);font-weight:400;font-size:clamp(2.2rem,6vw,3rem);line-height:1.05;margin:0 0 10px;}
 .sub{color:var(--dim);margin:0 0 28px;} .sub a{color:var(--ink);}
@@ -44,7 +45,7 @@ textarea{min-height:70px;}
 </head>
 <body>
 <main class="wrap">
-  <p class="eyebrow">Retail OS admin</p>
+  <a class="logo" href="/founder" aria-label="DevShop Retail OS"><img src="/retail-os/email/devshop-logo.png" alt="DevShop" width="140" height="54" /><i>Retail OS™</i></a>
   <h1>Brands</h1>
   <p class="sub">{brands.length} brands: who DevShop works with, on what terms, and who to call. Changes here show on the <a href="/founder">founder console</a> at once.</p>
   {loadError && <p class="err">Could not load: {loadError}</p>}
