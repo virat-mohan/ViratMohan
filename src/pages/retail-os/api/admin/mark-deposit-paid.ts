@@ -31,7 +31,7 @@ export const POST: APIRoute = async ({ request }) => {
   const confirmed = await db.confirmDeposit(id);
   if (!confirmed) return json({ error: 'Could not confirm the deposit. Try again.' }, 500);
   syncLeadFromApplication(db.client, confirmed, 'deposit_paid').catch(() => {});
-  seedBrandSetupTasks(db.client, confirmed.brand_name).catch((e) => console.error('ops seed failed', e));
+  // Build tasks are NOT assigned automatically: Virat assigns them from the founder console (Assign build tasks).
 
   const start = new Date(confirmed.build_started_at ?? Date.now());
   const target = new Date(start.getTime() + BUILD_WINDOW_DAYS * 86400000);

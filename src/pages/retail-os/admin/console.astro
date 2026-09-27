@@ -210,7 +210,7 @@ const href = (t: string, extra = '') => `/retail-os/admin/console?tab=${t}${extr
       <div class="scroll"><table><tr><th>Brand</th><th>Stage</th><th>With</th><th>Next</th><th>Due</th><th>Go-live</th></tr>
         {withHealth.sort((a, b) => indexOf(b.l.stage) - indexOf(a.l.stage)).map((x) => <tr><td><b>{x.l.brand_name}</b>{x.l.contact_name && <span class="note"> · {x.l.contact_name}</span>}</td><td class={x.h.late ? 'bad' : ''}>{x.h.step?.label ?? x.l.stage}{x.h.daysIn ? ` · ${x.h.daysIn}d` : ''}</td><td>{x.h.owner}</td><td>{x.l.next_step ?? x.h.does}</td><td class={x.l.next_step_due && x.l.next_step_due < today ? 'bad' : ''}>{x.l.next_step_due ? day(x.l.next_step_due) : '—'}</td><td>{x.left !== null ? <span class={`clock${x.left < 0 ? ' over' : ''}`}>{x.left < 0 ? `${-x.left}d over` : `${x.left}d left`} · {day(x.target!)}</span> : <span class="note">clock not started</span>}</td></tr>)}
       </table></div>
-      {building.length > 0 && (<><h3>Building ({building.length})</h3><div class="scroll"><table><tr><th>Brand</th><th>Day</th><th>Note</th></tr>{building.map((r) => <tr><td>{r.app.brand_name}</td><td class={r.days > BUILD_WINDOW_DAYS ? 'bad' : ''}>{r.days} of {BUILD_WINDOW_DAYS}</td><td>{r.days < BUILD_WINDOW_DAYS ? `${BUILD_WINDOW_DAYS - r.days} days left` : `${r.days - BUILD_WINDOW_DAYS} days over`}</td></tr>)}</table></div></>)}
+      {building.length > 0 && (<><h3>Building ({building.length})</h3><div class="scroll"><table><tr><th>Brand</th><th>Day</th><th>Note</th><th></th></tr>{building.map((r) => <tr><td>{r.app.brand_name}</td><td class={r.days > BUILD_WINDOW_DAYS ? 'bad' : ''}>{r.days} of {BUILD_WINDOW_DAYS}</td><td>{r.days < BUILD_WINDOW_DAYS ? `${BUILD_WINDOW_DAYS - r.days} days left` : `${r.days - BUILD_WINDOW_DAYS} days over`}</td><td><button class="btn assign" data-brand={r.app.brand_name} data-start={r.app.build_started_at ?? ''}>Assign build tasks</button> <span class="note amsg"></span></td></tr>)}</table></div><p class="note">Build tasks go to the team only when you press Assign.</p></>)}
       <p class="note" style="margin-top:12px;">Add a lead, approve emails and move stages on the <a href="/retail-os/admin/leads">leads page</a>. Stages move by themselves when they sign the NDA, connect data, apply, sign terms and pay.</p>
     </section>
   </>)}
@@ -335,6 +335,14 @@ const href = (t: string, extra = '') => `/retail-os/admin/console?tab=${t}${extr
       send({ action: 'create', memberId: member, fields: fields }).then(function (r) { if (r.ok) location.reload(); else alert((r.data && r.data.error) || 'Not added'); });
     });
   });
+</script>
+<script>
+  document.querySelectorAll<HTMLButtonElement>('button.assign').forEach((btn) => btn.addEventListener('click', async () => {
+    if (!confirm(`Assign the ${btn.dataset.brand} build tasks to the team?`)) return;
+    const msg = btn.nextElementSibling as HTMLElement; btn.disabled = true;
+    const r = await fetch('/retail-os/api/admin/ops/assign-build', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ brandName: btn.dataset.brand, startedAt: btn.dataset.start }) });
+    const j = await r.json().catch(() => ({})); msg.textContent = r.ok ? j.note : (j.error || 'Failed'); if (!r.ok) btn.disabled = false;
+  }));
 </script>
 </body>
 </html>
