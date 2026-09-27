@@ -95,7 +95,7 @@ function head(title, intro) {
 <div class="head"><div><div class="brandmark"><img src="${logo}" alt="DevShop"><i>Retail OS™</i></div><h1>${esc(title)}</h1></div><div class="intro">${esc(intro)}</div></div>`;
 }
 function foot(pageNo, total, right) {
-  return `<div class="foot"><span>Made by DevShop Retail OS™ on behalf of founder Virat Mohan · +91 99992 77240 · viratmohan@gmail.com · viratmohan.com/retail-os</span><span>${esc(right)} · Page ${pageNo} of ${total}</span></div>`;
+  return `<div class="foot"><span>Made by DevShop Retail OS™ on behalf of founder Virat Mohan · +91 99992 77240 · founder@viratmohan.com · viratmohan.com/retail-os</span><span>${esc(right)} · Page ${pageNo} of ${total}</span></div>`;
 }
 function legend() {
   return `<div class="legend"><span><i style="background:var(--pink)"></i>Reel</span><span><i style="background:var(--blue)"></i>Photo</span><span><i style="background:var(--brown)"></i>Carousel</span><span><i style="background:#8A5A3C"></i>Stories</span><span><i style="background:var(--terra)"></i>Ad launch</span><span style="margin-left:auto">Blue bar: also runs as a paid ad (last page). Open days take new reels as they are shot.</span></div>`;

@@ -28,7 +28,7 @@ export const GET: APIRoute = async ({ request }) => {
 
   if (new URL(request.url).searchParams.get('dry') === '1') return new Response(html, { headers: { 'content-type': 'text/html; charset=utf-8' } });
   if (!mailConfigured(env)) return json({ error: 'Email is not configured' }, 503);
-  const to = process.env.TEAM_DIGEST_TO || 'viratmohan@gmail.com';
+  const to = process.env.TEAM_DIGEST_TO || 'founder@viratmohan.com';
   try {
     await sendEmail({ to, subject, html }, env);
     return json({ today, to, members: digests.length, sent: true }, 200);
