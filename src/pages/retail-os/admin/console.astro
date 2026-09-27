@@ -7,6 +7,8 @@ import { getLiveBrands, clarityFriction, type FrictionPage } from '../../../lib/
 import { buildBrandReport, reportRows, type BrandReport } from '../../../lib/retail-os-reports';
 import { getOpsDb, progressByBrand } from '../../../lib/retail-os-ops';
 import type { TeamMember, OpsTask, OpsLog } from '../../../lib/retail-os-ops';
+import { serviceDb } from '../../../lib/ledger';
+import { buildCrm, PHASES, type CrmLead, type CrmRow } from '../../../lib/crm';
 
 // DevShop-only founder console (gated by src/middleware.ts). Never linked
 // from anything a brand owner can reach.
@@ -82,6 +84,18 @@ const stuck = active.filter((r) => r.days > r.limit).sort((a, b) => (b.days - b.
 const newThisWeek = rows.filter((r) => daysSince(r.app.created_at) <= 7);
 const counts = (['preparing', 'review', 'sign', 'deposit', 'confirming', 'building', 'live'] as JourneyStep[]).map((s) => ({ s, n: rows.filter((r) => r.step === s).length }));
 
+// CRM: every client, from leads, applications and live stores, at its furthest stage.
+let crm: CrmRow[] = [];
+let crmError = false;
+try {
+  const { data, error } = await serviceDb(env).from('leads').select('id, brand_name, contact_name, contact_email, stage, stage_changed_at, updated_at, application_id').limit(500);
+  if (error) throw error;
+  crm = buildCrm((data ?? []) as CrmLead[], rows.map((r) => ({ id: r.app.id, brand_name: r.app.brand_name, founder_name: r.app.founder_name, founder_email: r.app.founder_email, step: r.step, since: r.app.created_at })), liveBrands);
+} catch (err) {
+  console.error('console crm load failed', err);
+  crmError = true;
+}
+
 const inr = (n: number) => '₹' + Math.round(n).toLocaleString('en-IN');
 const totals = portfolio.reduce((t, p) => {
   if (!p.report.ok) return t;
@@ -134,7 +148,7 @@ const totals = portfolio.reduce((t, p) => {
 <div class="wrap">
   <div class="top">
     <h1 style="font-size:1.8rem;">Founder console</h1>
-    <nav><a href="/retail-os/admin">Applications</a><a href="/retail-os/admin/reports">Brand reports</a></nav>
+    <nav><a href="#crm">Clients</a><a href="/retail-os/admin/leads">Leads</a><a href="/retail-os/admin">Applications</a><a href="/retail-os/admin/reports">Brand reports</a></nav>
   </div>
 
   <div class="kpis">
@@ -144,6 +158,23 @@ const totals = portfolio.reduce((t, p) => {
     <div class="kpi"><div class="l">Net profit MTD</div><div class={`v ${totals.profit < 0 ? 'bad' : ''}`}>{inr(totals.profit)}</div></div>
     <div class="kpi"><div class="l">Waiting on you</div><div class={`v ${onYou.length ? 'bad' : ''}`}>{onYou.length}</div></div>
   </div>
+
+  <section id="crm">
+    <h2>Clients</h2>
+    <p class="note" style="margin:-6px 0 12px;">Every client, one row each, from new lead to live. Add a lead on the <a href="/retail-os/admin/leads">Leads page</a>.</p>
+    {crmError ? <p class="note bad">Couldn't load leads.</p> : crm.length === 0 ? <p class="note">No clients yet.</p> : PHASES.map((ph) => {
+      const list = crm.filter((c) => c.phase === ph);
+      return list.length > 0 && (
+        <>
+          <h3 style="font-size:.95rem; margin:14px 0 6px;">{ph} ({list.length})</h3>
+          <div class="scroll"><table>
+            <tr><th>Client</th><th>Stage</th><th>With</th><th>Days</th><th>Next</th></tr>
+            {list.map((c) => <tr><td>{c.brand}{c.contact && <div class="note">{c.contact}</div>}</td><td>{c.label}</td><td>{c.owner}</td><td class={c.late ? 'bad' : ''}>{c.daysIn}</td><td style="text-align:left;">{c.does}</td></tr>)}
+          </table></div>
+        </>
+      );
+    })}
+  </section>
 
   <section>
     <h2>Live brands — month to date</h2>

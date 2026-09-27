@@ -17,3 +17,4 @@ Every self-audit reads this first and adds to it last. One line per lesson: date
 
 - 2026-09-26: Employee Support Agent: team questions used to go only to Virat, so a new hire waited on him for things the Brain already knew. Rule: a team question gets a sourced Brain answer by email first; only unanswered ones nudge Virat, and both land in the 9:30 team report.
 - 2026-09-27: A new-lead flow request sounded greenfield, but most stages already existed in lead-journey.ts. Map any new flow onto the existing journey and list only the real gaps.
+- 2026-09-27: A sales flow draft named a client and quoted its rupee figures. Client data is confidential: outbound copy uses % results only, no brand names, no absolute numbers.
