@@ -37,9 +37,14 @@ export const POST: APIRoute = async ({ request }) => {
         subject: `${app.brand_name}: your build has started`,
         html: renderRetailOsEmail({
           preheader: `Target go-live: ${targetText}.`,
-          eyebrow: 'Build started',
+          eyebrow: 'Welcome',
           heading: `Live by ${targetText}`,
-          lines: ['Your deposit is confirmed and your 7-day build has started.', 'The setup questions on your page open one at a time. Answering them quickly is what keeps me on that date.'],
+          lines: [
+            'Your deposit is confirmed and your 7-day build has started. Welcome.',
+            'How the week runs: I build the store, payments, shipping, WhatsApp and Meta from your data. Every 2 days you get a short note from me: done, next, and anything I need from you. On day 6 you see the store before it opens and say yes.',
+            'The setup questions on your page open one at a time. Answering them quickly is what keeps me on that date.',
+            'I will add you to a WhatsApp group with me for anything quick. Money, terms and promises always come from me directly.',
+          ],
           cta: { label: 'Answer the first questions', url: trackUrl },
         }),
       },

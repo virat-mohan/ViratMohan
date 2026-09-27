@@ -9,6 +9,7 @@ import { getOpsDb, progressByBrand } from '../../../lib/retail-os-ops';
 import type { TeamMember, OpsTask, OpsLog } from '../../../lib/retail-os-ops';
 import { serviceDb } from '../../../lib/ledger';
 import { buildCrm, PHASES, type CrmLead, type CrmRow } from '../../../lib/crm';
+import { listCaseStudies, type CaseStudyRow } from '../../../lib/case-studies';
 
 // DevShop-only founder console (gated by src/middleware.ts). Never linked
 // from anything a brand owner can reach.
@@ -84,6 +85,28 @@ const stuck = active.filter((r) => r.days > r.limit).sort((a, b) => (b.days - b.
 const newThisWeek = rows.filter((r) => daysSince(r.app.created_at) <= 7);
 const counts = (['preparing', 'review', 'sign', 'deposit', 'confirming', 'building', 'live'] as JourneyStep[]).map((s) => ({ s, n: rows.filter((r) => r.step === s).length }));
 
+// Needs you: every draft waiting for a tap, and every case study waiting to be published.
+type Draft = { id: string; lead_id: string; subject: string | null; purpose: string | null; at: string; brand: string };
+let drafts: Draft[] = [];
+let studies: CaseStudyRow[] = [];
+try {
+  const sbl = serviceDb(env);
+  const [{ data: ms }, cs] = await Promise.all([
+    sbl.from('lead_messages').select('id, lead_id, subject, purpose, at').eq('status', 'awaiting_approval').order('at', { ascending: false }).limit(50),
+    listCaseStudies(sbl),
+  ]);
+  const ids = [...new Set((ms ?? []).map((m) => m.lead_id as string))];
+  const { data: ls } = ids.length ? await sbl.from('leads').select('id, brand_name').in('id', ids) : { data: [] as { id: string; brand_name: string }[] };
+  const name = new Map((ls ?? []).map((l) => [l.id as string, l.brand_name as string]));
+  drafts = (ms ?? []).map((m) => ({ ...(m as Omit<Draft, 'brand'>), brand: name.get(m.lead_id as string) ?? 'Lead' }));
+  studies = cs;
+} catch (err) {
+  console.error('console needs-you load failed', err);
+}
+const PURPOSE: Record<string, string> = { nda_request: 'First email with the NDA', nda_reminder: 'NDA reminder', access_request: 'Data access checklist', access_reminder: 'Access reminder', plan_cover: 'The plan', build_update: 'Build note' };
+const studyDrafts = studies.filter((s) => s.status === 'draft');
+const needsYou = drafts.length + studyDrafts.length;
+
 // CRM: every client, from leads, applications and live stores, at its furthest stage.
 let crm: CrmRow[] = [];
 let crmError = false;
@@ -142,13 +165,16 @@ const totals = portfolio.reduce((t, p) => {
   .chip{display:inline-block; font-family:'IBM Plex Mono'; font-size:10.5px; font-weight:700; padding:2px 7px; border:1.5px solid var(--ink); margin:0 4px 4px 0;}
   .chip.hot{background:var(--terracotta); color:#fff; border-color:var(--terracotta);}
   .scroll{overflow-x:auto;}
+  .act{font:700 12px 'Inter',sans-serif; background:var(--ink); color:#fff; border:1.5px solid var(--ink); padding:6px 10px; cursor:pointer;}
+  .act.quiet{background:transparent; color:var(--ink);}
+  .act[disabled]{opacity:.5; cursor:default;}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="top">
     <h1 style="font-size:1.8rem;">Founder console</h1>
-    <nav><a href="#crm">Clients</a><a href="/retail-os/admin/leads">Leads</a><a href="/retail-os/admin">Applications</a><a href="/retail-os/admin/reports">Brand reports</a></nav>
+    <nav><a href="#needs-you">Needs you</a><a href="#crm">Clients</a><a href="/retail-os/admin/leads">Leads</a><a href="/retail-os/admin">Applications</a><a href="/retail-os/admin/reports">Brand reports</a></nav>
   </div>
 
   <div class="kpis">
@@ -156,8 +182,39 @@ const totals = portfolio.reduce((t, p) => {
     <div class="kpi"><div class="l">vs budget MTD</div><div class={`v ${totals.budget && totals.sales < totals.budget ? 'bad' : ''}`}>{totals.budget ? `${Math.round(((totals.sales - totals.budget) / totals.budget) * 100)}%` : '—'}</div></div>
     <div class="kpi"><div class="l">Ad spend MTD / ROAS</div><div class="v">{inr(totals.ad)} · {totals.ad ? `${(totals.sales / totals.ad).toFixed(1)}×` : '—'}</div></div>
     <div class="kpi"><div class="l">Net profit MTD</div><div class={`v ${totals.profit < 0 ? 'bad' : ''}`}>{inr(totals.profit)}</div></div>
-    <div class="kpi"><div class="l">Waiting on you</div><div class={`v ${onYou.length ? 'bad' : ''}`}>{onYou.length}</div></div>
+    <div class="kpi"><div class="l">Waiting on you</div><div class={`v ${onYou.length + needsYou ? 'bad' : ''}`}>{onYou.length + needsYou}</div></div>
   </div>
+
+  <section id="needs-you">
+    <h2>Needs you ({needsYou})</h2>
+    {needsYou === 0 ? <p class="note">Nothing waiting. Every draft and case study has been handled.</p> : (
+      <>
+        {drafts.length > 0 && (
+          <div class="scroll"><table>
+            <tr><th>Client</th><th>Draft</th><th>Since</th><th></th></tr>
+            {drafts.map((d) => <tr><td>{d.brand}</td><td style="text-align:left;">{PURPOSE[d.purpose ?? ''] ?? d.purpose}<div class="note">{d.subject}</div></td><td>{fmtTs(d.at)}</td><td><button class="act" data-kind="draft" data-id={d.id}>Approve &amp; send</button> <a class="note" href="/retail-os/admin/leads">Read first →</a></td></tr>)}
+          </table></div>
+        )}
+        {studyDrafts.length > 0 && (
+          <div class="scroll" style="margin-top:12px;"><table>
+            <tr><th>Case study (brand stays private)</th><th>Result</th><th>Found</th><th></th></tr>
+            {studyDrafts.map((s) => <tr><td>{s.brand_name}<div class="note">{s.base_note}</div></td><td style="text-align:left;"><b>{s.headline}.</b> {s.detail}</td><td>{fmtTs(s.created_at)}</td><td><button class="act" data-kind="study" data-id={s.id} data-action="publish">Publish</button> <button class="act quiet" data-kind="study" data-id={s.id} data-action="dismiss">Dismiss</button></td></tr>)}
+          </table></div>
+        )}
+      </>
+    )}
+  </section>
+
+  <section id="scs">
+    <h2>Successful case studies</h2>
+    <p class="note" style="margin:-6px 0 12px;">Found by the daily scan of every live store's orders: last 3 days against the 14 before. Published ones appear on <a href="/scs">/scs</a>, percentages only.</p>
+    {studies.filter((s) => s.status === 'published').length === 0 ? <p class="note">None published from the scan yet.</p> : (
+      <div class="scroll"><table>
+        <tr><th>Brand (private)</th><th>Published</th><th>Result</th></tr>
+        {studies.filter((s) => s.status === 'published').map((s) => <tr><td>{s.brand_name}</td><td>{s.published_at ? fmtTs(s.published_at) : ''}</td><td style="text-align:left;">{s.headline}. {s.base_note}</td></tr>)}
+      </table></div>
+    )}
+  </section>
 
   <section id="crm">
     <h2>Clients</h2>
@@ -279,5 +336,25 @@ const totals = portfolio.reduce((t, p) => {
 
   <p class="note">Levers are rule-based for now, read off actuals against each store's plan. Brand owners never see this page.</p>
 </div>
+<script>
+  // One tap from the console: approve a draft (sent from Virat's Gmail) or publish/dismiss a case study.
+  document.querySelectorAll<HTMLButtonElement>('button.act').forEach((b) => b.addEventListener('click', async () => {
+    const { kind, id, action } = b.dataset;
+    const url = kind === 'draft' ? '/retail-os/api/admin/leads/send-message' : '/retail-os/api/admin/case-studies';
+    const row = b.closest('tr')!;
+    row.querySelectorAll<HTMLButtonElement>('button').forEach((x) => (x.disabled = true));
+    b.textContent = kind === 'draft' ? 'Sending…' : action === 'publish' ? 'Publishing…' : 'Dismissing…';
+    try {
+      const r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id, action }) });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || r.statusText);
+      b.textContent = kind === 'draft' ? 'Sent' : action === 'publish' ? 'Published' : 'Dismissed';
+      setTimeout(() => location.reload(), 800);
+    } catch (e) {
+      b.textContent = String((e as Error).message).slice(0, 80);
+      row.querySelectorAll<HTMLButtonElement>('button').forEach((x) => (x.disabled = false));
+    }
+  }));
+</script>
 </body>
 </html>

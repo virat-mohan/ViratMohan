@@ -52,7 +52,7 @@ In this order. Each one answers the question they're silently asking.
 
 ## Where I run it
 
-All of this lives in the **Clients** section of my founder console (`/retail-os/admin/console#crm`). Every client from every system (leads, applications, live stores on their own projects) shows once, grouped into Before data, After data and Live, with the stage, who has the ball, days in stage (red when late) and the next step.
+All of this lives in my founder console (`/retail-os/admin/console`). **Needs you** at the top holds every draft waiting for my tap and every case study waiting to be published. **Clients** below it holds the pipeline. Every client from every system (leads, applications, live stores on their own projects) shows once, grouped into Before data, After data and Live, with the stage, who has the ball, days in stage (red when late) and the next step.
 
 ## The first email
 
@@ -73,9 +73,15 @@ Short enough to read on a phone in 60 seconds.
 - Prince is technical only: not in the welcome group, not client-facing.
 - Hold the full pitch until after the NDA; the plan on their own numbers is what closes.
 
+## Built
+
+- Research on entry (their site's own title and description, cited by url) and the branded first email with the NDA link (`src/lib/lead-first-email.ts`).
+- One-tap approve from the console's Needs you section, sent from my Gmail (`/retail-os/api/admin/leads/send-message`).
+- Welcome email on deposit, with how the week runs and the WhatsApp group (`confirm-deposit.ts`).
+- Build note every 2 days from the ops tracker, drafted for my approval (`src/lib/lead-build-updates.ts`).
+- Successful Case Studies: the daily scan compares each live store's last 3 days with the 14 before; a real lift (25%+, on a base of 5+ orders) lands in Needs you with Publish and Dismiss. Published ones show on /scs as percentages only (`src/lib/case-studies.ts`, migration `0042_case_studies.sql`).
+
 ## Still to build
 
-- Auto-research on entry and the personalised first email in the new branded template.
-- Welcome email and WhatsApp group handover.
-- Build progress notes every 2 days.
-- VM AI Assistant on WhatsApp.
+- VM AI Assistant on WhatsApp (email and website chat exist today).
+- Prince's WhatsApp group with me and the founder is created by hand for now.

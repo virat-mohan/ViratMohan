@@ -1,5 +1,15 @@
 ---
+export const prerender = false;
 import Base from '../layouts/Base.astro';
+import { getEnv } from '../lib/env';
+import { serviceDb } from '../lib/ledger';
+import { listCaseStudies, publicView } from '../lib/case-studies';
+
+// Published case studies come from the founder console (case_studies). Percentages only:
+// the brand's name and amounts never reach this page.
+let studies: ReturnType<typeof publicView>[] = [];
+try { studies = (await listCaseStudies(serviceDb(getEnv()), 'published')).map(publicView); } catch (e) { console.error('scs list failed', e); }
+const when = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString('en-IN', { month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' }) : '');
 ---
 <Base
   title="SCS — Successful Case Studies · Virat Mohan"
@@ -15,6 +25,14 @@ import Base from '../layouts/Base.astro';
       <img src="/scs/retail-os-autopilot-2.png" width="1080" height="1350" alt="Daily sales chart, 11 to 26 September, indexed to the average day before autopilot. After autopilot the average day is 59% higher." loading="lazy" />
     </div>
     <p class="scs-note">Early days and a small base. Source: the brand's order database. Brand name and amounts kept confidential; percentages only.</p>
+    {studies.length > 0 && (
+      <div class="scs-more">
+        <p class="eyebrow">More results, as they happen</p>
+        <ul class="scs-list">
+          {studies.map((s) => <li><span class="scs-pct">+{s.lift_pct}%</span><span><b>{s.headline}.</b> {s.detail} {s.base_note}<small>{when(s.published_at)}</small></span></li>)}
+        </ul>
+      </div>
+    )}
     <p class="scs-cta"><a href="https://wa.me/919999277240?text=Hi%20Virat%2C%20I%20saw%20your%20Successful%20Case%20Study%20(SCS).%20Let%27s%20talk." target="_blank" rel="noopener">Let's talk →</a></p>
   </section>
 </Base>
@@ -29,5 +47,10 @@ import Base from '../layouts/Base.astro';
   .scs-note { font-size: .85rem; color: var(--muted); }
   .scs-cta { margin-top: 1.5rem; font-family: var(--serif); font-size: 1.8rem; }
   .scs-cta a { color: #d9714b; text-decoration: none; border-bottom: 1px solid #d4af37; }
+  .scs-more { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #d4af37; }
+  .scs-list { list-style: none; padding: 0; margin: 1rem 0 0; display: grid; gap: 18px; }
+  .scs-list li { display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: baseline; font-size: 1rem; line-height: 1.55; min-width: 0; }
+  .scs-list small { display: block; color: var(--muted); font-size: .8rem; margin-top: 2px; }
+  .scs-pct { font-family: var(--display); font-size: 2.4rem; color: #d9714b; line-height: 1; }
   @media (max-width: 700px) { .scs-grid { grid-template-columns: 1fr; } }
 </style>
