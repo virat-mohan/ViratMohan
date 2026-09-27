@@ -12,9 +12,12 @@ export const PLAN_DAYS = 90;
 export const STANDARD_TERMS = {
   profitShare: { name: 'Profit share', value: '40% of the profit pool' },
   revenueShare: { name: 'Revenue share', value: '15–20% of revenue' },
-  retainer: { name: 'Retainer', value: 'from ₹2.5L a month' },
+  retainer: { name: 'Retainer', value: 'from ₹5L a month' },
 } as const;
-const RETAINER_FLOOR_INR = 250000;
+const RETAINER_FLOOR_INR = 500000;
+// Retainer is only offered above ₹100 Cr a year in turnover — set here as the monthly figure it implies.
+const RETAINER_ANNUAL_TURNOVER_FLOOR_INR = 1_000_000_000;
+const RETAINER_MONTHLY_TURNOVER_FLOOR_INR = RETAINER_ANNUAL_TURNOVER_FLOOR_INR / 12;
 
 export type PlanLine = { label: string; value: string; source: string };
 export type PlanGap = { title: string; now: string; benchmark: string; impact: string; basis: string; why: string; sources: string[] };
@@ -119,12 +122,12 @@ export function fitTerms(audit: Audit): { terms: PlanTerm[]; recommended: string
   const monthly = audit.figures.monthly_revenue?.value ?? null;
   const trend = audit.figures.revenue_trend?.value ?? null;
   const steady = monthly !== null && (trend === null || trend >= BENCHMARKS.declineFloor);
-  // A retainer only fits when it stays under a tenth of monthly revenue.
-  const retainerFits = monthly !== null && monthly >= RETAINER_FLOOR_INR * 10;
+  // A retainer only fits above ₹100 Cr a year in turnover.
+  const retainerFits = monthly !== null && monthly >= RETAINER_MONTHLY_TURNOVER_FLOOR_INR;
   const terms: PlanTerm[] = [
     { ...STANDARD_TERMS.profitShare, fits: !steady || !retainerFits, why: 'I only earn when the business makes a profit, so it fits best while numbers are small, sliding or not yet clean.' },
     { ...STANDARD_TERMS.revenueShare, fits: steady && !retainerFits, why: 'Simple to track and settle every Monday. It fits once revenue is steady.' },
-    { ...STANDARD_TERMS.retainer, fits: retainerFits, why: 'A fixed monthly fee. It fits only when it stays a small share of monthly revenue.' },
+    { ...STANDARD_TERMS.retainer, fits: retainerFits, why: 'A fixed monthly fee. It fits only once you\'re doing ₹100 Cr+ a year.' },
   ];
   const recommended = retainerFits ? STANDARD_TERMS.retainer.name : steady ? STANDARD_TERMS.revenueShare.name : STANDARD_TERMS.profitShare.name;
   return { terms, recommended };
