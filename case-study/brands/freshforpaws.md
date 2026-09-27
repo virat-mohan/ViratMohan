@@ -14,7 +14,7 @@ One place for everything done on Fresh For Paws so far. Pulled together on 26 Se
 - Front end stays WooCommerce. Retail OS runs behind it.
 - 25% profit share. Pay with a Post at 1%.
 - ₹5,000 deposit, adjusted against actual onboarding tech costs.
-- Nothing signed yet.
+- NCNDA signed by both, 27 Sep 2026. Terms and deposit not signed yet.
 
 ## Timeline
 | Date | What happened | Source |
@@ -23,11 +23,12 @@ One place for everything done on Fresh For Paws so far. Pulled together on 26 Se
 | 26 Sep | Call with Srishti; mutual NCNDA sent to contact@freshforpaws.com | Gmail "Fresh For Paws x DevShop Retail OS: NCNDA to sign first" |
 | 26 Sep | Onboarding task list (14 tasks) loaded to ops board | Supabase `retail_os_ops_tasks`, brand_key `freshforpaws` |
 | 26 Sep | Lead logged, stage `nda_sent` | Supabase `leads` id `c8cfb848…` |
+| 27 Sep | Srishti signed the NCNDA (as Proprietor); Virat countersigned. Next-steps reply drafted in Gmail, not sent | Signed .docx kept off this public repo |
 
 Track page: https://www.viratmohan.com/retail-os/track/8ad86490-b731-49a1-92c8-a98a68ec0441
 
 ## Next step
-Srishti signs the NCNDA. If nothing by Mon 29 Sep, chase her, then collect WooCommerce admin access, product list and current order volume. Why: the build can't be scoped without catalog and order data.
+Collect WooCommerce admin access, product list and current order volume. Why: the build can't be scoped without catalog and order data.
 
 ## Open tasks (all `todo`)
 | Stage | Task | Owner |
