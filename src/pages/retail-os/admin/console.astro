@@ -5,8 +5,8 @@ import type { RetailOsApplication, JourneyStep } from '../../../lib/retail-os-db
 import { getEnv } from '../../../lib/env';
 import { getLiveBrands, clarityFriction, type FrictionPage } from '../../../lib/retail-os-portfolio';
 import { buildBrandReport, reportRows, type BrandReport } from '../../../lib/retail-os-reports';
-import { getOpsDb, progressByBrand } from '../../../lib/retail-os-ops';
-import type { TeamMember, OpsTask, OpsLog } from '../../../lib/retail-os-ops';
+import { getOpsDb, progressByBrand, planByObjective, OPS_STATUSES, STATUS_LABEL, PRIORITY_LABEL, OWNER_LABEL } from '../../../lib/retail-os-ops';
+import type { TeamMember, OpsTask, OpsLog, Objective, ObjectivePlan } from '../../../lib/retail-os-ops';
 
 // DevShop-only founder console (gated by src/middleware.ts). Never linked
 // from anything a brand owner can reach.
@@ -39,9 +39,12 @@ try {
 // Team: each member's tasks and latest updates, for the Team section.
 type TeamView = { member: TeamMember; tasks: OpsTask[]; log: OpsLog[]; progress: ReturnType<typeof progressByBrand>; blocked: OpsTask[]; onYou: OpsTask[] };
 let team: TeamView[] = [];
+let objectives: Objective[] = [];
+let priorities: ObjectivePlan[] = [];
 try {
   const ops = getOpsDb(env);
   const members = await ops.listMembers();
+  objectives = await ops.listObjectives();
   const todayIst = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
   team = await Promise.all(members.map(async (member) => {
     const [tasks, log] = await Promise.all([ops.listTasks(member.id), ops.listLog(member.id, 8)]);
@@ -52,6 +55,7 @@ try {
       onYou: tasks.filter((t) => t.owner === 'founder' && t.status !== 'done' && t.status !== 'na'),
     };
   }));
+  priorities = planByObjective(objectives, team.flatMap((tv) => tv.tasks));
 } catch (err) {
   console.error('console team load failed', err);
 }
@@ -128,6 +132,21 @@ const totals = portfolio.reduce((t, p) => {
   .chip{display:inline-block; font-family:'IBM Plex Mono'; font-size:10.5px; font-weight:700; padding:2px 7px; border:1.5px solid var(--ink); margin:0 4px 4px 0;}
   .chip.hot{background:var(--terracotta); color:#fff; border-color:var(--terracotta);}
   .scroll{overflow-x:auto;}
+  .prio{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px;}
+  .prio .o{background:#fff; border:1.5px solid var(--ink); padding:14px;}
+  .prio .n{font-family:'IBM Plex Mono'; font-size:11px; color:var(--ink-soft);}
+  .prio h3{font-size:1rem; margin:4px 0 6px;}
+  .track{height:6px; background:var(--line); margin:8px 0;} .track i{display:block; height:6px; background:var(--gold);}
+  .ed{width:100%; border-collapse:collapse; font-size:12.5px;}
+  .ed td{padding:5px 4px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top;}
+  .ed th{text-align:left;}
+  .ed input, .ed select{font:12.5px 'Inter'; border:1px solid var(--line); background:#fff; padding:4px 6px; width:100%;}
+  .ed .x{border:0; background:none; color:var(--red); cursor:pointer; font-size:15px;}
+  .ed tr.saved td{background:#eef4ea;} .ed tr.err td{background:#fbe4dc;}
+  .addrow{display:grid; grid-template-columns:2fr 1fr 1fr 1.4fr 1fr 1fr auto; gap:6px; align-items:center;} .addrow .note{grid-column:1/-1;}
+  .addrow input, .addrow select{font:12.5px 'Inter'; border:1px solid var(--line); background:#fff; padding:5px 6px; width:100%;}
+  @media (max-width:800px){ .addrow{grid-template-columns:1fr 1fr;} }
+  .objhead td{padding-top:14px !important; font-family:'Anton'; text-transform:uppercase; font-size:13px; border-bottom:2px solid var(--gold) !important;}
 </style>
 </head>
 <body>
@@ -144,6 +163,23 @@ const totals = portfolio.reduce((t, p) => {
     <div class="kpi"><div class="l">Net profit MTD</div><div class={`v ${totals.profit < 0 ? 'bad' : ''}`}>{inr(totals.profit)}</div></div>
     <div class="kpi"><div class="l">Waiting on you</div><div class={`v ${onYou.length ? 'bad' : ''}`}>{onYou.length}</div></div>
   </div>
+
+  {priorities.length > 0 && (
+    <section>
+      <h2>DevShop priorities</h2>
+      <div class="prio">
+        {priorities.map((p, i) => (
+          <div class="o">
+            <div class="n">{i + 1} · {p.done} of {p.total} done</div>
+            <h3>{p.objective.title}</h3>
+            <div class="note">{p.objective.why}</div>
+            <div class="track"><i style={`width:${p.total ? Math.round((p.done / p.total) * 100) : 0}%`}></i></div>
+            <div class="note">{p.now} to do now{p.onFounder ? <> · <b class="bad">{p.onFounder} on you</b></> : null}{p.blocked ? <> · <b class="bad">{p.blocked} blocked</b></> : null}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )}
 
   <section>
     <h2>Live brands — month to date</h2>
@@ -238,6 +274,38 @@ const totals = portfolio.reduce((t, p) => {
             {tv.blocked.map((t) => <div class="lever"><b>{t.brand_name}</b>{t.task}{t.note && <span class="note"> · {t.note}</span>}</div>)}
           </div>
         )}
+        <details style="margin-top:12px;">
+          <summary style="cursor:pointer; font-weight:700;">Edit tasks ({tv.tasks.length})</summary>
+          <div class="scroll" data-member={tv.member.id}>
+            {planByObjective(objectives, tv.tasks).map((p) => (
+              <table class="ed">
+                <tr class="objhead"><td colspan="7">{p.objective.title}</td></tr>
+                {p.tasks.map((t) => (
+                  <tr data-task={t.id}>
+                    <td style="min-width:260px;"><input data-f="task" value={t.task} /><select data-f="objective" style="margin-top:4px; color:var(--ink-soft);">{objectives.map((o) => <option value={o.key} selected={t.objective === o.key}>{o.title}</option>)}</select></td>
+                    <td style="min-width:110px;"><input data-f="brand_name" value={t.brand_name} /></td>
+                    <td><select data-f="priority">{[1, 2, 3].map((n) => <option value={n} selected={t.priority === n}>{PRIORITY_LABEL[n]}</option>)}</select></td>
+                    <td><select data-f="status">{OPS_STATUSES.map((st) => <option value={st} selected={t.status === st}>{STATUS_LABEL[st]}</option>)}</select></td>
+                    <td><select data-f="owner">{['team', 'founder', 'brand'].map((k) => <option value={k} selected={t.owner === k}>{k === 'team' ? tv.member.name : OWNER_LABEL[k]}</option>)}</select></td>
+                    <td><input data-f="due_on" type="date" value={t.due_on ?? ''} /></td>
+                    <td><button class="x" type="button" title="Remove">×</button></td>
+                  </tr>
+                ))}
+              </table>
+            ))}
+          </div>
+          <div class="add addrow">
+            <div class="note" style="font-weight:700; margin:12px 0 6px;">Add a task</div>
+              <input data-f="task" placeholder="New task" />
+              <input data-f="brand_name" placeholder="Brand" />
+              <select data-f="priority">{[1, 2, 3].map((n) => <option value={n} selected={n === 2}>{PRIORITY_LABEL[n]}</option>)}</select>
+              <select data-f="objective">{objectives.map((o) => <option value={o.key}>{o.title}</option>)}</select>
+              <select data-f="owner">{['team', 'founder', 'brand'].map((k) => <option value={k}>{k === 'team' ? tv.member.name : OWNER_LABEL[k]}</option>)}</select>
+              <input data-f="due_on" type="date" />
+              <button class="addbtn" type="button" style="font-weight:700; cursor:pointer;">Add</button>
+                      </div>
+          <p class="note">Changes save as you edit. Change the objective with the menu under it; reload to see it regrouped. Removing a task also removes the notes on it.</p>
+        </details>
         <div style="margin-top:10px;">
           <div class="note" style="font-weight:700; text-transform:uppercase; font-size:10.5px;">Latest from {tv.member.name}</div>
           {tv.log.length ? tv.log.map((l) => <div class="lever"><span class="mono note">{fmtTs(l.created_at)} · {l.kind}</span><br />{l.body}</div>) : <div class="note">No updates yet.</div>}
@@ -248,5 +316,33 @@ const totals = portfolio.reduce((t, p) => {
 
   <p class="note">Levers are rule-based for now, read off actuals against each store's plan. Brand owners never see this page.</p>
 </div>
+<script>
+  function send(body) {
+    return fetch('/retail-os/api/admin/ops-task', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, data: d }; }); });
+  }
+  function mark(tr, ok) { tr.classList.remove('saved', 'err'); tr.classList.add(ok ? 'saved' : 'err'); setTimeout(function () { tr.classList.remove('saved'); }, 1200); }
+  document.querySelectorAll('table.ed tr[data-task]').forEach(function (tr) {
+    var id = tr.getAttribute('data-task');
+    tr.querySelectorAll('[data-f]').forEach(function (el) {
+      el.addEventListener('change', function () {
+        var fields = {}; fields[el.getAttribute('data-f')] = el.value;
+        send({ action: 'update', taskId: id, fields: fields }).then(function (r) { mark(tr, r.ok); if (!r.ok) alert((r.data && r.data.error) || 'Not saved'); });
+      });
+    });
+    tr.querySelector('.x').addEventListener('click', function () {
+      if (!confirm('Remove this task? This cannot be undone.')) return;
+      send({ action: 'delete', taskId: id }).then(function (r) { if (r.ok) tr.remove(); else alert('Not removed'); });
+    });
+  });
+  document.querySelectorAll('.addrow').forEach(function (tr) {
+    var member = tr.closest('[data-member]').getAttribute('data-member');
+    tr.querySelector('.addbtn').addEventListener('click', function () {
+      var fields = {};
+      tr.querySelectorAll('[data-f]').forEach(function (el) { if (el.value) fields[el.getAttribute('data-f')] = el.value; });
+      send({ action: 'create', memberId: member, fields: fields }).then(function (r) { if (r.ok) location.reload(); else alert((r.data && r.data.error) || 'Not added'); });
+    });
+  });
+</script>
 </body>
 </html>

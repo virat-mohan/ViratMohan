@@ -68,3 +68,26 @@ describe('team questions', () => {
     }
   });
 });
+
+import { planByObjective, doNow, cleanTaskInput } from '../../src/lib/retail-os-ops';
+
+describe('ops priorities', () => {
+  const objs = [{ key: 'b', title: 'B', why: '', sort: 2 }, { key: 'a', title: 'A', why: '', sort: 1 }];
+  const mk = (id: string, objective: string, priority: 1 | 2 | 3, status: any = 'todo', owner: any = 'team', due_on: string | null = null) =>
+    ({ ...task(id, status, due_on, '2026-09-26T00:00:00Z'), objective, priority, owner });
+  const ts = [mk('1', 'a', 2), mk('2', 'a', 1, 'todo', 'team', '2026-09-30'), mk('3', 'a', 1, 'todo', 'team', '2026-09-28'), mk('4', 'b', 1, 'done'), mk('5', 'b', 1, 'todo', 'founder')];
+  it('orders objectives and tasks by priority then due date', () => {
+    const p = planByObjective(objs, ts);
+    expect(p.map((x) => x.objective.key)).toEqual(['a', 'b']);
+    expect(p[0].tasks.map((t) => t.id)).toEqual(['3', '2', '1']);
+    expect([p[1].done, p[1].total, p[1].onFounder]).toEqual([1, 2, 1]);
+  });
+  it('do-now is only my open priority-1 tasks', () => {
+    expect(doNow(ts).map((t) => t.id)).toEqual(['3', '2']);
+  });
+  it('validates founder edits', () => {
+    expect(cleanTaskInput({ priority: 4 }, ['a'])).toEqual({ error: 'Priority is 1, 2 or 3' });
+    expect(cleanTaskInput({ objective: 'z' }, ['a'])).toEqual({ error: 'Unknown objective' });
+    expect(cleanTaskInput({ brand_name: 'Moon Glasses', due_on: '' }, ['a'])).toEqual({ patch: { brand_name: 'Moon Glasses', brand_key: 'moonglasses', due_on: null } });
+  });
+});

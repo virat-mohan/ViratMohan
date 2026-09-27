@@ -36,7 +36,7 @@ export async function seedBrandSetupTasks(sb: SupabaseClient, brandName: string,
   const { count } = await sb.from('retail_os_ops_tasks').select('id', { count: 'exact', head: true }).eq('member_id', member.id).eq('brand_key', key);
   if (count && count > 0) return 0;
   const due = (day: number) => new Date(startedAt.getTime() + day * 86_400_000).toISOString().slice(0, 10);
-  const rows = BRAND_SETUP_TASKS.map((t, i) => ({ member_id: member.id, brand_key: key, brand_name: brandName, stage: t.stage, stage_label: t.stage_label, task: t.task, owner: t.owner, status: 'todo', note: t.note, due_on: due(t.day), sort: i + 1 }));
+  const rows = BRAND_SETUP_TASKS.map((t, i) => ({ member_id: member.id, brand_key: key, brand_name: brandName, stage: t.stage, stage_label: t.stage_label, task: t.task, owner: t.owner, status: 'todo', note: t.note, due_on: due(t.day), sort: i + 1, objective: 'new', priority: t.day <= 2 ? 1 : 2 }));
   const { error } = await sb.from('retail_os_ops_tasks').insert(rows);
   if (error) throw new Error(`ops seed: ${error.message}`);
   return rows.length;
@@ -60,7 +60,7 @@ export async function seedEmployeeOnboarding(sb: SupabaseClient, memberId: strin
   const { count } = await sb.from('retail_os_ops_tasks').select('id', { count: 'exact', head: true }).eq('member_id', memberId).eq('brand_key', 'onboarding');
   if (count && count > 0) return 0;
   const start = new Date(`${startedOn}T00:00:00Z`).getTime();
-  const rows = EMPLOYEE_ONBOARDING_TASKS.map((t, i) => ({ member_id: memberId, brand_key: 'onboarding', brand_name: 'Onboarding', stage: t.stage, stage_label: t.stage_label, task: t.task, owner: t.owner, status: 'todo', note: t.note, due_on: new Date(start + t.day * 86_400_000).toISOString().slice(0, 10), sort: i + 1 }));
+  const rows = EMPLOYEE_ONBOARDING_TASKS.map((t, i) => ({ member_id: memberId, brand_key: 'onboarding', brand_name: 'Onboarding', stage: t.stage, stage_label: t.stage_label, task: t.task, owner: t.owner, status: 'todo', note: t.note, due_on: new Date(start + t.day * 86_400_000).toISOString().slice(0, 10), sort: i + 1, objective: 'setup', priority: t.day <= 1 ? 1 : 2 }));
   const { error } = await sb.from('retail_os_ops_tasks').insert(rows);
   if (error) throw new Error(`onboarding seed: ${error.message}`);
   return rows.length;
