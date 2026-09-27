@@ -1,0 +1,6 @@
+---
+// viratmohan.com/founder: the founder console's short address. The console itself lives
+// under /retail-os/admin (Basic Auth via src/middleware.ts), so this just sends you there.
+export const prerender = false;
+return Astro.redirect('/retail-os/admin/console', 302);
+---
