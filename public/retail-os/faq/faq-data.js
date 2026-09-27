@@ -236,7 +236,7 @@ window.RETAIL_OS_FAQ = [
 
   // ---- Commercials
   { topic: 'Commercials', q: 'What does it cost?',
-    a: 'There are three ways to work with me: a profit share (40% of the profit pool is standard), a revenue share (15 to 20% of your D2C revenue), or a retainer from ₹2.5 lakh a month. Ad spend is always yours, at cost.\n\nThe exact terms, settlement and contract length are set out in the partnership agreement. WhatsApp me and I will go through them with you.',
+    a: 'There are three ways to work with me: a profit share (40% of the profit pool is standard), a revenue share (15 to 20% of your D2C revenue), or a retainer, with pricing and commercial terms scoped to the engagement. Ad spend is always yours, at cost.\n\nThe exact terms, settlement and contract length are set out in the partnership agreement. WhatsApp me and I will go through them with you.',
     tags: ['pricing', 'cost', 'fees', 'split', 'contract', 'deposit', 'settlement', 'price', 'charges'] },
   { topic: 'Commercials', q: 'Can I take only some parts, like social or ads?',
     a: 'Yes. The commercials are different when you take only some parts. WhatsApp me and I will go through them with you.',
