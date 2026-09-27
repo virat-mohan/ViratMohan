@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { aggregateOrders, assertNoPii, findPii, scrubMetrics, type OrderLite, type Snapshot } from '../../src/lib/lead-metrics';
 import { computeAudit, findGaps, revenueTrend, BENCHMARKS, periodDays } from '../../src/lib/lead-audit';
 import { signLeadToken, verifyLeadToken, encryptSecret, decryptSecret } from '../../src/lib/lead-token';
-import { generatePlan, unsourcedNumbers, fillPlaceholders, fitTerms, numbersIn, planText } from '../../src/lib/lead-plan';
+import { generatePlan, unsourcedNumbers, fillPlaceholders, fitTerms, numbersIn, planText, STANDARD_TERMS, STANDARD_TERM_CONDITIONS } from '../../src/lib/lead-plan';
 import { metricsFromCsv, parseCsv } from '../../src/lib/lead-csv';
 import { pullShopify, pullMeta, safeMetrics, pickPurchase } from '../../src/lib/lead-connectors';
 import { isStalled, stageAfterAccess, leadCanSet, accessRequestDraft, publicConfig, type AccessRow } from '../../src/lib/lead-access';
@@ -273,11 +273,29 @@ describe('plan generator', () => {
     expect(unsourcedNumbers(audit, plan)).toEqual(['₹9,99,999']);
   });
 
+  // Pins the currently published term copy on purpose: when published terms change, this fails and forces a review.
   it('offers only the standard terms', () => {
     const { terms, recommended } = fitTerms(audit);
-    expect(terms.map((t) => t.value)).toEqual(['40% of the profit pool', '15–20% of revenue', 'from ₹2.5L a month']);
+    expect(terms.map((t) => t.value)).toEqual(['40% of the profit pool', '15–20% of revenue', 'from ₹5L a month']);
     expect(recommended).toBe('Profit share'); // revenue is sliding
     expect(numbersIn('₹2.5L 15–20% 40%')).toEqual(['₹2.5L', '15–20%', '40%']);
+  });
+
+  it('every number in the terms text comes from an approved term or condition', () => {
+    const approved = new Set<string>();
+    for (const t of Object.values(STANDARD_TERMS)) numbersIn(t.value).forEach((n) => approved.add(n));
+    for (const c of Object.values(STANDARD_TERM_CONDITIONS)) numbersIn(c).forEach((n) => approved.add(n));
+    const { terms } = fitTerms(audit);
+    const used = terms.flatMap((t) => numbersIn(`${t.name} ${t.value} ${t.why}`));
+    expect(used.length).toBeGreaterThan(0);
+    expect(used.filter((n) => !approved.has(n))).toEqual([]);
+    expect(terms.find((t) => t.name === 'Retainer')?.why).toContain(STANDARD_TERM_CONDITIONS.retainer);
+  });
+
+  it('still flags an unsourced threshold such as ₹99 Cr', async () => {
+    const plan = await generatePlan({ brand: 'B', audit, now });
+    plan.closing += ' A retainer fits from ₹99 Cr a year.';
+    expect(unsourcedNumbers(audit, plan)).toEqual(['₹99']);
   });
 
   it('works with only one source connected', async () => {
