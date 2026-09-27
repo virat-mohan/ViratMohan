@@ -9,7 +9,7 @@ export type Brand = {
   id: string; key: string; name: string; status: BrandStatus; model: BrandModel | null;
   devshop_pct: number | null; retainer_inr: number | null; terms_note: string | null;
   website: string | null; instagram: string | null; category: string | null;
-  contacts: Contact[]; lead_id: string | null; application_id: string | null; live_since: string | null; notes: string | null;
+  contacts: Contact[]; lead_id: string | null; application_id: string | null; live_since: string | null; retail_os_since: string | null; notes: string | null;
   created_at: string; updated_at: string;
 };
 

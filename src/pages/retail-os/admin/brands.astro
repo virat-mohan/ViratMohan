@@ -85,6 +85,7 @@ textarea{min-height:70px;}
         <div><label>Website</label><input name="website" value={b.website ?? ''} /></div>
         <div><label>Instagram</label><input name="instagram" value={b.instagram ?? ''} /></div>
         <div><label>Live since</label><input name="live_since" type="date" value={b.live_since ?? ''} /></div>
+        <div><label>Retail OS since (takeover date)</label><input name="retail_os_since" type="date" value={b.retail_os_since ?? ''} /></div>
         <div class="full"><label>Terms, in plain words</label><input name="terms_note" value={b.terms_note ?? ''} /></div>
         <div class="full"><label>Contacts</label><div class="clist" data-contacts={JSON.stringify(b.contacts)}></div><button type="button" class="btn ghost small addc">+ contact</button></div>
         <div class="full"><label>Notes</label><textarea name="notes">{b.notes ?? ''}</textarea></div>

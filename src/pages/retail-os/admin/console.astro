@@ -3,7 +3,8 @@ export const prerender = false;
 import { getRetailOsDb, journeyStep, BUILD_WINDOW_DAYS } from '../../../lib/retail-os-db';
 import type { RetailOsApplication, JourneyStep } from '../../../lib/retail-os-db';
 import { getEnv } from '../../../lib/env';
-import { getLiveBrands, clarityFriction, brandMetrics, brandBudget, leversFor, istToday, addDays, type FrictionPage, type Period, type Metrics, type Budget, type Lever } from '../../../lib/retail-os-portfolio';
+import { getLiveBrands, clarityFriction, brandMetrics, brandBudget, leversFor, istToday, type FrictionPage, type Period, type Metrics, type Budget, type Lever } from '../../../lib/retail-os-portfolio';
+import { resolvePeriod, comparePeriod, beforeAfter, pctChange, addDays, PERIODS, COMPARES, type CompareMode } from '../../../lib/period-compare';
 import { getOpsDb, progressByBrand, planByObjective, OPS_STATUSES, STATUS_LABEL as OPS_STATUS_LABEL, PRIORITY_LABEL, OWNER_LABEL } from '../../../lib/retail-os-ops';
 import type { TeamMember, OpsTask, OpsLog, Objective, ObjectivePlan } from '../../../lib/retail-os-ops';
 import { serviceDb } from '../../../lib/ledger';
@@ -18,37 +19,54 @@ const db = getRetailOsDb(env);
 const url = Astro.url;
 const tab = ['crm', 'team', 'live', 'brands'].includes(url.searchParams.get('tab') ?? '') ? url.searchParams.get('tab')! : 'crm';
 
-// ── Live brands: period filter ─────────────────────────────────────────────
-type PKey = 'thisweek' | 'lastweek' | 'mtd' | 'lastmonth' | 'yesterday';
-const PERIODS: { key: PKey; label: string }[] = [{ key: 'thisweek', label: 'This week' }, { key: 'lastweek', label: 'Last week' }, { key: 'mtd', label: 'Month to date' }, { key: 'lastmonth', label: 'Last month' }, { key: 'yesterday', label: 'Yesterday' }];
-const pkey = (PERIODS.find((p) => p.key === url.searchParams.get('period'))?.key ?? 'thisweek') as PKey;
-function periodsFor(k: PKey, today = istToday()): { current: Period; previous: Period } {
-  const dow = new Date(`${today}T00:00:00Z`).getUTCDay();
-  const thisMonday = addDays(today, -((dow + 6) % 7));
-  const lastMonday = addDays(thisMonday, -7);
-  const monthStart = `${today.slice(0, 7)}-01`;
-  const prevMonthStart = `${addDays(monthStart, -1).slice(0, 7)}-01`;
-  const elapsed = Math.round((Date.parse(today) - Date.parse(monthStart)) / 86400000);
-  switch (k) {
-    case 'thisweek': return { current: { key: 'weekly', label: 'This week so far', start: thisMonday, end: addDays(today, 1) }, previous: { key: 'weekly', label: 'Same days last week', start: lastMonday, end: addDays(lastMonday, Math.round((Date.parse(today) - Date.parse(thisMonday)) / 86400000) + 1) } };
-    case 'lastweek': return { current: { key: 'weekly', label: `Week of ${lastMonday}`, start: lastMonday, end: thisMonday }, previous: { key: 'weekly', label: 'Week before', start: addDays(lastMonday, -7), end: lastMonday } };
-    case 'mtd': return { current: { key: 'mtd', label: 'Month to date', start: monthStart, end: addDays(today, 1) }, previous: { key: 'mtd', label: 'Same days last month', start: prevMonthStart, end: addDays(prevMonthStart, elapsed + 1) } };
-    case 'lastmonth': return { current: { key: 'monthly', label: `Month of ${prevMonthStart.slice(0, 7)}`, start: prevMonthStart, end: monthStart }, previous: { key: 'monthly', label: 'Month before', start: `${addDays(prevMonthStart, -1).slice(0, 7)}-01`, end: prevMonthStart } };
-    default: { const y = addDays(today, -1); return { current: { key: 'daily', label: `Yesterday (${y})`, start: y, end: today }, previous: { key: 'daily', label: 'Day before', start: addDays(y, -1), end: y } }; }
-  }
-}
-const { current, previous } = periodsFor(pkey);
+// ── Live brands: period, comparison and before/after Retail OS ─────────────
+const today = istToday();
+const sel = resolvePeriod(url.searchParams.get('period'), today, url.searchParams.get('from'), url.searchParams.get('to'));
+const pkey = sel.key;
+const cmode = (COMPARES.find((c) => c.key === url.searchParams.get('compare'))?.key ?? 'prev') as CompareMode;
+const curR = sel.range, cmpR = comparePeriod(curR, cmode);
+const asPeriod = (r: { start: string; end: string; label: string }): Period => ({ key: 'weekly', label: r.label, start: r.start, end: r.end });
+const current = asPeriod(curR), previous = asPeriod(cmpR);
 const liveBrands = getLiveBrands();
-type Card = { brand: { key: string; name: string }; ok: true; cur: Metrics; prev: Metrics; budget: Budget | null; levers: Lever[]; friction: { pages: FrictionPage[]; fetchedAt: string } | null } | { brand: { key: string; name: string }; ok: false; error: string };
+const norm = (x: string) => x.toLowerCase().replace(/[^a-z0-9]/g, '');
+let registry: Brand[] = [];
+try { registry = await brandsDb(env).list(); } catch (e) { console.error('console brands', e); }
+const metaFor = (lb: { key: string; name: string }) => registry.find((b) => b.key === lb.key || norm(b.name) === norm(lb.name) || b.key.startsWith(norm(lb.key)) || norm(lb.key).startsWith(b.key));
+type BA = { days: number; before: Metrics; after: Metrics; beforeLabel: string; afterLabel: string };
+type Card = { brand: { key: string; name: string }; ok: true; cur: Metrics; prev: Metrics; ba: BA | null; takeover: string | null; budget: Budget | null; levers: Lever[]; friction: { pages: FrictionPage[]; fetchedAt: string } | null } | { brand: { key: string; name: string }; ok: false; error: string };
 const portfolio: Card[] = tab === 'live' ? await Promise.all(liveBrands.map(async (b): Promise<Card> => {
   try {
-    const [cur, prev, budget, friction] = await Promise.all([brandMetrics(b, current), brandMetrics(b, previous), brandBudget(b, current).catch(() => null), clarityFriction(b).catch(() => null)]);
-    return { brand: { key: b.key, name: b.name }, ok: true, cur, prev, budget, levers: leversFor(cur, budget), friction };
+    const takeover = metaFor(b)?.retail_os_since ?? null;
+    const w = beforeAfter(takeover, today);
+    const [cur, prev, budget, friction, before, after] = await Promise.all([
+      brandMetrics(b, current), brandMetrics(b, previous), brandBudget(b, current).catch(() => null), clarityFriction(b).catch(() => null),
+      w ? brandMetrics(b, asPeriod(w.before)) : Promise.resolve(null), w ? brandMetrics(b, asPeriod(w.after)) : Promise.resolve(null),
+    ]);
+    const ba = w && before && after ? { days: w.days, before, after, beforeLabel: w.before.label, afterLabel: w.after.label } : null;
+    return { brand: { key: b.key, name: b.name }, ok: true, cur, prev, ba, takeover, budget, levers: leversFor(cur, budget), friction };
   } catch (err) { return { brand: { key: b.key, name: b.name }, ok: false, error: err instanceof Error ? err.message : String(err) }; }
 })) : [];
 const inr = (n: number) => '₹' + Math.round(n).toLocaleString('en-IN');
-const pct = (a: number, b: number) => (b ? `${a >= b ? '+' : ''}${Math.round(((a - b) / Math.abs(b)) * 100)}%` : '—');
-const totals = portfolio.reduce((t, p) => (p.ok ? { sales: t.sales + p.cur.netSales, prevSales: t.prevSales + p.prev.netSales, orders: t.orders + p.cur.orders, ad: t.ad + p.cur.adSpend, prevAd: t.prevAd + p.prev.adSpend, profit: t.profit + p.cur.netProfit } : t), { sales: 0, prevSales: 0, orders: 0, ad: 0, prevAd: 0, profit: 0 });
+const pct = (a: number, b: number) => { const v = pctChange(a, b); return v === null ? '—' : `${v >= 0 ? '+' : ''}${v}%`; };
+const roas = (sales: number, spend: number) => (spend ? sales / spend : 0);
+const totals = portfolio.reduce((t, p) => (p.ok ? { sales: t.sales + p.cur.netSales, prevSales: t.prevSales + p.prev.netSales, orders: t.orders + p.cur.orders, prevOrders: t.prevOrders + p.prev.orders, ad: t.ad + p.cur.adSpend, prevAd: t.prevAd + p.prev.adSpend, metaRev: t.metaRev + p.cur.metaRevenue, prevMetaRev: t.prevMetaRev + p.prev.metaRevenue, profit: t.profit + p.cur.netProfit, prevProfit: t.prevProfit + p.prev.netProfit } : t), { sales: 0, prevSales: 0, orders: 0, prevOrders: 0, ad: 0, prevAd: 0, metaRev: 0, prevMetaRev: 0, profit: 0, prevProfit: 0 });
+type Row = [string, number, number, 'inr' | 'num' | 'x', boolean]; // label, cur, cmp, format, higher is better
+const rowsFor = (c: Metrics, p: Metrics, perDay?: [number, number]): Row[] => {
+  const k = (x: number, i: 0 | 1) => (perDay ? x / perDay[i] : x);
+  return [
+    ['Orders' + (perDay ? ' / day' : ''), k(c.orders, 0), k(p.orders, 1), 'num', true],
+    ['Net sales' + (perDay ? ' / day' : ''), k(c.netSales, 0), k(p.netSales, 1), 'inr', true],
+    ['Ad spend' + (perDay ? ' / day' : ''), k(c.adSpend, 0), k(p.adSpend, 1), 'inr', false],
+    ['ROAS (store sales ÷ spend)', roas(c.netSales, c.adSpend), roas(p.netSales, p.adSpend), 'x', true],
+    ['Meta purchases' + (perDay ? ' / day' : ''), k(c.metaPurchases, 0), k(p.metaPurchases, 1), 'num', true],
+    ['Meta ROAS (Meta value ÷ spend)', roas(c.metaRevenue, c.adSpend), roas(p.metaRevenue, p.adSpend), 'x', true],
+    ['Cost per Meta purchase', c.metaPurchases ? c.adSpend / c.metaPurchases : 0, p.metaPurchases ? p.adSpend / p.metaPurchases : 0, 'inr', false],
+    ['Net profit' + (perDay ? ' / day' : ''), k(c.netProfit, 0), k(p.netProfit, 1), 'inr', true],
+  ];
+};
+const show = (v: number, f: Row[3]) => (f === 'x' ? (v ? `${v.toFixed(2)}×` : '—') : f === 'inr' ? inr(v) : (Math.round(v * 10) / 10).toLocaleString('en-IN'));
+const tone = (a: number, b: number, up: boolean) => { const v = pctChange(a, b); return v === null || v === 0 ? '' : (v > 0) === up ? 'good' : 'bad'; };
+const q = (extra: Record<string, string>) => { const p = new URLSearchParams({ tab: 'live', period: pkey, compare: cmode, ...(pkey === 'custom' ? { from: curR.start, to: addDays(curR.end, -1) } : {}) }); for (const [k, v] of Object.entries(extra)) p.set(k, v); if (extra.period && extra.period !== 'custom') { p.delete('from'); p.delete('to'); } return `/retail-os/admin/console?${p}`; };
 
 // ── Brands registry ────────────────────────────────────────────────────────
 let brands: Brand[] = [];
@@ -74,7 +92,7 @@ const counts = pipeline(leads.filter((l) => !(EXITS as readonly string[]).includ
 const withHealth = activeLeads.map((l) => ({ l, h: health(l, now), left: daysToLive(l, now), target: goLiveTarget(l) }));
 const onVirat = withHealth.filter((x) => x.h.step?.owner === 'virat');
 const slipping = withHealth.filter((x) => x.h.late);
-const today = now.toISOString().slice(0, 10);
+// (today is the IST date, defined above)
 const day = (d: string | Date) => new Date(typeof d === 'string' && d.length === 10 ? d + 'T00:00:00+05:30' : d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' });
 
 let apps: RetailOsApplication[] = [];
@@ -146,7 +164,7 @@ const href = (t: string, extra = '') => `/retail-os/admin/console?tab=${t}${extr
   .card{border:1px solid var(--line);border-radius:14px;background:#fff;padding:14px;}
   .card h4{font-family:var(--serif);font-weight:400;font-size:1.2rem;margin:0 0 6px;}
   .lever{font-size:12.5px;margin:6px 0;} .lever b{display:block;}
-  .filters{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px;} .filters a{text-decoration:none;font:600 12px var(--sans);padding:6px 12px;border-radius:999px;border:1px solid var(--line);color:var(--dim);} .filters a.on{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+  .filters{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px;} .filters a{text-decoration:none;font:600 12px var(--sans);padding:6px 12px;border-radius:999px;border:1px solid var(--line);color:var(--dim);} .filters a.on{background:var(--ink);color:var(--paper);border-color:var(--ink);} .filters.custom{align-items:center;} .filters.custom label{font-size:12px;color:var(--dim);display:flex;gap:6px;align-items:center;} .filters.custom input{font:13px var(--sans);padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:#fff;} .btn.on{background:var(--ink);color:var(--paper);}
   .scroll{overflow-x:auto;} .btn{font:600 13px var(--sans);padding:8px 14px;border-radius:999px;border:1px solid var(--ink);background:transparent;color:var(--ink);text-decoration:none;display:inline-block;}
   .prio{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;}
   .prio .o{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff;}
@@ -263,25 +281,43 @@ const href = (t: string, extra = '') => `/retail-os/admin/console?tab=${t}${extr
   </>)}
 
   {tab === 'live' && (<>
-    <div class="filters">{PERIODS.map((p) => <a class={p.key === pkey ? 'on' : ''} href={href('live', `&period=${p.key}`)}>{p.label}</a>)}</div>
+    <div class="filters">{PERIODS.map((p) => <a class={p.key === pkey ? 'on' : ''} href={q({ period: p.key })}>{p.label}</a>)}</div>
+    <form class="filters custom" method="get" action="/retail-os/admin/console">
+      <input type="hidden" name="tab" value="live" /><input type="hidden" name="period" value="custom" /><input type="hidden" name="compare" value={cmode} />
+      <label>From <input type="date" name="from" max={today} value={pkey === 'custom' ? curR.start : ''} required /></label>
+      <label>To <input type="date" name="to" max={today} value={pkey === 'custom' ? addDays(curR.end, -1) : ''} required /></label>
+      <button class={`btn${pkey === 'custom' ? ' on' : ''}`} type="submit">Custom range</button>
+    </form>
+    <div class="filters"><span class="note" style="align-self:center;">Compare with:</span>{COMPARES.map((c) => <a class={c.key === cmode ? 'on' : ''} href={q({ compare: c.key })}>{c.label}</a>)}</div>
+    <p class="note" style="margin:-4px 0 14px;"><b>{curR.label}</b> vs <b>{cmpR.label}</b>. Percent changes compare the same number of days.</p>
     <div class="kpis">
-      <div class="kpi"><div class="l">Net sales · {current.label}</div><div class="v">{inr(totals.sales)}</div><div class="s">{previous.label}: {inr(totals.prevSales)} ({pct(totals.sales, totals.prevSales)})</div></div>
-      <div class="kpi"><div class="l">Orders</div><div class="v">{totals.orders.toLocaleString('en-IN')}</div></div>
-      <div class="kpi"><div class="l">Ad spend · ROAS</div><div class="v">{inr(totals.ad)}</div><div class="s">{totals.ad ? `${(totals.sales / totals.ad).toFixed(1)}×` : 'no spend'} · before: {inr(totals.prevAd)}</div></div>
-      <div class="kpi"><div class="l">Net profit</div><div class={`v${totals.profit < 0 ? ' bad' : ''}`}>{inr(totals.profit)}</div></div>
+      <div class="kpi"><div class="l">Net sales</div><div class="v">{inr(totals.sales)}</div><div class="s"><span class={tone(totals.sales, totals.prevSales, true)}>{pct(totals.sales, totals.prevSales)}</span> vs {inr(totals.prevSales)}</div></div>
+      <div class="kpi"><div class="l">Orders</div><div class="v">{totals.orders.toLocaleString('en-IN')}</div><div class="s"><span class={tone(totals.orders, totals.prevOrders, true)}>{pct(totals.orders, totals.prevOrders)}</span> vs {totals.prevOrders.toLocaleString('en-IN')}</div></div>
+      <div class="kpi"><div class="l">Ad spend</div><div class="v">{inr(totals.ad)}</div><div class="s"><span class={tone(totals.ad, totals.prevAd, false)}>{pct(totals.ad, totals.prevAd)}</span> vs {inr(totals.prevAd)}</div></div>
+      <div class="kpi"><div class="l">ROAS · store / Meta</div><div class="v">{totals.ad ? `${roas(totals.sales, totals.ad).toFixed(1)}×` : '—'} <span style="font-size:1rem;color:var(--dim)">/ {totals.ad ? `${roas(totals.metaRev, totals.ad).toFixed(1)}×` : '—'}</span></div><div class="s">before: {totals.prevAd ? `${roas(totals.prevSales, totals.prevAd).toFixed(1)}× / ${roas(totals.prevMetaRev, totals.prevAd).toFixed(1)}×` : '—'}</div></div>
+      <div class="kpi"><div class="l">Net profit</div><div class={`v${totals.profit < 0 ? ' bad' : ''}`}>{inr(totals.profit)}</div><div class="s"><span class={tone(totals.profit, totals.prevProfit, true)}>{pct(totals.profit, totals.prevProfit)}</span> vs {inr(totals.prevProfit)}</div></div>
     </div>
-    {liveBrands.length === 0 ? <section><p class="note">No live stores are connected for numbers yet. The Brands tab still lists every live brand and its terms; connecting a store's reporting key is on Prince's platform tasks.</p></section> : (
+    {liveBrands.length === 0 ? <section><p class="note">No live stores are connected for numbers yet. The Brands tab still lists every live brand and its terms.</p></section> : (
       <div class="grid">
-        {portfolio.map((p) => { const meta = brandByKey.get(p.brand.key); return (
+        {portfolio.map((p) => { const meta = metaFor(p.brand); return (
           <div class="card">
             <h4>{p.brand.name}</h4>
             {meta && <p class="note" style="margin:0 0 8px;">{termsLine(meta)}</p>}
             {!p.ok ? <p class="note bad">Couldn't read this store: {p.error}</p> : (<>
               <div class="scroll"><table>
-                <tr><th></th><th class="num">{current.label}</th><th class="num">{previous.label}</th><th class="num">Change</th></tr>
-                {([['Orders', p.cur.orders, p.prev.orders, false], ['Net sales', p.cur.netSales, p.prev.netSales, true], ['Ad spend', p.cur.adSpend, p.prev.adSpend, true], ['ROAS', p.cur.adSpend ? p.cur.netSales / p.cur.adSpend : 0, p.prev.adSpend ? p.prev.netSales / p.prev.adSpend : 0, 'x'], ['Net profit', p.cur.netProfit, p.prev.netProfit, true]] as [string, number, number, boolean | 'x'][]).map(([l, a, b, f]) => <tr><td>{l}</td><td class="num">{f === 'x' ? (a ? `${a.toFixed(1)}×` : '—') : f ? inr(a) : Math.round(a).toLocaleString('en-IN')}</td><td class="num">{f === 'x' ? (b ? `${b.toFixed(1)}×` : '—') : f ? inr(b) : Math.round(b).toLocaleString('en-IN')}</td><td class={`num ${a >= b ? 'good' : 'bad'}`}>{pct(a, b)}</td></tr>)}
+                <tr><th></th><th class="num">Selected</th><th class="num">Compared</th><th class="num">Change</th></tr>
+                {rowsFor(p.cur, p.prev).map(([l, a, b, f, up]) => <tr><td>{l}</td><td class="num">{show(a, f)}</td><td class="num">{show(b, f)}</td><td class={`num ${tone(a, b, up)}`}>{pct(a, b)}</td></tr>)}
               </table></div>
-              {p.budget && <p class="note" style="margin-top:8px;">Plan for this period: {inr(p.budget.revenue)} sales · {p.budget.orders} orders · {inr(p.budget.adSpend)} ads.</p>}
+              <h3>Before vs after Retail OS</h3>
+              {p.ba ? (<>
+                <p class="note" style="margin:0 0 6px;">Took over {new Date(p.takeover + 'T00:00:00Z').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })}. {p.ba.days} days each side, shown per day so the two are like for like.</p>
+                <div class="scroll"><table>
+                  <tr><th></th><th class="num">Before</th><th class="num">With Retail OS</th><th class="num">Change</th></tr>
+                  {rowsFor(p.ba.after, p.ba.before, [p.ba.days, p.ba.days]).map(([l, a, b, f, up]) => <tr><td>{l}</td><td class="num">{show(b, f)}</td><td class="num">{show(a, f)}</td><td class={`num ${tone(a, b, up)}`}>{pct(a, b)}</td></tr>)}
+                </table></div>
+                {p.ba.before.orders === 0 && p.ba.before.adSpend > 0 && <p class="note">No store orders are on record before the takeover, so the fair comparison is Meta ROAS and cost per Meta purchase.</p>}
+              </>) : <p class="note">Set the day Retail OS took over in <a href="/retail-os/admin/brands">Brands</a> ("Retail OS since") to see before vs after.</p>}
+              {p.budget && <p class="note" style="margin-top:8px;">Plan for the selected period: {inr(p.budget.revenue)} sales · {p.budget.orders} orders · {inr(p.budget.adSpend)} ads.</p>}
               <h3>Actions</h3>
               {p.levers.length ? p.levers.map((l) => <div class="lever"><b>{l.title}</b>{l.detail}</div>) : <p class="note">Nothing flagged for this period.</p>}
               {p.friction && p.friction.pages.length > 0 && (<><h3>Where visitors struggle</h3>{p.friction.pages.slice(0, 3).map((f) => <div class="lever"><b>{f.url}</b>{f.rageClicks} rage clicks · {f.deadClicks} dead clicks · {f.quickbacks} quick-backs in {f.sessions} sessions</div>)}</>)}
@@ -292,8 +328,8 @@ const href = (t: string, extra = '') => `/retail-os/admin/console?tab=${t}${extr
     )}
     <section style="margin-top:18px;">
       <h2>All live and building brands</h2>
-      <div class="scroll"><table><tr><th>Brand</th><th>Status</th><th>Terms</th><th>Numbers</th><th>Next</th></tr>
-        {brands.filter((b) => b.status === 'live' || b.status === 'building').map((b) => { const l = leads.find((x) => x.id === b.lead_id); return <tr><td><b>{b.name}</b></td><td>{STATUS_LABEL[b.status]}</td><td>{termsLine(b)}</td><td>{liveBrands.some((x) => x.key === b.key) ? <span class="good">connected</span> : <span class="note">store not connected for reporting</span>}</td><td>{l?.next_step ?? b.notes ?? '—'}</td></tr>; })}
+      <div class="scroll"><table><tr><th>Brand</th><th>Status</th><th>Terms</th><th>Retail OS since</th><th>Numbers</th><th>Next</th></tr>
+        {brands.filter((b) => b.status === 'live' || b.status === 'building').map((b) => { const l = leads.find((x) => x.id === b.lead_id); return <tr><td><b>{b.name}</b></td><td>{STATUS_LABEL[b.status]}</td><td>{termsLine(b)}</td><td>{b.retail_os_since ?? <span class="note">not set</span>}</td><td>{liveBrands.some((x) => metaFor(x)?.id === b.id) ? <span class="good">connected</span> : <span class="note">store not connected for reporting</span>}</td><td>{l?.next_step ?? b.notes ?? '—'}</td></tr>; })}
       </table></div>
     </section>
   </>)}

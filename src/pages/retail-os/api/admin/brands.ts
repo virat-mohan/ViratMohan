@@ -32,7 +32,7 @@ export const POST: APIRoute = async ({ request }) => {
       model: MODELS.includes(String(b.model)) ? (b.model as Brand['model']) : null,
       devshop_pct: num(b.devshop_pct), retainer_inr: num(b.retainer_inr), terms_note: str(b.terms_note, 400),
       website: str(b.website), instagram: str(b.instagram)?.replace(/^@/, '') ?? null, category: str(b.category, 80),
-      contacts, live_since: str(b.live_since, 10), notes: str(b.notes, 2000),
+      contacts, live_since: str(b.live_since, 10), retail_os_since: str(b.retail_os_since, 10), notes: str(b.notes, 2000),
       lead_id: str(b.lead_id, 40), application_id: str(b.application_id, 40),
     });
     return json({ ok: true, brand: saved }, 200);
