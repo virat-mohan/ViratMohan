@@ -16,6 +16,12 @@ describe('isProtectedPath', () => {
     expect(isProtectedPath('/devshop/api/delete-submission')).toBe(true);
   });
 
+  it('protects the demo approve-and-send route (it emails client content)', () => {
+    expect(isProtectedPath('/devshop/api/approve')).toBe(true);
+    // What the middleware does with an anonymous request to it: 401, before the route runs.
+    expect(checkAdminAuth(null, 'secret')).toEqual({ ok: false, status: 401 });
+  });
+
   it('does not protect public intake/demo/tracker routes', () => {
     expect(isProtectedPath('/devshop')).toBe(false);
     expect(isProtectedPath('/devshop/api/intake')).toBe(false);

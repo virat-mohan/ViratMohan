@@ -12,10 +12,9 @@ import { sendDemoDoneEmail } from '../../../lib/demo-email';
 // no Reply-To routing, copy says it's final).
 export const POST: APIRoute = async ({ request }) => {
   const env = getEnv();
-  const { id, overrideEmail } = (await request.json().catch(() => ({}))) as {
-    id?: string;
-    overrideEmail?: string;
-  };
+  // Admin-only (PROTECTED_PREFIXES in lib/admin-auth.ts). The email always
+  // goes to the address on the submission; there is no override.
+  const { id } = (await request.json().catch(() => ({}))) as { id?: string };
   if (!id) return json({ error: 'id is required' }, 400);
 
   const db = getDb(env);
@@ -28,7 +27,7 @@ export const POST: APIRoute = async ({ request }) => {
   if (!row.artefact_html) return json({ error: 'no artefact generated yet' }, 409);
 
   const origin = getOrigin(request);
-  const { demoUrl, sentTo } = await sendDemoDoneEmail(row, origin, env, { overrideEmail });
+  const { demoUrl, sentTo } = await sendDemoDoneEmail(row, origin, env);
 
   await db.markSent(id);
 

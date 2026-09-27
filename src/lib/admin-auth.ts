@@ -11,6 +11,7 @@ export const PROTECTED_PREFIXES = [
   '/devshop/api/ai-agents',
   '/devshop/api/delete-submission',
   '/devshop/api/usecase-templates',
+  '/devshop/api/approve',
   '/retail-os/admin',
   '/retail-os/api/admin',
   '/api/admin',
