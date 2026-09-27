@@ -34,6 +34,9 @@ In practice: read case-study/LEARNINGS.md before work, add to it after. Every fi
 ## Values
 Responsible business, fair practice, transparency, collective growth, positive impact, efficiency, plain language, keep promises. See `/mission`. How to decide in any situation: `case-study/PLAYBOOK.md`.
 
+## Content & performance calendar (the standard)
+When Virat says "content and performance calendar", build it with `tools/calendar/render.mjs` from a spec JSON (see `tools/calendar/README.md`). It is the Ceremony Kitchen Diwali 2026 format: DevShop Retail OS + brand header, a Mon–Sun grid with the image, caption and a sourced "why" for every post and its ad tag, then the Meta Ads plan with weekly budgets, expected return (labelled as a target) and the rules the system runs by. Real numbers only, each traceable to the account or the store.
+
 ## Team: manual plumbing goes to Prince
 Prince Keshri is Retail OS Operations (brand onboarding and integrations). Email pr.prince.3068@gmail.com · WhatsApp +91 91400 67354. His work page: https://www.viratmohan.com/retail-os/ops/18192551-2bcc-4140-bb2b-6a44abb9c744 (tasks live in `retail_os_ops_tasks`, member id `7ccc4990-12b8-424b-93cf-724645fbac69`, Supabase project vszjwgxvqoqyixpfthwl).
 - First try to do any technical step yourself. Only what truly needs a person (OAuth consent, KYC, phone verification, account invitations, anything needing Virat's own login) becomes a task on his page: exact steps, links, and the why. Owner `founder` only when only Virat can do it; then Prince prepares and books 15 minutes with him.
