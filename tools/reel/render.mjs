@@ -11,8 +11,9 @@ let pw;
 try { pw = req('playwright'); } catch { pw = req(execSync('npm root -g').toString().trim() + '/playwright'); }
 
 const args = process.argv.slice(2);
-const stillsAt = args.includes('--stills') ? args[args.indexOf('--stills') + 1].split(',').map(Number) : null;
-const [page = 'tools/reel/devshop-retail-os.html', out = 'public/retail-os/social/devshop-retail-os-reel.mp4'] = args.filter((a) => !a.startsWith('--') && a !== args[args.indexOf('--stills') + 1]);
+const si = args.indexOf('--stills');
+const stillsAt = si >= 0 ? args[si + 1].split(',').map(Number) : null;
+const [page = 'tools/reel/devshop-retail-os.html', out = 'out/reel.mp4'] = args.filter((a, i) => si < 0 || (i !== si && i !== si + 1));
 const FPS = 30;
 const ffmpeg = process.env.FFMPEG || 'ffmpeg';
 

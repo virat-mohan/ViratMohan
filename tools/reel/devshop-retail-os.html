@@ -95,6 +95,10 @@ body::before { content: ''; position: absolute; inset: 0;
 .also { display: flex; align-items: center; gap: 48px; margin-top: 36px; font: 400 24px/1.3 var(--sans); color: var(--dim); }
 .also img { height: 130px; mix-blend-mode: multiply; }
 
+.brand.more { background: var(--ink); border-color: var(--ink); }
+.brand.more .word { color: var(--paper); font-size: 56px; }
+.brand.more small { color: var(--gold); }
+
 /* S7 end */
 .logo { width: 820px; mix-blend-mode: multiply; }
 .talk { font-family: var(--serif); font-style: italic; font-size: 150px; line-height: 1; color: var(--terracotta); }
@@ -197,7 +201,7 @@ body::before { content: ''; position: absolute; inset: 0;
   </div>
 </section>
 
-<!-- S6 · Brands (status source: public/retail-os/faq/faq-data.js; DevShop builds: src/pages/devshop.astro) -->
+<!-- S6 · Brands (status source: public/retail-os/faq/faq-data.js; "5+ launching this week": Virat, 28 Sep 2026; DevShop builds: src/pages/devshop.astro) -->
 <section class="scene">
   <div class="kicker" data-a="31.6,37.4">Who it runs for</div>
   <div class="big m" style="margin-top:34px" data-a="31.8,37.4">Brands on it today.</div>
@@ -205,10 +209,11 @@ body::before { content: ''; position: absolute; inset: 0;
     <div class="brand" data-a="32.3,37.4"><img src="../../src/assets/logos/travaholic.png" alt="Travaholic"><small>Caps · Full system</small></div>
     <div class="brand" data-a="32.6,37.4"><img src="../../src/assets/logos/moonglasses.webp" alt="Moonglasses" style="max-width:300px"><small>Live · Online soon</small></div>
     <div class="brand" data-a="32.9,37.4"><div class="word">Ceremony<br>Kitchen</div><small>Social &amp; performance</small></div>
-    <div class="brand" data-a="33.2,37.4"><div class="word">India<br>Contemporary</div><small class="soon">Launching</small></div>
+    <div class="brand" data-a="33.2,37.4"><div class="word">India<br>Contemporary</div><small>Marketplace · Live</small></div>
   </div>
-  <div class="brands" style="grid-template-columns:1fr;margin-top:26px">
-    <div class="brand" style="height:150px" data-a="33.5,37.4"><div class="word" style="font-size:60px">Flowerbasket</div><small class="soon">Launching</small></div>
+  <div class="brands" style="margin-top:26px">
+    <div class="brand" style="height:170px" data-a="33.5,37.4"><div class="word" style="font-size:56px">Flowerbasket</div><small class="soon">Launching</small></div>
+    <div class="brand more" style="height:170px" data-a="33.8,37.4"><div class="word"><span class="terra" style="font-family:var(--display)">5+</span> more</div><small class="soon">Launching this week</small></div>
   </div>
   <div class="also" data-a="34.4,37.4">
     <span>Also built by DevShop</span>
