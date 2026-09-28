@@ -1,9 +1,9 @@
 # Cover email — Rakhi Taneja (via Shivani)
 
 **From:** viratmohan@gmail.com
-**To:** Rakhi Taneja `[need Rakhi's email]`, Shivani Gaba <shivanigaba0301@gmail.com>
+**To:** Rakhi Taneja <rakhitaneja95@gmail.com>, Shivani Gaba <shivanigaba0301@gmail.com>
 **Cc:** founder@viratmohan.com
-**Subject:** Your stationery brand, online and selling both ways — proposal
+**Subject:** The Stationery Store — online and selling both ways (proposal)
 
 ---
 
@@ -32,11 +32,13 @@ founder@viratmohan.com · viratmohan.com/retail-os
 
 ---
 
-## Notes for Virat (not part of the email)
+## Status
 
-- **Missing:** Rakhi's email address (I only have Shivani's). Needed before I can create the Gmail draft / send.
-- **Placeholders in the proposal HTML** (highlighted in the file): `[brand name]` and the WhatsApp link (`wa.me/PLACEHOLDER`) — I didn't have a brand name or a WhatsApp number and won't invent them.
-- **Could not study the brand:** Instagram is blocked from this environment, so I couldn't open her reel or confirm the brand name/handle. Nothing about her brand is invented in the proposal.
-- **On the 0% vs 40%:** per your steer, the written proposal states the full deal — 40% of gross profit + ₹5,000 deposit + 12-month term with break clause — with "gross profit" defined in plain terms.
-- **Attachment:** `proposal.html` in this folder. It can go as an attachment, or I can inline it as the email body (fully brand-styled) if you'd rather she reads it without opening a file.
-- Nothing sends until you approve. Say the word and I'll create the Gmail draft (to Rakhi + Shivani, cc founder@) once I have Rakhi's email.
+- **Gmail draft created** (not sent) in viratmohan@gmail.com — To: Rakhi + Shivani, Cc: founder@. The proposal is inline as the styled email body, so Rakhi can forward the whole email to her partner. Review and send when ready.
+- **Brand:** The Stationery Store (@thestationerystor.e). I could not open her reel — Instagram is egress-blocked here — so nothing about her brand is invented beyond the name/handle you gave me.
+- **Terms (per your steer):** 40% of gross profit (defined), ₹5,000 deposit fully adjustable against actual tech costs, 12-month term with 30-day break clause + 5% break fee, brand/IP stays hers.
+- **WhatsApp CTA:** wired to +91 99992 77240 (wa.me/919999277240).
+
+## Files in this folder
+- `email-inline.html` — the email body as sent in the draft (Gmail-safe inline styles).
+- `proposal.html` — the richer standalone/print version (full brand fonts + tokens.css), if you want a link or PDF instead.
