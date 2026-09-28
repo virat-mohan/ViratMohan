@@ -23,6 +23,7 @@ export const PROTECTED_PREFIXES = [
   '/devshop/api/usecase-templates',
   '/devshop/api/approve',
   '/devshop/api/delivery',
+  '/devshop/api/economics',
   '/retail-os/admin',
   '/retail-os/api/admin',
   '/api/admin',
