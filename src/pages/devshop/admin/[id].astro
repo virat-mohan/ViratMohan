@@ -45,6 +45,13 @@ const amcEstimate = row.amc_resource_estimate;
 const amcRecommendation = row.amc_pricing_recommendation;
 const amcDecision = row.amc_pricing_decision;
 const implementationEstimate = row.implementation_estimate;
+
+// Stage 5D — compact project economics. Best-effort: a missing table (migration 0044 not yet
+// applied) must never take down the admin page. Deterministic; labour cost stays UNKNOWN (no rates).
+import { serviceDb } from '../../../lib/ledger';
+import { economicsStore } from '../../../lib/devshop-economics-db';
+const economics = await economicsStore(serviceDb(env)).compute(row.id).catch((err) => { console.error('economics compute failed', err); return null; });
+const inr = (paise: number) => '₹' + Math.round(paise / 100).toLocaleString('en-IN');
 ---
 
 <!doctype html>
@@ -323,6 +330,22 @@ const implementationEstimate = row.implementation_estimate;
         </div>
       )}
     </div>
+
+    {economics && (
+      <div class="reasoning-block">
+        <h2>Project economics</h2>
+        <p class="panel-note">Management view — measurement only, not profit. Missing inputs show UNKNOWN, never zero. Labour cost is not priced (hours only).</p>
+        <div class="transition-log">
+          <div class="transition-row"><span class="transition-change">Contracted revenue</span><span class="transition-reason">{economics.revenue.contractedPaise != null ? inr(economics.revenue.contractedPaise) : 'UNKNOWN'}</span></div>
+          <div class="transition-row"><span class="transition-change">Invoiced revenue</span><span class="transition-reason">{economics.revenue.invoicedPaise != null ? inr(economics.revenue.invoicedPaise) : 'UNKNOWN'}</span></div>
+          <div class="transition-row"><span class="transition-change">Collected revenue</span><span class="transition-reason">{economics.revenue.collectedPaise != null ? inr(economics.revenue.collectedPaise) : 'UNKNOWN'}</span></div>
+          <div class="transition-row"><span class="transition-change">Direct non-labour costs</span><span class="transition-reason">{economics.contribution.known ? inr(economics.contribution.value.directNonLabourPaise) : '—'}</span></div>
+          <div class="transition-row"><span class="transition-change">Human hours (founder)</span><span class="transition-reason">{economics.totalHours} ({economics.founderHours})</span></div>
+          <div class="transition-row"><span class="transition-change">Labour cost</span><span class="transition-reason">UNKNOWN — no authoritative per-role rates</span></div>
+          <div class="transition-row"><span class="transition-change">Contribution (before labour, collected basis)</span><span class="transition-reason">{economics.contribution.known ? inr(economics.contribution.value.contributionPaise) : `UNKNOWN — ${economics.contribution.reason}`}</span></div>
+        </div>
+      </div>
+    )}
 
     {inPipeline && (
       <div class="reasoning-block pipeline-panel">
