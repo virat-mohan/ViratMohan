@@ -49,11 +49,11 @@ const portfolio: Card[] = tab === 'live' ? await Promise.all(liveBrands.map(asyn
 const inr = (n: number) => '₹' + Math.round(n).toLocaleString('en-IN');
 const pct = (a: number, b: number) => { const v = pctChange(a, b); return v === null ? '—' : `${v >= 0 ? '+' : ''}${v}%`; };
 const roas = (sales: number, spend: number) => (spend ? sales / spend : 0);
-const totals = portfolio.reduce((t, p) => (p.ok ? { sales: t.sales + p.cur.netSales, prevSales: t.prevSales + p.prev.netSales, orders: t.orders + p.cur.orders, prevOrders: t.prevOrders + p.prev.orders, ad: t.ad + p.cur.adSpend, prevAd: t.prevAd + p.prev.adSpend, metaRev: t.metaRev + p.cur.metaRevenue, prevMetaRev: t.prevMetaRev + p.prev.metaRevenue, profit: t.profit + p.cur.netProfit, prevProfit: t.prevProfit + p.prev.netProfit } : t), { sales: 0, prevSales: 0, orders: 0, prevOrders: 0, ad: 0, prevAd: 0, metaRev: 0, prevMetaRev: 0, profit: 0, prevProfit: 0 });
+const totals = portfolio.reduce((t, p) => (p.ok ? { sales: t.sales + p.cur.netSales, prevSales: t.prevSales + p.prev.netSales, orders: t.orders + p.cur.orders, prevOrders: t.prevOrders + p.prev.orders, ad: t.ad + p.cur.adSpend, prevAd: t.prevAd + p.prev.adSpend, metaRev: t.metaRev + p.cur.metaRevenue, prevMetaRev: t.prevMetaRev + p.prev.metaRevenue, profit: t.profit + (p.cur.costVerified ? p.cur.netProfit : 0), prevProfit: t.prevProfit + (p.cur.costVerified ? p.prev.netProfit : 0), noCost: t.noCost + (p.cur.costVerified ? 0 : 1) } : t), { sales: 0, prevSales: 0, orders: 0, prevOrders: 0, ad: 0, prevAd: 0, metaRev: 0, prevMetaRev: 0, profit: 0, prevProfit: 0, noCost: 0 });
 type Row = [string, number, number, 'inr' | 'num' | 'x', boolean]; // label, cur, cmp, format, higher is better
 const rowsFor = (c: Metrics, p: Metrics, perDay?: [number, number]): Row[] => {
   const k = (x: number, i: 0 | 1) => (perDay ? x / perDay[i] : x);
-  return [
+  const rows: Row[] = [
     ['Orders' + (perDay ? ' / day' : ''), k(c.orders, 0), k(p.orders, 1), 'num', true],
     ['Net sales' + (perDay ? ' / day' : ''), k(c.netSales, 0), k(p.netSales, 1), 'inr', true],
     ['Ad spend' + (perDay ? ' / day' : ''), k(c.adSpend, 0), k(p.adSpend, 1), 'inr', false],
@@ -63,6 +63,8 @@ const rowsFor = (c: Metrics, p: Metrics, perDay?: [number, number]): Row[] => {
     ['Cost per Meta purchase', c.metaPurchases ? c.adSpend / c.metaPurchases : 0, p.metaPurchases ? p.adSpend / p.metaPurchases : 0, 'inr', false],
     ['Net profit' + (perDay ? ' / day' : ''), k(c.netProfit, 0), k(p.netProfit, 1), 'inr', true],
   ];
+  // No real purchase cost: never show a profit built on the ₹250 placeholder.
+  return c.costVerified && p.costVerified ? rows : rows.filter((r) => !r[0].startsWith('Net profit'));
 };
 const show = (v: number, f: Row[3]) => (f === 'x' ? (v ? `${v.toFixed(2)}×` : '—') : f === 'inr' ? inr(v) : (Math.round(v * 10) / 10).toLocaleString('en-IN'));
 const tone = (a: number, b: number, up: boolean) => { const v = pctChange(a, b); return v === null || v === 0 ? '' : (v > 0) === up ? 'good' : 'bad'; };
@@ -295,7 +297,7 @@ const href = (t: string, extra = '') => `/retail-os/admin/console?tab=${t}${extr
       <div class="kpi"><div class="l">Orders</div><div class="v">{totals.orders.toLocaleString('en-IN')}</div><div class="s"><span class={tone(totals.orders, totals.prevOrders, true)}>{pct(totals.orders, totals.prevOrders)}</span> vs {totals.prevOrders.toLocaleString('en-IN')}</div></div>
       <div class="kpi"><div class="l">Ad spend</div><div class="v">{inr(totals.ad)}</div><div class="s"><span class={tone(totals.ad, totals.prevAd, false)}>{pct(totals.ad, totals.prevAd)}</span> vs {inr(totals.prevAd)}</div></div>
       <div class="kpi"><div class="l">ROAS · store / Meta</div><div class="v">{totals.ad ? `${roas(totals.sales, totals.ad).toFixed(1)}×` : '—'} <span style="font-size:1rem;color:var(--dim)">/ {totals.ad ? `${roas(totals.metaRev, totals.ad).toFixed(1)}×` : '—'}</span></div><div class="s">before: {totals.prevAd ? `${roas(totals.prevSales, totals.prevAd).toFixed(1)}× / ${roas(totals.prevMetaRev, totals.prevAd).toFixed(1)}×` : '—'}</div></div>
-      <div class="kpi"><div class="l">Net profit</div><div class={`v${totals.profit < 0 ? ' bad' : ''}`}>{inr(totals.profit)}</div><div class="s"><span class={tone(totals.profit, totals.prevProfit, true)}>{pct(totals.profit, totals.prevProfit)}</span> vs {inr(totals.prevProfit)}</div></div>
+      <div class="kpi"><div class="l">Net profit{totals.noCost > 0 && ` (excludes ${totals.noCost} brand${totals.noCost > 1 ? 's' : ''} without purchase cost)`}</div><div class={`v${totals.profit < 0 ? ' bad' : ''}`}>{inr(totals.profit)}</div><div class="s"><span class={tone(totals.profit, totals.prevProfit, true)}>{pct(totals.profit, totals.prevProfit)}</span> vs {inr(totals.prevProfit)}</div></div>
     </div>
     {liveBrands.length === 0 ? <section><p class="note">No live stores are connected for numbers yet. The Brands tab still lists every live brand and its terms.</p></section> : (
       <div class="grid">

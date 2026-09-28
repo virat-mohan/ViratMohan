@@ -45,7 +45,7 @@ const navItems = [
   <div class="ds-header-inner">
     <a class="ds-logo" href="/devshop">
       {verticalTag && <span class="ds-logo-tag">{verticalTag}</span>}
-      <Image class="ds-logo-mark" src={devshopLogo} width={devshopLogo.width} height={devshopLogo.height} alt="DevShop — built fast, for real businesses" loading="eager" fetchpriority="high" format="png" />
+      <Image class="ds-logo-mark" src={devshopLogo} width={720} height={Math.round(720 * devshopLogo.height / devshopLogo.width)} alt="DevShop — built fast, for real businesses" loading="eager" fetchpriority="high" />
     </a>
     {industryLabel && <div class="ds-industry-badge">Built for {industryLabel}</div>}
 
