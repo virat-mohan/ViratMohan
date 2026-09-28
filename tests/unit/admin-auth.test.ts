@@ -49,6 +49,13 @@ describe('checkAdminAuth', () => {
     expect(result).toEqual({ ok: false, status: 401 });
   });
 
+  it('rejects an equal-length wrong header (timing-safe path, 401)', () => {
+    const right = 'Basic ' + btoa('admin:correct-password');
+    const wrong = 'Basic ' + btoa('admin:correct-passworX'); // same decoded length
+    expect(wrong.length).toBe(right.length);
+    expect(checkAdminAuth(wrong, 'correct-password')).toEqual({ ok: false, status: 401 });
+  });
+
   it('accepts the correct password', () => {
     const result = checkAdminAuth('Basic ' + btoa('admin:correct-password'), 'correct-password');
     expect(result).toEqual({ ok: true });
