@@ -11,7 +11,9 @@ The page exposes `window.seek(t)` and `window.DURATION`, so every frame is exact
 
 ## devshop-retail-os.html → public/retail-os/social/devshop-retail-os-reel.mp4
 
-44 s, silent, so trending audio can be added in Instagram. Every claim and its source:
+44 s with an original soundtrack (`soundtrack.py`: upbeat 120 BPM house in D major, hits timed to the animation, about −14 LUFS). It is synthesised here, so there is nothing to license. To rebuild: render the video, run `python3 tools/reel/soundtrack.py out.wav`, then mux with `ffmpeg -i reel.mp4 -i out.wav -map 0:v -map 1:a -c:v copy -c:a aac -b:a 192k -shortest`.
+
+Every claim and its source:
 
 | Scene | Claim | Source |
 |---|---|---|
