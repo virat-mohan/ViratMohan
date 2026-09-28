@@ -30,3 +30,5 @@ The earlier synthesised soundtracks were rejected as sounding like MIDI and are 
 | End | "Let's talk." WhatsApp +91 99992 77240; Virat's desk photo (Instagram, 27 Sep) | `src/data/site.ts`; `case-study/photos/shoot-desk.jpg`; homepage photo `src/assets/vm1.png` on the "I run it" scene |
 
 Re-pull the proof numbers before each re-post; a 3-day window moves.
+
+Cover: `public/retail-os/social/reel-cover.jpg` (frame at 2.2 s). Frame 0 is plain terracotta so the reel loops, so always set a cover: upload this file in Instagram (Edit cover), or pass `thumbnailOffset: 2200` when posting through Buffer.
