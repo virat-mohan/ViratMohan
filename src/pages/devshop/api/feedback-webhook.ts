@@ -25,20 +25,23 @@ export const POST: APIRoute = async ({ request }) => {
   const env = getEnv();
   const rawBody = await request.text();
 
-  if (env.RESEND_WEBHOOK_SECRET) {
-    try {
-      const wh = new Webhook(env.RESEND_WEBHOOK_SECRET);
-      wh.verify(rawBody, {
-        'svix-id': request.headers.get('svix-id') ?? '',
-        'svix-timestamp': request.headers.get('svix-timestamp') ?? '',
-        'svix-signature': request.headers.get('svix-signature') ?? '',
-      });
-    } catch (err) {
-      console.error('feedback-webhook: signature verification failed', err);
-      return new Response('invalid signature', { status: 401 });
-    }
-  } else {
-    console.warn('feedback-webhook: RESEND_WEBHOOK_SECRET not set — accepting unverified request');
+  // Fail closed: without the signing secret we cannot verify the request, so we
+  // process nothing (matches the WhatsApp and RazorpayX webhooks). This route
+  // triggers a paid LLM revision, so an unverified request must never reach it.
+  if (!env.RESEND_WEBHOOK_SECRET) {
+    console.error('feedback-webhook: RESEND_WEBHOOK_SECRET not set — refusing unverified request');
+    return new Response('webhook not configured', { status: 503 });
+  }
+  try {
+    const wh = new Webhook(env.RESEND_WEBHOOK_SECRET);
+    wh.verify(rawBody, {
+      'svix-id': request.headers.get('svix-id') ?? '',
+      'svix-timestamp': request.headers.get('svix-timestamp') ?? '',
+      'svix-signature': request.headers.get('svix-signature') ?? '',
+    });
+  } catch (err) {
+    console.error('feedback-webhook: signature verification failed', err);
+    return new Response('invalid signature', { status: 401 });
   }
 
   let payload: any;
