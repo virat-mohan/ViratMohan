@@ -23,7 +23,8 @@ One place for everything done on Fresh For Paws so far. Pulled together on 26 Se
 | 26 Sep | Call with Srishti; mutual NCNDA sent to contact@freshforpaws.com | Gmail "Fresh For Paws x DevShop Retail OS: NCNDA to sign first" |
 | 26 Sep | Onboarding task list (14 tasks) loaded to ops board | Supabase `retail_os_ops_tasks`, brand_key `freshforpaws` |
 | 26 Sep | Lead logged, stage `nda_sent` | Supabase `leads` id `c8cfb848…` |
-| 27 Sep | Srishti signed the NCNDA (as Proprietor); Virat countersigned. Next-steps reply drafted in Gmail, not sent | Signed .docx kept off this public repo |
+| 27 Sep | Srishti signed the NCNDA (as Proprietor); Virat countersigned. Next-steps email with signed PDF sent 27 Sep | Gmail "NCNDA signed, next steps"; signed files kept off this public repo |
+| 28 Sep | No reply yet; gentle reminder drafted, not sent | Gmail draft in the same thread |
 
 Track page: https://www.viratmohan.com/retail-os/track/8ad86490-b731-49a1-92c8-a98a68ec0441
 
