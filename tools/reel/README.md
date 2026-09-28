@@ -27,6 +27,6 @@ The earlier synthesised soundtracks were rejected as sounding like MIDI and are 
 | Monday | Settled every Monday, visible every day | `/retail-os` "How you get paid" |
 | Brands | Status per brand (plain text) | FAQ "Which brands use it today?"; India Contemporary live, 5+ launching this week and Ceremony ops/finance from Virat, 28 Sep 2026; Travaholic Stays and The Feeling Co from the DevShop proof list |
 | Refer | "Bring a brand. Earn 25%. For as long as it stays." | `/partners` and FAQ "Can I earn by referring brands?" |
-| End | "Let's talk." WhatsApp +91 99992 77240; Virat's homepage photo | `src/data/site.ts`; `src/assets/vm1.png` |
+| End | "Let's talk." WhatsApp +91 99992 77240; Virat's desk photo (Instagram, 27 Sep) | `src/data/site.ts`; `case-study/photos/shoot-desk.jpg`; homepage photo `src/assets/vm1.png` on the "I run it" scene |
 
 Re-pull the proof numbers before each re-post; a 3-day window moves.

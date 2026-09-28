@@ -96,6 +96,11 @@ canvas { position: absolute; inset: 0; z-index: 55; }
 .earn { font: 400 96px/1 var(--display); text-transform: uppercase; color: var(--gold); margin-top: 60px; }
 
 /* end */
+.hero-photo { position: relative; background: var(--cream); padding: 18px; box-shadow: 14px 14px 0 var(--ink); align-self: center; }
+.hero-photo .crop { width: 780px; height: 760px; overflow: hidden; position: relative; }
+.hero-photo .crop img { position: absolute; width: 1050px; left: -144px; top: -370px; display: block; }
+.logo-card.mini { position: absolute; right: -40px; bottom: -46px; padding: 18px 24px; border-radius: 20px; transform: rotate(-6deg); box-shadow: 8px 8px 0 var(--ink); }
+.logo-card.mini img { width: 300px; }
 .logo-card { background: var(--cream); border-radius: 28px; padding: 40px 50px; box-shadow: 10px 10px 0 var(--ink); align-self: center; }
 .logo-card img { width: 640px; display: block; mix-blend-mode: multiply; }
 .cta { display: inline-flex; align-items: center; gap: 22px; padding: 32px 46px; border-radius: 999px; background: var(--ink); color: var(--cream); font: 700 42px/1 var(--sans); box-shadow: 8px 8px 0 var(--cream); }
@@ -263,9 +268,9 @@ canvas { position: absolute; inset: 0; z-index: 55; }
 <section class="sc" id="s-end" style="z-index:15">
   <div class="bg a" data-o="50% 100%" style="background:var(--terracotta)"></div>
   <div class="box" style="align-items:center;text-align:center">
-    <div class="face a" style="position:relative;width:250px;height:250px;margin-bottom:44px"><img src="../../src/assets/vm1.png" alt="Virat Mohan"></div>
-    <div class="logo-card a"><img src="../../src/assets/devshop-logo.png" alt="DevShop" style="width:560px"></div>
-    <div class="big a" style="font-size:220px;margin-top:60px" data-g="magenta">Let’s talk.</div>
+    <div class="hero-photo a"><div class="crop"><img src="../../case-study/photos/shoot-desk.jpg" alt="Virat Mohan at his desk"></div>
+      <div class="logo-card mini"><img src="../../src/assets/devshop-logo.png" alt="DevShop"></div></div>
+    <div class="big a" style="font-size:170px;margin-top:60px" data-g="magenta">Let’s talk.</div>
     <div class="a" style="margin-top:50px"><span class="cta">
       <svg viewBox="0 0 40 40" fill="none"><path d="M20 6C12.3 6 6 12.3 6 20c0 2.7.8 5.2 2.1 7.3L6.5 34l6.9-1.6C15.4 33.4 17.6 34 20 34c7.7 0 14-6.3 14-14S27.7 6 20 6z" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></svg>
       WhatsApp +91 99992 77240</span></div>
@@ -373,7 +378,7 @@ pop(document.getElementById('h3'), 1.1, 12, .7);
   rise($('.serif', sc)[0], S.refer + 1.9); rise($('.box > .a:last-child', sc)[0], S.refer + 2.2); }
 // 9 end, then everything clears to plain terracotta to loop into the hook
 { const sc = document.getElementById('s-end'); wipe($('.bg', sc)[0], S.end);
-  const a = $('.box > .a', sc); pop(a[0], S.end + .2, 8, .6); pop(a[1], S.end + .4, -5, .7); slam(a[2], S.end + .7, -1, 6); pop(a[3], S.end + 1.1, 3, .5); rise(a[4], S.end + 1.4);
+  const a = $('.box > .a', sc); pop(a[0], S.end + .2, -3, .7); slam(a[1], S.end + .7, -1, 6); pop(a[2], S.end + 1.1, 3, .5); rise(a[3], S.end + 1.4);
   a.forEach((el, i) => out(el, S.dur - .9 + i * .05)); }
 
 // ---------- specials: counters, ticks, fills, breathing stickers, confetti
