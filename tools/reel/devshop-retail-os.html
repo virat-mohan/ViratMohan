@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>DevShop Retail OS reel</title>
+<!--
+  DevShop Retail OS reel, 1080x1920, ~40s. Rendered to MP4 by render.mjs.
+  Every claim is sourced (see README.md). Frame state is a pure function of
+  time: window.seek(t) draws the frame at t seconds, so renders are exact.
+-->
+<style>
+@font-face { font-family: 'Anton'; src: url('../../case-study/fonts/anton-latin-400-normal.ttf'); }
+@font-face { font-family: 'Instrument Serif'; src: url('../../case-study/fonts/instrument-serif-latin-400-normal.ttf'); }
+@font-face { font-family: 'Inter'; font-weight: 400; src: url('../../case-study/fonts/inter-latin-400-normal.ttf'); }
+@font-face { font-family: 'Inter'; font-weight: 700; src: url('../../case-study/fonts/inter-latin-700-normal.ttf'); }
+
+/* Mirrors /brand/tokens.css */
+:root {
+  --ink: #1a1410; --paper: #f4ead4; --gold: #d4af37; --dim: #5a4c3c;
+  --line: rgba(23,19,15,.14); --terracotta: #d9714b; --cobalt: #3e6fa6;
+  --magenta: #e91e8c; --bronze: #9c7a4a;
+  --display: 'Anton', sans-serif; --serif: 'Instrument Serif', Georgia, serif; --sans: 'Inter', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; }
+html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--paper); }
+body { color: var(--ink); font-family: var(--sans); -webkit-font-smoothing: antialiased; position: relative; }
+body::before { content: ''; position: absolute; inset: 0;
+  background-image: radial-gradient(circle, rgba(23,19,15,.07) 2px, transparent 2px); background-size: 22px 22px; }
+.band { position: absolute; top: 0; left: 0; right: 0; height: 12px; display: grid; grid-template-columns: repeat(4,1fr); }
+.band i:nth-child(1){background:var(--gold)} .band i:nth-child(2){background:var(--magenta)}
+.band i:nth-child(3){background:var(--cobalt)} .band i:nth-child(4){background:var(--terracotta)}
+
+.top { position: absolute; top: 230px; left: 96px; right: 96px; display: flex; justify-content: space-between;
+  font: 700 22px/1 var(--sans); letter-spacing: .2em; text-transform: uppercase; color: var(--terracotta); }
+.top span:first-child { color: var(--ink); }
+.top span:last-child { color: var(--dim); font-weight: 400; letter-spacing: .08em; text-transform: none; }
+.foot { position: absolute; top: 1500px; left: 96px; right: 96px; height: 2px; background: var(--gold); transform-origin: left; }
+.foot-url { position: absolute; top: 1526px; left: 96px; font: 700 24px/1 var(--sans); letter-spacing: .02em; }
+.foot-url b { color: var(--terracotta); }
+
+.scene { position: absolute; left: 96px; right: 96px; top: 300px; height: 1170px; display: flex; flex-direction: column; justify-content: center; }
+[data-a] { opacity: 0; will-change: transform, opacity; }
+
+.kicker { font: 700 24px/1.2 var(--sans); letter-spacing: .18em; text-transform: uppercase; color: var(--terracotta); }
+.big { font-family: var(--display); text-transform: uppercase; font-size: 150px; line-height: .98; letter-spacing: .005em; }
+.big.m { font-size: 112px; }
+.big.s { font-size: 96px; }
+.dek { font-family: var(--serif); font-style: italic; font-size: 62px; line-height: 1.18; color: var(--dim); }
+.note { font: 400 24px/1.45 var(--sans); color: var(--dim); }
+.rule { height: 2px; background: var(--gold); transform-origin: left; }
+.x { font-family: var(--sans); font-style: normal; font-weight: 400; font-size: .55em; margin-left: .04em; }
+.gold { color: var(--gold); } .terra { color: var(--terracotta); }
+
+/* S2 tracker */
+.track { position: relative; margin-top: 70px; }
+.stage { display: flex; align-items: center; gap: 30px; height: 84px; font: 400 38px/1 var(--sans); }
+.dot { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--gold); position: relative; flex: none; background: var(--paper); }
+.dot::after { content: ''; position: absolute; inset: 6px; border-radius: 50%; background: var(--terracotta); transform: scale(var(--f,0)); }
+.track .spine { position: absolute; left: 16px; top: 42px; width: 2px; height: calc(84px * 6); background: var(--line); }
+.track .fill { position: absolute; left: 16px; top: 42px; width: 2px; background: var(--terracotta); height: 0; }
+.stage.last { font-weight: 700; }
+
+/* S3 features */
+.feat { display: grid; grid-template-columns: 76px 1fr; gap: 30px; align-items: center; padding: 20px 0; border-bottom: 1px solid var(--line); }
+.feat svg { width: 76px; height: 76px; }
+.feat h3 { font: 700 36px/1.15 var(--sans); }
+.feat p { font-family: var(--serif); font-style: italic; font-size: 34px; line-height: 1.2; color: var(--dim); margin-top: 4px; }
+
+/* S4 proof */
+.huge { font-family: var(--display); font-size: 330px; line-height: .9; color: var(--terracotta); letter-spacing: -.01em; }
+.pair { display: flex; gap: 48px; margin-top: 40px; }
+.pair b { display: block; font-family: var(--display); font-weight: 400; font-size: 64px; line-height: 1; }
+.pair span { font: 400 26px/1.35 var(--sans); color: var(--dim); }
+
+/* S5 week */
+.week { display: grid; grid-template-columns: repeat(8, 1fr); gap: 10px; margin-top: 90px; }
+.day { height: 150px; border: 1.5px solid var(--line); border-radius: 14px; display: flex; align-items: flex-end; justify-content: center;
+  padding-bottom: 18px; font: 700 22px/1 var(--sans); color: var(--dim); position: relative; overflow: hidden; background: rgba(255,255,255,.25); }
+.day .lvl { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(212,175,55,.22); height: 0; }
+.day span { position: relative; }
+.day.pay { border-color: var(--terracotta); background: var(--terracotta); color: var(--paper); }
+.statement { margin-top: 60px; border-top: 2px solid var(--ink); }
+.statement div { display: flex; justify-content: space-between; padding: 20px 0; border-bottom: 1px solid var(--line); font: 400 32px/1 var(--sans); }
+.statement div:last-child { font-weight: 700; border-bottom: 2px solid var(--ink); }
+.statement em { font-family: var(--serif); color: var(--dim); }
+
+/* S6 brands */
+.brands { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; margin-top: 56px; }
+.brand { min-width: 0; height: 236px; border: 1.5px solid var(--line); border-radius: 18px; background: rgba(255,255,255,.35);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 20px; }
+.brand img { max-height: 140px; max-width: 360px; mix-blend-mode: multiply; }
+.brand .word { font-family: var(--serif); font-size: 64px; line-height: 1; text-align: center; }
+.brand small { font: 700 19px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--terracotta); }
+.brand small.soon { color: var(--bronze); }
+.also { display: flex; align-items: center; gap: 48px; margin-top: 36px; font: 400 24px/1.3 var(--sans); color: var(--dim); }
+.also img { height: 130px; mix-blend-mode: multiply; }
+
+/* S7 end */
+.logo { width: 820px; mix-blend-mode: multiply; }
+.talk { font-family: var(--serif); font-style: italic; font-size: 150px; line-height: 1; color: var(--terracotta); }
+.cta { display: inline-flex; align-items: center; gap: 22px; margin-top: 40px; padding: 30px 44px; border-radius: 999px;
+  background: var(--ink); color: var(--paper); font: 700 38px/1 var(--sans); }
+.cta svg { width: 46px; height: 46px; color: var(--gold); }
+</style>
+</head>
+<body>
+<div class="band"><i></i><i></i><i></i><i></i></div>
+<div class="top" data-a="0.2,99" data-fx="fade"><span>DevShop Retail OS</span><span>viratmohan.com</span></div>
+
+<!-- S1 · Hook (mission: run for them) -->
+<section class="scene">
+  <div class="kicker" data-a="0.5,4.4">For product founders</div>
+  <div class="big" style="margin-top:44px" data-a="0.8,4.4">You bring</div>
+  <div class="big" data-a="1.1,4.4">the product.</div>
+  <div class="rule" style="margin:56px 0 48px;width:260px" data-a="1.7,4.4" data-fx="draw"></div>
+  <div class="dek" data-a="2.1,4.4">I run the whole online business: store, ads, content, WhatsApp, shipping.</div>
+</section>
+
+<!-- S2 · Live in 3–7 days (source: /retail-os how-it-works + FAQ tracker stages) -->
+<section class="scene">
+  <div class="kicker" data-a="4.9,10.2">From signing to live</div>
+  <div class="big" style="margin-top:40px" data-a="5.1,10.2">Live in <span class="terra">3–7</span> days.</div>
+  <div class="track" data-a="5.5,10.2" data-fx="fade">
+    <div class="spine"></div><div class="fill" id="fill"></div>
+    <div class="stage"><i class="dot"></i>Catalog</div>
+    <div class="stage"><i class="dot"></i>Design</div>
+    <div class="stage"><i class="dot"></i>Payments</div>
+    <div class="stage"><i class="dot"></i>Shipping</div>
+    <div class="stage"><i class="dot"></i>Meta ads</div>
+    <div class="stage"><i class="dot"></i>WhatsApp</div>
+    <div class="stage last"><i class="dot"></i>Go live</div>
+  </div>
+  <p class="note" style="margin-top:44px" data-a="7.4,10.2">After you sign. Assumes your setup answers come in on time and payments, Meta and WhatsApp approve without delays.</p>
+</section>
+
+<!-- S3 · What's already connected (source: /retail-os "What you actually get") -->
+<section class="scene">
+  <div class="kicker" data-a="10.6,20.2">Already connected</div>
+  <div class="big s" style="margin:30px 0 14px" data-a="10.8,20.2">The hard parts, done.</div>
+  <div class="feat" data-a="11.6,20.2">
+    <svg viewBox="0 0 88 88" fill="none" stroke="#1a1410" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="14" y="22" width="40" height="48" rx="4"/><path d="M54 40h20M66 32l8 8-8 8" stroke="#d9714b"/><path d="M22 34h24M22 44h24M22 54h16"/></svg>
+    <div><h3>Shopify, imported</h3><p>Catalog, customers and orders move over.</p></div>
+  </div>
+  <div class="feat" data-a="12.8,20.2">
+    <svg viewBox="0 0 88 88" fill="none" stroke="#1a1410" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="12" y="26" width="46" height="36" rx="5"/><circle cx="35" cy="44" r="10"/><path d="M26 26l4-7h10l4 7"/><path d="M66 22l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" stroke="#d4af37"/><path d="M70 52l2 4 4 2-4 2-2 4-2-4-4-2 4-2z" stroke="#d9714b"/></svg>
+    <div><h3>One photo in, a full shoot out</h3><p>On-model shots, lifestyle scenes, short video.</p></div>
+  </div>
+  <div class="feat" data-a="14.0,20.2">
+    <svg viewBox="0 0 88 88" fill="none" stroke="#1a1410" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M44 14c-16.6 0-30 13.4-30 30 0 5.6 1.5 10.9 4.2 15.4L14 74l15-3.9c4.4 2.5 9.6 3.9 15 3.9 16.6 0 30-13.4 30-30S60.6 14 44 14z"/><path d="M32 40h24M32 50h14" stroke="#d9714b"/></svg>
+    <div><h3>WhatsApp, catalog to checkout</h3><p>One tap into a pre-filled cart.</p></div>
+  </div>
+  <div class="feat" data-a="15.2,20.2">
+    <svg viewBox="0 0 88 88" fill="none" stroke="#1a1410" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9l8 36h36l7-26H26"/><circle cx="34" cy="68" r="4"/><circle cx="60" cy="68" r="4"/><path d="M40 40a8 8 0 1 1 3 6" stroke="#d9714b"/><path d="M38 44l2 3 3-2" stroke="#d9714b"/></svg>
+    <div><h3>Idle carts, brought back</h3><p>A nudge, then a coupon, on WhatsApp.</p></div>
+  </div>
+  <div class="feat" data-a="16.4,20.2">
+    <svg viewBox="0 0 88 88" fill="none" stroke="#1a1410" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 70V18M14 70h60"/><path d="M22 58l14-14 10 8 20-22" stroke="#d9714b"/><path d="M56 30h10v10" stroke="#d9714b"/></svg>
+    <div><h3>Ads that draft themselves</h3><p>Nothing launches until you say yes.</p></div>
+  </div>
+  <div class="feat" data-a="17.6,20.2" style="border-bottom:0">
+    <svg viewBox="0 0 88 88" fill="none" stroke="#1a1410" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="22" y="12" width="44" height="64" rx="7"/><path d="M36 68h16"/><path d="M44 50c-8-5-12-9-12-14a6 6 0 0 1 12-2 6 6 0 0 1 12 2c0 5-4 9-12 14z" stroke="#d9714b"/></svg>
+    <div><h3>Pay with a Post™</h3><p>Buyers post, unlock a perk at checkout.</p></div>
+  </div>
+</section>
+
+<!-- S4 · Proof (source: ceremony-os Supabase meta_ad_insights, pulled 28 Sep 2026;
+     takeover date = brands.retail_os_since 2026-09-26 in the master project.
+     After 26–28 Sep: ₹3,198 spend, 3 purchases, ₹8,498 value = 2.66×.
+     Before 27 Aug–25 Sep: ₹53,686 spend, 28 purchases, ₹68,571 value = 1.28×.) -->
+<section class="scene">
+  <div class="kicker" data-a="20.6,26.2">Case study · Ceremony Kitchen</div>
+  <div class="huge" style="margin-top:40px" data-a="20.9,26.2" data-fx="scale"><span id="pct">1.0</span><i class="x">×</i></div>
+  <div class="dek" style="color:var(--ink);margin-top:10px" data-a="21.8,26.2">the return on Meta ads, in the first 3 days after Retail OS took over.</div>
+  <div class="rule" style="margin:50px 0 10px" data-a="22.6,26.2" data-fx="draw"></div>
+  <div class="pair">
+    <div data-a="22.9,26.2"><b>1.3<i class="x">×</i> → 2.7<i class="x">×</i></b><span>Meta ROAS,<br>before vs after</span></div>
+    <div data-a="23.3,26.2"><b class="terra">₹1,917 → ₹1,066</b><span>cost per<br>purchase</span></div>
+  </div>
+  <p class="note" style="margin-top:44px" data-a="23.8,26.2">26–28 Sep 2026 vs the 30 days before. Early days, small base: 3 purchases after. Meta-reported. Source: the brand's Meta ads data.</p>
+</section>
+
+<!-- S5 · Results every Monday (source: /retail-os "How you get paid") -->
+<section class="scene">
+  <div class="kicker" data-a="26.6,31.2">How you get paid</div>
+  <div class="big m" style="margin-top:40px" data-a="26.8,31.2">Settled every Monday.</div>
+  <div class="dek" style="margin-top:20px" data-a="27.2,31.2">Visible every day.</div>
+  <div class="week" data-a="27.5,31.2" data-fx="fade">
+    <div class="day"><i class="lvl"></i><span>Mon</span></div><div class="day"><i class="lvl"></i><span>Tue</span></div>
+    <div class="day"><i class="lvl"></i><span>Wed</span></div><div class="day"><i class="lvl"></i><span>Thu</span></div>
+    <div class="day"><i class="lvl"></i><span>Fri</span></div><div class="day"><i class="lvl"></i><span>Sat</span></div>
+    <div class="day"><i class="lvl"></i><span>Sun</span></div><div class="day" id="payday"><span>Mon</span></div>
+  </div>
+  <div class="statement" data-a="29.0,31.2">
+    <div><span>Revenue</span><em>itemised</em></div>
+    <div><span>Costs, shipping, ads</span><em>line by line</em></div>
+    <div><span>Your share of the profit</span><span class="terra">by 1 PM IST</span></div>
+  </div>
+</section>
+
+<!-- S6 · Brands (status source: public/retail-os/faq/faq-data.js; DevShop builds: src/pages/devshop.astro) -->
+<section class="scene">
+  <div class="kicker" data-a="31.6,37.4">Who it runs for</div>
+  <div class="big m" style="margin-top:34px" data-a="31.8,37.4">Brands on it today.</div>
+  <div class="brands">
+    <div class="brand" data-a="32.3,37.4"><img src="../../src/assets/logos/travaholic.png" alt="Travaholic"><small>Caps · Full system</small></div>
+    <div class="brand" data-a="32.6,37.4"><img src="../../src/assets/logos/moonglasses.webp" alt="Moonglasses" style="max-width:300px"><small>Live · Online soon</small></div>
+    <div class="brand" data-a="32.9,37.4"><div class="word">Ceremony<br>Kitchen</div><small>Social &amp; performance</small></div>
+    <div class="brand" data-a="33.2,37.4"><div class="word">India<br>Contemporary</div><small class="soon">Launching</small></div>
+  </div>
+  <div class="brands" style="grid-template-columns:1fr;margin-top:26px">
+    <div class="brand" style="height:150px" data-a="33.5,37.4"><div class="word" style="font-size:60px">Flowerbasket</div><small class="soon">Launching</small></div>
+  </div>
+  <div class="also" data-a="34.4,37.4">
+    <span>Also built by DevShop</span>
+    <img src="../../src/assets/logos/travaholic-stays.png" alt="Travaholic Stays">
+    <img src="../../src/assets/logos/thefeelingco.png" alt="The Feeling Co">
+  </div>
+</section>
+
+<!-- S7 · End card -->
+<section class="scene" style="text-align:center">
+  <img class="logo" src="../../src/assets/devshop-logo.png" alt="DevShop" style="margin:0 auto" data-a="37.8,99" data-fx="scale">
+  <div class="kicker" style="margin-top:40px" data-a="38.4,99">Retail OS · Built by Virat Mohan</div>
+  <div class="dek" style="margin-top:70px" data-a="38.9,99">A working online business, run for you, with results every Monday.</div>
+  <div class="talk" style="margin-top:80px" data-a="39.6,99">Let’s talk.</div>
+  <div data-a="40.1,99"><span class="cta">
+    <svg viewBox="0 0 40 40" fill="none"><path d="M20 6C12.3 6 6 12.3 6 20c0 2.7.8 5.2 2.1 7.3L6.5 34l6.9-1.6C15.4 33.4 17.6 34 20 34c7.7 0 14-6.3 14-14S27.7 6 20 6z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+    WhatsApp +91 99992 77240</span></div>
+</section>
+
+<div class="foot" data-a="0.4,99" data-fx="draw"></div>
+<div class="foot-url" data-a="0.6,99" data-fx="fade">viratmohan.com<b>/retail-os</b></div>
+
+<script>
+const clamp = (x) => Math.max(0, Math.min(1, x));
+const ease = (x) => 1 - Math.pow(1 - clamp(x), 3);          // ease-out cubic
+const inOut = (x) => { x = clamp(x); return x < .5 ? 4*x*x*x : 1 - Math.pow(-2*x + 2, 3) / 2; };
+const IN = 0.9, OUT = 0.55;
+const els = [...document.querySelectorAll('[data-a]')].map((el) => {
+  const [a, b] = el.dataset.a.split(',').map(Number);
+  return { el, a, b, fx: el.dataset.fx || 'up' };
+});
+const stages = [...document.querySelectorAll('.stage .dot')];
+const days = [...document.querySelectorAll('.day .lvl')];
+
+window.seek = (t) => {
+  for (const { el, a, b, fx } of els) {
+    const p = ease((t - a) / IN), q = inOut((t - b) / OUT);
+    el.style.opacity = (p * (1 - q)).toFixed(3);
+    if (fx === 'up') el.style.transform = `translateY(${((1 - p) * 34 - q * 18).toFixed(2)}px)`;
+    if (fx === 'scale') el.style.transform = `scale(${(0.96 + 0.04 * p - 0.02 * q).toFixed(4)})`;
+    if (fx === 'draw') { el.style.transform = `scaleX(${ease((t - a) / 1.4).toFixed(4)})`; el.style.opacity = (1 - q).toFixed(3); }
+  }
+  // S2: stages tick one by one
+  stages.forEach((d, i) => d.style.setProperty('--f', ease((t - 6.0 - i * 0.5) / 0.4).toFixed(3)));
+  document.getElementById('fill').style.height = (84 * 6 * inOut((t - 6.0) / 3.0)).toFixed(1) + 'px';
+  // S4: count 1× to 2×
+  document.getElementById('pct').textContent = (1 + ease((t - 21.0) / 1.6)).toFixed(1).replace('2.0', '2');
+  // S5: week fills, then Monday settles
+  days.forEach((d, i) => d.style.height = (100 * ease((t - 27.8 - i * 0.15) / 0.5)).toFixed(1) + '%');
+  const pay = document.getElementById('payday');
+  pay.classList.toggle('pay', t > 28.9);
+};
+window.DURATION = 44;
+seek(new URLSearchParams(location.search).get('t') ?? 12);
+</script>
+</body>
+</html>
