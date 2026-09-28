@@ -1,6 +1,6 @@
 # DevShop / Retail OS — Brand & Output Standard
 
-**Version 1.0 · 2026-09-28 · Owner: Virat Mohan (founder@viratmohan.com)**
+**Version 1.1 · 2026-09-28 · Owner: Virat Mohan (founder@viratmohan.com)**
 
 This is the ONE canonical brand and output standard for all DevShop / Retail OS work.
 Every DevShop/Retail OS Claude chat, agent, or Cowork workflow reads this file (and the
@@ -17,37 +17,51 @@ it references them and adds the output rules around them.
 
 ---
 
-## 1. Brand architecture
+## 1. Brand architecture & design authority
+
+**viratmohan.com is the master design authority.** DevShop does NOT have an
+independent design system. There is one canonical design system; everything else is an
+*expression* (variant) of it, never a competing system.
 
 ```
-viratmohan.com  (founder / umbrella site — light "paper" editorial)
-     └── DevShop            (operating/product brand — dark editorial)
-            └── Retail OS    (the product every brand runs on)
-                   └── Client brands (Travaholic, Moon-glasses, Ceremony Kitchen, …)
+VIRATMOHAN.COM  →  CANONICAL DESIGN SYSTEM   (global.css / tokens.css — the authority)
+      └── DEVSHOP EXPRESSION                  (dark editorial — an approved variant)
+             └── RETAIL OS / PRODUCT EXPRESSIONS
+                    └── CLIENT BRAND CONFIGURATION  (Travaholic, Moon-glasses, Ceremony Kitchen, …)
 ```
 
-A client brand keeps its own identity. The Retail OS experience underneath it must
-stay recognisably one product family. Same system, many brands — never "three
-different agencies."
+Every DevShop/Retail OS output is: **canonical system + product expression + client
+brand configuration.** A client brand keeps its own identity (Travaholic remains
+Travaholic; Moon-glasses remains Moon-glasses; Ceremony Kitchen remains Ceremony
+Kitchen), but DevShop/Retail OS outputs must still feel like they came from the same
+underlying company/system. Same system, many brands — never "three different agencies."
 
-## 2. Two surface modes (both real, both in the codebase — do not invent a third)
+## 2. Approved expressions / variants (of the ONE system — do not invent a third)
 
-Both modes share the same gold accent (`#d4af37`) and the same type system.
+These are expressions of the single canonical design system, not separate systems.
+All share the same gold accent (`#d4af37`) and the same type system (§3). The rules
+below govern when each is appropriate.
 
-**Light "paper" editorial** — viratmohan.com site, Retail OS customer/lead pages,
-emails, most documents. Tokens in `public/brand/tokens.css`:
+**A. viratmohan.com light "paper" editorial (the base / default).** Use for: the
+viratmohan.com site, Retail OS customer/lead-facing pages, emails, and most documents.
+Tokens in `public/brand/tokens.css`:
 - `--paper #f4ead4` (background) · `--ink #1a1410` (text) · `--gold #d4af37` (accent)
 - `--dim #5a4c3c` · `--sage #a8b5a0` · poster accents `--terracotta #d9714b`,
   `--cobalt #3e6fa6`, `--magenta #e91e8c`, `--bronze #9c7a4a`
 - faint halftone dot ground; zero rounded-SaaS look; a 4-swatch colour band.
 
-**Dark editorial** — DevShop portal + `/devshop/admin` surfaces. Source of truth:
+**B. DevShop dark editorial (an approved DevShop expression, not its own system).**
+Use for: the DevShop portal, `/devshop/admin` and product/admin surfaces, and
+DevShop-primary decks/one-pagers where the dark look is intended. Source of truth:
 `src/components/devshop/PortalHeader.astro`:
 - `#15130f` (background) · `#d4af37` (primary accent) · `#91afc0` (secondary accent,
   steel blue) · `#f5f5f0` (primary text) · `#a66a62` (muted terracotta) · `#b7b5af` (dim nav)
 
-Use light paper by default. Use dark editorial for DevShop portal/admin/product
-surfaces and DevShop-primary decks/one-pagers where the dark look is intended.
+**C. Client-brand expression.** Client-brand-primary assets (§5) lead with the client's
+identity, layered over the same underlying product/design conventions.
+
+Default to A. Choose B for DevShop product/admin/portal contexts. Choose C when the
+client's brand leads (§5). When unsure which expression applies, default to A and ask.
 
 ## 3. Typography (both modes)
 
@@ -157,16 +171,45 @@ repos and future agents should point at this same file (see §14).
 Change this file, bump the version + date, add a line to §15. Never patch dozens of
 chats by hand — future agents consume the current version here.
 
-## 14. Future master control (not built now)
+## 14. Cross-repository consumption (one source, no duplicates)
+
+The central `virat-mohan/ViratMohan` repo is the single source of truth. `moon-glasses`,
+`Travaholic_caps` and `ceremony-os` must **reference** it, never hold a full copy that
+can drift. Mechanism for those repos' future sessions:
+
+1. **Pointer, not copy.** Each store/ops repo's `CLAUDE.md` carries one line:
+   *"Brand/output standard: the canonical file is `case-study/BRAND_OUTPUT_STANDARD.md`
+   in `virat-mohan/ViratMohan` (master control). Read it before any branded output; do
+   not copy it here."* (Their CLAUDE.md already says to consume shared things centrally.)
+2. **Live CSS reference.** Standalone pages/apps link the hosted tokens directly:
+   `https://viratmohan.com/brand/tokens.css` — so the actual visual tokens are pulled,
+   not re-authored, in every repo.
+3. **Loading the doc in another repo's session.** A Claude session working in a store
+   repo attaches the master repo read-only (`add_repo virat-mohan/ViratMohan`) and reads
+   this file; that keeps one authority with zero duplication. If cross-repo attach is
+   unavailable, fall back to the hosted CSS (step 2) + this file's rules, and never
+   author a second standard.
+
+Do not fork this document into the store repos.
+
+## Future master control (not built now)
 
 Eventually: Founder → Master instruction → CEO agent → HOD/agent → execution, with a
 capability/agent registry that knows each output's type, canonical template, brand
-standard, owner, version and approved variants. For now this file is that reference.
-Next incremental step to widen reach: add a one-line pointer to this file in each store
-repo's `CLAUDE.md` ("Brand/output standard: viratmohan repo `case-study/BRAND_OUTPUT_STANDARD.md`").
+standard, owner, version and approved variants. The desired new-chat sequence is:
+load master project instructions → load the canonical viratmohan.com design standard
+(this file) → load DevShop/Retail OS rules → load the relevant client brand config →
+execute → validate (§12). This must eventually hold for Claude Code, new chats, Cowork
+workflows, specialised agents and future CEO/HOD agents. Not built now; for now this
+file is that reference.
 
 ## 15. Change history
 
+- **1.1 · 2026-09-28** — Clarification: viratmohan.com recorded as the master design
+  authority; DevShop dark treatment reclassified as an approved *expression/variant* of
+  the one canonical system (not an independent system); client-brand treatment stated as
+  a third expression; cross-repository consumption mechanism documented (pointer + hosted
+  CSS + read-only attach — no duplicated copies). No visual system created or changed.
 - **1.0 · 2026-09-28** — First canonical brand & output standard. Consolidates the
   existing viratmohan.com token system (`global.css`/`tokens.css`), the DevShop dark
   surface (`PortalHeader.astro`), voice/terminology from `CLAUDE.md`, and metric
