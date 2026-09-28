@@ -6,6 +6,8 @@ export * from './navigation';
 export * from './defaults';
 export * from './config';
 export * from './render-contract';
+// Store-plane brand IDENTITY contract (consumed by the live stores).
+export * from './brand-identity';
 
 export { moonglasses } from './brands/moonglasses';
 export { travaholic } from './brands/travaholic';

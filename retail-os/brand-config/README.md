@@ -1,8 +1,51 @@
-# Retail OS — Brand Configuration Layer
+# Retail OS — Brand Configuration Layer (`@retail-os/brand-config`)
 
 The canonical, framework-agnostic layer that lets a Retail OS brand be **configured,
 not copy-forked**. It is the smallest practical drift-prevention mechanism: one shared
 source that every store consumes, instead of duplicated brand logic per repo.
+
+**Package: `@retail-os/brand-config` v0.1.0.** Two contracts live here:
+- the store-plane **brand identity** contract (`brand-identity.ts` — `RetailOsBrand`,
+  `defineRetailOsBrand`, `validateRetailOsBrand`, `titleBrandName`), which the live
+  stores consume; and
+- the higher-level admin **BrandConfig** layer (`types.ts`/`config.ts`/`modules.ts`).
+
+## Distribution & versioning (how stores consume it)
+
+Stores are separate repos, so the package is shared as a **Git dependency pinned to a
+tag** — no monorepo, no registry infra, no runtime dependency on the ViratMohan app:
+
+```jsonc
+// a store's package.json
+"dependencies": {
+  "@retail-os/brand-config": "github:virat-mohan/retail-os-brand-config#v0.1.0"
+}
+```
+
+- **Versioning:** semver tags (`v0.1.0`, …). A store pins an exact tag, so which brand
+  runs which version is visible in its `package.json` + lockfile.
+- **Upgrade:** bump the tag in the store and reinstall. **Rollback:** repin the old tag.
+- **Breaking vs not:** minor/patch = additive/optional fields; major = a required-field
+  or signature change. The identity contract keeps new fields **optional** to stay
+  non-breaking.
+- **Publication step (pending):** this folder is currently in-repo. To distribute it,
+  push it as the standalone repo `virat-mohan/retail-os-brand-config` (package.json at
+  root) and tag `v0.1.0`. It has **zero runtime dependencies** and no secrets, so it is
+  safe to depend on from customer-facing stores.
+
+## Consuming it in a store (migration from a local `retail-os-brand.ts`)
+
+1. Add the git dependency above; `npm install`.
+2. In the store's `lib/retail-os-brand.ts`, delete the local contract (types +
+   `defineRetailOsBrand`/`validateRetailOsBrand`/`titleBrandName`) and instead
+   `import { defineRetailOsBrand, validateRetailOsBrand, titleBrandName, type RetailOsBrand } from "@retail-os/brand-config/brand-identity";`
+   — keep only the brand's **values** (`export const brand = defineRetailOsBrand({...})`)
+   and the store's `DEFAULT_BRAND_PROFILE`.
+3. Nothing else changes: `app/layout.tsx`, Navbar and footer already import `brand` from
+   the store's `lib/retail-os-brand.ts`, so the swap is drop-in. Run the store's
+   `node --test` brand test to confirm identical values.
+
+The symbol names match the stores' existing local API, so consumption is a near drop-in.
 
 **Status: foundation / proof.** This defines the architecture and proves it with the
 three live brands + a safe new-brand config and passing tests. It does **not** migrate or
