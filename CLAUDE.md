@@ -45,3 +45,6 @@ Prince Keshri is Retail OS Operations (brand onboarding and integrations). Email
 - Prince's scope is internal tech-stack connecting only, for all brands and for internal use: accounts, integrations, keys (by invitation), webhooks, templates, DNS, deploys, setup records. Not marketing, ads, content, catalog or data entry, commercial terms, or client contact.
 ## Master control
 The viratmohan.com Claude Code session (repo "Virat Mohan Website", Supabase project vszjwgxvqoqyixpfthwl) is the master control for the whole DevShop Retail OS ecosystem: viratmohan.com, every client/brand backend and every agent. Central features, routines, agents and standards are decided there and must apply here too. If this repo is missing something the master has (a rule in its CLAUDE.md, a shared routine, the content & performance calendar standard, the lead journey, the ops tracker), bring it in line rather than inventing a local variant. Build shared things once centrally and consume them here; copy code only when it must run in this repo.
+
+## Client access
+Any access requested from a client to their accounts (Google Analytics, Search Console, Shopify staff, WordPress/WooCommerce, Shiprocket, any tool invite) is always for **tech@viratmohan.com**. Meta access is by the DevShop Business ID. The contact and sending address stays founder@viratmohan.com.

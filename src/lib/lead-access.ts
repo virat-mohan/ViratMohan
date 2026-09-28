@@ -23,9 +23,12 @@ export type ChecklistItem = {
 
 export type AccessIdentity = { metaBusinessId?: string; googleEmail?: string; staffEmail?: string };
 
+/** Every access a client grants (Google, Shopify staff, anything by email) goes to this one address. */
+export const ACCESS_EMAIL = 'tech@viratmohan.com';
+
 export function checklist(id: AccessIdentity): ChecklistItem[] {
   const meta = id.metaBusinessId || '(I will send my Business ID)';
-  const google = id.googleEmail || '(I will send the email to add)';
+  const google = id.googleEmail || ACCESS_EMAIL;
   return [
     {
       source: 'shopify', title: 'Shopify', connector: true,
@@ -40,7 +43,7 @@ export function checklist(id: AccessIdentity): ChecklistItem[] {
         { key: 'shop', label: 'Store address', placeholder: 'yourbrand.myshopify.com' },
         { key: 'token', label: 'Admin API access token', placeholder: 'shpat_…', secret: true },
       ],
-      alt: `Prefer a staff account? Add ${id.staffEmail || google} under Settings, Users, with view access to Orders, Products, Customers and Analytics, then mark this granted. I will pull a CSV instead.`,
+      alt: `Prefer a staff account? Add ${id.staffEmail || ACCESS_EMAIL} under Settings, Users, with view access to Orders, Products, Customers and Analytics, then mark this granted. I will pull a CSV instead.`,
       csv: 'Orders, Export, last 90 days, "Plain CSV file".',
     },
     {
