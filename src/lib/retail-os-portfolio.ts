@@ -134,6 +134,9 @@ export type Metrics = {
   barterValue: number;
   otherExpenses: number;
   netProfit: number;
+  // False when the store has no COGS_PER_UNIT_RUPEES / COGS_PER_CAP_RUPEES setting and cogs uses the
+  // ₹250 placeholder. Profit is then not fit for management reporting and must be shown as unavailable.
+  costVerified: boolean;
   codOrders: number;
   barterOrders: number;
   metaPurchases: number;   // purchases Meta attributes to the ads (7-day click / 1-day view)
@@ -223,6 +226,7 @@ export async function brandMetrics(brand: LiveBrand, period: Period): Promise<Me
     orders: orders.length, units, grossSales, discounts, refunds, netSales,
     aov: orders.length ? Math.round(netSales / orders.length) : 0,
     cogs, grossProfit, adSpend, whatsappCost, barterValue, otherExpenses, netProfit, codOrders, barterOrders,
+    costVerified: cogsSetting != null || capSetting != null,
     metaPurchases: meta.purchases, metaRevenue: meta.purchaseValue,
   };
 }

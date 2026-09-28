@@ -53,8 +53,14 @@ export function reportRows(r: BrandReport): Row[] {
   rows.push({ label: 'Return on ad spend', cur: roas(c) ? `${roas(c).toFixed(1)}×` : '—', prev: roas(p) ? `${roas(p).toFixed(1)}×` : '—', delta: change(roas(c), roas(p)), budget: '—', variance: '—' });
   rows.push({ label: 'Discounts', cur: inr(c.discounts), prev: inr(p.discounts), delta: change(c.discounts, p.discounts), budget: '—', variance: '—' });
   rows.push({ label: 'Refunds', cur: inr(c.refunds), prev: inr(p.refunds), delta: change(c.refunds, p.refunds), budget: '—', variance: '—' });
-  rows.push({ label: 'Gross profit', cur: inr(c.grossProfit), prev: inr(p.grossProfit), delta: change(c.grossProfit, p.grossProfit), budget: '—', variance: '—' });
-  rows.push({ label: 'Net profit', cur: inr(c.netProfit), prev: inr(p.netProfit), delta: change(c.netProfit, p.netProfit), ...v(c.netProfit, b?.profit) });
+  if (c.costVerified && p.costVerified) {
+    rows.push({ label: 'Gross profit', cur: inr(c.grossProfit), prev: inr(p.grossProfit), delta: change(c.grossProfit, p.grossProfit), budget: '—', variance: '—' });
+    rows.push({ label: 'Net profit', cur: inr(c.netProfit), prev: inr(p.netProfit), delta: change(c.netProfit, p.netProfit), ...v(c.netProfit, b?.profit) });
+  } else {
+    // The store has no purchase cost set; a profit built on the ₹250 placeholder is not shown.
+    const na = { cur: 'Unavailable', prev: 'Unavailable', delta: 'purchase cost not set', budget: '—', variance: '—' };
+    rows.push({ label: 'Gross profit', ...na }, { label: 'Net profit', ...na });
+  }
   return rows;
 }
 
