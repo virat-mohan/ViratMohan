@@ -207,7 +207,7 @@ canvas { position: absolute; inset: 0; z-index: 55; }
     <div class="huge a" id="pctWrap"><span id="pct">1.0</span><span class="x">×</span></div>
     <div class="serif a" style="font-size:64px;line-height:1.1">the return on ad spend, in the first 3 days on Retail OS.</div>
     <div class="pair">
-      <div class="a"><b>1.3× → 2.7×</b><span>Meta ROAS</span></div>
+      <div class="a"><b>1.28× → 2.65×</b><span>Meta ROAS</span></div>
       <div class="a"><b>₹1,917 → ₹1,066</b><span>cost per purchase</span></div>
     </div>
     <p class="note a" style="margin-top:40px">Meta-reported.</p>
@@ -280,8 +280,9 @@ canvas { position: absolute; inset: 0; z-index: 55; }
 
 <script>
 // ---------- scene timing (seconds); render tooling can pass window.SCENES snapped to the music's beats
-const SCENES = window.SCENES || { hook: 0, run: 3.0, shapes: 6.2, live: 9.4, f1: 13.2, f2: 14.4, f3: 15.6, f4: 16.8, f5: 18.0, f6: 19.2,
-  proof: 20.4, monday: 26.2, brands: 30.0, refer: 34.8, end: 39.4, dur: 44.0 };
+// On the soundtrack's 120 BPM grid: beat drops at 4 s, the 2x lands on the drop at 20 s (proof + 2).
+const SCENES = window.SCENES || { hook: 0, run: 3.0, shapes: 6.0, live: 9.0, f1: 12.0, f2: 13.0, f3: 14.0, f4: 15.0, f5: 16.0, f6: 17.0,
+  proof: 18.0, monday: 24.0, brands: 28.0, refer: 33.0, end: 38.0, dur: 43.0 };
 window.DURATION = SCENES.dur;
 
 // ---------- tiny deterministic keyframe engine
@@ -353,14 +354,15 @@ pop(document.getElementById('h3'), 1.1, 12, .7);
 // 4 features
 ['f1', 'f2', 'f3', 'f4', 'f5', 'f6'].forEach((id, i) => {
   const sc = document.getElementById('s-' + id); const t = S[id]; wipe($('.bg', sc)[0], t, .5);
-  pop($('svg', sc)[0], t + .12, i % 2 ? 10 : -10, .5); slam($('.big', sc)[0], t + .2, i % 2 ? 1 : -1, 4); rise($('p', sc)[0], t + .4, .4);
+  pop($('svg', sc)[0], t + .05, i % 2 ? 10 : -10, .4);
+  K($('.big', sc)[0], [[t + .08, { x: (i % 2 ? 1 : -1) * 1300, r: (i % 2 ? 1 : -1) * 4 }], [t + .42, { x: 0, r: 0 }, 'back']]); rise($('p', sc)[0], t + .2, .3);
 });
 // 5 proof
 { const sc = document.getElementById('s-proof'); wipe($('.bg', sc)[0], S.proof);
   rise($('.tag', sc)[0], S.proof + .2); pop(document.getElementById('pctWrap'), S.proof + .3, -6, .7);
-  K(document.getElementById('pctWrap'), [[S.proof + 1.6, { s: 1 }], [S.proof + 1.75, { s: 1.14 }, 'out'], [S.proof + 2.3, { s: 1 }, 'el']]);
-  rise($('.serif', sc)[0], S.proof + 1.2); $('.pair > div', sc).forEach((el, i) => rise(el, S.proof + 1.9 + i * .2));
-  rise($('.note', sc)[0], S.proof + 2.5); }
+  K(document.getElementById('pctWrap'), [[S.proof + 2.0, { s: 1 }], [S.proof + 2.12, { s: 1.16 }, 'out'], [S.proof + 2.7, { s: 1 }, 'el']]);
+  rise($('.serif', sc)[0], S.proof + 1.0); $('.pair > div', sc).forEach((el, i) => rise(el, S.proof + 2.3 + i * .2));
+  rise($('.note', sc)[0], S.proof + 2.8); }
 // 6 monday
 { const sc = document.getElementById('s-monday'); wipe($('.bg', sc)[0], S.monday);
   $('.big', sc).forEach((el, i) => slam(el, S.monday + .2 + i * .18, i % 2 ? 1 : -1, 6));
@@ -386,7 +388,7 @@ const ticks = $('#s-live .tick'), days = $('#s-monday .day i');
 const fx = document.getElementById('fx').getContext('2d');
 const PAL = ['#d4af37', '#e91e8c', '#3e6fa6', '#d9714b', '#3e7a44', '#2b8c86', '#7c5cbf', '#f4ead4'];
 function rand(seed) { let s = seed; return () => (s = (s * 16807) % 2147483647) / 2147483647; }
-const bursts = [[S.proof + 1.6, 540, 820, 90, 1], [S.monday + 1.9, 930, 1250, 40, 2], [S.refer + 1.0, 300, 900, 50, 4], [S.end + .6, 540, 1000, 70, 3]]
+const bursts = [[S.proof + 2.0, 540, 820, 90, 1], [S.monday + 1.9, 930, 1250, 40, 2], [S.refer + 1.0, 300, 900, 50, 4], [S.end + .6, 540, 1000, 70, 3]]
   .map(([t0, x, y, n, seed]) => { const r = rand(seed * 9973 + 7); return { t0, parts: Array.from({ length: n }, () => ({
     x, y, vx: (r() - .5) * 1700, vy: -600 - r() * 1300, rot: r() * 6, vr: (r() - .5) * 14, w: 14 + r() * 18, h: 8 + r() * 12,
     c: PAL[Math.floor(r() * PAL.length)], round: r() > .6 })) }; });
@@ -407,7 +409,7 @@ window.seek = (t) => {
   for (const tr of tracks) apply(tr, t);
   ticks.forEach((el, i) => el.style.setProperty('--f', E.back(Math.max(0, Math.min(1, (t - S.live - 1.5 - i * .14) / .3))).toFixed(3)));
   days.forEach((el, i) => el.style.setProperty('--h', E.out(Math.max(0, Math.min(1, (t - S.monday - 1.1 - i * .09) / .35))).toFixed(3)));
-  const q = Math.max(0, Math.min(1, (t - S.proof - .4) / 1.2));
+  const q = Math.max(0, Math.min(1, (t - S.proof - .4) / 1.6));
   document.getElementById('pct').textContent = (1 + E.out(q)).toFixed(1).replace('2.0', '2');
   stickers.forEach((el, i) => { el.style.translate = `0 ${(Math.sin(t * 2.4 + i) * 9).toFixed(1)}px`; });
   document.getElementById('dots').style.transform = `translate(${((t * 6) % 24).toFixed(1)}px, ${((t * 4) % 24).toFixed(1)}px)`;
