@@ -1,6 +1,7 @@
 export const prerender = false;
 
 import type { APIRoute } from 'astro';
+import { withCronAlert } from '../../../../lib/cron-alert';
 import { getEnv } from '../../../../lib/env';
 import { sendEmail } from '../../../../lib/email';
 import { getRetailOsDb } from '../../../../lib/retail-os-db';
@@ -13,7 +14,7 @@ import { mailConfigured } from '../../../../lib/mail/send';
 // daily reports every day, weekly reports on Mondays and monthly reports on
 // the 1st. Vercel sends CRON_SECRET as a Bearer token; without it set, the
 // route refuses to run.
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = withCronAlert('reports', async ({ request }) => {
   const env = getEnv();
   if (!env.CRON_SECRET || request.headers.get('authorization') !== `Bearer ${env.CRON_SECRET}`) {
     return json({ error: 'Unauthorized' }, 401);
@@ -50,4 +51,4 @@ export const GET: APIRoute = async ({ request }) => {
     }
   }
   return json({ today, results }, 200);
-};
+}, { failureIn: (b) => { const n = ((b as { results?: { status: string }[] })?.results ?? []).filter((r) => r.status === 'failed').length; return n ? `${n} scheduled report(s) failed to send` : null; } });
