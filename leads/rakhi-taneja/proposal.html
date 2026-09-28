@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DevShop Retail OS — Proposal for Rakhi Taneja</title>
+<link rel="stylesheet" href="https://viratmohan.com/brand/tokens.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  /* Fallback tokens so the page reads correctly even if tokens.css is blocked (e.g. offline/print) */
+  :root{
+    --ink:#1a1410; --paper:#f4ead4; --gold:#d4af37; --sage:#a8b5a0;
+    --dim:#5a4c3c; --line:rgba(23,19,15,0.14); --terracotta:#d9714b;
+    --cobalt:#3e6fa6; --magenta:#e91e8c; --bronze:#9c7a4a;
+    --display:'Anton','Arial Narrow',sans-serif;
+    --serif:'Instrument Serif','Newsreader',Georgia,serif;
+    --sans:'Inter','Inter Variable',system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--paper); color:var(--ink);
+    font-family:var(--sans); font-size:16px; line-height:1.6;
+    background-image:radial-gradient(rgba(23,19,15,0.05) 1px, transparent 1px);
+    background-size:13px 13px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:760px; margin:0 auto; padding:0 20px 72px}
+  .band{height:10px; background:linear-gradient(90deg,var(--terracotta),var(--cobalt),var(--magenta),var(--bronze))}
+  .rule{height:2px; background:var(--gold); border:0; margin:0}
+  header.cover{padding:56px 0 40px}
+  .mark{font-family:var(--display); color:var(--terracotta); text-transform:uppercase; letter-spacing:.02em; font-size:20px; margin:0 0 28px}
+  .kicker{font-family:var(--sans); font-weight:700; text-transform:uppercase; letter-spacing:.14em; font-size:12px; color:var(--terracotta); margin:0 0 14px}
+  h1{font-family:var(--display); text-transform:uppercase; font-weight:400; font-size:clamp(38px,7vw,64px); line-height:1.02; margin:0 0 20px; letter-spacing:.01em}
+  .dek{font-family:var(--serif); font-style:italic; font-size:clamp(20px,3.2vw,26px); color:var(--dim); line-height:1.35; margin:0 0 28px; max-width:620px}
+  .meta{font-size:14px; color:var(--dim)}
+  .meta strong{color:var(--ink)}
+  section{padding:40px 0; border-top:1px solid var(--line)}
+  h2{font-family:var(--display); text-transform:uppercase; font-weight:400; font-size:clamp(24px,4.4vw,34px); line-height:1.08; margin:0 0 8px}
+  h2 + .sub{font-family:var(--serif); font-style:italic; color:var(--dim); font-size:18px; margin:0 0 22px}
+  h3{font-family:var(--sans); font-weight:700; font-size:17px; margin:26px 0 8px}
+  p{margin:0 0 16px} p:last-child{margin-bottom:0}
+  ul{margin:0 0 16px; padding-left:20px} li{margin:0 0 8px}
+  a{color:var(--cobalt)}
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:18px}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .card{background:#fbf5e6; border:1px solid var(--line); border-top:3px solid var(--gold); padding:22px 22px 20px}
+  .card h3{margin-top:0; font-size:16px}
+  .card .lead{font-family:var(--serif); font-style:italic; color:var(--terracotta); font-size:15px; margin:0 0 12px}
+  .steps{list-style:none; padding:0; margin:0}
+  .steps li{display:flex; gap:16px; padding:14px 0; border-bottom:1px solid var(--line)}
+  .steps li:last-child{border-bottom:0}
+  .steps .n{font-family:var(--display); color:var(--terracotta); font-size:22px; min-width:34px; line-height:1}
+  .steps .b{flex:1}
+  .steps .t{font-weight:700; display:block; margin-bottom:2px}
+  .terms{width:100%; border-collapse:collapse; margin:8px 0 0}
+  .terms th,.terms td{text-align:left; vertical-align:top; padding:13px 0; border-bottom:1px solid var(--line); font-size:15px}
+  .terms th{width:34%; font-weight:700; color:var(--ink); padding-right:16px}
+  .terms td{color:var(--dim)}
+  .callout{background:#fbf5e6; border:1px solid var(--line); border-left:3px solid var(--terracotta); padding:18px 20px; margin:18px 0}
+  .callout strong{color:var(--ink)}
+  .tag{display:inline-block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--dim); background:rgba(212,175,55,.16); border:1px solid var(--line); padding:3px 9px; border-radius:2px; margin-left:6px}
+  .cta{display:inline-block; font-family:var(--sans); font-weight:700; background:var(--ink); color:var(--paper); text-decoration:none; padding:14px 26px; margin-top:6px}
+  .signoff{font-family:var(--serif); font-style:italic; color:var(--dim); font-size:18px}
+  footer{padding:34px 0 0; color:var(--dim); font-size:13px}
+  .placeholder{background:rgba(217,113,75,.14); padding:0 4px; border-radius:2px}
+</style>
+</head>
+<body>
+<div class="band"></div>
+<div class="wrap">
+
+  <header class="cover">
+    <p class="mark">DevShop Retail OS</p>
+    <p class="kicker">Proposal · Prepared for Rakhi Taneja</p>
+    <h1>Your brand,<br/>online and selling<br/>both ways.</h1>
+    <p class="dek">One stack that runs your stationery brand direct to customers and to businesses — built, launched and run for you, with honest numbers every Monday.</p>
+    <p class="meta">
+      For <strong>Rakhi Taneja</strong> — <span class="placeholder">[brand name]</span>, stationery (B2C &amp; B2B)<br/>
+      Introduced by <strong>Shivani Gaba</strong><br/>
+      From <strong>Virat Mohan</strong>, DevShop · 28 September 2026
+    </p>
+  </header>
+
+  <section>
+    <h2>What I do</h2>
+    <p class="sub">I build the machine that gets good products to the world.</p>
+    <p>I take a brand someone has already built and put the whole selling machine around it — storefront, payments, shipping, WhatsApp, Meta ads, content, reporting — then run it for them. One operator plus a set of tools doing the work of a full in-house team, so you stay on product while the business runs.</p>
+    <p>The promise is simple: a working online business, live in <strong>7 days</strong> from the moment we sign and connect your accounts, run for you, with results you can see <strong>every Monday</strong> in real numbers. Your brand and your IP stay entirely yours. You are renting the machinery, not selling the brand.</p>
+    <div class="callout">
+      <strong>Zero capex.</strong> The only thing you pay upfront is a ₹5,000 deposit, and even that is fully adjusted against your actual onboarding tech costs — DevShop keeps none of it. Beyond that I only earn when the brand earns.
+    </div>
+  </section>
+
+  <section>
+    <h2>Two journeys, one brand</h2>
+    <p class="sub">Same name, same look, two ways to sell — with the growth engine feeding both.</p>
+    <div class="grid">
+      <div class="card">
+        <h3>B2C — direct to customers</h3>
+        <p class="lead">Your own store, your own customer.</p>
+        <ul>
+          <li>A storefront in your brand's design — mobile-first, fast, SEO-ready.</li>
+          <li>UPI, cards, netbanking, wallets and COD; automatic shipping and tracking.</li>
+          <li>WhatsApp catalog-to-checkout: browse and order in one thread, with order updates and a shared inbox.</li>
+          <li>Abandoned-cart recovery over WhatsApp (a nudge, then a coupon).</li>
+          <li>Meta ads + a content engine that drafts posts and campaigns for your approval.</li>
+          <li><em>Pay with a Post</em> — I make the post, your network shares it, real orders come in on their code.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>B2B — to businesses &amp; resellers</h3>
+        <p class="lead">Wholesale ordering, built for you.</p>
+        <ul>
+          <li>A trade-order flow on the same brand: catalog, min-order quantities and business pricing.</li>
+          <li>WhatsApp ordering and a shared inbox for repeat trade buyers.</li>
+          <li>Lead generation for new stockists — a simple enquiry-to-order journey over email and WhatsApp.</li>
+          <li>Order, dispatch and statement records in one place.</li>
+        </ul>
+        <p style="font-size:14px;color:var(--dim);margin-top:6px"><strong>Honest note:</strong> the direct-to-customer stack is live and proven today. The B2B/wholesale side is something I build for you as part of your launch, on the same rails — so we'll scope its exact shape together in week one.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What's included</h2>
+    <p class="sub">One stack. No separate bills for each piece.</p>
+    <div class="grid">
+      <div class="card">
+        <h3>Store &amp; checkout</h3>
+        <p>Storefront in your design, product and collection pages, guest checkout, live shipping rates, prepaid and COD, shareable cart links.</p>
+      </div>
+      <div class="card">
+        <h3>Payments &amp; shipping</h3>
+        <p>Cards, UPI, netbanking, wallets. Automatic shipment creation, failed-delivery nudges, batched labels, refunds and reconciliation.</p>
+      </div>
+      <div class="card">
+        <h3>WhatsApp &amp; retention</h3>
+        <p>Catalog-to-checkout, order updates, OTPs, shared inbox, review requests, loyalty points and referral codes.</p>
+      </div>
+      <div class="card">
+        <h3>Growth &amp; content</h3>
+        <p>AI content (one photo in, a full set of shots out), Meta ads, auto-drafted campaigns and posts — always paused for your approval.</p>
+      </div>
+      <div class="card">
+        <h3>Reporting</h3>
+        <p>Full-funnel tracking by source, day-by-day return on ad spend, a monthly P&amp;L and a daily email digest.</p>
+      </div>
+      <div class="card">
+        <h3>Ownership</h3>
+        <p>Your brand, catalog, customers and IP stay entirely yours. Your backend is visible to you any time, with full history.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The first 7 days</h2>
+    <p class="sub">From signing to a live store in a week.</p>
+    <ul class="steps">
+      <li><span class="n">1</span><span class="b"><span class="t">We sign &amp; connect</span>Standard terms, reviewed with you and signed on screen. You connect your accounts. The 7-day clock starts.</span></li>
+      <li><span class="n">2</span><span class="b"><span class="t">Deposit</span>₹5,000 by UPI, fully adjusted against your actual tech costs. This starts the build.</span></li>
+      <li><span class="n">3</span><span class="b"><span class="t">I build</span>Store, payments, shipping, WhatsApp and ads set up. I ask you for the details one at a time — pickup address, WhatsApp number, Meta account.</span></li>
+      <li><span class="n">4</span><span class="b"><span class="t">Go live</span>The store opens, B2C and the first B2B ordering flow, ads start.</span></li>
+      <li><span class="n">5</span><span class="b"><span class="t">Every Monday after</span>An itemised statement and your profit share, on time, every week.</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>How we work each week</h2>
+    <p class="sub">Welcome, anticipate, remember, look after.</p>
+    <p>Every customer payment is collected into DevShop's account first. Each week runs Monday to Sunday and is settled the <strong>following Monday by 1 PM</strong>, with an itemised statement — revenue, costs, marketing, fees and your profit split — and your share paid out. The backend is open to you the whole time. When something goes wrong, I own it, fix it, and leave you better off than before.</p>
+  </section>
+
+  <section>
+    <h2>The terms</h2>
+    <p class="sub">Standard DevShop terms, the same for every brand.</p>
+    <table class="terms">
+      <tr><th>My share</th><td><strong>40% of gross profit.</strong> You keep 60%. Defined below so there's no ambiguity.</td></tr>
+      <tr><th>What "gross profit" means</th><td>The money left from what customers pay <em>after</em> the direct cost of making and selling each order: product cost, packaging, shipping, payment-gateway fees, marketing/ad spend (always at cost), tech &amp; admin subscriptions, and any <em>Pay with a Post</em> fee. Whatever remains is the gross profit we share — 40% to me, 60% to you. Every line is itemised on your Monday statement.</td></tr>
+      <tr><th>Deposit</th><td><strong>₹5,000</strong>, one time, by UPI — and <strong>fully adjustable against your actual onboarding tech costs</strong> (hosting, database, WhatsApp number, email, domain, AI). It goes toward your build; DevShop keeps none of it.</td></tr>
+      <tr><th>Term</th><td>12 months, with a <strong>30-day break clause</strong>. Renewable after the first year on mutually agreed terms.</td></tr>
+      <tr><th>Break clause</th><td>Either side can end with 30 days' notice. If it ends before 12 months, DevShop receives 5% of revenue generated through the store from the start date to the end date.</td></tr>
+      <tr><th>Your ad spend</th><td>Always yours, at cost. Everything else is covered in the stack.</td></tr>
+      <tr><th>Your brand &amp; IP</th><td>Stays entirely yours, start to finish.</td></tr>
+    </table>
+    <p style="font-size:14px;color:var(--dim);margin-top:16px">These are DevShop's published terms — the same for every brand. Full partnership terms and the mutual non-disclosure agreement are shared as documents before signing.</p>
+  </section>
+
+  <section>
+    <h2>What I need from you</h2>
+    <ul>
+      <li>A yes to start, and a short call to scope the B2B side.</li>
+      <li>Access to your accounts for <strong>tech@viratmohan.com</strong> (store, shipping, WhatsApp, Meta), set up together.</li>
+      <li>Your product list, pickup address and a WhatsApp number for orders.</li>
+    </ul>
+  </section>
+
+  <hr class="rule" />
+  <footer>
+    <p class="signoff">Let's talk. I'd like to walk you and your partner through this and answer anything — then start your brand this week.</p>
+    <p style="margin-top:18px"><a class="cta" href="https://wa.me/PLACEHOLDER"><span class="placeholder">Let's talk on WhatsApp →</span></a></p>
+    <p style="margin-top:22px"><strong>Virat Mohan</strong> · I build the machine that gets good products to the world.<br/>
+    founder@viratmohan.com · viratmohan.com/retail-os</p>
+  </footer>
+
+</div>
+</body>
+</html>
