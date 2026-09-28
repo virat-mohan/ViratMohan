@@ -1,5 +1,8 @@
 # How to build here
 
+## Canonical brand & output standard (read first)
+Before creating ANY DevShop/Retail OS branded output — page, dashboard, admin surface, email, proposal, report, calendar, deck, one-pager, onboarding doc or client communication — read `case-study/BRAND_OUTPUT_STANDARD.md`. It is the one source of truth for palette (light paper + DevShop dark), typography, voice, client-vs-DevShop branding, canonical templates, terminology and metric definitions. Do not invent a competing look, template or metric; mark anything undefined `UNKNOWN` and ask.
+
 ## Design standard (applies to everything built and run)
 Every page, dashboard, image and email must look calm, soothing and premium, fitting the concept it serves.
 - Use the viratmohan.com palette and fonts (paper background, ink text, gold and terracotta accents; display, serif and sans fonts as in `case-study/brand.py`).
