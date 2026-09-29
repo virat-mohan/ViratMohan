@@ -31,6 +31,6 @@ The earlier synthesised soundtracks were rejected as sounding like MIDI and are 
 
 Re-pull the proof numbers before each re-post; a 3-day window moves.
 
-Instagram upload: `devshop-retail-os-reel-ig.mp4` is rendered from PNG frames (`REEL_PNG=1 REEL_CRF=10`), then the cover card is added at CRF 11: 1080×1920, 30 fps, about 5 Mbps (Instagram recommends 3.5 Mbps or more).
+Instagram upload: `devshop-retail-os-reel-ig.mp4` is rendered from PNG frames (`REEL_PNG=1 REEL_CRF=10`), then the cover card is added at CRF 13: 1080×1920, 30 fps, about 3.8 Mbps, under 30 MB (Instagram recommends 3.5 Mbps or more).
 
 Cover: `public/retail-os/social/reel-cover.jpg`, rendered from `cover.html` ("You bring the product. I run the whole online business.", inside the 3:4 grid crop). Frame 0 is plain terracotta so the reel loops, so always set a cover: upload this file in Instagram (Edit cover), or pass `thumbnailOffset: 2200` when posting through Buffer.
