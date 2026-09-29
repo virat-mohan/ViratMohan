@@ -14,6 +14,18 @@
 
 export const LIVE_IN_DAYS = 7;
 
+// Stage 5A — deterministic authority to auto-send a routine journey email without Virat's
+// approval. These four are operational and template-generated: they carry no commercial
+// commitment, price, scope or claim. Everything else — plan_cover (a forecast P&L),
+// free-form replies, or any unknown purpose — stays human-approved (fail closed). Authority
+// is this list only; it is NEVER decided by an LLM or by message content.
+export const AUTO_SEND_PURPOSES = ['nda_request', 'nda_reminder', 'access_request', 'access_reminder'] as const;
+
+/** True only for the routine, template-based journey purposes above. Unknown/empty → false. */
+export function mayAutoSendPurpose(purpose: string | null | undefined): boolean {
+  return !!purpose && (AUTO_SEND_PURPOSES as readonly string[]).includes(purpose);
+}
+
 export type Owner = 'system' | 'virat' | 'founder' | 'team';
 
 export type JourneyStep = {

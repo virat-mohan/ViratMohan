@@ -11,7 +11,7 @@ import { signToken } from './lead-mail/token';
 import { viratNotifier } from './lead-mail/live';
 import { deliver, liveMailDeps } from './mail/send';
 import { signatureText } from './mail/links';
-import { stageAfterSent } from './lead-journey';
+import { stageAfterSent, mayAutoSendPurpose } from './lead-journey';
 
 export type JourneyDraft = LeadDraftInput & { leadName: string; toEmail: string | null; context: [string, string] };
 
@@ -26,9 +26,29 @@ export async function submitForApproval(env: Env, sb: SupabaseClient, d: Journey
   if (error) throw new Error(`lead draft: ${error.message}`);
   const messageId = data.id as string;
 
-  if (env.LEAD_JOURNEY_AUTOSEND === 'on' && d.toEmail) {
-    await sendNow(env, sb, { id: messageId, lead_id: d.leadId, subject: d.subject, body: d.body, purpose: d.purpose, to: d.toEmail }, now);
-    return { messageId, approveUrl: null, sent: true };
+  // Auto-send only when: the operator has turned it on (LEAD_JOURNEY_AUTOSEND=on),
+  // the purpose is on the deterministic routine allowlist (mayAutoSendPurpose — never an
+  // LLM or content decision), and we have a recipient. Anything else — plan_cover, an
+  // unknown purpose, a missing address — falls through to the human approval path below
+  // (fail closed).
+  if (env.LEAD_JOURNEY_AUTOSEND === 'on' && mayAutoSendPurpose(d.purpose) && d.toEmail) {
+    // Deterministic idempotency: never auto-send if the same routine purpose already went to
+    // this lead in the last 10 minutes (a webhook retry, double cron tick or double-click).
+    // On any doubt or failure we do not send — we park for approval.
+    const dupSince = new Date(now.getTime() - 10 * 60_000).toISOString();
+    const { data: recent } = await sb.from('lead_messages')
+      .select('id').eq('lead_id', d.leadId).eq('purpose', d.purpose).eq('status', 'sent').gte('at', dupSince).limit(1);
+    if (!recent?.length) {
+      try {
+        await sendNow(env, sb, { id: messageId, lead_id: d.leadId, subject: d.subject, body: d.body, purpose: d.purpose, to: d.toEmail }, now,
+          { auto: true, rule: `ALLOWLIST_${d.purpose.toUpperCase()}`, recipient: d.toEmail, template: d.purpose });
+        return { messageId, approveUrl: null, sent: true };
+      } catch (e) {
+        // Fail safe: delivery failed, so leave the draft parked and route it to Virat below.
+        console.error('lead auto-send failed, parking for approval', d.purpose, e);
+      }
+    }
+    // duplicate detected, or send failed → fall through to the approval path.
   }
 
   if (!env.LEAD_APPROVAL_SECRET) return { messageId, approveUrl: null, sent: false }; // parked; visible in admin
@@ -42,11 +62,13 @@ export async function submitForApproval(env: Env, sb: SupabaseClient, d: Journey
 }
 
 /** Send a parked journey email from Virat's Gmail now, mark it sent and move the stage. */
-export async function sendNow(env: Env, sb: SupabaseClient, m: { id: string; lead_id: string; subject: string; body: string; purpose: string | null; to: string }, now = new Date()) {
+export async function sendNow(env: Env, sb: SupabaseClient, m: { id: string; lead_id: string; subject: string; body: string; purpose: string | null; to: string }, now = new Date(), audit?: { auto: boolean; rule: string; recipient: string; template: string }) {
   const deps = await liveMailDeps(env, now);
   const text = `${m.body}\n\n-- \n${signatureText(env.GMAIL_ADDRESS)}`;
   const via = await deliver({ to: m.to, subject: m.subject, text }, deps);
-  await sb.from('lead_messages').update({ status: 'sent', at: now.toISOString(), meta: { via } }).eq('id', m.id);
+  // The lead_messages row is the audit record. For an auto-send it also carries the deterministic
+  // rule that authorised it, so "why did this go without Virat approving?" is answerable from the row.
+  await sb.from('lead_messages').update({ status: 'sent', at: now.toISOString(), meta: { via, ...(audit ?? {}) } }).eq('id', m.id);
   const { data: lead } = await sb.from('leads').select('id, stage').eq('id', m.lead_id).maybeSingle();
   if (lead) {
     const next = stageAfterSent(m.purpose, lead.stage as string);

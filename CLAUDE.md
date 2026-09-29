@@ -49,3 +49,31 @@ The viratmohan.com Claude Code session (repo "Virat Mohan Website", Supabase pro
 
 ## Client access
 Any access requested from a client to their accounts (Google Analytics, Search Console, Shopify staff, WordPress/WooCommerce, Shiprocket, any tool invite) is always for **tech@viratmohan.com**. Meta access is by the DevShop Business ID. The contact and sending address stays founder@viratmohan.com.
+
+## Retail OS product architecture (the standard)
+Retail OS is a standardised product, not a collection of bespoke client apps. Every brand gets the same Retail OS experience: one dashboard/page architecture, navigation philosophy, permissions, reporting conventions, task/approval model, AI interaction patterns and performance standards. The sequence is always: standardise → template → configure → measure → improve. Never: client request → bespoke build → new fork → repeat. A genuinely unique client need can still be built quickly, but it must be explicitly classified before it is allowed near the core.
+
+Classify every capability into exactly one of:
+1. Core Retail OS — every brand gets it.
+2. Optional reusable Retail OS module — templated, turned on per brand.
+3. Brand configuration — data/settings, not new code.
+4. Client-specific extension — one client only; never forced into core.
+5. Custom DevShop functionality — a Custom Build, outside Retail OS.
+
+Standard capabilities to templatise as the product evolves (names are canonical; keep them): Brand Dashboard / Command Centre; Commerce; Orders; Products; Inventory Master; Customers; Marketing; Acquisition / Middle-of-Funnel / CRO; CRM / Leads; Growth Intelligence; Finance / Unit Economics; Operations; Reporting; AI / Brain; Tasks / Approvals; Integrations; optional Creator / Influencer; optional Experimentation. The canonical term is **Inventory Master** — do not rename it.
+
+Client-specific today: **Ceremony Finance** and **Ceremony Ops** belong to Ceremony Kitchen. They are client-specific extensions, not core Retail OS modules.
+
+Current environment model: each live brand is its own Supabase project + app (RETAIL_OS_LIVE_BRANDS). This is unchanged; no multi-tenancy decision has been made.
+
+### Acquisition / Middle-of-Funnel (future capability)
+Optimise ad/traffic → hook/intent → campaign experience → landing/splash → product discovery → trust/value → checkout → purchase. Eventually configurable per brand: campaign-specific landing experiences, ad-angle/hook mapping, product-specific journeys, brand splash screens, contextual storefronts, social proof, trust signals, risk-reversal, merchandising, A/B testing, funnel analytics, campaign attribution, conversion measurement. First laboratory: **Travaholic Caps** — but build it as a configurable Retail OS capability that another brand can turn on, never a one-off.
+
+### Performance-first (standing requirement)
+All customer-facing Retail OS pages are performance-first; performance is part of the architecture, not post-launch cleanup. Consider fast initial render, mobile-first performance, image optimisation, caching/CDN, minimal JS, third-party script discipline, efficient data fetching, loading and error states, responsive behaviour, and Core-Web-Vitals-style measurement with page-performance budgets. Targets are PROPOSED later once measurement exists — do not invent them.
+
+### Funnel metrics (future capability)
+Retail OS should eventually measure traffic → landing → engagement → product interaction → add-to-cart → checkout → purchase, attributable where data supports it to campaign, ad angle/creative theme, landing experience, product, audience and channel. Never fabricate metrics the system cannot yet produce.
+
+### AE / Lead Operator (future capability)
+When built, it reuses the existing Retail OS lead, communication, approval, audit and intelligence infrastructure — not an independent sales system. Not to be built until explicitly authorised.
