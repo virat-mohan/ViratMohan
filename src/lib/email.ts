@@ -9,6 +9,7 @@ export type SendEmailInput = {
   subject: string;
   html: string;
   text?: string;
+  cc?: string;
   replyTo?: string;
 };
 
