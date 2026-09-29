@@ -109,18 +109,19 @@ export function htmlToText(html: string): string {
 
 export type MimeInput = {
   from: string; to: string; subject: string; text: string; html?: string;
-  replyTo?: string; inReplyTo?: string; references?: string;
+  cc?: string; replyTo?: string; inReplyTo?: string; references?: string;
 };
 
 /** RFC 2822 message: multipart/alternative (text + HTML) when HTML is given, else plain text. */
 export function buildMime(m: MimeInput, boundary = `vm_${randomBytes(9).toString('hex')}`): string {
   const refs = [m.references, m.inReplyTo].filter(Boolean).join(' ').trim();
   // A line break in a header value would let it add headers (Bcc, extra To). Refuse, never strip.
-  for (const v of [m.from, m.to, m.replyTo, m.inReplyTo, refs]) {
+  for (const v of [m.from, m.to, m.cc, m.replyTo, m.inReplyTo, refs]) {
     if (v && /[\r\n]/.test(v)) throw new Error('email header value contains a line break');
   }
   const head = [
     `From: ${m.from}`, `To: ${m.to}`, `Subject: ${encHeader(m.subject)}`,
+    ...(m.cc ? [`Cc: ${m.cc}`] : []),
     ...(m.replyTo ? [`Reply-To: ${m.replyTo}`] : []),
     ...(m.inReplyTo ? [`In-Reply-To: ${m.inReplyTo}`] : []),
     ...(refs ? [`References: ${refs}`] : []),

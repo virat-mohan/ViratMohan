@@ -31,7 +31,8 @@ export const GET: APIRoute = withCronAlert('founder-update', async ({ request })
   const results: { brand: string; to: string; sent: boolean }[] = [];
   for (const b of built) {
     try {
-      await sendEmail({ to: b.to, subject: b.subject, html: b.html }, env);
+      // Virat is always copied on what goes to a founder.
+      await sendEmail({ to: b.to, cc: 'founder@viratmohan.com', subject: b.subject, html: b.html }, env);
       results.push({ brand: b.brand_key, to: b.to, sent: true });
     } catch (err) {
       console.error('founder update failed', b.brand_key, err);
