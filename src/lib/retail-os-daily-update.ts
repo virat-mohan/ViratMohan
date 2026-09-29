@@ -34,6 +34,23 @@ function greetNames(sub: FounderUpdateSub): string {
   return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
 }
 
+/** Brand key from a brand name, matching how ops tasks derive theirs (lowercase, alphanumeric). */
+export function brandKeyFromName(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '').slice(0, 40) || 'brand';
+}
+
+/** Subscribe a brand to the daily founder update at signing. First sign wins: an existing
+ *  subscription (e.g. one an operator set up with extra recipients) is left untouched. */
+export async function subscribeBrandOnSign(env: UpdateEnv, brandName: string, founderEmail: string): Promise<void> {
+  if (!founderEmail) return;
+  const brand_key = brandKeyFromName(brandName);
+  const today = new Date().toISOString().slice(0, 10);
+  const { error } = await sb(env)
+    .from('retail_os_founder_update_subs')
+    .upsert({ brand_key, brand_name: brandName, to_emails: founderEmail, active: true, started_on: today }, { onConflict: 'brand_key', ignoreDuplicates: true });
+  if (error) throw new Error(`founder-update subscribe failed: ${error.message}`);
+}
+
 export async function listActiveSubs(env: UpdateEnv): Promise<FounderUpdateSub[]> {
   const { data, error } = await sb(env).from('retail_os_founder_update_subs').select('*').eq('active', true).order('brand_name');
   if (error) throw new Error(`founder-update listSubs failed: ${error.message}`);
