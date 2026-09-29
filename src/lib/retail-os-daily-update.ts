@@ -16,7 +16,7 @@ const WHATSAPP = 'https://wa.me/919999277240';
 const SITE = 'https://www.viratmohan.com';
 
 export type UpdateEnv = { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: string; LEAD_TOKEN_SECRET?: string };
-export type FounderUpdateSub = { brand_key: string; brand_name: string; to_emails: string[]; active: boolean; started_on: string | null };
+export type FounderUpdateSub = { brand_key: string; brand_name: string; to_emails: string[]; active: boolean; started_on: string | null; waiting_on: string | null };
 export type BuiltUpdate = { to: string; subject: string; html: string; brand_key: string; done: number; hasMetrics: boolean };
 
 function sb(env: UpdateEnv) {
@@ -43,6 +43,7 @@ export async function listActiveSubs(env: UpdateEnv): Promise<FounderUpdateSub[]
     to_emails: String(r.to_emails).split(',').map((s) => s.trim()).filter(Boolean),
     active: Boolean(r.active),
     started_on: (r.started_on as string) ?? null,
+    waiting_on: (r.waiting_on as string) ?? null,
   }));
 }
 
@@ -126,6 +127,9 @@ export async function buildFounderUpdate(env: UpdateEnv, sub: FounderUpdateSub, 
   } else {
     lines.push('Setup continued behind the scenes today. I’ll have the next milestones in tomorrow’s update.');
   }
+  // Gentle reminder of what's on the founder's side, so they always know where the ball is.
+  if (sub.waiting_on) lines.push(`When you have a moment: ${sub.waiting_on}.`);
+  else lines.push('Nothing needed from you right now — I’ll flag it the moment something does.');
   lines.push('Any comments? Just reply and I’ll fold them into tomorrow’s plan.');
 
   const rows = hasMetrics
