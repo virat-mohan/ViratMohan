@@ -10,6 +10,7 @@ import { json, clientIp, readJson } from '../../../../lib/retail-os-http';
 import { renderRetailOsEmail } from '../../../../lib/retail-os-email';
 import { mailConfigured } from '../../../../lib/mail/send';
 import { syncLeadFromApplication } from '../../../../lib/lead-sync';
+import { subscribeBrandOnSign } from '../../../../lib/retail-os-daily-update';
 
 // The founder accepts their commercial terms by typing their full legal name.
 // The exact terms shown, the name, time, IP address and browser are frozen
@@ -83,5 +84,7 @@ export const POST: APIRoute = async ({ params, request }) => {
   }
 
   syncLeadFromApplication(db.client, app, 'signed').catch(() => {});
+  // From the day they sign, the founder gets the daily update (idempotent; first sign wins).
+  subscribeBrandOnSign(env, app.brand_name, app.founder_email).catch((err) => console.error('founder-update auto-subscribe failed', err));
   return json({ ok: true }, 200);
 };
