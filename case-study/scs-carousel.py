@@ -20,10 +20,7 @@ fig.text(.05, .47, f"+{after/before-1:.0%}", family=DISPLAY, fontsize=170, color
 fig.text(.08, .41, "MORE SALES PER DAY", family=DISPLAY, fontsize=32)
 fig.text(.08, .365, "in the first 3 days.", family=SERIF, fontsize=20, color=DIM, style="italic")
 fig.add_artist(plt.Line2D([.08, .92], [.3, .3], color=GOLD, lw=1.2))
-for i, (b, s) in enumerate([("₹880 → ₹1,399", "revenue per day"), ("₹4,197", "biggest day ever")]):
-    fig.text(.08 + i * .47, .215, b, family=DISPLAY, fontsize=24, color=TERRACOTTA if i == 0 else INK)
-    fig.text(.08 + i * .47, .18, s, fontsize=10, color=DIM)
-fig.text(.08, .1, "Swipe for the daily numbers →", family=SERIF, fontsize=15, style="italic")
+fig.text(.08, .2, "Swipe for the daily numbers →", family=SERIF, fontsize=15, style="italic")
 fig.savefig("scs-carousel-1.png", dpi=150)
 
 # Slide 2: the proof
@@ -36,7 +33,6 @@ ax.bar(days, rev, color=[TERRACOTTA if d >= auto else INK for d in days], width=
 for x0, x1, v, c in [(days[0], D(2026, 9, 23), before, DIM), (auto, days[-1], after, TERRACOTTA)]:
     ax.hlines(v, x0 - T(.4), x1 + T(.4), colors=c, lw=2, ls="--")
 ax.text(days[-1] + T(.6), 4900, "AUTOPILOT ON", family=DISPLAY, color=TERRACOTTA, fontsize=12, ha="right")
-ax.text(days[-1], 4197 + 100, "₹4,197", ha="center", fontsize=8.5, weight="bold")
 ax.set_ylim(0, 5400); ax.set_xlim(days[0] - T(.7), days[-1] + T(.7))
 ax.set_xticks(days[::3]); ax.xaxis.set_major_formatter(md.DateFormatter("%d %b")); ax.tick_params(labelsize=8.5)
 ax.set_ylabel("₹ per day", fontsize=9)
@@ -44,5 +40,5 @@ fig.add_artist(plt.Line2D([.08, .92], [.31, .31], color=GOLD, lw=1.2))
 fig.text(.08, .235, "Retail OS picks the campaigns, sets the budget", family=DISPLAY, fontsize=18)
 fig.text(.08, .2, "and kills what doesn't sell. No human media buyer.", family=DISPLAY, fontsize=18)
 fig.text(.08, .13, "Let's talk.", family=SERIF, fontsize=20, style="italic", color=TERRACOTTA)
-fig.text(.08, .075, "Source: brand's order database, non-cancelled orders, 11–26 Sep 2026. Before: ₹11,438 over 13 days.\nAfter: ₹4,197 over 3 days (1 order). ROAS not shown.", fontsize=6.5, color=DIM)
+fig.text(.08, .075, "Source: brand's order database, non-cancelled orders, 11–26 Sep 2026. 8 orders over 13 days\nbefore, 1 order over 3 days after. ROAS not shown.", fontsize=6.5, color=DIM)
 fig.savefig("scs-carousel-2.png", dpi=150)
