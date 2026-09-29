@@ -31,11 +31,11 @@ if (stillsAt) {
 } else {
   const total = Math.round((await tab.evaluate(() => window.DURATION)) * FPS);
   const enc = spawn(ffmpeg, ['-y', '-f', 'image2pipe', '-framerate', String(FPS), '-i', '-',
-    '-c:v', 'libx264', '-preset', 'slow', '-crf', '20', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', resolve(out)],
+    '-c:v', 'libx264', '-preset', 'slow', '-crf', process.env.REEL_CRF || '20', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', resolve(out)],
     { stdio: ['pipe', 'inherit', 'inherit'] });
   for (let f = 0; f < total; f++) {
     await tab.evaluate((t) => window.seek(t), f / FPS);
-    const buf = await tab.screenshot({ type: 'jpeg', quality: 95 });
+    const buf = await tab.screenshot(process.env.REEL_PNG ? { type: 'png' } : { type: 'jpeg', quality: 95 });
     if (!enc.stdin.write(buf)) await new Promise((r) => enc.stdin.once('drain', r));
     if (f % 150 === 0) console.log(`frame ${f}/${total}`);
   }
