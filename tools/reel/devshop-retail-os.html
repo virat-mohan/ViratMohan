@@ -281,9 +281,9 @@ canvas { position: absolute; inset: 0; z-index: 55; }
 <script>
 // ---------- scene timing (seconds); render tooling can pass window.SCENES snapped to the music's beats
 // On the soundtrack's 120 BPM grid: beat drops at 4 s, the 2x lands on the drop at 20 s (proof + 2).
-// Paced for reading: each scene holds after its entrance animation (animations keep their speed).
-const SCENES = window.SCENES || { hook: 0, run: 4.0, shapes: 8.5, live: 13.0, f1: 17.5, f2: 19.3, f3: 21.1, f4: 22.9, f5: 24.7, f6: 26.5,
-  proof: 28.3, monday: 35.3, brands: 40.0, refer: 46.0, end: 51.5, dur: 57.0 };
+// Original pacing, with 1.5 s per feature slide and 6 s on brands.
+const SCENES = window.SCENES || { hook: 0, run: 3.0, shapes: 6.0, live: 9.0, f1: 12.0, f2: 13.5, f3: 15.0, f4: 16.5, f5: 18.0, f6: 19.5,
+  proof: 21.0, monday: 27.0, brands: 31.0, refer: 37.0, end: 42.0, dur: 47.0 };
 window.DURATION = SCENES.dur;
 
 // ---------- tiny deterministic keyframe engine

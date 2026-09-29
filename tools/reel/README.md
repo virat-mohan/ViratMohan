@@ -11,7 +11,7 @@ The page exposes `window.seek(t)` and `window.DURATION`, so every frame is exact
 
 ## devshop-retail-os.html → public/retail-os/social/devshop-retail-os-reel.mp4
 
-57 s (paced for reading), homepage poster colours (one colour block per scene, circle wipes, bouncy type, confetti on the proof point). The last frame matches the first, so it loops cleanly. Scene start times live in `SCENES` at the top of the script, so the cuts can be moved onto the beats of a music track.
+47 s (features 1.5 s each, brands 6 s), homepage poster colours (one colour block per scene, circle wipes, bouncy type, confetti on the proof point). The last frame matches the first, so it loops cleanly. Scene start times live in `SCENES` at the top of the script, so the cuts can be moved onto the beats of a music track.
 
 Music: `soundtrack.py` (Salamander Grand Piano, CC BY 3.0, Alexander Holm; Karoryfer electric bass). Credit "Piano: Salamander Grand Piano by Alexander Holm (CC BY 3.0)" in the post or first comment. Any other track can be added with
 `ffmpeg -i reel.mp4 -i track.wav -map 0:v -map 1:a -c:v copy -af "afade=t=out:st=41:d=3,loudnorm=I=-14:TP=-1.5" -c:a aac -b:a 192k -shortest out.mp4`.
@@ -31,6 +31,6 @@ The earlier synthesised soundtracks were rejected as sounding like MIDI and are 
 
 Re-pull the proof numbers before each re-post; a 3-day window moves.
 
-Instagram upload: `devshop-retail-os-reel-ig.mp4` is rendered from PNG frames (`REEL_PNG=1 REEL_CRF=10`), then the cover card is added at CRF 13: 1080×1920, 30 fps, about 3.8 Mbps, under 30 MB (Instagram recommends 3.5 Mbps or more).
+Instagram upload: `devshop-retail-os-reel-ig.mp4` is rendered from PNG frames (`REEL_PNG=1 REEL_CRF=10`), then the cover card is added in a two-pass 4.5 Mbps encode: 1080×1920, 30 fps, about 26 MB (Instagram recommends 3.5 Mbps or more).
 
 Cover: `public/retail-os/social/reel-cover.jpg`, rendered from `cover.html` ("You bring the product. I run the whole online business.", inside the 3:4 grid crop). Frame 0 is plain terracotta so the reel loops, so always set a cover: upload this file in Instagram (Edit cover), or pass `thumbnailOffset: 2200` when posting through Buffer.
