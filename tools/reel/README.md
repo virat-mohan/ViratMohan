@@ -11,7 +11,7 @@ The page exposes `window.seek(t)` and `window.DURATION`, so every frame is exact
 
 ## devshop-retail-os.html → public/retail-os/social/devshop-retail-os-reel.mp4
 
-44 s, homepage poster colours (one colour block per scene, circle wipes, bouncy type, confetti on the proof point). The last frame matches the first, so it loops cleanly. Scene start times live in `SCENES` at the top of the script, so the cuts can be moved onto the beats of a music track.
+57 s (paced for reading), homepage poster colours (one colour block per scene, circle wipes, bouncy type, confetti on the proof point). The last frame matches the first, so it loops cleanly. Scene start times live in `SCENES` at the top of the script, so the cuts can be moved onto the beats of a music track.
 
 Music: `soundtrack.py` (Salamander Grand Piano, CC BY 3.0, Alexander Holm; Karoryfer electric bass). Credit "Piano: Salamander Grand Piano by Alexander Holm (CC BY 3.0)" in the post or first comment. Any other track can be added with
 `ffmpeg -i reel.mp4 -i track.wav -map 0:v -map 1:a -c:v copy -af "afade=t=out:st=41:d=3,loudnorm=I=-14:TP=-1.5" -c:a aac -b:a 192k -shortest out.mp4`.
