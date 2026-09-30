@@ -53,7 +53,12 @@ describe('NDA', () => {
     const text = ndaText(brand, '28 September 2026');
     expect(text).toContain('Virat Mohan, trading as DevShop Retail OS');
     expect(text).toContain('Kora Living LLP');
-    expect(text).toMatch(/Non-compete and non-circumvention/);
+    expect(text).toMatch(/Non-compete \(the Brand\)/);
+    // DevShop must stay free to work with other brands, including in the same category.
+    expect(text).toMatch(/Nothing in this Agreement restricts DevShop from building, operating, investing in or providing services to any other brand/);
+    expect(text).toMatch(/including brands that sell in the same product category as the Brand/);
+    expect(text).not.toMatch(/DevShop will not launch or operate a brand/);
+    expect(text).not.toMatch(/DevShop shall not[^.]*(competing brand|same category)/i);
     expect(ndaHash(text)).toBe(ndaHash(ndaText(brand, '28 September 2026')));
     expect(ndaHash(text)).not.toBe(ndaHash(ndaText({ ...brand, name: 'Other' }, '28 September 2026')));
     expect(ndaSections(brand, 'x').map((s) => s.heading)[0]).toBe('Parties');

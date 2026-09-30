@@ -45,7 +45,7 @@ const sections = ndaSections(party, effective);
       {nda ? (
         <p class="vm-serif-lede lede">Signed by {nda.signatory_name}{nda.signatory_title ? `, ${nda.signatory_title}` : ''} for {nda.entity_name} on {fmtTime(nda.signed_at)} IST. This page is your copy; it never changes.</p>
       ) : (
-        <p class="vm-serif-lede lede">{first ? `${first}, this` : 'This'} is a mutual non-compete and non-disclosure agreement. It protects what you share with me, and binds me the same way. It commits neither of us to anything further. Three minutes: read it, fill in your entity, type your name.</p>
+        <p class="vm-serif-lede lede">{first ? `${first}, this` : 'This'} is a Non-Compete & Non-Disclosure Agreement. Confidentiality works both ways: I protect what you share with me exactly as you protect what I share with you. The non-compete covers my platform and methods. It commits neither of us to anything further. Three minutes: read it, fill in your entity, type your name.</p>
       )}
       {!nda && <p class="muted">Why now: with it signed, you can give me read-only access to your store and ads freely. From the moment your data is connected, my target is your store live within {LIVE_IN_DAYS} days, with results every Monday.</p>}
 
