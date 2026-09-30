@@ -35,9 +35,9 @@ function inr(n: number) {
 }
 const fmtDate = (d: Date) => d.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Kolkata' });
 
-// The forecast is a first estimate Virat hasn't stood behind yet, so the brand sees it
-// only once the deposit is confirmed. ?edit=1 is not authenticated, so it does not unlock it.
-const showForecast = !!app?.deposit?.confirmedAt;
+// The forecast is a first estimate. The brand sees it only once Virat releases it
+// (terms.forecastReleased), never automatically. ?edit=1 is not authenticated, so it does not unlock it.
+const showForecast = (app?.terms as { forecastReleased?: boolean } | null)?.forecastReleased === true;
 // A brand with its own store keeps its look; design directions are only suggestions.
 const designOptional = app?.brand_status === 'existing';
 const design = designs[0] ?? null;
