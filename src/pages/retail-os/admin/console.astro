@@ -10,6 +10,8 @@ import type { TeamMember, OpsTask, OpsLog, Objective, ObjectivePlan } from '../.
 import { serviceDb } from '../../../lib/ledger';
 import { JOURNEY, EXITS, health, pipeline, stepFor, indexOf, daysToLive, goLiveTarget } from '../../../lib/lead-journey';
 import { brandsDb, termsLine, STATUS_LABEL, type Brand } from '../../../lib/brands';
+import { loadSocial, ensureWeeklyBrief } from '../../../lib/virat-social-db';
+import { rankReels, shareRate, CTA, type RankKey } from '../../../lib/virat-social';
 
 // The founder console (viratmohan.com/founder; gated by src/middleware.ts). Four tabs:
 // CRM pipeline, Team, Live brands (sales and spend for a chosen period, high-level only,
@@ -17,7 +19,7 @@ import { brandsDb, termsLine, STATUS_LABEL, type Brand } from '../../../lib/bran
 const env = getEnv();
 const db = getRetailOsDb(env);
 const url = Astro.url;
-const tab = ['crm', 'team', 'live', 'brands'].includes(url.searchParams.get('tab') ?? '') ? url.searchParams.get('tab')! : 'crm';
+const tab = ['crm', 'team', 'live', 'brands', 'social'].includes(url.searchParams.get('tab') ?? '') ? url.searchParams.get('tab')! : 'crm';
 
 // ── Live brands: period, comparison and before/after Retail OS ─────────────
 const today = istToday();
@@ -130,6 +132,14 @@ try {
 const fmtTs = (iso: string) => new Date(iso).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' });
 const teamOnYou = team.reduce((n, t) => n + t.onYou.length, 0);
 const actionsCount = onVirat.length + appsOnYou.length + teamOnYou + waitingEmails;
+// Social: Virat's own Instagram (@viratemn, @vmviews). Read-only; D2C founders only; no ads.
+const socialOn = tab === 'social';
+const rankBy = (['watch', 'shares', 'reach'] as RankKey[]).find((k) => k === url.searchParams.get('rank')) ?? 'watch';
+const social = socialOn && env.SUPABASE_URL ? await loadSocial(serviceDb(env)).catch((e) => ({ error: String(e?.message ?? e) })) : null;
+const brief = socialOn && social && !('error' in social) ? await ensureWeeklyBrief(serviceDb(env)).catch(() => null) : null;
+const socialToken = !!env.META_VIRAT_SOCIAL_TOKEN;
+const secs = (ms: number | null | undefined) => (ms == null ? '—' : `${(ms / 1000).toFixed(1)}s`);
+const n0 = (v: number | null | undefined) => (v == null ? '—' : v.toLocaleString('en-IN'));
 const href = (t: string, extra = '') => `/retail-os/admin/console?tab=${t}${extra}`;
 ---
 <!doctype html>
@@ -207,7 +217,66 @@ const href = (t: string, extra = '') => `/retail-os/admin/console?tab=${t}${extr
     <a class={tab === 'team' ? 'on' : ''} href={href('team')}>Team &amp; tasks{teamOnYou ? <b>{teamOnYou}</b> : null}</a>
     <a class={tab === 'live' ? 'on' : ''} href={href('live')}>Live brands</a>
     <a class={tab === 'brands' ? 'on' : ''} href={href('brands')}>Brands &amp; contacts</a>
+    <a class={tab === 'social' ? 'on' : ''} href={href('social')}>Social</a>
   </div>
+
+  {tab === 'social' && (<>
+    {!socialToken && <section><p class="eyebrow">One thing needed</p><p>Add <b>META_VIRAT_SOCIAL_TOKEN</b> in Vercel (viratmohan.com, Production) from the system user <i>viratsocialsync</i> in the "Virat Mohan Social" portfolio. Why: without it the daily sync cannot read the reels, so the panel stays empty. Paste it only into Vercel, never in chat or email.</p></section>}
+    {social && 'error' in social ? <section><p class="bad">Could not load social data: {social.error}</p></section> : social && (() => {
+      const reels = social.reels;
+      const ranked = rankReels(reels, rankBy);
+      const count = (v: string) => reels.filter((r) => r.verdict === v).length;
+      return (<>
+        <div class="kpis">
+          <div class="kpi"><div class="l">Reels, last 30 days</div><div class="v">{reels.length}</div><div class="s">@viratemn {reels.filter((r) => r.handle === '@viratemn').length} · @vmviews {reels.filter((r) => r.handle === '@vmviews').length}</div></div>
+          <div class="kpi"><div class="l">48h winners</div><div class="v good">{count('winner')}</div><div class="s">{count('loser')} losers · {count('hold')} hold · {count('too early')} too early</div></div>
+          <div class="kpi"><div class="l">Ad spend</div><div class="v">₹0</div><div class="s">Organic only. No boosting.</div></div>
+          <div class="kpi"><div class="l">Last sync</div><div class="v" style="font-size:1.1rem">{social.lastSync ? fmtTs(social.lastSync) : 'Not yet'}</div><div class="s">daily, 08:15 IST</div></div>
+        </div>
+        <section>
+          <h2>Reels, ranked</h2>
+          <div class="filters">{([['watch', 'Avg watch time'], ['shares', 'Shares'], ['reach', 'Reach']] as const).map(([k, l]) => <a class={k === rankBy ? 'on' : ''} href={href('social', `&rank=${k}`)}>{l}</a>)}</div>
+          {ranked.length === 0 ? <p class="note">No reels synced yet. The first sync runs at 08:15 IST once the token is in Vercel.</p> : (
+            <div class="scroll"><table>
+              <thead><tr><th>Reel</th><th>Posted</th><th class="num">Avg watch</th><th class="num">Shares</th><th class="num">Share rate</th><th class="num">Reach</th><th class="num">Views</th><th>48h trial</th></tr></thead>
+              <tbody>{ranked.map((r) => (
+                <tr>
+                  <td><span class="note">{r.handle}</span><br />{r.permalink ? <a href={r.permalink} target="_blank" rel="noopener">{(r.caption ?? 'Untitled').split('\n')[0].slice(0, 70)}</a> : (r.caption ?? 'Untitled').slice(0, 70)}</td>
+                  <td>{day(r.posted_at)}</td>
+                  <td class="num">{secs(r.latest?.avg_watch_ms)}</td>
+                  <td class="num">{n0(r.latest?.shares)}</td>
+                  <td class="num">{r.latest?.reach ? `${(shareRate(r.latest) * 100).toFixed(1)}%` : '—'}</td>
+                  <td class="num">{n0(r.latest?.reach)}</td>
+                  <td class="num">{n0(r.latest?.views)}</td>
+                  <td><span class={`chip${r.verdict === 'winner' ? ' hot' : ''}`}>{r.verdict}</span><div class="note">{r.verdictWhy}</div></td>
+                </tr>
+              ))}</tbody>
+            </table></div>
+          )}
+          <p class="note">48h trial: the first snapshot taken 48 hours after posting, compared with the median reel on the same account. Winner = watch time at or above median, and reach or share rate at or above median. Loser = below median on all three.</p>
+        </section>
+        <section>
+          <h2>Follower mix</h2>
+          <div class="grid">{Object.entries(social.mixByHandle).map(([handle, mix]) => (
+            <div class="card"><h4>{handle}</h4>
+              {Object.keys(mix).length === 0 ? <p class="note">Not available yet. Meta shares follower demographics once an account has 100+ followers.</p> : Object.entries(mix).map(([b, rows]) => (
+                <><h3>{b}</h3>{rows.map((x) => <div class="lever">{x.bucket} <span class="note">· {x.pct}%</span><div class="track"><i style={`width:${x.pct}%`}></i></div></div>)}</>
+              ))}
+            </div>
+          ))}</div>
+        </section>
+        {brief && <section>
+          <h2>This week's reel brief <span class="note">· week of {day(brief.weekStart)} · <a href="/api/admin/social/calendar">calendar spec (JSON) →</a></span></h2>
+          <p class="note">For D2C founders only. No food angle, no client brand names, percentages only, every reel ends "{CTA}". Nothing is posted until you approve it.</p>
+          <div class="prio">{brief.ideas.map((idea, i) => (
+            <div class="o"><div class="n">{i + 1} · {idea.pillarLabel}</div><h4>{idea.hook}</h4>
+              <ol class="note" style="padding-left:18px;margin:6px 0;">{idea.beats.map((b) => <li>{b}</li>)}</ol>
+              <div class="note"><b>Why:</b> {idea.why}</div></div>
+          ))}</div>
+        </section>}
+      </>);
+    })()}
+  </>)}
 
   {tab === 'crm' && (<>
     <div class="kpis">
