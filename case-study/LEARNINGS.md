@@ -35,3 +35,4 @@ Every self-audit reads this first and adds to it last. One line per lesson: date
 - 2026-09-30: I asked Virat for Srishti's email when it was already in his inbox. Before asking Virat anything, search Gmail, Supabase and the repo first; ask only what can't be found.
 
 - 2026-09-30 · Virat's social sync: a read-only integration enforces "read only" in code (a path allowlist plus GET-only), not in a comment, so ads or boosting can never be called by accident. Content rules (D2C only, no brand names, % only, ends "DM me D2C") are a checkCopy() function the brief must pass, with tests.
+- 2026-09-30: A merge left conflict markers in CLAUDE.md because I only cleaned the file I expected to conflict. After any merge, grep the whole repo for <<<<<<< before committing.
