@@ -12,6 +12,9 @@ Contacts: Tushar Chaudhary (tusharchaudhary@gmail.com), Shyam Gupta (shyam4wd@gm
 Domain, current site/hosting, Razorpay (Admin or Manager), Shiprocket, Meta Business (Page, Instagram, Pixel, ad account), GA4 and Search Console.
 Still owed from me: the DevShop Meta Business ID.
 
+Granted:
+- 2026-09-30: Razorpay: tech@viratmohan.com can log in (Virat confirmed). Next: API keys and webhook, set directly in the environment, never pasted in chat or email.
+
 ## Question log
 Every question Tushar or Shyam asks goes here with the date, the question, my written answer and the date I answered.
 
