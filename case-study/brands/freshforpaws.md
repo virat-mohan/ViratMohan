@@ -14,7 +14,8 @@ One place for everything done on Fresh For Paws so far. Pulled together on 26 Se
 - Front end stays WooCommerce. Retail OS runs behind it.
 - 25% profit share. Pay with a Post at 1%.
 - ₹5,000 deposit, adjusted against actual onboarding tech costs.
-- NCNDA signed by both, 27 Sep 2026. Terms sent 30 Sep, awaiting her signature. Deposit awaiting confirmation.
+- NCNDA signed by both, 27 Sep 2026. Terms signed (per Virat, 30 Sep; not recorded on her page). Deposit ₹5,000 received 30 Sep 8:05 PM, UPI 307113869473. Build clock started 30 Sep; target 7 Oct.
+- Open: which sales the 25% applies to (all online orders, or growth above today's). Commercial-details email drafted, waiting on this.
 
 ## Timeline
 | Date | What happened | Source |
@@ -25,6 +26,7 @@ One place for everything done on Fresh For Paws so far. Pulled together on 26 Se
 | 26 Sep | Lead logged, stage `nda_sent` | Supabase `leads` id `c8cfb848…` |
 | 27 Sep | Srishti signed the NCNDA (as Proprietor); Virat countersigned. Next-steps email with signed PDF sent 27 Sep | Gmail "NCNDA signed, next steps"; signed files kept off this public repo |
 | 28 Sep | No reply yet; gentle reminder drafted, not sent | Gmail draft in the same thread |
+| 30 Sep | Deposit recorded; welcome email with access list (all to tech@viratmohan.com) sent to srishti@freshforpaws.com, cc founder@ | Supabase `deposit`; Gmail "Welcome to DevShop Retail OS, Fresh For Paws" |
 | 30 Sep | Call with Srishti; UPI QR shared on WhatsApp for the ₹5,000 deposit. Terms at 25% set on her page; terms email sent to srishti@freshforpaws.com | Supabase `retail_os_applications.terms`; Gmail "your terms are ready to sign" |
 
 Track page: https://www.viratmohan.com/retail-os/track/8ad86490-b731-49a1-92c8-a98a68ec0441
