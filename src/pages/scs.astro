@@ -1,21 +1,89 @@
 ---
 import Base from '../layouts/Base.astro';
+
+// Results: an ongoing, numbered log of real performance swings since Retail OS took over.
+// Not "Case Studies" — a case study is the longer brand-story treatment (how it started, what was
+// built, where it is today), planned as its own section later. Add a new result here (newest
+// first) — the first entry is the one featured large; the rest show as smaller cards that expand
+// to their own full carousel. Brand names withheld throughout; every number here is real and
+// sourced (see each result's note), never invented. Percentage/multiple only, no rupee figures —
+// a small brand's absolute numbers read as unimpressive next to the honest percentage swing.
+const results = [
+  {
+    id: 'result-02',
+    label: 'Result 02',
+    date: '28 Sep 2026',
+    category: 'Gifting & catering brand',
+    headline: '+200%',
+    stat: 'Meta return on ad spend',
+    dek: 'I handed a gifting and catering brand’s ads over to Retail OS. Three days in: +200% return on ad spend.',
+    note: 'Early days and a small window: 3-day Meta Ads Manager windows immediately before and after autopilot went on, 26 Sep 2026. Revenue not shown.',
+    images: [
+      { src: '/scs/scs2-1.png', alt: '+200% Meta return on ad spend in the first 3 days.' },
+      { src: '/scs/scs2-2.png', alt: 'Meta ROAS before vs after: 0.7x to 2.1x, and what changed.' },
+    ],
+  },
+  {
+    id: 'result-01',
+    label: 'Result 01',
+    date: '26 Sep 2026',
+    category: 'D2C brand',
+    headline: '+59%',
+    stat: 'more sales per day',
+    dek: 'I handed a D2C brand’s ads over to Retail OS. Three days in: +59% sales per day.',
+    note: 'Early days and a small base: 8 orders over 13 days before, 1 order over 3 days after. Source: the brand’s order database.',
+    images: [
+      { src: '/scs/scs1-1.png', alt: '+59% more sales per day in the first 3 days.' },
+      { src: '/scs/scs1-2.png', alt: 'Daily order index, 11 to 26 September, before-autopilot average = 100.' },
+    ],
+  },
+];
+const [featured, ...rest] = results;
 ---
 <Base
-  title="SCS — Successful Case Studies · Virat Mohan"
-  description="Successful case studies from DevShop Retail OS. Honest numbers, brand names hidden."
+  title="Results — DevShop Retail OS · Virat Mohan"
+  description="Real, numbered results from DevShop Retail OS since it took over a brand's ads. Honest numbers, brand names hidden."
   path="/scs"
 >
   <section class="scs-page">
-    <p class="eyebrow">SCS · Successful Case Studies</p>
+    <p class="eyebrow">Results, so far</p>
     <h1 class="scs-h">Retail OS took over the ads from a human.</h1>
-    <p class="scs-dek">I handed a D2C brand's ads over to Retail OS. Three days in: +59% sales per day, and the brand's biggest day ever.</p>
+    <p class="scs-dek">{featured.dek}</p>
+
     <div class="scs-grid">
-      <img src="/scs/retail-os-autopilot-1.png" width="1080" height="1350" alt="+59% more sales per day in the first 3 days. Revenue per day ₹880 to ₹1,399. Biggest day ever ₹4,197." />
-      <img src="/scs/retail-os-autopilot-2.png" width="1080" height="1350" alt="Daily revenue chart 11 to 26 September. Average ₹880 a day before autopilot, ₹1,399 a day after." loading="lazy" />
+      {featured.images.map((img) => (
+        <img src={img.src} width="1080" height="1350" alt={img.alt} />
+      ))}
     </div>
-    <p class="scs-note">Early days and a small base: 8 orders over 13 days before, 1 order over 3 days after. Source: the brand's order database.</p>
-    <p class="scs-cta"><a href="https://wa.me/919999277240?text=Hi%20Virat%2C%20I%20saw%20your%20Successful%20Case%20Study%20(SCS).%20Let%27s%20talk." target="_blank" rel="noopener">Let's talk →</a></p>
+    <p class="scs-note">{featured.note}</p>
+    <p class="scs-cta"><a href="https://wa.me/919999277240?text=Hi%20Virat%2C%20I%20saw%20your%20latest%20result%20on%20Retail%20OS.%20Let%27s%20talk." target="_blank" rel="noopener">Let's talk →</a></p>
+
+    {rest.length > 0 && (
+      <div class="scs-more">
+        <p class="scs-more-h">Earlier results</p>
+        <div class="scs-more-grid">
+          {rest.map((s) => (
+            <details class="scs-card">
+              <summary>
+                <img src={s.images[0].src} width="1080" height="1350" alt={s.images[0].alt} loading="lazy" />
+                <div class="scs-card-copy">
+                  <span class="scs-card-label">{s.label} &middot; {s.category}</span>
+                  <span class="scs-card-big">{s.headline}</span>
+                  <span class="scs-card-stat">{s.stat}</span>
+                  <span class="scs-card-go">See the full picture &rarr;</span>
+                </div>
+              </summary>
+              <div class="scs-card-full">
+                {s.images.map((img) => (
+                  <img src={img.src} width="1080" height="1350" alt={img.alt} loading="lazy" />
+                ))}
+                <p class="scs-note">{s.note}</p>
+              </div>
+            </details>
+          ))}
+        </div>
+      </div>
+    )}
   </section>
 </Base>
 
@@ -29,5 +97,22 @@ import Base from '../layouts/Base.astro';
   .scs-note { font-size: .85rem; color: var(--muted); }
   .scs-cta { margin-top: 1.5rem; font-family: var(--serif); font-size: 1.8rem; }
   .scs-cta a { color: #d9714b; text-decoration: none; border-bottom: 1px solid #d4af37; }
+
+  .scs-more { margin-top: 4rem; padding-top: 2.5rem; border-top: 1px solid rgba(23,19,15,.14); }
+  .scs-more-h { font: 700 11px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 0 0 1.25rem; }
+  .scs-more-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+  .scs-card { border: 1px solid rgba(23,19,15,.14); border-radius: 10px; overflow: hidden; background: var(--paper, #f4ead4); }
+  .scs-card summary { cursor: pointer; list-style: none; }
+  .scs-card summary::-webkit-details-marker { display: none; }
+  .scs-card summary img { width: 100%; height: auto; display: block; }
+  .scs-card-copy { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 2px; }
+  .scs-card-label { font: 700 10px/1 var(--sans); letter-spacing: .1em; text-transform: uppercase; color: #d9714b; margin-bottom: 4px; }
+  .scs-card-big { font-family: var(--display); font-size: 2rem; color: #d9714b; line-height: 1; }
+  .scs-card-stat { font-size: .85rem; color: var(--muted); margin-bottom: 8px; }
+  .scs-card-go { font-family: var(--serif); font-style: italic; font-size: .95rem; }
+  .scs-card[open] .scs-card-go { display: none; }
+  .scs-card-full { display: grid; gap: 16px; padding: 0 16px 16px; }
+  .scs-card-full img { width: 100%; height: auto; border-radius: 8px; }
+
   @media (max-width: 700px) { .scs-grid { grid-template-columns: 1fr; } }
 </style>

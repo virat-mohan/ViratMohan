@@ -219,11 +219,13 @@ export function getDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: st
       if (error) console.error('supabase update (failed) also failed:', error.message);
     },
 
-    async markSent(id: string) {
+    // approved: false for the automatic first-demo send, so approved_at is only
+    // ever set when a person pressed Approve.
+    async markSent(id: string, opts: { approved?: boolean } = {}) {
       const now = new Date().toISOString();
       const { error } = await supabase
         .from('submissions')
-        .update({ status: 'sent', approved_at: now, sent_at: now })
+        .update({ status: 'sent', approved_at: opts.approved === false ? null : now, sent_at: now })
         .eq('id', id);
       if (error) throw new Error(`supabase update (sent) failed: ${error.message}`);
     },
@@ -610,6 +612,18 @@ export function getDb(env: { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: st
         .maybeSingle();
       if (error) throw new Error(`supabase duplicate-check query failed: ${error.message}`);
       return (data as Submission | null) ?? null;
+    },
+
+    // Counts behind the automatic first-demo send caps (lib/demo-send-guard.ts).
+    async countSubmissionsToEmailSince(email: string, sinceIso: string): Promise<number> {
+      const { count, error } = await supabase.from('submissions').select('id', { count: 'exact', head: true }).eq('email', email).gte('created_at', sinceIso);
+      if (error) throw new Error(`supabase count (email) failed: ${error.message}`);
+      return count ?? 0;
+    },
+    async countAutoSentSince(sinceIso: string): Promise<number> {
+      const { count, error } = await supabase.from('submissions').select('id', { count: 'exact', head: true }).gte('sent_at', sinceIso).is('approved_at', null);
+      if (error) throw new Error(`supabase count (auto-sent) failed: ${error.message}`);
+      return count ?? 0;
     },
 
     // ---- Use-case templates (vertical pages) ----

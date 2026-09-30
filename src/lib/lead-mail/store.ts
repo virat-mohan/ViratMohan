@@ -18,7 +18,7 @@ export interface LeadStore {
   threads(): Promise<{ lead_id: string; gmail_thread_id: string }[]>;
   knownGmailIds(ids: string[]): Promise<Set<string>>;
   createLead(l: { brand_name: string; contact_name: string | null; contact_email: string; source: string; stage: LeadStage }): Promise<Lead>;
-  updateLead(id: string, patch: Partial<Pick<Lead, 'stage' | 'next_step' | 'next_step_due'>>): Promise<void>;
+  updateLead(id: string, patch: Partial<Pick<Lead, 'stage' | 'next_step' | 'next_step_due'>> & Record<string, unknown>): Promise<void>;
   /** Insert unless a row with the same gmail_message_id exists. Returns null on duplicate. */
   insertMessage(m: NewMessage): Promise<LeadMessageRow | null>;
   getMessage(id: string): Promise<LeadMessageRow | null>;

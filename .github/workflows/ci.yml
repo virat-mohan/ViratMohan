@@ -1,0 +1,20 @@
+# Every push and pull request: unit tests, brand-token check and production build.
+# No secrets are used; live benchmarks (npm run test:live) stay manual.
+name: CI
+on:
+  push:
+  pull_request:
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run check:brand
+      - run: npm run build

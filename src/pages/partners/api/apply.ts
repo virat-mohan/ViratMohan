@@ -2,6 +2,9 @@ export const prerender = false;
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import { getEnv } from '../../../lib/env';
+import { sendEmail } from '../../../lib/email';
+import { mailConfigured } from '../../../lib/mail/send';
+import { renderRetailOsEmail } from '../../../lib/retail-os-email';
 
 const clip = (v: unknown, n = 300) => (typeof v === 'string' ? v.trim().slice(0, n) : '');
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { 'content-type': 'application/json' } });
@@ -20,6 +23,29 @@ export const POST: APIRoute = async ({ request }) => {
     const db = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
     const { error } = await db.from('partner_applications').insert(row);
     if (error) throw error;
+    // Best-effort — the application is already saved either way.
+    if (mailConfigured(env) && env.ADMIN_NOTIFY_EMAIL) {
+      sendEmail(
+        {
+          to: env.ADMIN_NOTIFY_EMAIL,
+          subject: `New partner application: ${row.name}`,
+          replyTo: row.email || undefined,
+          html: renderRetailOsEmail({
+            preheader: `${row.name} applied to the partner program.`,
+            eyebrow: 'New partner application',
+            heading: row.name,
+            lines: ['Review the NCNDA acceptance and their network before replying.'],
+            rows: [
+              { label: 'Contact', value: `${row.phone}${row.email ? ` · ${row.email}` : ''}${row.city ? ` · ${row.city}` : ''}` },
+              { label: 'Network', value: row.network || '—' },
+              { label: 'Brands they can bring', value: row.brands_estimate || '—' },
+              { label: 'NCNDA accepted', value: row.nda_accepted ? 'Yes' : 'No' },
+            ],
+          }),
+        },
+        env
+      ).catch((err) => console.error('partner apply admin notification email failed', err));
+    }
     return json({ ok: true });
   } catch (err) {
     console.error('partner apply failed', err);

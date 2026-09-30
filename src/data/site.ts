@@ -8,10 +8,10 @@ export const site = {
   positioning: 'I build the machine that gets good products to the world.',
   thesis:
     'AI makes doing the work cheap. Good judgment is still rare. I let machines do the routine and keep people for what needs people.',
-  email: 'viratmohan@gmail.com',
+  email: 'founder@viratmohan.com',
   whatsapp: '919999277240',
   // "Let's talk" CTA everywhere: WhatsApp click-to-chat with a prefilled line.
-  letsTalk: 'https://wa.me/919999277240?text=Hi%20Virat%2C%20I%20saw%20your%20Successful%20Case%20Study%20(SCS).%20Let%27s%20talk.',
+  letsTalk: 'https://wa.me/919999277240?text=Hi%20Virat%2C%20I%20saw%20your%20latest%20result%20on%20Retail%20OS.%20Let%27s%20talk.',
   linkedin: 'https://www.linkedin.com/in/viratmohan/', // TODO: confirm exact handle
   instagram: 'https://www.instagram.com/vmviews/',
   clarityhq: 'https://clarityhq.ai',

@@ -1,0 +1,55 @@
+---
+// Plays the DevShop Retail OS reel once per visitor as a quick splash on the homepage.
+// The video loads only when the splash opens; skipped for reduced-motion visitors.
+---
+<div class="reel-splash" id="reelSplash" hidden role="dialog" aria-label="DevShop Retail OS in 43 seconds">
+  <div class="reel-splash__frame">
+    <video id="reelSplashVideo" muted playsinline preload="none" poster="/retail-os/social/reel-poster.jpg"></video>
+  </div>
+  <div class="reel-splash__bar">
+    <a class="reel-splash__go" href="/retail-os/#reel">See Retail OS →</a>
+    <button class="reel-splash__skip" id="reelSplashSkip" type="button">Skip</button>
+  </div>
+</div>
+
+<script is:inline>
+(function () {
+  var KEY = 'vm-reel-seen';
+  var el = document.getElementById('reelSplash');
+  var v = document.getElementById('reelSplashVideo');
+  try { if (localStorage.getItem(KEY)) return; } catch (e) {}
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  function close() {
+    el.classList.remove('is-open');
+    setTimeout(function () { el.hidden = true; v.pause(); v.removeAttribute('src'); v.load(); }, 350);
+    document.removeEventListener('keydown', onKey);
+    try { localStorage.setItem(KEY, String(Date.now())); } catch (e) {}
+  }
+  function onKey(e) { if (e.key === 'Escape') close(); }
+  v.src = '/retail-os/social/reel-web.mp4';
+  el.hidden = false;
+  requestAnimationFrame(function () { el.classList.add('is-open'); });
+  var p = v.play(); if (p && p.catch) p.catch(function () {});
+  v.addEventListener('ended', close);
+  document.getElementById('reelSplashSkip').addEventListener('click', close);
+  el.addEventListener('click', function (e) { if (e.target === el) close(); });
+  document.addEventListener('keydown', onKey);
+})();
+</script>
+
+<style>
+  .reel-splash {
+    position: fixed; inset: 0; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; padding: 16px; background: rgba(23, 19, 15, 0.92); opacity: 0; transition: opacity .35s ease;
+  }
+  .reel-splash.is-open { opacity: 1; }
+  .reel-splash__frame { height: min(80vh, 780px); max-width: 100%; aspect-ratio: 9 / 16; border-radius: 18px; overflow: hidden; box-shadow: 10px 10px 0 var(--terracotta); }
+  .reel-splash__frame video { width: 100%; height: 100%; object-fit: cover; display: block; background: var(--terracotta); }
+  .reel-splash__bar { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .reel-splash__go, .reel-splash__skip {
+    font: 700 15px/1 var(--sans); padding: 12px 20px; border-radius: 999px; cursor: pointer; text-decoration: none;
+  }
+  .reel-splash__go { background: var(--gold); color: var(--ink); }
+  .reel-splash__skip { background: transparent; color: var(--poster-cream); border: 1px solid rgba(244, 234, 212, .5); }
+  .reel-splash__go:focus-visible, .reel-splash__skip:focus-visible { outline: 2px solid var(--poster-cream); outline-offset: 3px; }
+</style>

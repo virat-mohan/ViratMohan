@@ -1,0 +1,94 @@
+{
+  "slug": "travaholic-caps-2026-diwali",
+  "brand": "Travaholic Caps",
+  "title": "Social posting calendar, Diwali 2026",
+  "approver": "Travaholic",
+  "intro": "For Travaholic's approval. 20 items from 28 Sep to 30 Oct: 15 Instagram posts and 5 ad launches, all from Travaholic's own cap photography, with captions in Travaholic's voice. Posts publish to Instagram at 9am on the day. It builds toward the Diwali gifting push (19 to 29 Oct).",
+  "introContinued": "Diwali gifting week and the last order-by date. Copy rules on every item: no discount claims, no Cash on Delivery, free shipping on prepaid orders; the only offer is Buy 3, Get 1 Free.",
+  "weeksPerPage": 3,
+  "weeks": [
+    { "label": "28 Sep", "theme": "Bestsellers first", "days": [
+      { "date": "Mon 28 Sep", "post": { "type": "photo", "image": "https://www.travaholic.in/images/social/tv-28sep.jpg", "caption": "Junglee: Wear the Wild. Some caps are made for city streets. Junglee was made for the trail that starts where the road ends. ₹1,399.", "why": "Junglee is a joint bestseller this season; lead the month with what already sells." } },
+      { "date": "Tue 29 Sep" },
+      { "date": "Wed 30 Sep", "post": { "type": "photo", "image": "https://www.travaholic.in/images/social/tv-30sep.jpg", "caption": "The one you reach for first. Travaholic Black goes with every trip and every outfit. The cap people come back for most.", "why": "Black is the other bestseller; the buyer is a man aged 18 to 44 who wants one cap for everything." } },
+      { "date": "Thu 1 Oct", "post": { "type": "ad", "image": "https://www.travaholic.in/images/social/tv-01oct.jpg", "caption": "Junglee: Wear the Wild. A trucker cap made for the trail. Curved brim for real sun coverage. ₹1,399, free shipping on prepaid orders.", "why": "First creative test inside the managed campaign; catalog-style product ads have run at 4 to 5x on this account.", "ad": "Creative test 1 · Junglee" } },
+      { "date": "Fri 2 Oct", "post": { "type": "photo", "image": "https://www.travaholic.in/images/social/tv-02oct.jpg", "caption": "Peaking, somewhere in the Atlas. October is when the mountains open up again. Peaking is for the ones already planning the trek.", "why": "Trek season opens in October; travel interests are the audience that converts." } },
+      { "date": "Sat 3 Oct" },
+      { "date": "Sun 4 Oct" }
+    ] },
+    { "label": "5 Oct", "theme": "Named after places", "days": [
+      { "date": "Mon 5 Oct", "post": { "type": "photo", "image": "https://www.travaholic.in/images/social/tv-05oct.jpg", "caption": "City Slicker Black. For the days the trip is just across town. Clean black, easy fit.", "why": "City Slicker Black keeps appearing in the top sellers; show it in its setting." } },
+      { "date": "Tue 6 Oct" },
+      { "date": "Wed 7 Oct", "post": { "type": "photo", "image": "https://www.travaholic.in/images/social/tv-07oct.jpg", "caption": "Stories you can wear. Every Travaholic cap is named after a place or a feeling from the road. Which one is yours?", "why": "The naming is the brand's story; a question invites comments, which feeds reach." } },
+      { "date": "Thu 8 Oct", "post": { "type": "ad", "image": "https://www.travaholic.in/images/social/tv-08oct.jpg", "caption": "The cap that goes everywhere. Travaholic Black. One cap for every trip. ₹1,399, free shipping on prepaid orders.", "why": "Second creative test, on the bestseller. Same day the Lookalike 1 to 3% audience test launches.", "ad": "Creative test 2 · Black" } },
+      { "date": "Fri 9 Oct", "post": { "type": "photo", "image": "https://www.travaholic.in/images/social/tv-09oct.jpg", "caption": "Travaholic Orange. Loud enough to find in a crowded market.", "why": "A colour post between the bestsellers keeps the feed varied and shows range." } },
+      { "date": "Sat 10 Oct" },
+      { "date": "Sun 11 Oct" }
+    ] },
+    { "label": "12 Oct", "theme": "Community and the open road", "days": [
+      { "date": "Mon 12 Oct", "post": { "type": "photo", "image": "https://www.travaholic.in/images/social/tv-12oct.jpg", "caption": "Your cap, your story. Tag us in your Travaholic moment. The best ones go on our Explorers wall.", "why": "Customer photos are the cheapest content the brand has; the Explorers wall gives people a reason to post." } },
+      { "date": "Tue 13 Oct" },
+      { "date": "Wed 14 Oct", "post": { "type": "photo", "image": "https://www.travaholic.in/images/social/tv-14oct.jpg", "caption": "Wildling: born for open roads. Post-monsoon roads are the best roads. Wildling is ready.", "why": "Seasonal hook; riding and road-trip content fits the travel-interest audience." } },
+      { "date": "Thu 15 Oct", "post": { "type": "ad", "image": "https://www.travaholic.in/images/social/tv-15oct.jpg", "caption": "Trek season is here. Peaking, for October treks. Curved brim for real sun coverage. ₹1,399, free shipping on prepaid orders.", "why": "Third creative test, seasonal. Same day the Advantage+ Broad (men 18 to 44) test launches.", "ad": "Creative test 3 · Peaking" } },
+      { "date": "Fri 16 Oct", "post": { "type": "photo", "image": "https://www.travaholic.in/images/social/tv-16oct.jpg", "caption": "Travaholic Sky. Clear skies after the rains.", "why": "Colour range again, a week before gifting starts, so the gift posts have choice behind them." } },
+      { "date": "Sat 17 Oct" },
+      { "date": "Sun 18 Oct" }
+    ] },
+    { "label": "19 Oct", "theme": "Diwali gifting", "days": [
+      { "date": "Mon 19 Oct", "post": { "type": "photo", "image": "https://www.travaholic.in/images/social/tv-19oct.jpg", "caption": "Gift a story this Diwali. A cap named after a place they love. Add a gift note at checkout.", "why": "Gifting window opens; gift notes at checkout are already built into the store." } },
+      { "date": "Tue 20 Oct" },
+      { "date": "Wed 21 Oct", "post": { "type": "photo", "image": "https://www.travaholic.in/images/social/tv-21oct.jpg", "caption": "Everyone keeps looking at this one. City Slicker Black keeps coming back in our top sellers. Here is why.", "why": "Social proof on a top seller, mid-gifting week." } },
+      { "date": "Thu 22 Oct", "post": { "type": "ad", "image": "https://www.travaholic.in/images/social/tv-22oct.jpg", "caption": "Gift a story this Diwali. Travaholic caps at ₹1,399. Buy 3, get 1 free for the whole family. Gift note at checkout. Order early for Diwali delivery.", "why": "The one offer the brand runs, Buy 3 Get 1 Free, aimed at the peak gifting week. Retargeting audience is warmest now.", "ad": "Creative test 4 · Diwali gifting" } },
+      { "date": "Fri 23 Oct", "post": { "type": "photo", "image": "https://www.travaholic.in/images/social/tv-23oct.jpg", "caption": "Dunes Maroon. Desert season starts now. Dunes Maroon, for Rajasthan in winter.", "why": "Winter travel starts after Diwali; seeds the next season's demand." } },
+      { "date": "Sat 24 Oct" },
+      { "date": "Sun 25 Oct" }
+    ] },
+    { "label": "26 Oct", "theme": "Last orders for Diwali", "days": [
+      { "date": "Mon 26 Oct", "post": { "type": "photo", "image": "https://www.travaholic.in/images/social/tv-26oct.jpg", "caption": "Order by this week for Diwali. Want it before Diwali? Order this week. Buy 3, get 1 free, and gift notes at checkout.", "why": "Delivery certainty is the top gifting question; a clear order-by line converts the undecided." } },
+      { "date": "Tue 27 Oct" },
+      { "date": "Wed 28 Oct", "post": { "type": "photo", "image": "https://www.travaholic.in/images/social/tv-28oct.jpg", "caption": "Junglee, back in focus. Our joint bestseller this season. Made for the wild.", "why": "Bestseller repeat in the final week; the account's best purchase rates came from catalog product shots." } },
+      { "date": "Thu 29 Oct", "post": { "type": "ad", "image": "https://www.travaholic.in/images/social/tv-29oct.jpg", "caption": "Bestsellers: Junglee and Black. Our two bestselling caps. ₹1,399 each, free shipping on prepaid orders. Buy 3, get 1 free.", "why": "Fifth creative test: the two bestsellers together for the last Diwali orders.", "ad": "Creative test 5 · Bestsellers" } },
+      { "date": "Fri 30 Oct", "post": { "type": "photo", "image": "https://www.travaholic.in/images/social/tv-30oct.jpg", "caption": "Where are you headed in November? Tell us your next trip. We will tell you which cap to pack.", "why": "Closes the month with a question that starts the November plan from real answers." } },
+      { "date": "Sat 31 Oct" },
+      { "date": "Sun 1 Nov" }
+    ] }
+  ],
+  "boxes": [
+    { "title": "How often, and why", "big": "4 a week", "text": "Mon, Wed, Thu, Fri: three organic posts and one ad launch every week, 20 items in five weeks. Open days take customer photos and reels as they come in. The account is in Meta's learning phase, so the feed stays steady rather than spiky." },
+    { "title": "The evidence", "text": "24 months of Meta history: ₹2.99 lakh spent, 594 purchases, 3.39x overall. Catalog ads optimised for purchase, shown to men 18 to 44, ran at 4 to 5x. The buyer is a man aged 18 to 44: 95% of purchases. Women-only ad sets never converted profitably." },
+    { "title": "What leads", "text": "Bestsellers first (Junglee, Black, City Slicker Black), then place-named caps and seasonal hooks (treks, open roads, desert), then Diwali gifting from 19 Oct with Buy 3 Get 1 Free as the only offer. No discount claims, no COD." },
+    { "title": "Tests", "text": "Each Thursday ad launch runs as a creative test inside the one managed campaign, promoting that week's post. Audience tests line up beside them: Top Cities 1 Oct, Lookalike 1 to 3% 8 Oct, Advantage+ Broad 15 Oct. At most one new test a week." }
+  ],
+  "performance": {
+    "channel": "Meta Ads",
+    "intro": "One managed campaign, ₹1,000 a day hard cap, budget at campaign level so Meta shifts spend to whichever ad set is converting. Target 4x return on ad spend, which means a cost per order of ₹350 or less at ₹1,399. Based on the live ad account: 24 months, ₹2.99 lakh spent, 594 purchases, 3.39x overall.",
+    "weeks": ["28 Sep", "5 Oct", "12 Oct", "19 Oct", "26 Oct"],
+    "campaigns": [
+      { "image": "https://www.travaholic.in/images/social/tv-01oct.jpg", "name": "Interests", "sub": "Streetwear + travel · Men 18 to 44", "audience": "Men 18 to 44, streetwear, baseball cap, hat and travel interests, India", "creative": "Catalog product ad; each Thursday's ad launch joins as a creative test",
+        "weekly": { "28 Sep": "share by Meta", "5 Oct": "share by Meta", "12 Oct": "share by Meta", "19 Oct": "share by Meta", "26 Oct": "share by Meta" },
+        "budget": "within cap", "expected": "4x target", "why": "The only ad set above 2x in the last 10 days before the reset (2.62x, 2.7% CTR), now narrowed to the buyer. Since 24 Sep: ₹796, 210 clicks, 2 orders." },
+      { "image": "https://www.travaholic.in/images/social/tv-12oct.jpg", "name": "UGC reel", "sub": "Melbourne beach reel · Men 18 to 44", "audience": "Men 18 to 44", "creative": "The page's best-engaged customer video as a Shop Now ad",
+        "weekly": { "28 Sep": "share by Meta", "5 Oct": "share by Meta", "12 Oct": { "label": "judge at ₹2,000", "soft": true } },
+        "budget": "within cap", "expected": "judged at ₹2,000 spent", "why": "First video ever tested on the account. Since 24 Sep: ₹423, 63 clicks, 0 orders; not judged before ₹2,000 of spend." },
+      { "image": "https://www.travaholic.in/images/social/tv-22oct.jpg", "name": "Retargeting", "sub": "Visitors 30d + IG engagers + carts · 18 to 54", "audience": "Site visitors 30 days, add-to-carts, Instagram engagers 365 days; purchasers excluded", "creative": "Catalog ad; the Diwali gifting ad from 22 Oct",
+        "weekly": { "28 Sep": "share by Meta", "5 Oct": "share by Meta", "12 Oct": "share by Meta", "19 Oct": "share by Meta", "26 Oct": "share by Meta" },
+        "budget": "within cap", "expected": "4x target", "why": "The account had no retargeting at all before 24 Sep. Since then: ₹1,125, 275 clicks, 32 carts, 1 order; the warmest audience for gifting week." },
+      { "name": "Test: Top Cities", "sub": "Past-buyer metros · Men 18 to 44", "audience": "Same interest stack, delivery limited to the 12 metros that gave ~70% of delivered orders", "creative": "Catalog product ad",
+        "weekly": { "28 Sep": { "label": "launch Thu 1 Oct", "soft": true } },
+        "budget": "within cap", "expected": "tests geo density vs national reach", "why": "1,000 past customers cluster in 12 metros; buyer-dense and courier-friendly, at higher CPMs." },
+      { "name": "Test: Lookalike 1 to 3%", "sub": "Seeded from past customers · Men 18 to 44", "audience": "1 to 3% lookalike of 1,800 past buyers, men 18 to 44", "creative": "Catalog product ad",
+        "weekly": { "5 Oct": { "label": "launch Thu 8 Oct", "soft": true } },
+        "budget": "within cap", "expected": "mirrors the 4.5 to 4.9x campaigns", "why": "Past buyers are the strongest signal the account has and were never used as a seed. Waiting on Travaholic to accept Meta's Custom Audience terms." },
+      { "name": "Test: Advantage+ Broad", "sub": "Meta expansion · Men 18 to 44", "audience": "Meta's own audience expansion, restricted to men 18 to 44", "creative": "Catalog product ad",
+        "weekly": { "12 Oct": { "label": "launch Thu 15 Oct", "soft": true } },
+        "budget": "within cap", "expected": "the usual next scale lever", "why": "Once the pixel has fresh purchase signal from the ad sets above." }
+    ],
+    "totals": { "label": "Budget per week (₹1,000 a day hard cap, moved between ad sets by Meta)", "weekly": { "28 Sep": 7000, "5 Oct": 7000, "12 Oct": 7000, "19 Oct": 7000, "26 Oct": 7000 }, "budget": 35000, "expected": "4x target", "why": "At ₹350 per order that is about 100 orders over five weeks. A target from the account's history, not a forecast." },
+    "boxes": [
+      { "title": "What this buys", "html": "<p style=\"margin:0 0 1mm\">Up to <b>₹35,000</b> of ad spend over five weeks, 28 Sep to 30 Oct, never more than ₹1,000 a day.</p><p style=\"margin:0\">At the 4x target that is <span class=\"big\">₹1.4 lakh</span> of ad-attributed sales, before organic, WhatsApp and repeat orders. Peak spend sits in gifting week, 19 to 29 Oct.</p>" },
+      { "title": "Rules the system runs by, automatically", "items": ["Nothing is judged before ₹2,000 of spend on an ad set.", "7-day return 5x or more (6+ orders): scale +20%, within the ₹1,000 cap.", "4 to 5x: hold, so learning is not reset.", "2 to 4x: cut that ad set's share and swap its creative.", "Under 2x: pause it and launch the next test. Budget moves at most once every 72 hours.", "The whole campaign pauses only if real site revenue ÷ ad spend is under 4x for a week.", "Checked every morning at 8am by DevShop Retail OS; every change is logged. Nothing goes live without Travaholic's written approval."] },
+      { "title": "For Travaholic to approve", "items": ["The 15 posts and captions on pages 1 and 2, and the 5 ad launches.", "The ₹1,000 a day cap and the 4x target.", "Accept Meta's Custom Audience terms, so the Lookalike test can launch on 8 Oct.", "Buy 3 Get 1 Free as the only Diwali offer; no discount claims, no COD.", "The Diwali order-by date to state on 26 Oct."] }
+    ],
+    "footRight": "Numbers are from the live Meta ad account and the site's order records; targets are labelled as targets"
+  }
+}

@@ -8,6 +8,7 @@ import { getDb, type SolutionNotes } from '../../../lib/db';
 import { getEnv } from '../../../lib/env';
 import { getOrigin } from '../../../lib/http';
 import { sendDemoDoneEmail } from '../../../lib/demo-email';
+import { isSingleEmailAddress, autoSendDecision } from '../../../lib/demo-send-guard';
 
 export const POST: APIRoute = async ({ request }) => {
   const env = getEnv();
@@ -37,6 +38,11 @@ export const POST: APIRoute = async ({ request }) => {
 
   if (!problem || !email) {
     return json({ error: 'problem and email are required' }, 400);
+  }
+  if (!isSingleEmailAddress(email)) {
+    // The demo email goes out from Virat's Gmail: exactly one plain address,
+    // nothing that could add recipients or headers.
+    return json({ error: 'Please enter one valid email address.' }, 400);
   }
   if (problem.length < 30) {
     // Mirrors the client-side wizard's minlength gate — a one-word or
@@ -206,30 +212,45 @@ export const POST: APIRoute = async ({ request }) => {
       // perfectly good demo_ready row with "failed" — if this fails, the row
       // simply stays at demo_ready and /devshop/api/approve remains a manual
       // retry path (its own gate is `status === 'demo_ready'`).
+      // Automatic send is capped (lib/demo-send-guard.ts). Held or failed demos
+      // stay at demo_ready for the admin "Approve & send" button, and the admin
+      // notice says what actually happened.
+      demoUrl = `${origin}/devshop/demo/${id}`;
+      let outcome: 'sent' | 'held' | 'failed' = 'failed';
+      let heldReason = '';
       try {
-        const row = await db.getById(id);
-        if (row) {
-          const sent = await sendDemoDoneEmail(row, origin, env);
-          await db.markSent(id);
-          await db.logTransition(id, 'demo_ready', 'sent', 'system', 'Auto-sent to client');
-          demoUrl = sent.demoUrl;
+        const since = new Date(Date.now() - 24 * 3600_000).toISOString();
+        const decision = autoSendDecision({
+          submissionsToAddress24h: await db.countSubmissionsToEmailSince(email, since),
+          autoSent24h: await db.countAutoSentSince(since),
+        });
+        if (!decision.send) {
+          outcome = 'held';
+          heldReason = decision.reason;
+        } else {
+          const row = await db.getById(id);
+          if (row) {
+            const sent = await sendDemoDoneEmail(row, origin, env);
+            await db.markSent(id, { approved: false });
+            await db.logTransition(id, 'demo_ready', 'sent', 'system', 'Auto-sent to client');
+            demoUrl = sent.demoUrl;
+            outcome = 'sent';
+          }
         }
       } catch (err) {
         console.error('intake: auto-send failed, leaving row at demo_ready for manual retry', err);
-        demoUrl = `${origin}/devshop/demo/${id}`;
       }
 
+      const who = escapeHtml(company || email);
+      const adminLink = `<p><a href="${origin}/devshop/admin/${id}">${outcome === 'sent' ? 'View' : 'Review and approve'} in admin →</a></p>`;
+      const notice =
+        outcome === 'sent'
+          ? { subject: `Demo sent to client${company ? ` — ${company}` : ''}`, html: `<p>The demo for <strong>${who}</strong> was generated and sent automatically.</p>${adminLink}` }
+          : outcome === 'held'
+            ? { subject: `Demo held for your approval${company ? ` — ${company}` : ''}`, html: `<p>The demo for <strong>${who}</strong> was generated but NOT sent: ${escapeHtml(heldReason)}.</p>${adminLink}` }
+            : { subject: `⚠ Demo email failed${company ? ` — ${company}` : ''}`, html: `<p>The demo for <strong>${who}</strong> was generated but the email did NOT go out.</p>${adminLink}` };
       waitUntil(
-        sendEmail(
-          {
-            to: env.ADMIN_NOTIFY_EMAIL,
-            subject: `Demo sent to client${company ? ` — ${company}` : ''}`,
-            html: `<p>The demo for <strong>${escapeHtml(
-              company || email
-            )}</strong> was generated and sent automatically.</p><p><a href="${origin}/devshop/admin/${id}">View in admin →</a></p>`,
-          },
-          env
-        ).catch((err) => console.error('intake: demo-sent notify failed', err))
+        sendEmail({ to: env.ADMIN_NOTIFY_EMAIL, ...notice }, env).catch((err) => console.error('intake: demo notify failed', err))
       );
     }
   } catch (err) {

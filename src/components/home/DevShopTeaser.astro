@@ -10,8 +10,8 @@ import devshopLogo from '../../assets/devshop-logo.png';
       <Image
         class="devshop-teaser__logo"
         src={devshopLogo}
-        width={devshopLogo.width}
-        height={devshopLogo.height}
+        width={960}
+        height={Math.round(960 * devshopLogo.height / devshopLogo.width)}
         alt="DevShop — built fast, for real businesses"
       />
     </a>

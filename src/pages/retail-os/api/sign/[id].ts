@@ -9,6 +9,8 @@ import { buildTermLines } from '../../../../lib/retail-os-terms';
 import { json, clientIp, readJson } from '../../../../lib/retail-os-http';
 import { renderRetailOsEmail } from '../../../../lib/retail-os-email';
 import { mailConfigured } from '../../../../lib/mail/send';
+import { syncLeadFromApplication } from '../../../../lib/lead-sync';
+import { subscribeBrandOnSign } from '../../../../lib/retail-os-daily-update';
 
 // The founder accepts their commercial terms by typing their full legal name.
 // The exact terms shown, the name, time, IP address and browser are frozen
@@ -54,7 +56,8 @@ export const POST: APIRoute = async ({ params, request }) => {
           preheader: 'Pay the ₹5,000 deposit to start your 7-day build.',
           eyebrow: 'Signed',
           heading: 'Next: the deposit',
-          lines: [`Thank you. Your terms were signed on ${when} IST as ${signedName}; a copy is below and on your page.`, 'Pay the ₹5,000 deposit on your page, fully adjusted against your tech costs. Your 7-day build starts once it is confirmed.'],
+          lines: [`Thank you. Your terms were signed on ${when} IST as ${signedName}; a copy is below and on your page.`, 'Pay the ₹5,000 deposit by scanning the code below with any UPI app, then enter the reference on your page. It is fully adjusted against your tech costs, and your 7-day build starts once it is confirmed.'],
+          bodyHtml: `<p style="margin:4px 0 14px;"><img src="https://www.viratmohan.com/retail-os/pay/deposit-qr.png" width="260" alt="DevShop Retail OS: scan to pay the ₹5,000 deposit" style="display:block;width:260px;max-width:100%;height:auto;border:1px solid #D9CDB4;"></p>`,
           cta: { label: 'Pay the deposit', url: trackUrl },
           rows: lines,
         }),
@@ -80,5 +83,8 @@ export const POST: APIRoute = async ({ params, request }) => {
     }
   }
 
+  syncLeadFromApplication(db.client, app, 'signed').catch(() => {});
+  // From the day they sign, the founder gets the daily update (idempotent; first sign wins).
+  subscribeBrandOnSign(env, app.brand_name, app.founder_email).catch((err) => console.error('founder-update auto-subscribe failed', err));
   return json({ ok: true }, 200);
 };

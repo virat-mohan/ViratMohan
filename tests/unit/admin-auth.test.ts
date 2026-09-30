@@ -16,6 +16,12 @@ describe('isProtectedPath', () => {
     expect(isProtectedPath('/devshop/api/delete-submission')).toBe(true);
   });
 
+  it('protects the demo approve-and-send route (it emails client content)', () => {
+    expect(isProtectedPath('/devshop/api/approve')).toBe(true);
+    // What the middleware does with an anonymous request to it: 401, before the route runs.
+    expect(checkAdminAuth(null, 'secret')).toEqual({ ok: false, status: 401 });
+  });
+
   it('does not protect public intake/demo/tracker routes', () => {
     expect(isProtectedPath('/devshop')).toBe(false);
     expect(isProtectedPath('/devshop/api/intake')).toBe(false);
@@ -41,6 +47,13 @@ describe('checkAdminAuth', () => {
   it('rejects a wrong password (401)', () => {
     const result = checkAdminAuth('Basic ' + btoa('admin:wrong-password'), 'correct-password');
     expect(result).toEqual({ ok: false, status: 401 });
+  });
+
+  it('rejects an equal-length wrong header (timing-safe path, 401)', () => {
+    const right = 'Basic ' + btoa('admin:correct-password');
+    const wrong = 'Basic ' + btoa('admin:correct-passworX'); // same decoded length
+    expect(wrong.length).toBe(right.length);
+    expect(checkAdminAuth(wrong, 'correct-password')).toEqual({ ok: false, status: 401 });
   });
 
   it('accepts the correct password', () => {

@@ -12,6 +12,9 @@ import { gmailThreadUrl, type ApprovalNotice } from './notice';
 import type { LeadStore } from './store';
 import { signToken, verifyToken } from './token';
 import { questionIn } from '../knowledge-loop';
+import { stageAfterSent } from '../lead-journey';
+import type { LeadMessageRow } from './store';
+import type { LeadStage } from './core';
 
 export const DEFAULT_QUERY = 'newer_than:2d -in:drafts -in:chats -in:spam -in:trash';
 
@@ -220,14 +223,32 @@ export async function peekApproval(store: LeadStore, token: string, secret: stri
 }
 
 /** Approve & send: verify, use the token once, send the Gmail draft, move the lead on. */
-export async function approve(d: { store: LeadStore; gmail: GmailApi; secret: string; now: Date }, token: string): Promise<ApproveResult> {
+const NEXT_STEP: Record<string, string> = { nda_request: 'They sign the NDA online', nda_reminder: 'They sign the NDA online', access_request: 'They connect their data', access_reminder: 'They connect their data', plan_cover: 'They read the plan; book the call' };
+
+export async function approve(d: { store: LeadStore; gmail: GmailApi; secret: string; now: Date; mailbox?: string; onSent?: (msg: LeadMessageRow) => Promise<void> }, token: string): Promise<ApproveResult> {
+  d.mailbox = d.mailbox ?? '';
   const v = verifyToken(token, d.secret, d.now.getTime());
   if (!v.ok) return { ok: false, status: v.reason === 'expired' ? 410 : 400, reason: v.reason };
   const msg = await d.store.getMessage(v.payload.m);
-  if (!msg || !msg.gmail_draft_id) return { ok: false, status: 404, reason: 'not_found' };
+  if (!msg) return { ok: false, status: 404, reason: 'not_found' };
   if (msg.status !== 'awaiting_approval') return { ok: false, status: 409, reason: 'already_handled' };
   if (!(await d.store.consumeToken(v.payload.n, d.now))) return { ok: false, status: 409, reason: 'already_used' };
   try {
+    if (!msg.gmail_draft_id) {
+      // A journey email parked by lead-approve.ts (NDA, access, plan): send it fresh from Gmail.
+      const lead = (await d.store.leads()).find((l) => l.id === msg.lead_id);
+      if (!lead?.contact_email) throw new Error('lead has no email address');
+      const text = cleanTextLinks(`${msg.body}\n\n-- \n${signatureText(d.mailbox)}`);
+      const raw = b64url(buildMime({ from: viratFromHeader(d.mailbox), to: lead.contact_email, subject: msg.subject ?? 'From Virat', text }));
+      const sent = await d.gmail.sendRaw(raw);
+      const stage = stageAfterSent(msg.purpose, lead.stage);
+      await d.store.updateMessage(msg.id, { status: 'sent', gmail_message_id: sent.id, gmail_thread_id: sent.threadId, at: d.now.toISOString() });
+      const stamp: Record<string, unknown> = msg.purpose === 'nda_request' ? { nda_sent_at: d.now.toISOString() } : msg.purpose === 'nda_reminder' ? { nda_reminded_at: d.now.toISOString() } : {};
+      const nextStep = NEXT_STEP[msg.purpose ?? ''] ?? 'Reply and agree the next step';
+      await d.store.updateLead(msg.lead_id, { stage: stage as LeadStage, next_step: nextStep, next_step_due: dueDate(d.now, 3), ...stamp } as Partial<Lead>);
+      await d.onSent?.(msg);
+      return { ok: true, leadId: msg.lead_id, stage, nextStep };
+    }
     const sent = await d.gmail.sendDraft(msg.gmail_draft_id);
     const plan = (msg.meta?.plan as StagePlan | undefined) ?? nextStage('contacted', (msg.meta?.intent as Intent) ?? 'general');
     await markSent(d.store, msg.id, sent.id, msg.lead_id, plan, d.now);

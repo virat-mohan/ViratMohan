@@ -1,8 +1,10 @@
 ---
+// Retail OS leads on desktop — Dev Shop is already the first thing on the homepage, so it isn't
+// repeated here. Dev Shop stays in the mobile menu (mobileOnly) but never on the first row; Retail
+// OS is alone on that row (full: true). ClarityHQ is off the nav entirely, on both breakpoints.
 const links = [
-  { href: '/devshop', label: 'Dev Shop', c: 'var(--gold)' },
-  { href: '/retail-os/', label: 'Retail OS', c: 'var(--bronze)' },
-  { href: '/clarityhq', label: 'ClarityHQ', c: 'var(--magenta)' },
+  { href: '/retail-os/', label: 'Retail OS', c: 'var(--bronze)', full: true },
+  { href: '/devshop', label: 'Dev Shop', c: 'var(--gold)', mobileOnly: true },
   { href: '/advisory', label: 'Advisory', c: 'var(--cobalt)' },
   { href: '/writing', label: 'My Writing', c: 'var(--terracotta)' },
   { href: '/mission', label: 'Mission', c: 'var(--ink)' },
@@ -17,10 +19,10 @@ const here = Astro.url.pathname.replace(/\/$/, '') || '/';
       <ul class="nav__list">
         {
           links.map((l) => (
-            <li>
+            <li class:list={[l.mobileOnly && 'nav__item--mobile-only']}>
               <a
                 href={l.href}
-                class="nav__link"
+                class:list={['nav__link', l.full && 'nav__link--full']}
                 style={`--c: ${l.c}`}
                 aria-current={here === l.href ? 'page' : undefined}
               >
@@ -89,6 +91,9 @@ const here = Astro.url.pathname.replace(/\/$/, '') || '/';
   .nav__link[aria-current='page'] {
     border-bottom-color: var(--c);
   }
+  .nav__item--mobile-only {
+    display: none;
+  }
   .nav__bar {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -125,6 +130,15 @@ const here = Astro.url.pathname.replace(/\/$/, '') || '/';
     }
     .nav__link {
       font-size: 1rem;
+    }
+    .nav__item--mobile-only {
+      display: list-item;
+    }
+    .nav__list li:has(.nav__link--full) {
+      flex: 1 0 100%;
+      display: flex;
+      justify-content: center;
+      order: -1;
     }
   }
 </style>

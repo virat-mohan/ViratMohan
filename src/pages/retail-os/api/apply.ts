@@ -188,6 +188,7 @@ export const POST: APIRoute = async ({ request }) => {
       ).catch((err) => console.error('retail-os apply founder confirmation email failed', err));
     }
 
+    syncLeadFromApplication(db.client, { id, brand_name: brandName, founder_name: founderName, founder_email: founderEmail, founder_phone: str(body.founderPhone), handle: str(body.handle), shopify_url: str(body.shopifyUrl), category: str(body.category) }, 'applied').catch(() => {});
     return json({ id }, 201);
   } catch (err) {
     console.error('retail-os apply insert failed', err);

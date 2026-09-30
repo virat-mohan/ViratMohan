@@ -3,7 +3,7 @@
 // The purpose is part of the signature, so an access link can never open a plan and vice versa.
 import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 
-export type TokenPurpose = 'access' | 'plan';
+export type TokenPurpose = 'access' | 'plan' | 'nda';
 const MIN_SECRET = 32;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

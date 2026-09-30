@@ -30,6 +30,8 @@ export const POST: APIRoute = async ({ request }) => {
   await db.submitDeposit(id, { amountInr: DEPOSIT_INR, utr: reference, submittedAt: now, confirmedAt: null });
   const confirmed = await db.confirmDeposit(id);
   if (!confirmed) return json({ error: 'Could not confirm the deposit. Try again.' }, 500);
+  syncLeadFromApplication(db.client, confirmed, 'deposit_paid').catch(() => {});
+  // Build tasks are NOT assigned automatically: Virat assigns them from the founder console (Assign build tasks).
 
   const start = new Date(confirmed.build_started_at ?? Date.now());
   const target = new Date(start.getTime() + BUILD_WINDOW_DAYS * 86400000);

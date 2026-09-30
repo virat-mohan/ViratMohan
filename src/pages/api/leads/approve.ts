@@ -9,6 +9,7 @@ import { liveGmail } from '../../../lib/mail/send';
 import { SupabaseLeadStore } from '../../../lib/lead-mail/store';
 import { approve, peekApproval } from '../../../lib/lead-mail/run';
 import { gmailThreadUrl } from '../../../lib/lead-mail/notice';
+import { onLeadMessageSent } from '../../../lib/lead-approval';
 
 // Approve & send. GET only shows the draft (mail scanners open links; they must
 // never send anything). The button POSTs, which uses the signed token once.
@@ -41,7 +42,8 @@ export const POST: APIRoute = async ({ request }) => {
   const t = String(form?.get('t') ?? '');
   const gmail = await liveGmail(env);
   if (!gmail) return calmPage({ title: 'Approve reply', heading: 'Gmail is not connected', body: '<p>Connect Gmail first, then use the link again.</p>', status: 503 });
-  const r = await approve({ store: new SupabaseLeadStore(serviceDb(env)), gmail, secret: env.LEAD_APPROVAL_SECRET, now: new Date() }, t);
+  const sb = serviceDb(env);
+  const r = await approve({ store: new SupabaseLeadStore(sb), gmail, secret: env.LEAD_APPROVAL_SECRET, now: new Date(), mailbox: env.GMAIL_ADDRESS, onSent: (m) => onLeadMessageSent(sb as any, m) }, t);
   if (!r.ok) return calmPage({ title: 'Approve reply', heading: r.status === 502 ? 'Gmail did not send it' : 'Nothing to send', body: `<p>${escapeHtml(REASONS[r.reason] ?? 'Gmail returned an error. The link still works, so try again in a minute.')}</p>`, status: r.status });
   return calmPage({ title: 'Sent', eyebrow: 'Sent', heading: 'On its way', body: `<p>Sent from your Gmail. Next step: ${escapeHtml(r.nextStep)}.</p><p><a class="quiet" href="/retail-os/admin/leads">See all leads</a></p>` });
 };

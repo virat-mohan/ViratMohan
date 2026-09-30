@@ -1,13 +1,14 @@
 export const prerender = false;
 
 import type { APIRoute } from 'astro';
+import { withCronAlert } from '../../../lib/cron-alert';
 import { getEnv } from '../../../lib/env';
 import { serviceDb } from '../../../lib/ledger';
 import { flushOutbox } from '../../../lib/notify';
 import { json } from '../../../lib/retail-os-http';
 
 // Sends messages that waited for decent hours (9am–8pm IST, Mon–Sat).
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = withCronAlert('outbox', async ({ request }) => {
   const env = getEnv();
   if (!env.CRON_SECRET || request.headers.get('authorization') !== `Bearer ${env.CRON_SECRET}`) return json({ error: 'Unauthorized' }, 401);
   try {
@@ -16,4 +17,4 @@ export const GET: APIRoute = async ({ request }) => {
     console.error('outbox flush failed', err);
     return json({ error: 'Outbox flush failed' }, 500);
   }
-};
+});

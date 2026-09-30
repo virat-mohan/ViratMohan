@@ -1,6 +1,7 @@
 export const prerender = false;
 
 import type { APIRoute } from 'astro';
+import { withCronAlert } from '../../../lib/cron-alert';
 import { getEnv } from '../../../lib/env';
 import { getOrigin } from '../../../lib/http';
 import { json } from '../../../lib/retail-os-http';
@@ -10,7 +11,7 @@ import { liveRunDeps } from '../../../lib/lead-mail/live';
 import { SupabaseLeadStore } from '../../../lib/lead-mail/store';
 
 // Every 10 minutes: read new mail in Virat's inbox, log lead messages, draft replies for approval.
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = withCronAlert('lead-mail', async ({ request }) => {
   const env = getEnv();
   if (!env.CRON_SECRET || request.headers.get('authorization') !== `Bearer ${env.CRON_SECRET}`) return json({ error: 'Unauthorized' }, 401);
   const now = new Date();
@@ -24,4 +25,4 @@ export const GET: APIRoute = async ({ request }) => {
     console.error('lead-mail run failed', err);
     return json({ error: 'Lead mail run failed' }, 500);
   }
-};
+}, { failureIn: (b) => (b && typeof b === 'object' && 'skipped' in b ? `skipped: ${String((b as { skipped: unknown }).skipped)}` : null) });

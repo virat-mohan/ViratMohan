@@ -1,6 +1,7 @@
 export const prerender = false;
 
 import type { APIRoute } from 'astro';
+import { withCronAlert } from '../../../lib/cron-alert';
 import { getEnv } from '../../../lib/env';
 import { runSettlement } from '../../../lib/settle-run';
 import { json } from '../../../lib/retail-os-http';
@@ -8,7 +9,7 @@ import { json } from '../../../lib/retail-os-http';
 // Vercel Cron, Monday 06:30 UTC (12:00 IST): every brand's statement and money
 // before 1 PM IST. Idempotent: re-running the same Monday never pays twice.
 // PAYOUTS_ENABLED defaults to false (dry run: Virat gets a "would pay" email).
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = withCronAlert('settle', async ({ request }) => {
   const env = getEnv();
   if (!env.CRON_SECRET || request.headers.get('authorization') !== `Bearer ${env.CRON_SECRET}`) return json({ error: 'Unauthorized' }, 401);
   if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) return json({ error: 'Database is not configured' }, 503);
@@ -21,4 +22,4 @@ export const GET: APIRoute = async ({ request }) => {
     console.error('settlement run failed', err);
     return json({ error: 'Settlement run failed' }, 500);
   }
-};
+});
