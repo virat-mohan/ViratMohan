@@ -35,6 +35,11 @@ function inr(n: number) {
 }
 const fmtDate = (d: Date) => d.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Kolkata' });
 
+// The forecast is a first estimate Virat hasn't stood behind yet, so the brand sees it
+// only once the deposit is confirmed. ?edit=1 is not authenticated, so it does not unlock it.
+const showForecast = !!app?.deposit?.confirmedAt;
+// A brand with its own store keeps its look; design directions are only suggestions.
+const designOptional = app?.brand_status === 'existing';
 const design = designs[0] ?? null;
 const chosenDesign = designs.find((x) => x.chosen) ?? null;
 const step: JourneyStep | null = app ? journeyStep(app, !!plan, !!design) : null;
@@ -66,7 +71,7 @@ const waLink = waDigits && app
 
 const JOURNEY: { key: string; label: string }[] = [
   { key: 'applied', label: 'Applied' },
-  { key: 'plan', label: 'Forecast & design' },
+  { key: 'plan', label: 'Design' },
   { key: 'terms', label: 'Sign terms' },
   { key: 'deposit', label: 'Deposit' },
   { key: 'build', label: `${BUILD_WINDOW_DAYS}-day build` },
@@ -84,8 +89,8 @@ const dayDate = (n: number) => new Date(clockStart.getTime() + n * 86400000).toL
 type CkItem = { key: string; label: string; day: [number, number]; owner: 'DevShop' | 'You' | 'Together'; status: 'done' | 'pending' | 'skipped'; we: string; you: string; detail?: 'application' | 'plan' | 'design' | 'terms' | 'deposit' | 'setup' };
 const checklist: CkItem[] = app ? [
   { key: 'submitted', label: 'Application', day: [0, 0], owner: 'You', status: 'done', we: 'Read your answers and research your category and cities.', you: 'Tell me about the brand, catalog, payments and shipping.', detail: 'application' },
-  { key: 'plan', label: 'Business plan & forecast', day: [0, 0], owner: 'Together', status: plan ? 'done' : 'pending', we: `Build a 3-month P&L on DevShop's strategy: product ≤25%, marketing ≤25%, admin and all other costs ≤10% of revenue.`, you: 'Go through the assumptions with Virat and agree the numbers.', detail: 'plan' },
-  { key: 'design', label: 'Design direction', day: [0, 0], owner: 'You', status: chosenDesign || stageStatus('design') === 'done' ? 'done' : 'pending', we: 'Propose three directions, each based on a real brand that works.', you: 'Pick the one that feels most like your brand.', detail: 'design' },
+  { key: 'plan', label: 'Business plan', day: [0, 0], owner: 'Together', status: plan ? 'done' : 'pending', we: `Build a 3-month P&L on DevShop's strategy: product ≤25%, marketing ≤25%, admin and all other costs ≤10% of revenue.`, you: 'Go through the assumptions with Virat and agree the numbers.', detail: 'plan' },
+  { key: 'design', label: 'Design direction', day: [0, 0], owner: 'You', status: chosenDesign || stageStatus('design') === 'done' ? 'done' : designOptional ? 'skipped' : 'pending', we: 'Propose three directions, each based on a real brand that works.', you: designOptional ? 'Optional: keep your current look, or pick one if you want a refresh.' : 'Pick the one that feels most like your brand.', detail: 'design' },
   { key: 'agreement', label: 'Terms signed', day: [0, 0], owner: 'Together', status: app.agreement ? 'done' : 'pending', we: 'Send your terms with the agreed lane and split.', you: 'Read, type your name, tick both boxes and sign.', detail: 'terms' },
   { key: 'deposit', label: 'Deposit ₹5,000', day: [0, 0], owner: 'You', status: app.deposit?.confirmedAt ? 'done' : 'pending', we: 'Confirm it; the build starts the same moment.', you: 'Pay by UPI.', detail: 'deposit' },
   { key: 'setup', label: 'Setup questions', day: [1, 1], owner: 'You', status: sections.length > 0 && answeredCount === sections.length ? 'done' : 'pending', we: 'Use the answers to configure everything below.', you: 'Answer each section on this page.', detail: 'setup' },
@@ -339,20 +344,20 @@ const planWhy = d ? ([
       {/* ── The one thing to do now ── */}
       {step === 'preparing' && (
         <div class="next" id="prepCard">
-          <h2>{prepFailed ? 'Your forecast is being finished by hand' : 'Preparing your forecast and design direction'}</h2>
+          <h2>{prepFailed ? 'Your design direction is being finished by hand' : 'Preparing your design direction'}</h2>
           {prepFailed ? (
             <p>Part of the research needs a closer look, so Virat is completing it himself. You'll get an email when it's on this page.</p>
           ) : (
             <>
               <p><span class="pulse"></span><span id="prepMsg">Researching your category, competitors and target cities. This takes about 2–3 minutes; keep this page open.</span></p>
-              <p>You'll see a provisional quarterly P&amp;L for your brand and a proposed look for your store, before anything is signed.</p>
+              <p>You'll see a proposed look for your store before anything is signed. Your forecast follows once your build starts.</p>
             </>
           )}
         </div>
       )}
       {step === 'review' && (
         <div class="next">
-          <h2>Your forecast and design direction are ready</h2>
+          <h2>Your design direction is ready</h2>
           <p>Have a look below. Next, Virat walks you through the plan and sends your terms to this page for signature, usually within the week.</p>
           <a class="btn light" href={`mailto:founder@viratmohan.com?subject=${encodeURIComponent(`Retail OS: ${app.brand_name}`)}`}>Talk it through with Virat →</a>
         </div>
@@ -520,7 +525,7 @@ const planWhy = d ? ([
       )}
 
       {/* ── Forecast ── */}
-      {plan && (
+      {plan && showForecast && (
         <div class="panel" id="forecast">
           <h2>Quarterly forecast <span class="tag">Provisional</span></h2>
           <div class="forecast-grid">
@@ -552,12 +557,13 @@ const planWhy = d ? ([
       {/* ── Design directions: the brand chooses one ── */}
       {design && (
         <div class="panel" id="design">
-          <h2>{designs.length > 1 ? 'Design directions' : 'Design direction'} {chosenDesign ? <span class="tag ok">Chosen</span> : designs.length > 1 ? <span class="tag">Choose one</span> : <span class="tag">Proposed</span>}</h2>
+          <h2>{designOptional ? 'Design ideas' : designs.length > 1 ? 'Design directions' : 'Design direction'} {designOptional && !chosenDesign ? <span class="tag">Optional</span> : chosenDesign ? <span class="tag ok">Chosen</span> : designs.length > 1 ? <span class="tag">Choose one</span> : <span class="tag">Proposed</span>}</h2>
           <p class="note" style="margin-top:0;">
+            {designOptional && 'Your current look stays as it is. These are suggestions only, if you ever want a refresh. '}
             {design.has_existing_site
               ? 'Built from your existing look, and two bolder alternatives. Each is based on a real, successful brand in or near your category.'
               : 'Each starts from a real, successful brand in or near your category that is worth building on.'}
-            {designs.length > 1 && !chosenDesign && ' Pick the one that feels most like your brand; I refine it with you during the build.'}
+            {designs.length > 1 && !chosenDesign && !designOptional && ' Pick the one that feels most like your brand; I refine it with you during the build.'}
           </p>
           {designs.map((o, i) => {
             const isChosen = o.chosen;
@@ -675,7 +681,7 @@ const planWhy = d ? ([
                   </form>
                 )}
 
-                {c.detail === 'plan' && plan && (
+                {c.detail === 'plan' && plan && showForecast && (
                   <>
                     <table class="terms">
                       <tr><td>Orders per day</td><td>{perDay(plan.drivers.ordersM1)} · {perDay(plan.drivers.ordersM2)} · {perDay(plan.drivers.ordersM3)}<div class="pnote">Months 1–3; that's {plan.drivers.ordersM1.toLocaleString('en-IN')} · {plan.drivers.ordersM2.toLocaleString('en-IN')} · {plan.drivers.ordersM3.toLocaleString('en-IN')} orders a month (30-day months).</div></td></tr>
@@ -804,7 +810,7 @@ const planWhy = d ? ([
       var st = res.data && res.data.status;
       if (st === 'ready' || st === 'partial' || st === 'failed') return location.reload();
       if (st === 'queued' && prepMsg) prepMsg.textContent = "I'm preparing several brands right now. Yours starts shortly; keep this page open or come back in a few minutes.";
-      if (st === 'unavailable' && prepMsg) prepMsg.textContent = 'Your forecast is being prepared by hand and will appear here soon.';
+      if (st === 'unavailable' && prepMsg) prepMsg.textContent = 'Your design direction is being prepared by hand and will appear here soon.';
       setTimeout(poll, st === 'queued' ? 60000 : 15000);
     }).catch(function () { setTimeout(poll, 20000); });
   }

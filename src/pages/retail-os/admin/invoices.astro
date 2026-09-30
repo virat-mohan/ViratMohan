@@ -1,0 +1,184 @@
+---
+export const prerender = false;
+import { getEnv } from '../../../lib/env';
+import { serviceDb } from '../../../lib/ledger';
+import { brandsDb, type Brand } from '../../../lib/brands';
+import { getSettings, listInvoices, SETTINGS_FIELDS, type InvoiceRow } from '../../../lib/invoice-db';
+import { BASIS_LABEL, inr, missingFields, type Settings } from '../../../lib/invoice';
+
+// DevShop invoices (gated by src/middleware.ts). Pick a brand and a basis; the form fills what
+// the system knows, fetches sales or the profit pool for % lines, and lists anything missing
+// before it will issue. Bank details and PAN live in Invoice settings (database), never in code.
+const env = getEnv();
+const sb = serviceDb(env) as never;
+let settings = {} as Settings, invoices: InvoiceRow[] = [], brands: Brand[] = [], loadError = '';
+try { [settings, invoices, brands] = await Promise.all([getSettings(sb), listInvoices(sb), brandsDb(env).list()]); } catch (e) { loadError = e instanceof Error ? e.message : String(e); }
+const settingsMissing = missingFields(settings, { billTo: { company: 'x', address: 'x' }, issueDate: '2026-01-01', lines: [{ basis: 'deposit' }] });
+const lastBillTo: Record<string, unknown> = {};
+for (const i of [...invoices].reverse()) if (i.brand_id) lastBillTo[i.brand_id] = i.bill_to;
+const brandData = brands.map((b) => ({ id: b.id, name: b.name, model: b.model, pct: b.devshop_pct, retainer: b.retainer_inr, contact: b.contacts[0] ?? null, billTo: lastBillTo[b.id] ?? null }));
+const LABELS: Record<string, string> = { issuer_name: 'Issuer name', address: 'Address', email: 'Email', phone: 'Phone', pan: 'PAN', gstin: 'GSTIN (blank if not registered)', gst_rate: 'GST rate %', bank_name: 'Bank', account_name: 'Account name', account_no: 'Account number', ifsc: 'IFSC', account_type: 'Account type', upi_id: 'UPI ID (optional)', payment_terms_days: 'Payment terms (days)', footer_note: 'Footer note (optional)' };
+const today = new Date(Date.now() + 5.5 * 3600_000).toISOString().slice(0, 10);
+const day = (ymd: string) => new Date(`${ymd}T00:00:00Z`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+const outstanding = invoices.filter((i) => i.status === 'issued').reduce((t, i) => t + Number(i.total), 0);
+---
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invoices</title><meta name="robots" content="noindex">
+<link rel="stylesheet" href="/brand/tokens.css">
+<style>
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.6 var(--sans);-webkit-font-smoothing:antialiased;}
+.wrap{max-width:980px;margin:0 auto;padding:48px 16px 96px;}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none;margin:0 0 14px;}.logo img{height:34px;width:auto;display:block;}.logo i{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--dim);}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(2.2rem,6vw,3rem);line-height:1.05;margin:0 0 8px;} h2{font-family:var(--serif);font-weight:400;font-size:1.5rem;margin:0 0 12px;}
+.sub{color:var(--dim);margin:0 0 26px;} .sub a{color:var(--ink);}
+section{border:1px solid var(--line);border-radius:16px;padding:20px;margin:0 0 22px;background:rgba(255,255,255,.4);}
+label{display:block;font:600 12px/1.3 var(--sans);color:var(--dim);margin:0 0 4px;}
+input,select,textarea{width:100%;box-sizing:border-box;font:14px/1.4 var(--sans);padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);} textarea{min-height:60px;}
+.grid{display:grid;grid-template-columns:1fr;gap:12px;} @media(min-width:680px){.grid{grid-template-columns:1fr 1fr;} .grid.three{grid-template-columns:1fr 1fr 1fr;} .full{grid-column:1/-1;}}
+.btn{font:600 14px var(--sans);padding:10px 18px;border-radius:999px;border:1px solid var(--ink);background:var(--ink);color:var(--paper);cursor:pointer;} .btn.ghost{background:transparent;color:var(--ink);} .btn.small{padding:6px 12px;font-size:12px;}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px;} .msg{font-size:13px;color:var(--terracotta);} .ok{color:var(--sage,#2B8C86);}
+.warn{border-color:var(--terracotta);} .warn h2{color:var(--terracotta);}
+.line{display:grid;grid-template-columns:1fr;gap:8px;border-top:1px solid var(--line);padding:12px 0;} @media(min-width:680px){.line{grid-template-columns:1.1fr 1.6fr .8fr .6fr .9fr auto;align-items:end;}}
+.hint{font-size:12px;color:var(--dim);grid-column:1/-1;}
+.missing{margin:10px 0 0;padding-left:18px;color:var(--terracotta);font-size:14px;}
+.preview{margin-top:12px;font-size:14px;} .preview b{font-family:var(--serif);font-size:1.3rem;font-weight:400;}
+table{width:100%;border-collapse:collapse;font-size:13.5px;} th,td{padding:8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;} th{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);} td.num{text-align:right;white-space:nowrap;}
+.chip{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border:1px solid var(--line);border-radius:999px;} .chip.paid{border-color:var(--sage,#2B8C86);color:var(--sage,#2B8C86);} .chip.void{color:var(--dim);}
+.scroll{overflow-x:auto;} details summary{cursor:pointer;}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <a class="logo" href="/founder" aria-label="DevShop Retail OS"><img src="/retail-os/email/devshop-logo.png" alt="DevShop" width="140" height="54" /><i>Retail OS™</i></a>
+  <h1>Invoices</h1>
+  <p class="sub">{invoices.length} issued · {inr(outstanding)} outstanding. Each invoice has its own link to share or save as PDF. <a href="/founder">Founder console</a></p>
+  {loadError && <p class="msg">Could not load: {loadError}</p>}
+
+  <section class={settingsMissing.length ? 'warn' : ''}>
+    <details open={settingsMissing.length > 0}>
+      <summary><h2 style="display:inline">Invoice settings</h2> <span class="sub" style="margin:0">{settingsMissing.length ? `· ${settingsMissing.length} to fill before the first invoice` : '· complete'}</span></summary>
+      <p class="sub" style="margin:10px 0 14px;">What prints on every invoice. Stored privately in the database, not in the code. {settingsMissing.length > 0 && <>Still needed: {settingsMissing.map((m) => m.replace(' (Invoice settings)', '')).join(', ')}.</>}</p>
+      <form id="settingsForm" class="grid" autocomplete="off">
+        {SETTINGS_FIELDS.map((k) => (
+          <div class={k === 'address' || k === 'footer_note' ? 'full' : ''}><label for={`s-${k}`}>{LABELS[k]}</label>
+            {k === 'address' || k === 'footer_note' ? <textarea id={`s-${k}`} name={k}>{(settings as any)[k] ?? ''}</textarea> : <input id={`s-${k}`} name={k} value={(settings as any)[k] ?? ''} />}
+          </div>
+        ))}
+        <div class="full row"><button class="btn" type="submit">Save settings</button><span class="msg" id="settingsMsg"></span></div>
+      </form>
+    </details>
+  </section>
+
+  <section>
+    <h2>New invoice</h2>
+    <form id="invForm" autocomplete="off">
+      <div class="grid three">
+        <div><label for="brand">Brand</label><select id="brand"><option value="">Not a brand (enter below)</option>{brands.map((b) => <option value={b.id}>{b.name}</option>)}</select></div>
+        <div><label for="issueDate">Invoice date</label><input id="issueDate" type="date" value={today} /></div>
+        <div><label>Quick period</label><div class="row" style="margin:0"><button type="button" class="btn ghost small" data-p="last">Last month</button><button type="button" class="btn ghost small" data-p="this">This month</button><button type="button" class="btn ghost small" data-p="none">None</button></div></div>
+        <div><label for="periodStart">Period from</label><input id="periodStart" type="date" /></div>
+        <div><label for="periodEnd">Period to</label><input id="periodEnd" type="date" /></div>
+        <div></div>
+        <div><label for="company">Bill to: company</label><input id="company" /></div>
+        <div><label for="name">Bill to: person</label><input id="name" /></div>
+        <div><label for="email">Bill to: email</label><input id="email" type="email" /></div>
+        <div class="full"><label for="address">Bill to: billing address</label><textarea id="address"></textarea></div>
+        <div><label for="gstin">Client GSTIN (optional)</label><input id="gstin" /></div>
+      </div>
+      <h2 style="font-size:1.15rem;margin:18px 0 0;">Particulars</h2>
+      <div id="lines"></div>
+      <div class="row"><button type="button" class="btn ghost small" id="addLine">+ Add a line</button></div>
+      <div><label for="notes" style="margin-top:14px;">Note on the invoice (optional)</label><textarea id="notes"></textarea></div>
+      <div class="row"><button type="button" class="btn ghost" id="check">Check</button><button type="submit" class="btn">Issue invoice</button><span class="msg" id="invMsg"></span></div>
+      <ul class="missing" id="missing"></ul>
+      <div class="preview" id="preview"></div>
+    </form>
+  </section>
+
+  <section>
+    <h2>Issued</h2>
+    {invoices.length === 0 ? <p class="sub" style="margin:0">None yet.</p> : (
+      <div class="scroll"><table>
+        <tr><th>Number</th><th>Billed to</th><th>Date</th><th>Due</th><th class="num">Total</th><th>Status</th><th></th></tr>
+        {invoices.map((i) => <tr data-id={i.id}><td><a href={`/retail-os/invoice/${i.token}`} target="_blank">{i.number}</a></td><td>{i.bill_to.company || i.bill_to.name}</td><td>{day(i.issue_date)}</td><td>{day(i.due_date)}</td><td class="num">{inr(Number(i.total))}</td><td><span class={`chip ${i.status}`}>{i.status}</span></td><td>{i.status === 'issued' && <><button class="btn ghost small act" data-act="paid">Mark paid</button> <button class="btn ghost small act" data-act="void">Void</button></>}</td></tr>)}
+      </table></div>
+    )}
+  </section>
+</main>
+<script define:vars={{ brandData, BASIS_LABEL }}>
+  const $ = (id) => document.getElementById(id);
+  const post = async (body) => { const r = await fetch('/retail-os/api/admin/invoices', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }); const j = await r.json().catch(() => ({})); if (!r.ok && !j.missing) throw new Error(j.error || 'Failed'); return j; };
+  const lines = $('lines');
+  const lineHtml = (l = {}) => `<div class="line">
+    <div><label>Basis</label><select data-f="basis">${Object.entries(BASIS_LABEL).map(([k, v]) => `<option value="${k}" ${l.basis === k ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
+    <div><label>Description (optional for most)</label><input data-f="description" value="${(l.description || '').replace(/"/g, '&quot;')}"></div>
+    <div><label>Amount ₹</label><input data-f="amount" type="number" step="0.01" min="0" value="${l.amount ?? ''}"></div>
+    <div><label>%</label><input data-f="pct" type="number" step="0.01" min="0" value="${l.pct ?? ''}"></div>
+    <div><label>Charged on ₹ <button type="button" class="btn ghost small fetch" title="Fetch from the store or settlements">fetch</button></label><input data-f="base" type="number" step="0.01" min="0" value="${l.base ?? ''}"></div>
+    <div><button type="button" class="btn ghost small rm">×</button></div>
+    <div class="hint"></div></div>`;
+  const addLine = (l) => { lines.insertAdjacentHTML('beforeend', lineHtml(l)); };
+  addLine({ basis: 'retainer' });
+  $('addLine').onclick = () => addLine({ basis: 'fixed' });
+  const ymd = (d) => d.toISOString().slice(0, 10);
+  document.querySelectorAll('[data-p]').forEach((b) => b.onclick = () => {
+    const t = new Date(); const y = t.getUTCFullYear(), m = t.getUTCMonth();
+    if (b.dataset.p === 'none') { $('periodStart').value = ''; $('periodEnd').value = ''; return; }
+    const off = b.dataset.p === 'last' ? -1 : 0;
+    $('periodStart').value = ymd(new Date(Date.UTC(y, m + off, 1))); $('periodEnd').value = ymd(new Date(Date.UTC(y, m + off + 1, 0)));
+  });
+  $('brand').onchange = () => {
+    const b = brandData.find((x) => x.id === $('brand').value); if (!b) return;
+    const bt = b.billTo || {}; $('company').value = bt.company || b.name; $('name').value = bt.name || (b.contact && b.contact.name) || ''; $('email').value = bt.email || (b.contact && b.contact.email) || ''; $('address').value = bt.address || ''; $('gstin').value = bt.gstin || '';
+    lines.innerHTML = '';
+    if (b.model === 'retainer') addLine({ basis: 'retainer', amount: b.retainer });
+    else if (b.model === 'profit_share' || b.model === 'co_owned') addLine({ basis: 'profit_pct', pct: b.pct });
+    else if (b.model === 'revenue_share') addLine({ basis: 'revenue_pct', pct: b.pct });
+    else addLine({ basis: 'fixed' });
+  };
+  lines.addEventListener('click', async (e) => {
+    const t = e.target; const row = t.closest('.line'); if (!row) return;
+    if (t.classList.contains('rm')) { row.remove(); return; }
+    if (t.classList.contains('fetch')) {
+      const basis = row.querySelector('[data-f=basis]').value, hint = row.querySelector('.hint');
+      if (basis !== 'revenue_pct' && basis !== 'profit_pct') { hint.textContent = 'Fetch works for % of sales and % of profit pool.'; return; }
+      if (!$('brand').value || !$('periodStart').value || !$('periodEnd').value) { hint.textContent = 'Pick the brand and the period first.'; return; }
+      hint.textContent = 'Fetching…';
+      try { const j = await post({ action: 'suggest', brandId: $('brand').value, basis, start: $('periodStart').value, end: $('periodEnd').value }); if (j.base != null) row.querySelector('[data-f=base]').value = j.base; hint.textContent = j.source; } catch (err) { hint.textContent = err.message; }
+    }
+  });
+  const num = (v) => (v === '' ? null : Number(v));
+  const draft = () => ({
+    brandId: $('brand').value || null, issueDate: $('issueDate').value, periodStart: $('periodStart').value || null, periodEnd: $('periodEnd').value || null, notes: $('notes').value,
+    billTo: { company: $('company').value, name: $('name').value, email: $('email').value, address: $('address').value, gstin: $('gstin').value },
+    lines: [...lines.querySelectorAll('.line')].map((r) => ({ basis: r.querySelector('[data-f=basis]').value, description: r.querySelector('[data-f=description]').value, amount: num(r.querySelector('[data-f=amount]').value), pct: num(r.querySelector('[data-f=pct]').value), base: num(r.querySelector('[data-f=base]').value) })),
+  });
+  const inr = (n) => '₹' + Number(n).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+  const showMissing = (m) => { $('missing').innerHTML = (m || []).map((x) => `<li>${x}</li>`).join(''); };
+  $('check').onclick = async () => {
+    $('invMsg').textContent = ''; $('preview').innerHTML = '';
+    try { const j = await post({ action: 'check', draft: draft() }); showMissing(j.missing); if (j.priced) $('preview').innerHTML = j.priced.lines.map((l) => `${l.description}: ${inr(l.amount)}<br><span style="color:var(--dim);font-size:12.5px">${l.detail}</span>`).join('<br>') + `<br><br>Subtotal ${inr(j.priced.subtotal)}${j.priced.tax ? ` · GST ${inr(j.priced.tax)}` : ''} · Total <b>${inr(j.priced.total)}</b>`; }
+    catch (err) { $('invMsg').textContent = err.message; }
+  };
+  $('invForm').onsubmit = async (e) => {
+    e.preventDefault(); $('invMsg').textContent = 'Issuing…';
+    try { const j = await post({ action: 'issue', draft: draft() }); if (j.missing) { showMissing(j.missing); $('invMsg').textContent = 'A few things are missing:'; return; } $('invMsg').innerHTML = `<span class="ok">Issued ${j.number}.</span> <a href="${j.url}" target="_blank">Open the invoice</a>`; setTimeout(() => location.reload(), 2500); }
+    catch (err) { $('invMsg').textContent = err.message; }
+  };
+  $('settingsForm').onsubmit = async (e) => {
+    e.preventDefault(); $('settingsMsg').textContent = 'Saving…';
+    try { const j = await post({ action: 'settings', settings: Object.fromEntries(new FormData($('settingsForm')).entries()) }); $('settingsMsg').innerHTML = j.missing.length ? `Saved. Still needed: ${j.missing.map((m) => m.replace(' (Invoice settings)', '')).join(', ')}.` : '<span class="ok">Saved. Ready to invoice.</span>'; }
+    catch (err) { $('settingsMsg').textContent = err.message; }
+  };
+  document.querySelectorAll('.act').forEach((b) => b.onclick = async () => {
+    const id = b.closest('tr').dataset.id; const act = b.dataset.act;
+    const reference = act === 'paid' ? prompt('Payment reference (UTR), optional') ?? '' : '';
+    if (act === 'void' && !confirm('Void this invoice? Its number stays used.')) return;
+    try { await post({ action: act, id, reference }); location.reload(); } catch (err) { alert(err.message); }
+  });
+</script>
+</body>
+</html>

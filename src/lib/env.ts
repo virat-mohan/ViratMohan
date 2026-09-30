@@ -47,6 +47,7 @@ export type Env = {
   // Post-NDA lead data audit (src/lib/lead-*.ts)
   LEAD_TOKEN_SECRET: string; // 32+ chars; signs /retail-os/access/[token] and /retail-os/plan/[token], and encrypts pasted Shopify tokens
   META_ACCESS_TOKEN: string; // system-user token (ads_read) in Virat's Business Manager, which leads share ad accounts with
+  META_VIRAT_SOCIAL_TOKEN: string; // system user viratsocialsync (portfolio "Virat Mohan Social"); read-only IG media/insights, never ads
   LEAD_META_BUSINESS_ID: string; // Virat's Business Manager ID, shown to leads for partner access
   GOOGLE_CLIENT_ID: string;
   GOOGLE_CLIENT_SECRET: string;
@@ -93,6 +94,7 @@ export function getEnv(): Env {
     VIRAT_WHATSAPP_TO: process.env.VIRAT_WHATSAPP_TO ?? '',
     LEAD_TOKEN_SECRET: process.env.LEAD_TOKEN_SECRET ?? '',
     META_ACCESS_TOKEN: process.env.META_ACCESS_TOKEN ?? '',
+    META_VIRAT_SOCIAL_TOKEN: process.env.META_VIRAT_SOCIAL_TOKEN ?? '',
     LEAD_META_BUSINESS_ID: process.env.LEAD_META_BUSINESS_ID ?? '',
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ?? '',
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ?? '',
