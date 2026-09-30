@@ -62,7 +62,8 @@ const upiLink = env.RETAIL_OS_UPI_ID
   ? `upi://pay?pa=${encodeURIComponent(env.RETAIL_OS_UPI_ID)}&pn=${encodeURIComponent(env.RETAIL_OS_UPI_PAYEE || 'DevShop')}&am=${DEPOSIT_INR}&cu=INR&tn=${encodeURIComponent(`Retail OS deposit ${app?.id.slice(0, 8).toUpperCase() ?? ''}`)}`
   : null;
 
-const qrUrl = /^https:\/\//i.test(env.RETAIL_OS_UPI_QR_URL) ? env.RETAIL_OS_UPI_QR_URL : null;
+// The deposit QR: DevShop Retail OS's branded UPI card, served from the site (an env URL overrides it).
+const qrUrl = /^https:\/\//i.test(env.RETAIL_OS_UPI_QR_URL) ? env.RETAIL_OS_UPI_QR_URL : '/retail-os/pay/deposit-qr.png';
 const waDigits = env.RETAIL_OS_WHATSAPP_NUMBER.replace(/\D/g, '');
 const waLink = waDigits && app
   ? `https://wa.me/${waDigits}?text=${encodeURIComponent(`Retail OS deposit for ${app.brand_name} (${app.id.slice(0, 8).toUpperCase()}): ₹${DEPOSIT_INR} paid. Payment screenshot attached.`)}`
@@ -358,7 +359,7 @@ const planWhy = d ? ([
         <div class="next">
           <h2>Your design direction is ready</h2>
           <p>Have a look below. Next, Virat walks you through the plan and sends your terms to this page for signature, usually within the week.</p>
-          <a class="btn light" href={`mailto:viratmohan@gmail.com?subject=${encodeURIComponent(`Retail OS: ${app.brand_name}`)}`}>Talk it through with Virat →</a>
+          <a class="btn light" href={`mailto:founder@viratmohan.com?subject=${encodeURIComponent(`Retail OS: ${app.brand_name}`)}`}>Talk it through with Virat →</a>
         </div>
       )}
       {step === 'sign' && (
@@ -501,8 +502,8 @@ const planWhy = d ? ([
             <>
               {env.RETAIL_OS_UPI_ID || qrUrl ? (
                 <div class="upi">
-                  <div><b>1.</b> Pay <b>₹{DEPOSIT_INR.toLocaleString('en-IN')}</b> by UPI{env.RETAIL_OS_UPI_ID && <> to <b>{env.RETAIL_OS_UPI_ID}</b></>}{env.RETAIL_OS_UPI_PAYEE && <> ({env.RETAIL_OS_UPI_PAYEE})</>}: scan the code, or tap the button on your phone.</div>
-                  {qrUrl && <img src={qrUrl} alt="DevShop UPI QR code" width="200" height="200" style="display:block; margin:12px 0; border:1.5px solid var(--ink); background:#fff;" />}
+                  <div><b>1.</b> Pay <b>₹{DEPOSIT_INR.toLocaleString('en-IN')}</b> by scanning the code with any UPI app{upiLink ? ', or tap the button on your phone' : ''}.</div>
+                  {qrUrl && <img src={qrUrl} alt="DevShop Retail OS: scan to pay the deposit" width="300" height="417" style="display:block; margin:14px 0; max-width:100%; height:auto; border:1px solid var(--line, rgba(26,20,16,.14)); border-radius:14px;" />}
                   {upiLink && <a class="btn light" href={upiLink}>Open my UPI app →</a>}
                   {waLink && (
                     <div style="margin-top:14px;"><b>2.</b> Send the payment screenshot on WhatsApp so I can confirm it quickly.<br /><a class="btn light" href={waLink} target="_blank" rel="noopener noreferrer">Send screenshot on WhatsApp →</a></div>
@@ -767,7 +768,7 @@ const planWhy = d ? ([
     <div class="notfound">
       <h2>{loadError ? 'Status temporarily unavailable' : "Can't find that application"}</h2>
       <p>{loadError
-        ? "There's a hiccup reaching the backend right now. Try again shortly, or email viratmohan@gmail.com."
+        ? "There's a hiccup reaching the backend right now. Try again shortly, or email founder@viratmohan.com."
         : "This link doesn't match an application on file."}</p>
       {!loadError && (
         <div class="lookup">

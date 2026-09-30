@@ -51,7 +51,10 @@ export function cleanTextLinks(text: string): string {
 export const SITE_URL = 'https://viratmohan.com';
 export const PHONE_DISPLAY = '+91 99992 77240';
 
-export function signatureText(address?: string): string {
+// The contact address people see is always founder@viratmohan.com, whichever mailbox actually sends.
+export const CONTACT_EMAIL = 'founder@viratmohan.com';
+
+export function signatureText(_sender?: string, address: string = CONTACT_EMAIL): string {
   return `Virat Mohan · viratmohan.com · ${PHONE_DISPLAY}${address ? `\n${address}` : ''}`;
 }
 

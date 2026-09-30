@@ -9,7 +9,6 @@ import { renderRetailOsEmail } from '../../../../lib/retail-os-email';
 import { json, readJson } from '../../../../lib/retail-os-http';
 import { mailConfigured } from '../../../../lib/mail/send';
 import { syncLeadFromApplication } from '../../../../lib/lead-sync';
-import { seedBrandSetupTasks } from '../../../../lib/ops-seed';
 
 // Gated by src/middleware.ts. Confirms the founder's UPI deposit against the
 // bank statement and starts the 7-day build clock.
@@ -23,7 +22,7 @@ export const POST: APIRoute = async ({ request }) => {
   const app = await db.confirmDeposit(id);
   if (!app) return json({ error: 'No deposit reported for this application' }, 404);
   syncLeadFromApplication(db.client, app, 'deposit_paid').catch(() => {});
-  seedBrandSetupTasks(db.client, app.brand_name).catch((e) => console.error('ops seed failed', e));
+  // Build tasks are NOT assigned automatically: Virat assigns them from the founder console (Assign build tasks).
 
   const start = new Date(app.build_started_at ?? Date.now());
   const target = new Date(start.getTime() + BUILD_WINDOW_DAYS * 86400000);

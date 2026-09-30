@@ -2,6 +2,9 @@ export const prerender = false;
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import { getEnv } from '../../../lib/env';
+import { sendEmail } from '../../../lib/email';
+import { mailConfigured } from '../../../lib/mail/send';
+import { renderRetailOsEmail } from '../../../lib/retail-os-email';
 
 const clip = (v: unknown, n = 300) => (typeof v === 'string' ? v.trim().slice(0, n) : '');
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { 'content-type': 'application/json' } });
@@ -24,6 +27,24 @@ export const POST: APIRoute = async ({ request }) => {
     const db = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
     const { error } = await db.from('change_requests').insert(row);
     if (error) throw error;
+    // Best-effort — the request is already saved either way.
+    if (mailConfigured(env) && env.ADMIN_NOTIFY_EMAIL) {
+      sendEmail(
+        {
+          to: env.ADMIN_NOTIFY_EMAIL,
+          subject: `New ${row.category}: ${row.product || 'no product set'}`,
+          replyTo: row.contact && row.contact.includes('@') ? row.contact : undefined,
+          html: renderRetailOsEmail({
+            preheader: row.message.slice(0, 140),
+            eyebrow: `New ${row.category}`,
+            heading: row.product ? row.product : 'General',
+            lines: [row.message],
+            rows: [{ label: 'Contact', value: row.contact || '—' }],
+          }),
+        },
+        env
+      ).catch((err) => console.error('dashboard request admin notification email failed', err));
+    }
     return json({ ok: true });
   } catch (err) {
     console.error('change request failed', err);

@@ -10,8 +10,7 @@ import type { Env } from './env';
 export async function sendDemoDoneEmail(
   row: Submission,
   origin: string,
-  env: Env,
-  opts?: { overrideEmail?: string }
+  env: Env
 ): Promise<{ demoUrl: string; sentTo: string }> {
   const demoUrl = `${origin}/devshop/demo/${row.id}`;
   const isFinal = row.feedback_round >= 1;
@@ -25,7 +24,7 @@ export async function sendDemoDoneEmail(
          <ul>${questions.map((q) => `<li>${escapeHtml(q.question)}</li>`).join('')}</ul>`
       : '';
 
-  const recipient = (opts?.overrideEmail || '').trim() || row.email;
+  const recipient = row.email;
 
   await sendEmail(
     {

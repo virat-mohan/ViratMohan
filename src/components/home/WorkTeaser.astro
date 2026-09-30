@@ -39,6 +39,7 @@ const projects = (await getCollection('work')).sort(
       </li>
       <li class="work-teaser__item" data-reveal style="--c: #D9714B">
         <a class="work-teaser__link" href="/retail-os/">
+          <span class="work-teaser__live"><span class="work-teaser__live-dot"></span>Actively building</span>
           <div class="work-teaser__top">
             <span class="work-teaser__badge">New</span>
             <span class="eyebrow work-teaser__category">
@@ -130,6 +131,46 @@ const projects = (await getCollection('work')).sort(
   .work-teaser__link:hover,
   .work-teaser__link:focus-visible {
     filter: brightness(1.08);
+  }
+  .work-teaser__live {
+    position: absolute;
+    top: 0.9rem;
+    right: 1.1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--poster-cream);
+    opacity: 0.9;
+  }
+  .work-teaser__live-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--poster-cream);
+    flex: none;
+    position: relative;
+  }
+  .work-teaser__live-dot::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: var(--poster-cream);
+    animation: work-live-ping 1.8s ease-out infinite;
+  }
+  @keyframes work-live-ping {
+    from { transform: scale(1); opacity: 0.7; }
+    to { transform: scale(2.6); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .work-teaser__live-dot::after { animation: none; }
+  }
+  @media (max-width: 480px) {
+    .work-teaser__live { display: none; }
   }
   .work-teaser__category {
     margin: 0;

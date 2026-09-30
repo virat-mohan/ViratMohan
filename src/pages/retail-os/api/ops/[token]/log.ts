@@ -35,7 +35,7 @@ export const POST: APIRoute = async ({ params, request }) => {
         answer: (q) => brain.answer(q, { audience: { audience: 'staff', authenticated: true } }),
         send: (m) => sendEmail(m, env),
         log: (k, b) => db.addLog(member.id, k, b),
-        viratEmail: env.ADMIN_NOTIFY_EMAIL || 'viratmohan@gmail.com',
+        viratEmail: env.ADMIN_NOTIFY_EMAIL || 'founder@viratmohan.com',
         trackerUrl: `${origin}/retail-os/ops/${member.token}`,
         consoleUrl: `${origin}/retail-os/admin/console`,
       });

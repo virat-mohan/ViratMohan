@@ -15,4 +15,4 @@ Four of those builds are live today, run by real businesses, each written up pro
 
 Twenty years and one technological revolution didn't change the actual thing: the machine was never the point. At ten, the interesting part wasn't the motherboard — it was understanding it well enough that it stopped being a black box. Now the interesting part still isn't the model. It's knowing exactly where to point it, and where not to. What was scarce when I was ten — someone who actually understood the system instead of just using it — is still scarce now. I just get a bigger machine to work on.
 
-If you're building something and want a second, technically fluent set of eyes on it, [get in touch](mailto:viratmohan@gmail.com).
+If you're building something and want a second, technically fluent set of eyes on it, [get in touch](mailto:founder@viratmohan.com).

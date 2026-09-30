@@ -1,6 +1,7 @@
 export const prerender = false;
 
 import type { APIRoute } from 'astro';
+import { withCronAlert } from '../../../lib/cron-alert';
 import { getEnv } from '../../../lib/env';
 import { sendEmail } from '../../../lib/email';
 import { mailConfigured } from '../../../lib/mail/send';
@@ -12,7 +13,7 @@ import { buildMemberDigest, renderTeamDigest } from '../../../lib/team-digest';
 // Employee Support Agent: at 09:30 IST (vercel.json, 04:00 UTC) emails Virat
 // what every team member did in the last 24 hours. TEAM_DIGEST_TO overrides
 // the recipient; ?dry=1 returns the HTML instead of sending.
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = withCronAlert('team-digest', async ({ request }) => {
   const env = getEnv();
   if (!env.CRON_SECRET || request.headers.get('authorization') !== `Bearer ${env.CRON_SECRET}`) return json({ error: 'Unauthorized' }, 401);
   if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) return json({ error: 'Backend not configured' }, 503);
@@ -28,7 +29,7 @@ export const GET: APIRoute = async ({ request }) => {
 
   if (new URL(request.url).searchParams.get('dry') === '1') return new Response(html, { headers: { 'content-type': 'text/html; charset=utf-8' } });
   if (!mailConfigured(env)) return json({ error: 'Email is not configured' }, 503);
-  const to = process.env.TEAM_DIGEST_TO || 'viratmohan@gmail.com';
+  const to = process.env.TEAM_DIGEST_TO || 'founder@viratmohan.com';
   try {
     await sendEmail({ to, subject, html }, env);
     return json({ today, to, members: digests.length, sent: true }, 200);
@@ -36,4 +37,4 @@ export const GET: APIRoute = async ({ request }) => {
     console.error('team digest failed', err);
     return json({ error: 'Team digest failed' }, 500);
   }
-};
+});

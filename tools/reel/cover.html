@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>DevShop Retail OS reel cover</title>
+<!-- Reel cover, 1080x1920. Content sits inside the 3:4 profile-grid crop (y 240–1680). -->
+<style>
+@font-face { font-family: 'Anton'; src: url('../../case-study/fonts/anton-latin-400-normal.ttf'); }
+@font-face { font-family: 'Inter'; font-weight: 700; src: url('../../case-study/fonts/inter-latin-700-normal.ttf'); }
+:root { --ink: #1a1410; --cream: #f4ead4; --gold: #d4af37; --terracotta: #d9714b; --cobalt: #3e6fa6; --magenta: #e91e8c; }
+* { box-sizing: border-box; margin: 0; }
+html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--terracotta); }
+body { position: relative; font-family: 'Inter', sans-serif; }
+body::after { content: ''; position: absolute; inset: 0; mix-blend-mode: multiply;
+  background-image: radial-gradient(circle, rgba(23,19,15,.13) 2.2px, transparent 2.4px); background-size: 24px 24px; }
+.band { position: absolute; top: 0; left: 0; right: 0; height: 16px; display: grid; grid-template-columns: repeat(4,1fr); }
+.band i:nth-child(1){background:var(--gold)} .band i:nth-child(2){background:var(--magenta)} .band i:nth-child(3){background:var(--cobalt)} .band i:nth-child(4){background:var(--ink)}
+.box { position: absolute; left: 72px; right: 72px; top: 300px; height: 1320px; display: flex; flex-direction: column; justify-content: center; }
+.big { font-family: 'Anton', sans-serif; text-transform: uppercase; line-height: .92; position: relative; display: inline-block; white-space: nowrap; color: var(--cream); isolation: isolate; align-self: flex-start; }
+.big .gh { position: absolute; inset: 0; color: transparent; -webkit-text-stroke: 3px var(--g); transform: translate(9px, 9px); z-index: -1; }
+.ink { color: var(--ink); }
+.rule { height: 8px; width: 220px; background: var(--gold); margin: 56px 0 52px; box-shadow: 4px 4px 0 var(--ink); }
+.tag { position: absolute; left: 72px; top: 1540px; font: 700 28px/1 'Inter', sans-serif; background: var(--ink); color: var(--cream); padding: 18px 26px; border-radius: 999px; }
+.tag b { color: var(--gold); }
+</style>
+</head>
+<body>
+<div class="band"><i></i><i></i><i></i><i></i></div>
+<div class="box">
+  <div class="big" style="font-size:200px;--g:var(--cobalt)">You bring</div>
+  <div class="big ink" style="font-size:168px;--g:var(--magenta)">the product.</div>
+  <div class="rule"></div>
+  <div class="big" style="font-size:118px;--g:var(--ink)">I run the whole</div>
+  <div class="big" style="font-size:118px;--g:var(--ink)">online business.</div>
+</div>
+<div class="tag">DevShop Retail OS · viratmohan.com<b>/retail-os</b></div>
+<script>
+document.querySelectorAll('.big').forEach((el) => { const g = document.createElement('span'); g.className = 'gh'; g.textContent = el.textContent; el.appendChild(g); });
+window.DURATION = 0; window.seek = () => {};
+</script>
+</body>
+</html>

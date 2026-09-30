@@ -23,7 +23,7 @@ window.RETAIL_OS_FAQ = [
     a: 'Founder-owned brands that sell online, already selling or just starting. It supports your own store, a marketplace or a subscription.',
     tags: ['fit', 'eligibility', 'who', 'marketplace', 'subscription'] },
   { topic: 'Getting started', q: 'Which brands use it today?',
-    a: 'Travaholic Caps runs on the full system. Moonglasses is live and selling offline today, and its online store goes live soon. Ceremony Kitchen uses it for social and performance marketing. India Contemporary and Flowerbasket are launching, and I am onboarding more brands right now.\n\nYou do not have to take everything. You can use just the parts you need, like social and ads. The commercials are different for that, and I will go through them with you.',
+    a: 'Travaholic Caps runs on the full system. Moonglasses is live and selling offline today, and its online store goes live soon. Ceremony Kitchen uses it for social and performance marketing, operations and finance. India Contemporary is live too. Flowerbasket is launching, and I am onboarding more brands right now.\n\nYou do not have to take everything. You can use just the parts you need, like social and ads. The commercials are different for that, and I will go through them with you.',
     tags: ['brands', 'proof', 'travaholic', 'moonglasses', 'ceremony kitchen', 'ceremony', 'india contemporary', 'flowerbasket', 'clients', 'only ads', 'only social', 'modules', 'part'] },
   { topic: 'Getting started', q: 'Which categories fit best?',
     a: 'Products with good margins, low returns, and that are easy to photograph and gift. Open right now: jewellery, beauty and skincare, men\'s grooming, pet accessories, home décor and apparel. If yours is not listed, ask me anyway.',
@@ -236,7 +236,7 @@ window.RETAIL_OS_FAQ = [
 
   // ---- Commercials
   { topic: 'Commercials', q: 'What does it cost?',
-    a: 'There are three ways to work with me: a profit share (40% of the profit pool is standard), a revenue share (15 to 20% of your D2C revenue), or a retainer from ₹2.5 lakh a month. Ad spend is always yours, at cost.\n\nThe exact terms, settlement and contract length are set out in the partnership agreement. WhatsApp me and I will go through them with you.',
+    a: 'There are three ways to work with me: a profit share (40% of the profit pool is standard), a revenue share (15 to 20% of your D2C revenue), or a retainer, with pricing and commercial terms scoped to the engagement. Ad spend is always yours, at cost.\n\nThe exact terms, settlement and contract length are set out in the partnership agreement. WhatsApp me and I will go through them with you.',
     tags: ['pricing', 'cost', 'fees', 'split', 'contract', 'deposit', 'settlement', 'price', 'charges'] },
   { topic: 'Commercials', q: 'Can I take only some parts, like social or ads?',
     a: 'Yes. The commercials are different when you take only some parts. WhatsApp me and I will go through them with you.',

@@ -1,0 +1,106 @@
+---
+export const prerender = false;
+
+import { getEnv } from '../../../lib/env';
+import { readJourneyToken, getJourneyData, type JourneyData } from '../../../lib/retail-os-daily-update';
+
+// A brand's live journey page: the running record of what Retail OS has done for
+// them, so a founder can watch progress any time. Link is a signed token over the
+// brand key (unguessable, noindex). This is the "part of the journey" surface the
+// daily founder update links to.
+const env = getEnv();
+const token = Astro.params.token;
+const brandKey = readJourneyToken(token, env.LEAD_TOKEN_SECRET);
+let data: JourneyData | null = null;
+if (brandKey) {
+  try { data = await getJourneyData(env, brandKey); } catch { data = null; }
+}
+if (!brandKey || !data) Astro.response.status = 404;
+
+const fmtDate = (iso: string) => {
+  const d = new Date(iso);
+  return isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' });
+};
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>{data ? `${data.brand_name} — your journey` : 'Your journey'} · DevShop Retail OS</title>
+  <link rel="stylesheet" href="https://viratmohan.com/brand/tokens.css" />
+  <style>
+    :root { --paper:#F4EAD4; --card:#FBF6EA; --ink:#1A1410; --muted:#7A6E62; --line:#D9CDB4; --gold:#D4AF37; --terra:#D9714B; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font-family: Arial, Helvetica, sans-serif; line-height:1.55; }
+    .wrap { max-width:640px; margin:0 auto; padding:0 16px 48px; }
+    .stripe { display:flex; }
+    .stripe span { height:6px; flex:1; }
+    .brandline { display:flex; align-items:center; gap:10px; padding:22px 0 6px; }
+    .brandline img { height:34px; width:auto; display:block; }
+    .os { font-size:12px; font-style:italic; font-weight:bold; color:var(--muted); }
+    .new { display:inline-block; font-size:11px; font-weight:bold; letter-spacing:1.2px; text-transform:uppercase; color:#fff; background:var(--terra); padding:3px 9px; border-radius:999px; }
+    h1 { font-family:'Arial Narrow', Arial, sans-serif; text-transform:uppercase; font-size:30px; line-height:1.08; margin:14px 0 4px; }
+    .sub { color:var(--muted); font-size:13px; margin:0 0 22px; }
+    .card { border:2px solid var(--ink); background:var(--card); border-radius:4px; padding:22px 20px; }
+    .bar { height:10px; background:#EADFC6; border-radius:999px; overflow:hidden; margin:6px 0 4px; }
+    .bar > i { display:block; height:100%; background:var(--gold); }
+    .prog { font-size:13px; color:var(--muted); margin:0 0 4px; }
+    ul.log { list-style:none; margin:18px 0 0; padding:0; }
+    ul.log li { padding:12px 0; border-top:1px solid var(--line); display:flex; gap:12px; align-items:flex-start; }
+    ul.log li:first-child { border-top:none; }
+    .tick { color:var(--gold); font-weight:bold; flex:0 0 auto; }
+    .task { font-size:15px; }
+    .when { color:var(--muted); font-size:12px; margin-top:2px; }
+    .foot { color:var(--muted); font-size:12px; margin-top:26px; }
+    .cta { display:inline-block; margin-top:16px; background:var(--ink); color:var(--paper); text-decoration:none; font-weight:bold; padding:13px 20px; }
+    a { color:inherit; }
+  </style>
+</head>
+<body>
+  <div class="stripe" aria-hidden="true">
+    <span style="background:#D4AF37"></span><span style="background:#3E6FA6"></span><span style="background:#E91E8C"></span><span style="background:#9C7A4A"></span>
+  </div>
+  <div class="wrap">
+    {data ? (
+      <>
+        <div class="brandline">
+          <img src="https://www.viratmohan.com/retail-os/email/devshop-logo.png" alt="DevShop" />
+          <span class="os">Retail OS™</span>
+        </div>
+        <p style="margin:8px 0 0;"><span class="new">New · Live journey</span></p>
+        <h1>{data.brand_name}</h1>
+        <p class="sub">Everything I've built for {data.brand_name}, updated as it happens. This is your live record — transparency you can watch.</p>
+        <div class="card">
+          <p class="prog"><b>{data.doneCount}</b> of {data.total} milestones done · {data.pct}%</p>
+          <div class="bar"><i style={`width:${data.pct}%`}></i></div>
+          {data.done.length ? (
+            <ul class="log">
+              {data.done.slice(0, 30).map((t) => (
+                <li>
+                  <span class="tick">✓</span>
+                  <span>
+                    <span class="task">{t.task}</span>
+                    <div class="when">{fmtDate(t.updated_at)}</div>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p style="margin:16px 0 0;">Setup is underway. Your first milestones will appear here shortly.</p>
+          )}
+          <a class="cta" href="https://wa.me/919999277240">Let’s talk →</a>
+        </div>
+        <p class="foot">DevShop Retail OS™ — built fast, for real businesses · <a href="https://www.viratmohan.com/retail-os">viratmohan.com/retail-os</a></p>
+      </>
+    ) : (
+      <>
+        <h1 style="margin-top:40px;">Link not found</h1>
+        <p class="sub">This journey link isn’t valid. Please use the link from your latest daily update, or reply to it and I’ll send a fresh one.</p>
+        <p class="foot">DevShop Retail OS™ · <a href="https://www.viratmohan.com/retail-os">viratmohan.com/retail-os</a></p>
+      </>
+    )}
+  </div>
+</body>
+</html>

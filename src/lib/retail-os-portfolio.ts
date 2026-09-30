@@ -134,8 +134,13 @@ export type Metrics = {
   barterValue: number;
   otherExpenses: number;
   netProfit: number;
+  // False when the store has no COGS_PER_UNIT_RUPEES / COGS_PER_CAP_RUPEES setting and cogs uses the
+  // ₹250 placeholder. Profit is then not fit for management reporting and must be shown as unavailable.
+  costVerified: boolean;
   codOrders: number;
   barterOrders: number;
+  metaPurchases: number;   // purchases Meta attributes to the ads (7-day click / 1-day view)
+  metaRevenue: number;     // purchase value Meta attributes to the ads
 };
 
 async function setting(db: SupabaseClient, key: string): Promise<string | null> {
@@ -143,20 +148,27 @@ async function setting(db: SupabaseClient, key: string): Promise<string | null> 
   return (data as { value?: string } | null)?.value ?? null;
 }
 
-async function metaSpend(db: SupabaseClient, since: string, untilInclusive: string): Promise<number> {
+type MetaInsights = { spend: number; purchases: number; purchaseValue: number };
+const PURCHASE_TYPES = ['omni_purchase', 'purchase', 'offsite_conversion.fb_pixel_purchase'];
+
+/** Spend, and the purchases and purchase value Meta attributes to the ads, for any past range (Meta keeps 37 months). */
+async function metaInsights(db: SupabaseClient, since: string, untilInclusive: string): Promise<MetaInsights> {
+  const none = { spend: 0, purchases: 0, purchaseValue: 0 };
   const [token, account] = await Promise.all([setting(db, 'META_ACCESS_TOKEN'), setting(db, 'META_AD_ACCOUNT_ID')]);
-  if (!token || !account) return 0;
+  if (!token || !account) return none;
   try {
     const res = await fetch(
       `https://graph.facebook.com/v21.0/act_${account.replace(/^act_/, '')}/insights?` +
-        new URLSearchParams({ fields: 'spend', time_range: JSON.stringify({ since, until: untilInclusive }), access_token: token }),
+        new URLSearchParams({ fields: 'spend,actions,action_values', time_range: JSON.stringify({ since, until: untilInclusive }), access_token: token }),
       { signal: AbortSignal.timeout(15_000) }
     );
-    if (!res.ok) return 0;
-    const data = (await res.json()) as { data?: { spend?: string }[] };
-    return Math.round(Number(data.data?.[0]?.spend ?? 0));
+    if (!res.ok) return none;
+    type Act = { action_type?: string; value?: string };
+    const row = ((await res.json()) as { data?: { spend?: string; actions?: Act[]; action_values?: Act[] }[] }).data?.[0];
+    const pick = (list?: Act[]) => { for (const t of PURCHASE_TYPES) { const a = list?.find((x) => x.action_type === t); if (a) return Number(a.value ?? 0) || 0; } return 0; };
+    return { spend: Math.round(Number(row?.spend ?? 0)), purchases: Math.round(pick(row?.actions)), purchaseValue: Math.round(pick(row?.action_values)) };
   } catch {
-    return 0;
+    return none;
   }
 }
 
@@ -196,11 +208,12 @@ export async function brandMetrics(brand: LiveBrand, period: Period): Promise<Me
   ]);
   const costPerUnit = Number(cogsSetting ?? capSetting ?? 250) || 250;
 
-  const [{ data: expenses }, { count: waCount }, adSpend] = await Promise.all([
+  const [{ data: expenses }, { count: waCount }, meta] = await Promise.all([
     db.from('expenses').select('amount').gte('expense_date', period.start).lt('expense_date', period.end),
     db.from('whatsapp_messages').select('id', { count: 'exact', head: true }).gte('sent_at', istStart(period.start)).lt('sent_at', istStart(period.end)),
-    metaSpend(db, period.start, addDays(period.end, -1)),
+    metaInsights(db, period.start, addDays(period.end, -1)),
   ]);
+  const adSpend = meta.spend;
   const otherExpenses = (expenses ?? []).reduce((s, e) => s + n((e as { amount?: number }).amount), 0);
   const whatsappCost = Math.round((waCount ?? 0) * (Number(waCostSetting ?? 0.87) || 0.87));
 
@@ -213,6 +226,8 @@ export async function brandMetrics(brand: LiveBrand, period: Period): Promise<Me
     orders: orders.length, units, grossSales, discounts, refunds, netSales,
     aov: orders.length ? Math.round(netSales / orders.length) : 0,
     cogs, grossProfit, adSpend, whatsappCost, barterValue, otherExpenses, netProfit, codOrders, barterOrders,
+    costVerified: cogsSetting != null || capSetting != null,
+    metaPurchases: meta.purchases, metaRevenue: meta.purchaseValue,
   };
 }
 

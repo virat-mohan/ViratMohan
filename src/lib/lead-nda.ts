@@ -8,7 +8,7 @@ export const NDA_VERSION = 'v1-2026-09';
 export const DEVSHOP_PARTY = {
   name: 'Virat Mohan, trading as DevShop Retail OS™',
   address: 'Villa 111, Laburnum, Sushant Lok Phase 1, Gurugram, Haryana 122001, India',
-  email: 'viratmohan@gmail.com',
+  email: 'founder@viratmohan.com',
   phone: '+91 99992 77240',
 };
 

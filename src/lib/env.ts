@@ -51,7 +51,7 @@ export type Env = {
   GOOGLE_CLIENT_ID: string;
   GOOGLE_CLIENT_SECRET: string;
   GOOGLE_REFRESH_TOKEN: string; // offline token for LEAD_GOOGLE_EMAIL with analytics.readonly + webmasters.readonly
-  LEAD_GOOGLE_EMAIL: string; // the Google login leads add as GA4 Viewer / Search Console Restricted user
+  LEAD_GOOGLE_EMAIL: string; // the Google login leads add as GA4 Viewer / Search Console Restricted user; defaults to tech@viratmohan.com
 };
 
 export function getEnv(): Env {
