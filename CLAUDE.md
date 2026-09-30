@@ -66,6 +66,9 @@ Client-specific today: **Ceremony Finance** and **Ceremony Ops** belong to Cerem
 
 Current environment model: each live brand is its own Supabase project + app (RETAIL_OS_LIVE_BRANDS). This is unchanged; no multi-tenancy decision has been made.
 
+### Payments (standard)
+Cash on delivery is off across Retail OS. In India COD drives high RTO (return-to-origin) and the courier/logistics economics don't work, so storefront checkout is prepaid/UPI only. Each store gates COD behind a single `COD_DISABLED` flag (default on) — hide the tile via the checkout config and reject `cod_advance` server-side; leave admin/manual orders unaffected. Only turn COD back on for a brand if Virat says so.
+
 ### Acquisition / Middle-of-Funnel (future capability)
 Optimise ad/traffic → hook/intent → campaign experience → landing/splash → product discovery → trust/value → checkout → purchase. Eventually configurable per brand: campaign-specific landing experiences, ad-angle/hook mapping, product-specific journeys, brand splash screens, contextual storefronts, social proof, trust signals, risk-reversal, merchandising, A/B testing, funnel analytics, campaign attribution, conversion measurement. First laboratory: **Travaholic Caps** — but build it as a configurable Retail OS capability that another brand can turn on, never a one-off.
 
