@@ -31,3 +31,8 @@ Every question Tushar or Shyam asks goes here with the date, the question, my wr
 | 2026-09-30 | Shyam | Who answers comments and DMs in real time? | Draft: DevShop 9 AM-8 PM Mon-Sat with agreed answers; escalations to Korbi | |
 
 Design references (Shyam, 30 Sep): whitekailash.com, wheaty.in, muji.com/jp/ja/store. "Straightforward, product first, no noise." Korbi wants to be involved in brand identity, design and creatives at first.
+
+## Decisions
+- 2026-09-30: Store stays on Shopify (Virat). The Retail OS dashboard reads from Shopify, Razorpay, Shiprocket and Meta. Classification: brand configuration.
+- 2026-09-30: Korbi gets its own Supabase project (Virat). create_project timed out twice via the connector, and no project exists yet: create "korbi" in ap-south-1 from the Supabase dashboard, or retry.
+- 2026-09-30: Three design directions drafted (A Shoji, B Night Road, C Craft) for Korbi to choose from.
