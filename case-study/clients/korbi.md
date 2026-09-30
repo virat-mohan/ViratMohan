@@ -17,3 +17,14 @@ Every question Tushar or Shyam asks goes here with the date, the question, my wr
 
 | Date | Asked by | Question | Answer | Answered |
 |---|---|---|---|---|
+| 2026-09-30 | Shyam | Is the 40% negotiable? (25-40% mentioned on the call) | Draft awaiting Virat's decision | |
+| 2026-09-30 | Shyam | Can the split be reviewed after 3 months? | Draft: 90-day review with real numbers, changes in writing (Virat to confirm) | |
+| 2026-09-30 | Shyam | How is product cost agreed transparently? | Draft: signed landed cost per unit from supplier invoices; Monday statement itemised by source | |
+| 2026-09-30 | Shyam | Fixed margin per unit (e.g. Rs 1,000) instead? | Draft awaiting Virat's decision | |
+| 2026-09-30 | Shyam | Offline vs online margins; moving to online only | Draft: share applies only to korbi.in online sales; offline stays theirs | |
+| 2026-09-30 | Shyam | Brainstorm a sales strategy that protects offline partners | Draft: 45-min session this week; same price everywhere, fitter locator, online-only bundles | |
+| 2026-09-30 | Shyam | Do you take over social accounts? | Draft: run via Meta partner access; accounts stay theirs | |
+| 2026-09-30 | Shyam | Approvals, and keeping the Japanese brand identity | Draft: brand guide first, 3-month direction, monthly calendar approved, every post approved at start | |
+| 2026-09-30 | Shyam | Who answers comments and DMs in real time? | Draft: DevShop 9 AM-8 PM Mon-Sat with agreed answers; escalations to Korbi | |
+
+Design references (Shyam, 30 Sep): whitekailash.com, wheaty.in, muji.com/jp/ja/store. "Straightforward, product first, no noise." Korbi wants to be involved in brand identity, design and creatives at first.
