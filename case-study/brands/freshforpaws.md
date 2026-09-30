@@ -3,7 +3,7 @@
 One place for everything done on Fresh For Paws so far. Pulled together on 26 Sep 2026 from Gmail, the ViratMohan.com Supabase project and this repo.
 
 ## The brand
-- Founder: Srishti Bhatia, contact@freshforpaws.com
+- Founder: Srishti Bhatia, srishti@freshforpaws.com (general: contact@freshforpaws.com)
 - Site: https://freshforpaws.com (WooCommerce). Instagram: @freshforpaws
 - Category: fresh-cooked, ready-to-eat dog and cat meals. D2C.
 - Store categories: Dog meals, Cat meals (Fresh For Purrs), Puppy meals (Mini Paws), Treats & toppers, Combos
@@ -14,7 +14,7 @@ One place for everything done on Fresh For Paws so far. Pulled together on 26 Se
 - Front end stays WooCommerce. Retail OS runs behind it.
 - 25% profit share. Pay with a Post at 1%.
 - ₹5,000 deposit, adjusted against actual onboarding tech costs.
-- NCNDA signed by both, 27 Sep 2026. Terms and deposit not signed yet.
+- NCNDA signed by both, 27 Sep 2026. Terms sent 30 Sep, awaiting her signature. Deposit awaiting confirmation.
 
 ## Timeline
 | Date | What happened | Source |
@@ -25,6 +25,7 @@ One place for everything done on Fresh For Paws so far. Pulled together on 26 Se
 | 26 Sep | Lead logged, stage `nda_sent` | Supabase `leads` id `c8cfb848…` |
 | 27 Sep | Srishti signed the NCNDA (as Proprietor); Virat countersigned. Next-steps email with signed PDF sent 27 Sep | Gmail "NCNDA signed, next steps"; signed files kept off this public repo |
 | 28 Sep | No reply yet; gentle reminder drafted, not sent | Gmail draft in the same thread |
+| 30 Sep | Call with Srishti; UPI QR shared on WhatsApp for the ₹5,000 deposit. Terms at 25% set on her page; terms email sent to srishti@freshforpaws.com | Supabase `retail_os_applications.terms`; Gmail "your terms are ready to sign" |
 
 Track page: https://www.viratmohan.com/retail-os/track/8ad86490-b731-49a1-92c8-a98a68ec0441
 
@@ -51,6 +52,4 @@ Collect WooCommerce admin access, product list and current order volume. Why: th
 | 9 Handover | Sheet from Srishti: products with cost, pack size, shelf life; order and customer export; photos | brand |
 
 ## Gaps I found
-- The lead isn't linked to the application (`leads.application_id` is empty).
-- The application's founder email is viratmohan@gmail.com, not Srishti's. The confirmation email went to Virat, not her.
 - No freshforpaws repo, Supabase project or Drive folder exists yet (checked `list_repos`, Supabase projects, Drive search).
