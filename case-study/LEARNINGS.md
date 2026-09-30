@@ -36,3 +36,4 @@ Every self-audit reads this first and adds to it last. One line per lesson: date
 
 - 2026-09-30 · Virat's social sync: a read-only integration enforces "read only" in code (a path allowlist plus GET-only), not in a comment, so ads or boosting can never be called by accident. Content rules (D2C only, no brand names, % only, ends "DM me D2C") are a checkCopy() function the brief must pass, with tests.
 - 2026-09-30: A merge left conflict markers in CLAUDE.md because I only cleaned the file I expected to conflict. After any merge, grep the whole repo for <<<<<<< before committing.
+- 2026-09-30: Tying the forecast to the deposit revealed it the moment I recorded Fresh For Paws' payment, though Virat still wasn't sure of it. Anything Virat hasn't approved needs an explicit release flag (terms.forecastReleased), never a side effect of another event.
