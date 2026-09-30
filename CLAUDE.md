@@ -77,3 +77,6 @@ Retail OS should eventually measure traffic → landing → engagement → produ
 
 ### AE / Lead Operator (future capability)
 When built, it reuses the existing Retail OS lead, communication, approval, audit and intelligence infrastructure — not an independent sales system. Not to be built until explicitly authorised.
+
+## Proposals and payment emails (the standard)
+Every DevShop proposal, and any email that asks for the deposit, shows the DevShop deposit QR embedded in the email body, never only as an attachment. Use the hosted image `<img src="https://www.viratmohan.com/retail-os/pay/deposit-qr.png" width="260" alt="DevShop Retail OS: scan to pay the ₹5,000 deposit" style="display:block;width:260px;max-width:100%;height:auto">`, the same one the terms-signed email uses (`src/pages/retail-os/api/sign/[id].ts`). Do not use `cid:` images. Gmail drafts created through the API strip embedded images, so a proposal goes to Virat through the approval flow (`submitForApproval`), which sends it fresh on approval with the QR intact. If Virat asks for a Gmail draft anyway, still put the hosted `<img>` in the body, attach the QR file as a fallback, and tell him to confirm the QR shows before he sends.
