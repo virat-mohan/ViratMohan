@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Korbi Design Directions</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;600&display=swap">
+<style>
+/* Layout: one calm column on DevShop paper; each direction is a full-width live preview, then a short note. Single authored light look, as on viratmohan.com. */
+:root{
+  --paper:#F4EAD4; --ink:#1A1410; --dim:#5A4C3C; --gold:#D4AF37; --terra:#D9714B; --line:#17130F24; --tint:#EFE2C6;
+  --display:"Anton","Arial Narrow",Arial,sans-serif; --serif:"Instrument Serif",Georgia,serif; --sans:"Inter",Helvetica,Arial,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:16px/1.6 var(--sans);margin:0}
+.wrap{max-width:760px;margin:0 auto;padding-inline:20px;padding-block:40px 64px;display:grid;gap:56px}
+.stripe{display:grid;grid-template-columns:repeat(4,1fr);height:6px;margin-bottom:22px}
+.stripe i:nth-child(1){background:var(--gold)}.stripe i:nth-child(2){background:#3E6FA6}.stripe i:nth-child(3){background:#E91E8C}.stripe i:nth-child(4){background:#9C7A4A}
+.eyebrow{font:600 11px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--terra);margin:0 0 12px}
+h1{font:400 clamp(34px,7vw,56px)/1.02 var(--display);text-transform:uppercase;margin:0 0 18px;text-wrap:balance}
+h2{font:italic 400 clamp(24px,4.4vw,32px)/1.2 var(--serif);margin:0 0 6px;text-wrap:balance}
+.lede{font-size:17px;color:var(--dim);max-width:62ch;margin:0}
+.lede+ .lede{margin-top:12px}
+section{display:grid;gap:14px;min-width:0}
+.label{font:600 11px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:#9C7A4A;margin:0}
+.note{font-size:15px;color:var(--dim);margin:0;max-width:62ch}
+.swatches{display:flex;flex-wrap:wrap;gap:8px}
+.sw{display:flex;align-items:center;gap:8px;font:12px/1 var(--sans);color:var(--dim);border:1px solid var(--line);padding:6px 10px 6px 6px;background:#FFFFFF66}
+.sw b{width:18px;height:18px;display:block;border:1px solid var(--line)}
+
+/* previews */
+.pv{border:1px solid var(--line);overflow:hidden;min-width:0}
+.pv .nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font:11px/1 var(--sans);letter-spacing:.24em;text-transform:uppercase}
+.pv .body{display:grid;grid-template-columns:1.2fr 1fr;gap:28px;align-items:center}
+@media (max-width:620px){.pv .body{grid-template-columns:1fr}}
+.pv .h{margin:0;text-wrap:balance}
+.pv .sub{margin:10px 0 18px;font-size:14px}
+.pv .btns{display:flex;gap:8px;flex-wrap:wrap}
+.pv .btn{font:600 12px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;padding:13px 18px}
+.bulb{aspect-ratio:1;max-width:100%;display:grid;place-items:center}
+.bulb svg{width:70%;height:auto}
+
+.a{background:#F7F5F0;color:#2B2B2B;padding:34px 28px 40px}
+.a .nav{color:#2B2B2B;margin-bottom:54px}.a .nav span{color:#9A9A96}
+.a .h{font:300 clamp(28px,5vw,40px)/1.2 var(--sans)}
+.a .sub{color:#6B6B66}
+.a .btn{background:#2B2B2B;color:#F7F5F0}
+.a .dot{width:9px;height:9px;border-radius:50%;background:#B7282E;align-self:center;margin-left:6px}
+.a .bulb{background:#FFFFFF}
+
+.b{background:#151A22;color:#FFFFFF;padding:34px 28px 0}
+.b .nav{color:#EAF1FF;margin-bottom:54px}.b .nav span{color:#7D8796}
+.b .h{font:300 clamp(28px,5vw,40px)/1.2 var(--sans)}
+.b .sub{color:#AAB3C0}
+.b .w{background:#F2B35B;color:#151A22}.b .c{background:#EAF1FF;color:#151A22}
+.b .beam{margin-top:40px;height:120px;position:relative;overflow:hidden}
+.b .beam::before{content:"";position:absolute;left:0;right:0;bottom:0;height:70px;background:linear-gradient(180deg,#F2B35B55,#F2B35B00);clip-path:polygon(0 100%,0 30%,55% 30%,70% 0,100% 0,100% 100%)}
+.b .beam::after{content:"";position:absolute;left:0;right:0;bottom:70px;height:2px;background:linear-gradient(90deg,#F2B35B,#EAF1FF)}
+
+.c{background:#EFE8DC;color:#3B2F24;padding:34px 28px 40px}
+.c .nav{font:14px/1 var(--serif);letter-spacing:.08em;text-transform:none;margin-bottom:54px}.c .nav span{font:12px/1 var(--sans);letter-spacing:.06em;color:#8C7B68}
+.c .h{font:400 clamp(30px,5.4vw,44px)/1.12 var(--serif)}
+.c .sub{color:#6E5F4F}
+.c .btn{background:#3B2F24;color:#EFE8DC}
+.c .box{border:1px dashed #8C7B68;padding:18px;font-size:13px;color:#6E5F4F;display:grid;gap:6px}
+.c .box b{font:italic 400 18px/1.2 var(--serif);color:#3B2F24}
+
+/* choose */
+.choose{border-top:1px solid var(--line);padding-top:36px;display:grid;gap:18px}
+.opts{display:flex;flex-wrap:wrap;gap:10px}
+.opt{font:600 14px/1 var(--sans);padding:14px 20px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer}
+.opt[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.opt:focus-visible{outline:2px solid var(--terra);outline-offset:2px}
+.reply{background:var(--tint);padding:18px 20px;display:grid;gap:10px}
+.reply code{font:15px/1.4 var(--sans);font-weight:600;color:var(--ink);user-select:all;word-break:break-word}
+.copy{justify-self:start;font:600 12px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;padding:10px 14px;background:var(--ink);color:var(--paper);border:0;cursor:pointer}
+.contact{font-size:15px;color:var(--dim);margin:0}
+.contact b{color:var(--ink);user-select:all}
+footer{font:11px/1.6 var(--sans);letter-spacing:.06em;color:#7A6E62}
+@media (prefers-reduced-motion:no-preference){.opt{transition:background .2s,color .2s}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<header>
+  <div class="stripe"><i></i><i></i><i></i><i></i></div>
+  <p class="eyebrow">Korbi × DevShop Retail OS · Design</p>
+  <h1>Three directions for the new korbi.in</h1>
+  <p class="lede">Hi Shyam and Tushar. Your references, White Kailash, Wheaty and MUJI, all put the product first with nothing in the way. Each direction below takes that and Korbi's Japanese identity, and shows how the top of the homepage would feel.</p>
+  <p class="lede">All three keep the same simple page: pick your car, see the beam, choose 4300K or 6000K, buy. Headlines are placeholders. Nothing goes live without your approval.</p>
+</header>
+
+<section id="a">
+  <p class="label">Direction A · Shoji</p>
+  <h2>Quiet, white and precise. Closest to MUJI.</h2>
+  <div class="pv a">
+    <div class="nav">Korbi <span>Shop · Fit check · About</span></div>
+    <div class="body">
+      <div>
+        <p class="h">See the road.<br>Not the glare.</p>
+        <p class="sub">H4 LED headlight bulb. Japanese design, cutoff made for Indian roads.</p>
+        <div class="btns"><span class="btn">Check my car</span><span class="dot"></span></div>
+      </div>
+      <div class="bulb"><svg viewBox="0 0 100 100" aria-hidden="true"><rect x="38" y="58" width="24" height="26" fill="#D8D6D0"/><rect x="42" y="30" width="16" height="30" rx="3" fill="#EDEBE6" stroke="#2B2B2B" stroke-width="1"/><rect x="46" y="36" width="8" height="10" fill="#2B2B2B"/><circle cx="50" cy="20" r="3" fill="#B7282E"/></svg></div>
+    </div>
+  </div>
+  <p class="note">Warm white, charcoal text, one small red dot as the only accent. Thin type, lots of space, the product photographed plainly on white.</p>
+  <div class="swatches"><span class="sw"><b style="background:#F7F5F0"></b>Paper</span><span class="sw"><b style="background:#2B2B2B"></b>Charcoal</span><span class="sw"><b style="background:#B7282E"></b>Red accent</span></div>
+</section>
+
+<section id="b">
+  <p class="label">Direction B · Night Road</p>
+  <h2>The beam as the hero. Calm, but it glows.</h2>
+  <div class="pv b">
+    <div class="nav">Korbi <span>Shop · Fit check · About</span></div>
+    <div>
+      <p class="h">A clean cutoff.<br>Made for Indian roads.</p>
+      <p class="sub">Light the road ahead, not the driver coming the other way.</p>
+      <div class="btns"><span class="btn w">4300K · all weather</span><span class="btn c">6000K · bright white</span></div>
+    </div>
+    <div class="beam" aria-hidden="true"></div>
+  </div>
+  <p class="note">Night blue at the top only, with the flat cutoff line of the beam as the one graphic. The rest of the page turns light. The two colour temperatures become the two buttons.</p>
+  <div class="swatches"><span class="sw"><b style="background:#151A22"></b>Night</span><span class="sw"><b style="background:#F2B35B"></b>4300K warm</span><span class="sw"><b style="background:#EAF1FF"></b>6000K white</span></div>
+</section>
+
+<section id="c">
+  <p class="label">Direction C · Craft</p>
+  <h2>Warm and made with care. Closest to White Kailash and Wheaty.</h2>
+  <div class="pv c">
+    <div class="nav">Korbi <span>Shop · Fit check · Our story</span></div>
+    <div class="body">
+      <div>
+        <p class="h">Designed the Japanese way. Built for India's roads.</p>
+        <p class="sub">A bulb made slowly, for people who drive at night.</p>
+        <div class="btns"><span class="btn">See what's in the box</span></div>
+      </div>
+      <div class="box"><b>In every box</b>The bulbs, attached to the ballast<br>A fitting tool<br>Zip ties<br>Stickers</div>
+    </div>
+  </div>
+  <p class="note">Natural paper tones, a serif for headlines, the box and the unboxing as the story. The most personal of the three.</p>
+  <div class="swatches"><span class="sw"><b style="background:#EFE8DC"></b>Paper</span><span class="sw"><b style="background:#3B2F24"></b>Earth</span><span class="sw"><b style="background:#8C7B68"></b>Sand</span></div>
+</section>
+
+<section class="choose" aria-labelledby="pick">
+  <p class="label" id="pick">Your choice</p>
+  <h2>Which one feels like Korbi?</h2>
+  <div class="opts" role="group" aria-label="Choose a direction">
+    <button class="opt" id="opt-a" type="button" data-v="Direction A · Shoji" aria-pressed="false">A · Shoji</button>
+    <button class="opt" id="opt-b" type="button" data-v="Direction B · Night Road" aria-pressed="false">B · Night Road</button>
+    <button class="opt" id="opt-c" type="button" data-v="Direction C · Craft" aria-pressed="false">C · Craft</button>
+  </div>
+  <div class="reply">
+    <span>Reply to Virat's email or on WhatsApp with this line, plus anything you'd change:</span>
+    <code id="line">I choose Direction … for korbi.in.</code>
+    <button class="copy" id="copy" type="button">Copy</button>
+  </div>
+  <p class="contact">WhatsApp: <b>+91 99992 77240</b> · Email: <b>founder@viratmohan.com</b></p>
+  <p class="note">Also send your logo files and brand colours if you have them, and any words you love or never want used. Your identity comes first; the chosen direction adapts to it.</p>
+</section>
+
+<footer>DEVSHOP RETAIL OS™ · BUILT FAST, FOR REAL BUSINESSES · viratmohan.com/retail-os</footer>
+</div>
+
+<script>
+(function(){
+  var line=document.getElementById('line'),btns=document.querySelectorAll('.opt'),copy=document.getElementById('copy');
+  btns.forEach(function(b){b.addEventListener('click',function(){
+    btns.forEach(function(x){x.setAttribute('aria-pressed','false')});
+    b.setAttribute('aria-pressed','true');
+    line.textContent='I choose '+b.dataset.v+' for korbi.in.';
+  })});
+  copy.addEventListener('click',function(){
+    var t=line.textContent;
+    function sel(){var r=document.createRange();r.selectNodeContents(line);var s=getSelection();s.removeAllRanges();s.addRange(r);copy.textContent='Selected';}
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){copy.textContent='Copied'},sel)}else sel();
+  });
+})();
+</script>
+</body>
+</html>
