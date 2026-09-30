@@ -16,7 +16,7 @@ const WHATSAPP = 'https://wa.me/919999277240';
 const SITE = 'https://www.viratmohan.com';
 
 export type UpdateEnv = { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: string; LEAD_TOKEN_SECRET?: string };
-export type FounderUpdateSub = { brand_key: string; brand_name: string; to_emails: string[]; active: boolean; started_on: string | null; waiting_on: string | null };
+export type FounderUpdateSub = { brand_key: string; brand_name: string; to_emails: string[]; active: boolean; started_on: string | null; waiting_on: string | null; voice: 'we' | 'i' };
 export type BuiltUpdate = { to: string; subject: string; html: string; brand_key: string; done: number; hasMetrics: boolean };
 
 function sb(env: UpdateEnv) {
@@ -61,6 +61,7 @@ export async function listActiveSubs(env: UpdateEnv): Promise<FounderUpdateSub[]
     active: Boolean(r.active),
     started_on: (r.started_on as string) ?? null,
     waiting_on: (r.waiting_on as string) ?? null,
+    voice: r.voice === 'we' ? 'we' : 'i',
   }));
 }
 
@@ -132,22 +133,28 @@ export async function buildFounderUpdate(env: UpdateEnv, sub: FounderUpdateSub, 
   }
   const hasMetrics = orders !== null && netSales !== null;
 
+  // Voice: partner brands (Moon Glasses, Travaholic) speak as "we/us"; pure clients keep "I".
+  const we = sub.voice === 'we';
+  const ivDone = we ? 'we’ve' : 'I’ve'; // subject + have
+  const ill = we ? 'we’ll' : 'I’ll';
+  const Ill = we ? 'We’ll' : 'I’ll';
+
   const lines: string[] = [
     `Hi ${greetNames(sub)},`,
     done.length
-      ? `Here's what I did on ${sub.brand_name} in the last 24 hours, and what's next.`
-      : `A quick note on ${sub.brand_name}: here's where we are and what I'm on next.`,
+      ? `Here's what ${ivDone} done on ${sub.brand_name} in the last 24 hours, and what's next.`
+      : `A quick note on ${sub.brand_name}: here's where things stand and what's next.`,
   ];
   if (done.length) {
     lines.push('Done in the last 24 hours:');
     for (const t of done.slice(0, 6)) lines.push(`✓ ${t.task}`);
   } else {
-    lines.push('Setup continued behind the scenes today. I’ll have the next milestones in tomorrow’s update.');
+    lines.push(`Setup continued behind the scenes today. ${Ill} have the next milestones in tomorrow’s update.`);
   }
   // Gentle reminder of what's on the founder's side, so they always know where the ball is.
   if (sub.waiting_on) lines.push(`When you have a moment: ${sub.waiting_on}.`);
-  else lines.push('Nothing needed from you right now — I’ll flag it the moment something does.');
-  lines.push('Any comments? Just reply and I’ll fold them into tomorrow’s plan.');
+  else lines.push(`Nothing needed from you right now — ${ill} flag it the moment something does.`);
+  lines.push(`Any comments? Just reply and ${ill} fold them into tomorrow’s plan.`);
 
   const rows = hasMetrics
     ? [{ label: 'Orders (last 24h)', value: String(orders) }, { label: 'Net sales (last 24h)', value: inr(netSales as number) }]
