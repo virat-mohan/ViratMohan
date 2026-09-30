@@ -3,7 +3,7 @@ export const prerender = false;
 import { getRetailOsDb, journeyStep, BUILD_WINDOW_DAYS } from '../../../lib/retail-os-db';
 import type { RetailOsApplication, JourneyStep } from '../../../lib/retail-os-db';
 import { getEnv } from '../../../lib/env';
-import { getLiveBrands, clarityFriction, brandMetrics, brandBudget, leversFor, istToday, type FrictionPage, type Period, type Metrics, type Budget, type Lever } from '../../../lib/retail-os-portfolio';
+import { getLiveBrands, clarityFriction, brandMetrics, brandBudget, leversFor, istToday, channelMix, type ChannelMix, type FrictionPage, type Period, type Metrics, type Budget, type Lever } from '../../../lib/retail-os-portfolio';
 import { resolvePeriod, comparePeriod, beforeAfter, pctChange, addDays, PERIODS, COMPARES, type CompareMode } from '../../../lib/period-compare';
 import { getOpsDb, progressByBrand, planByObjective, OPS_STATUSES, STATUS_LABEL as OPS_STATUS_LABEL, PRIORITY_LABEL, OWNER_LABEL } from '../../../lib/retail-os-ops';
 import type { TeamMember, OpsTask, OpsLog, Objective, ObjectivePlan } from '../../../lib/retail-os-ops';
@@ -35,22 +35,25 @@ let registry: Brand[] = [];
 try { registry = await brandsDb(env).list(); } catch (e) { console.error('console brands', e); }
 const metaFor = (lb: { key: string; name: string }) => registry.find((b) => b.key === lb.key || norm(b.name) === norm(lb.name) || b.key.startsWith(norm(lb.key)) || norm(lb.key).startsWith(b.key));
 type BA = { days: number; before: Metrics; after: Metrics; beforeLabel: string; afterLabel: string };
-type Card = { brand: { key: string; name: string }; ok: true; cur: Metrics; prev: Metrics; ba: BA | null; takeover: string | null; budget: Budget | null; levers: Lever[]; friction: { pages: FrictionPage[]; fetchedAt: string } | null } | { brand: { key: string; name: string }; ok: false; error: string };
+type Card = { brand: { key: string; name: string }; ok: true; cur: Metrics; prev: Metrics; mix: ChannelMix | null; mixPrev: ChannelMix | null; ba: BA | null; takeover: string | null; budget: Budget | null; levers: Lever[]; friction: { pages: FrictionPage[]; fetchedAt: string } | null } | { brand: { key: string; name: string }; ok: false; error: string };
 const portfolio: Card[] = tab === 'live' ? await Promise.all(liveBrands.map(async (b): Promise<Card> => {
   try {
     const takeover = metaFor(b)?.retail_os_since ?? null;
     const w = beforeAfter(takeover, today);
-    const [cur, prev, budget, friction, before, after] = await Promise.all([
+    const [cur, prev, budget, friction, before, after, mix, mixPrev] = await Promise.all([
       brandMetrics(b, current), brandMetrics(b, previous), brandBudget(b, current).catch(() => null), clarityFriction(b).catch(() => null),
       w ? brandMetrics(b, asPeriod(w.before)) : Promise.resolve(null), w ? brandMetrics(b, asPeriod(w.after)) : Promise.resolve(null),
+      channelMix(b, current).catch(() => null), channelMix(b, previous).catch(() => null),
     ]);
     const ba = w && before && after ? { days: w.days, before, after, beforeLabel: w.before.label, afterLabel: w.after.label } : null;
-    return { brand: { key: b.key, name: b.name }, ok: true, cur, prev, ba, takeover, budget, levers: leversFor(cur, budget), friction };
+    return { brand: { key: b.key, name: b.name }, ok: true, cur, prev, mix, mixPrev, ba, takeover, budget, levers: leversFor(cur, budget), friction };
   } catch (err) { return { brand: { key: b.key, name: b.name }, ok: false, error: err instanceof Error ? err.message : String(err) }; }
 })) : [];
 const inr = (n: number) => '₹' + Math.round(n).toLocaleString('en-IN');
 const pct = (a: number, b: number) => { const v = pctChange(a, b); return v === null ? '—' : `${v >= 0 ? '+' : ''}${v}%`; };
 const roas = (sales: number, spend: number) => (spend ? sales / spend : 0);
+const mixTotals = portfolio.reduce((t, p) => (p.ok && p.mix ? { orders: t.orders + p.mix.orders, owned: t.owned + p.mix.ownedOrders, paid: t.paid + p.mix.paidOrders, spend: t.spend + p.cur.adSpend } : t), { orders: 0, owned: 0, paid: 0, spend: 0 });
+const perOrder = (spend: number, n: number) => (n ? inr(spend / n) : '—');
 const totals = portfolio.reduce((t, p) => (p.ok ? { sales: t.sales + p.cur.netSales, prevSales: t.prevSales + p.prev.netSales, orders: t.orders + p.cur.orders, prevOrders: t.prevOrders + p.prev.orders, ad: t.ad + p.cur.adSpend, prevAd: t.prevAd + p.prev.adSpend, metaRev: t.metaRev + p.cur.metaRevenue, prevMetaRev: t.prevMetaRev + p.prev.metaRevenue, profit: t.profit + (p.cur.costVerified ? p.cur.netProfit : 0), prevProfit: t.prevProfit + (p.cur.costVerified ? p.prev.netProfit : 0), noCost: t.noCost + (p.cur.costVerified ? 0 : 1) } : t), { sales: 0, prevSales: 0, orders: 0, prevOrders: 0, ad: 0, prevAd: 0, metaRev: 0, prevMetaRev: 0, profit: 0, prevProfit: 0, noCost: 0 });
 type Row = [string, number, number, 'inr' | 'num' | 'x', boolean]; // label, cur, cmp, format, higher is better
 const rowsFor = (c: Metrics, p: Metrics, perDay?: [number, number]): Row[] => {
@@ -366,6 +369,7 @@ const href = (t: string, extra = '') => `/retail-os/admin/console?tab=${t}${extr
       <div class="kpi"><div class="l">Orders</div><div class="v">{totals.orders.toLocaleString('en-IN')}</div><div class="s"><span class={tone(totals.orders, totals.prevOrders, true)}>{pct(totals.orders, totals.prevOrders)}</span> vs {totals.prevOrders.toLocaleString('en-IN')}</div></div>
       <div class="kpi"><div class="l">Ad spend</div><div class="v">{inr(totals.ad)}</div><div class="s"><span class={tone(totals.ad, totals.prevAd, false)}>{pct(totals.ad, totals.prevAd)}</span> vs {inr(totals.prevAd)}</div></div>
       <div class="kpi"><div class="l">ROAS · store / Meta</div><div class="v">{totals.ad ? `${roas(totals.sales, totals.ad).toFixed(1)}×` : '—'} <span style="font-size:1rem;color:var(--dim)">/ {totals.ad ? `${roas(totals.metaRev, totals.ad).toFixed(1)}×` : '—'}</span></div><div class="s">before: {totals.prevAd ? `${roas(totals.prevSales, totals.prevAd).toFixed(1)}× / ${roas(totals.prevMetaRev, totals.prevAd).toFixed(1)}×` : '—'}</div></div>
+      <div class="kpi"><div class="l">Orders not from ads</div><div class="v">{mixTotals.orders ? `${Math.round((mixTotals.owned / mixTotals.orders) * 100)}%` : '—'}</div><div class="s">cost per order: {perOrder(mixTotals.spend, mixTotals.orders)} overall · {perOrder(mixTotals.spend, mixTotals.paid)} on ads</div></div>
       <div class="kpi"><div class="l">Net profit{totals.noCost > 0 && ` (excludes ${totals.noCost} brand${totals.noCost > 1 ? 's' : ''} without purchase cost)`}</div><div class={`v${totals.profit < 0 ? ' bad' : ''}`}>{inr(totals.profit)}</div><div class="s"><span class={tone(totals.profit, totals.prevProfit, true)}>{pct(totals.profit, totals.prevProfit)}</span> vs {inr(totals.prevProfit)}</div></div>
     </div>
     {liveBrands.length === 0 ? <section><p class="note">No live stores are connected for numbers yet. The Brands tab still lists every live brand and its terms.</p></section> : (
@@ -379,6 +383,14 @@ const href = (t: string, extra = '') => `/retail-os/admin/console?tab=${t}${extr
                 <tr><th></th><th class="num">Selected</th><th class="num">Compared</th><th class="num">Change</th></tr>
                 {rowsFor(p.cur, p.prev).map(([l, a, b, f, up]) => <tr><td>{l}</td><td class="num">{show(a, f)}</td><td class="num">{show(b, f)}</td><td class={`num ${tone(a, b, up)}`}>{pct(a, b)}</td></tr>)}
               </table></div>
+              <h3>Where orders came from</h3>
+              {p.mix && p.mix.sessions ? (<>
+                <div class="scroll"><table>
+                  <tr><th>Channel</th><th class="num">Visits</th><th class="num">Orders</th><th class="num">Share</th><th class="num">vs compared</th></tr>
+                  {p.mix.rows.map((r) => { const b = p.mixPrev?.rows.find((x) => x.channel === r.channel)?.orders ?? 0; return <tr><td>{r.label}</td><td class="num">{r.sessions.toLocaleString('en-IN')}</td><td class="num">{r.orders}</td><td class="num">{p.mix!.orders ? `${Math.round((r.orders / p.mix!.orders) * 100)}%` : '—'}</td><td class={`num ${tone(r.orders, b, true)}`}>{pct(r.orders, b)}</td></tr>; })}
+                </table></div>
+                <p class="note" style="margin:6px 0 0;">Cost per order: <b>{perOrder(p.cur.adSpend, p.mix.orders)}</b> overall (all ad spend ÷ all tracked orders) · <b>{perOrder(p.cur.adSpend, p.mix.paidOrders)}</b> on ads alone. {p.mix.orders ? `${Math.round((p.mix.ownedOrders / p.mix.orders) * 100)}% of orders came without an ad click.` : ''}</p>
+              </>) : <p class="note">No visit tracking from this store for the period.</p>}
               <h3>Before vs after Retail OS</h3>
               {p.ba ? (<>
                 <p class="note" style="margin:0 0 6px;">Took over {new Date(p.takeover + 'T00:00:00Z').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })}. {p.ba.days} days each side, shown per day so the two are like for like.</p>

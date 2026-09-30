@@ -311,6 +311,73 @@ export async function brandBudget(brand: LiveBrand, period: Period): Promise<Bud
 
 export type FrictionPage = { url: string; sessions: number; rageClicks: number; deadClicks: number; quickbacks: number };
 
+// ── Channel mix: where orders come from ────────────────────────────────────
+// Every store logs tracking_events (PageView ... Purchase) per session with the
+// session's source: `ad_brief_id` = a click on our own Meta campaign (paid), else
+// utm_source, else the referrer. A session is attributed to the source of its first
+// PageView (first touch, same rule as the store's own analytics). Owned and earned
+// channels are everything that is not paid.
+export type Channel = 'meta_ads' | 'instagram_facebook' | 'whatsapp' | 'email' | 'search' | 'creators_referrals' | 'direct' | 'other';
+export const CHANNEL_LABEL: Record<Channel, string> = {
+  meta_ads: 'Meta ads (paid)', instagram_facebook: 'Instagram and Facebook (organic)', whatsapp: 'WhatsApp', email: 'Email',
+  search: 'Search (Google)', creators_referrals: 'Creators and referrals', direct: 'Direct', other: 'Other sites',
+};
+export const PAID_CHANNELS: Channel[] = ['meta_ads'];
+
+export function classifyChannel(ev: { ad_brief_id?: string | null; utm_source?: string | null; referrer_host?: string | null }): Channel {
+  if (ev.ad_brief_id) return 'meta_ads';
+  const utm = (ev.utm_source || '').toLowerCase().trim();
+  if (utm) {
+    if (['meta_ads', 'fb_ads', 'ig_ads', 'paid'].includes(utm)) return 'meta_ads';
+    if (utm === 'whatsapp' || utm === 'wa') return 'whatsapp';
+    if (['email', 'brevo', 'newsletter', 'mail'].includes(utm)) return 'email';
+    if (['meta', 'facebook', 'instagram', 'fb', 'ig', 'reel', 'reels', 'social'].includes(utm)) return 'instagram_facebook';
+    if (/creator|influencer|ref|referral|friend|pwap|post/.test(utm)) return 'creators_referrals';
+    if (/google|search|seo|merchant|shopping/.test(utm)) return 'search';
+    return 'other';
+  }
+  const host = (ev.referrer_host || '').toLowerCase();
+  if (!host) return 'direct';
+  if (/wa\.me|whatsapp\.com/.test(host)) return 'whatsapp';
+  if (/instagram\.com|facebook\.com|fb\.com|l\.instagram|lm\.facebook/.test(host)) return 'instagram_facebook';
+  if (/google\.|bing\.|duckduckgo\.|yahoo\./.test(host)) return 'search';
+  if (/mail\.|gmail|outlook|brevo|sendinblue/.test(host)) return 'email';
+  return 'other';
+}
+
+export type ChannelRow = { channel: Channel; label: string; sessions: number; orders: number; revenue: number };
+export type ChannelMix = { rows: ChannelRow[]; sessions: number; orders: number; paidOrders: number; ownedOrders: number };
+
+/** Sessions and purchases per channel for a period. Null when the store has no tracking log. */
+export async function channelMix(brand: LiveBrand, period: Period): Promise<ChannelMix | null> {
+  const db = brandClient(brand);
+  const first = new Map<string, Channel>();
+  const buys = new Map<string, { n: number; value: number }>();
+  const pageSize = 1000;
+  for (let from = 0; from < 50_000; from += pageSize) {
+    const { data, error } = await db.from('tracking_events')
+      .select('session_key, event_name, value, ad_brief_id, utm_source, referrer_host, created_at')
+      .gte('created_at', istStart(period.start)).lt('created_at', istStart(period.end))
+      .in('event_name', ['PageView', 'Purchase']).order('created_at').range(from, from + pageSize - 1);
+    if (error) return null; // older stores without these columns
+    const rows = (data ?? []) as { session_key: string | null; event_name: string; value: number | null; ad_brief_id: string | null; utm_source: string | null; referrer_host: string | null }[];
+    for (const r of rows) {
+      if (!r.session_key) continue;
+      if (r.event_name === 'PageView' && !first.has(r.session_key)) first.set(r.session_key, classifyChannel(r));
+      if (r.event_name === 'Purchase') { const b = buys.get(r.session_key) ?? { n: 0, value: 0 }; b.n += 1; b.value += Number(r.value ?? 0) || 0; buys.set(r.session_key, b); }
+    }
+    if (rows.length < pageSize) break;
+  }
+  const agg = new Map<Channel, ChannelRow>();
+  const row = (c: Channel) => { let x = agg.get(c); if (!x) { x = { channel: c, label: CHANNEL_LABEL[c], sessions: 0, orders: 0, revenue: 0 }; agg.set(c, x); } return x; };
+  for (const [, c] of first) row(c).sessions += 1;
+  for (const [k, b] of buys) { const r = row(first.get(k) ?? 'direct'); r.orders += b.n; r.revenue += b.value; }
+  const rows = [...agg.values()].sort((a, b) => b.orders - a.orders || b.sessions - a.sessions);
+  const orders = rows.reduce((t, r) => t + r.orders, 0);
+  const paidOrders = rows.filter((r) => PAID_CHANNELS.includes(r.channel)).reduce((t, r) => t + r.orders, 0);
+  return { rows, sessions: first.size, orders, paidOrders, ownedOrders: orders - paidOrders };
+}
+
 export async function clarityFriction(brand: LiveBrand): Promise<{ fetchedAt: string; pages: FrictionPage[] } | null> {
   const db = brandClient(brand);
   const raw = await setting(db, 'CLARITY_INSIGHTS_SNAPSHOT').catch(() => null);
