@@ -77,3 +77,6 @@ Retail OS should eventually measure traffic → landing → engagement → produ
 
 ### AE / Lead Operator (future capability)
 When built, it reuses the existing Retail OS lead, communication, approval, audit and intelligence infrastructure — not an independent sales system. Not to be built until explicitly authorised.
+
+## Invoices
+DevShop invoices are issued at /retail-os/admin/invoices (numbers DS/<FY>/0001 per Indian financial year; each has a printable link /retail-os/invoice/[token]). Bases: fixed fee, monthly retainer, % of sales, % of profit pool, onboarding deposit, reimbursement. When Virat asks for an invoice from any session, use this generator (src/lib/invoice.ts, invoice-db.ts; tables invoices, invoice_settings) and ask him for anything missingFields() lists. Bank details and PAN live only in invoice_settings (entered by Virat), never in code or chat.

@@ -1,0 +1,100 @@
+---
+export const prerender = false;
+import { getEnv } from '../../../lib/env';
+import { serviceDb } from '../../../lib/ledger';
+import { invoiceByToken, type InvoiceRow } from '../../../lib/invoice-db';
+import { amountInWords, inr, periodText } from '../../../lib/invoice';
+
+// A DevShop invoice, printable to PDF. Open by its unguessable link only.
+let inv: InvoiceRow | null = null;
+try { inv = await invoiceByToken(serviceDb(getEnv()) as never, Astro.params.token ?? ''); } catch (e) { console.error('invoice load', e); }
+if (!inv) Astro.response.status = 404;
+const day = (ymd: string) => new Date(`${ymd}T00:00:00Z`).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+const s = inv?.issuer;
+const who = inv ? [inv.bill_to.company, inv.bill_to.name].filter(Boolean) : [];
+const split = (t?: string | null) => (t ? t.split(/\n+/).map((x) => x.trim()).filter(Boolean) : []);
+const fromLines = [...split(s?.address), s?.email, s?.phone, s?.pan ? `PAN ${s.pan}` : null, s?.gstin ? `GSTIN ${s.gstin}` : null].filter(Boolean) as string[];
+const toLines = inv ? [who[1], ...split(inv.bill_to.address), inv.bill_to.email, inv.bill_to.gstin ? `GSTIN ${inv.bill_to.gstin}` : null].filter(Boolean) as string[] : [];
+---
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{inv ? `Invoice ${inv.number}` : 'Invoice'}</title>
+<meta name="robots" content="noindex, nofollow"><meta name="referrer" content="no-referrer">
+<link rel="stylesheet" href="/brand/tokens.css">
+<style>
+  @page { size: A4; margin: 14mm 14mm 12mm; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 14px/1.55 var(--sans); -webkit-font-smoothing: antialiased; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .sheet { max-width: 800px; margin: 32px auto 64px; background: #fffdf8; border: 1px solid var(--line); border-radius: 18px; padding: clamp(22px, 5vw, 48px); box-sizing: border-box; }
+  .band { display: flex; height: 5px; border-radius: 3px; overflow: hidden; margin: 0 0 26px; } .band i { flex: 1; } .band i:nth-child(1){background:#D4AF37}.band i:nth-child(2){background:#3E6FA6}.band i:nth-child(3){background:#E91E8C}.band i:nth-child(4){background:#9C7A4A}
+  .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; flex-wrap: wrap; }
+  .logo { display: flex; align-items: flex-end; gap: 8px; } .logo img { height: 44px; width: auto; } .logo i { font-family: var(--serif); font-style: italic; color: var(--dim); font-size: 15px; }
+  .title { text-align: right; } .title h1 { font-family: var(--serif); font-weight: 400; font-size: 2.2rem; line-height: 1; margin: 0 0 6px; } .title .no { font-weight: 600; letter-spacing: .04em; }
+  .status { display: inline-block; margin-top: 8px; font: 600 11px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line); }
+  .status.paid { border-color: var(--sage, #2B8C86); color: var(--sage, #2B8C86); } .status.void { color: var(--terracotta); border-color: var(--terracotta); }
+  .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 30px 0 22px; } @media (max-width: 560px) { .parties { grid-template-columns: 1fr; } .title { text-align: left; } }
+  .k { font: 600 10.5px/1 var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--terracotta); margin: 0 0 8px; }
+  .parties p { margin: 0; overflow-wrap: anywhere; } .parties b { font-weight: 600; }
+  .meta { display: flex; gap: 28px; flex-wrap: wrap; padding: 14px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-bottom: 22px; font-size: 13px; } .meta div span { display: block; color: var(--dim); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+  table { width: 100%; border-collapse: collapse; } th { text-align: left; font: 600 10.5px/1 var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--dim); padding: 0 0 10px; border-bottom: 1.5px solid var(--ink); }
+  td { padding: 14px 0; border-bottom: 1px solid var(--line); vertical-align: top; } td.amt, th.amt { text-align: right; white-space: nowrap; padding-left: 16px; }
+  td .d { font-family: var(--serif); font-size: 1.08rem; } td .s { color: var(--dim); font-size: 12.5px; margin-top: 2px; }
+  .totals { margin: 14px 0 0 auto; width: min(320px, 100%); } .totals div { display: flex; justify-content: space-between; padding: 6px 0; } .totals .grand { border-top: 1.5px solid var(--ink); margin-top: 6px; padding-top: 12px; font-family: var(--serif); font-size: 1.5rem; }
+  .words { text-align: right; color: var(--dim); font-size: 12.5px; margin: 4px 0 26px; }
+  .pay { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; background: rgba(212,175,55,.08); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; } @media (max-width: 560px) { .pay { grid-template-columns: 1fr; } }
+  .pay dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 13px; } .pay dt { color: var(--dim); } .pay dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+  .notes { margin-top: 20px; color: var(--dim); font-size: 12.5px; white-space: pre-line; }
+  .foot { margin-top: 30px; padding-top: 14px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; color: var(--dim); font-size: 12px; }
+  .actions { max-width: 800px; margin: 0 auto 60px; text-align: center; } .btn { font: 600 14px var(--sans); padding: 12px 22px; border-radius: 999px; border: 1px solid var(--ink); background: var(--ink); color: var(--paper); cursor: pointer; }
+  @media print { body { background: #fff; } .sheet { margin: 0; border: 0; border-radius: 0; padding: 0; max-width: none; background: #fff; } .actions { display: none; } }
+</style>
+</head>
+<body>
+{!inv ? (
+  <main class="sheet"><p class="k">Invoice</p><h1 style="font-family:var(--serif);font-weight:400;">This link is not valid</h1><p>Write to founder@viratmohan.com and I will send it again.</p></main>
+) : (
+  <>
+  <main class="sheet">
+    <div class="band"><i></i><i></i><i></i><i></i></div>
+    <div class="top">
+      <div class="logo"><img src="/retail-os/email/devshop-logo.png" alt="DevShop" /><i>Retail OS™</i></div>
+      <div class="title"><h1>Invoice</h1><div class="no">{inv.number}</div>{inv.status !== 'issued' && <span class={`status ${inv.status}`}>{inv.status === 'paid' ? `Paid${inv.paid_at ? ' ' + day(inv.paid_at.slice(0, 10)) : ''}` : 'Void'}</span>}</div>
+    </div>
+    <div class="parties">
+      <div><p class="k">From</p><p><b>{s?.issuer_name}</b>{fromLines.map((x) => <><br />{x}</>)}</p></div>
+      <div><p class="k">Billed to</p><p><b>{who[0]}</b>{toLines.map((x) => <><br />{x}</>)}</p></div>
+    </div>
+    <div class="meta">
+      <div><span>Invoice date</span>{day(inv.issue_date)}</div>
+      <div><span>Due by</span>{day(inv.due_date)}</div>
+      {inv.period_start && <div><span>Period</span>{periodText(inv.period_start, inv.period_end)}</div>}
+    </div>
+    <table>
+      <thead><tr><th>Particulars</th><th class="amt">Amount</th></tr></thead>
+      <tbody>{inv.lines.map((l) => <tr><td><div class="d">{l.description}</div>{l.detail && <div class="s">{l.detail}</div>}</td><td class="amt">{inr(l.amount)}</td></tr>)}</tbody>
+    </table>
+    <div class="totals">
+      <div><span>Subtotal</span><span>{inr(Number(inv.subtotal))}</span></div>
+      {Number(inv.tax) > 0 && <div><span>GST {inv.tax_rate}%</span><span>{inr(Number(inv.tax))}</span></div>}
+      <div class="grand"><span>Total</span><span>{inr(Number(inv.total))}</span></div>
+    </div>
+    <p class="words">{amountInWords(Number(inv.total))}</p>
+    <div class="pay">
+      <div><p class="k">Pay by bank transfer</p><dl>
+        <dt>Account name</dt><dd>{s?.account_name}</dd>
+        {s?.bank_name && <><dt>Bank</dt><dd>{s.bank_name}{s.account_type ? `, ${s.account_type}` : ''}</dd></>}
+        <dt>Account no.</dt><dd>{s?.account_no}</dd>
+        <dt>IFSC</dt><dd>{s?.ifsc}</dd>
+        {s?.upi_id && <><dt>UPI</dt><dd>{s.upi_id}</dd></>}
+      </dl></div>
+      <div><p class="k">Reference</p><p style="margin:0;font-size:13px;">Please use <b>{inv.number}</b> as the payment reference, and reply to the invoice email once paid so I can confirm it the same day.</p></div>
+    </div>
+    {[inv.notes, s?.footer_note].filter(Boolean).map((n) => <p class="notes">{n}</p>)}
+    <div class="foot"><span>DevShop Retail OS™ · viratmohan.com</span><span>Thank you.</span></div>
+  </main>
+  <div class="actions"><button class="btn" type="button" onclick="window.print()">Save as PDF</button></div>
+  </>
+)}
+</body>
+</html>
