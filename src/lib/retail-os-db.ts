@@ -40,7 +40,12 @@ export type ReportSchedule = {
 };
 
 export type BrandStatus = 'existing' | 'new_sub_brand' | 'from_zero';
-export type RetailOsTerms = { splitPct: number | null; aiEnabler: boolean; notes: string | null; sentAt: string };
+export type RetailOsTerms = {
+  splitPct: number | null; aiEnabler: boolean; notes: string | null; sentAt: string;
+  /** Fixed-fee model: DevShop earns this many rupees per unit sold online instead of a profit share. */
+  perUnitFeeInr?: number | null;
+  forecastReleased?: boolean;
+};
 export type RetailOsAgreement = { signedName: string; signedAt: string; ip: string | null; userAgent: string | null; portfolioConsent?: boolean; terms: Record<string, unknown> };
 export type RetailOsDeposit = { amountInr: number; utr: string; submittedAt: string; confirmedAt: string | null };
 
@@ -69,6 +74,8 @@ export type RetailOsApplication = {
   split_range_lo: number | null;
   split_range_hi: number | null;
   ai_enabler_track: boolean;
+  /** New D2C starts: no forecast is generated or shown on the tracker. */
+  hide_forecast?: boolean;
   stages: RetailOsStage[];
   payment_methods: string | null;
   shipping_charge_model: string | null;
