@@ -1,10 +1,10 @@
-# @vmviews collabs and @viratemn stories: rules
+# @viratmohan_devshop collabs and @viratemn stories: rules
 
 The goal: brand posts reach the founders I want as Retail OS clients, and every collab works as proof that DevShop builds businesses that sell. My handles never become a brand's ad channel.
 
 ## Who gets what
 
-| Brand type | @vmviews as collaborator | Story on @viratemn |
+| Brand type | @viratmohan_devshop as collaborator | Story on @viratemn |
 |---|---|---|
 | **Partner brands I co-own** (Moonglasses, Travaholic Caps) | Yes, on milestone posts only (see below) | Yes, with the founder angle: what was built and how fast |
 | **Pure clients** (Ceremony Kitchen, Fresh For Paws, Korbi and future clients) | No by default. Only if the client asks in writing and their NDA allows it | No brand name. An anonymised result story only ("a D2C brand I work with: +40% repeat orders"), percentages only |
@@ -25,10 +25,10 @@ Not: routine product posts, offers or discounts, reposted UGC, ads. Those stay o
 - No real values (₹, orders, spend), ever. Percentages only.
 
 ## Approval (unchanged: nothing goes on my handles without email approval)
-1. The brand's session prepares the post with `collaborators: ["vmviews"]` (the Graph API supports up to 3 collaborators on feed posts and reels) and a matching @viratemn story.
+1. The brand's session prepares the post with `collaborators: ["viratmohan_devshop"]` (the Graph API supports up to 3 collaborators on feed posts and reels) and a matching @viratemn story.
 2. It emails founder@viratmohan.com: subject "Approve collab: <brand> <topic>", with the caption, slides, story frame and why it qualifies.
-3. After my email yes: the brand publishes and I accept the collab invite on @vmviews in the app. Accepting is manual; Instagram has no API for it. The story is published to @viratemn, through the API if that token has publish rights, otherwise prepared for me to post in one tap.
-4. The CEO agent logs it, and the weekly report shows the reach and profile visits each collab brought to @vmviews and @viratemn.
+3. After my email yes: the brand publishes and I accept the collab invite on @viratmohan_devshop in the app. Accepting is manual; Instagram has no API for it. The story is published to @viratemn, through the API if that token has publish rights, otherwise prepared for me to post in one tap.
+4. The CEO agent logs it, and the weekly report shows the reach and profile visits each collab brought to @viratmohan_devshop and @viratemn.
 
 ## Measure (so the rule earns its place)
 Each collab or story is tracked with `utm_source=instagram&utm_campaign=founder_<brand>_<date>` on links. Monthly: founder profile visits, follows, and "Let's talk." WhatsApp leads from collabs vs non-collab weeks. If collabs don't bring founder leads within two months, I cut them back to launches only.
