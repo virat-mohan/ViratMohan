@@ -135,10 +135,10 @@ create table if not exists weekly_statements (
   gross_sales integer not null,             -- sum of total
   refunds integer not null,
   net_sales integer not null,               -- the sale price base for the split
-  product_cost integer not null,            -- 25%
-  marketing_cap integer not null,           -- up to 25%
-  admin_tech integer not null,              -- 10%
-  profit_pool integer not null,             -- 40%
+  product_cost integer not null,            -- 25% of net sales, taken first
+  marketing_actual integer not null,        -- actual spend for the week (expenses.category = 'marketing'), counted up to 25% of net sales
+  admin_tech_actual integer not null,       -- actual spend (expenses.category = 'admin_tech'), counted up to 10% of net sales
+  profit_pool integer not null,             -- net sales - product cost - counted marketing - counted admin/tech
   devshop_share integer not null,           -- 25% of the pool
   founder_share integer not null,           -- 75% of the pool
   pay_with_a_post_sales integer not null,
@@ -169,6 +169,8 @@ insert into app_settings (key, value) values
 on conflict (key) do nothing;
 
 -- Weekly statement for the IST week starting p_week_start (a Monday). Pure read; the caller stores it.
+-- Product cost is the agreed 25% of net sales. Marketing and admin/tech are ACTUALS from expenses
+-- for the week, each counted only up to its cap (25% and 10%); spend above a cap is not deducted.
 create or replace function compute_weekly_statement(p_week_start date)
 returns weekly_statements language sql stable as $$
   with s as (select coalesce(max(value) filter (where key='SPLIT_PRODUCT_PCT'),'25')::numeric pp,
@@ -184,16 +186,22 @@ returns weekly_statements language sql stable as $$
   t as (select count(*)::int n, coalesce(sum(total),0)::int gross, coalesce(sum(refunded_amount),0)::int refunds,
                coalesce(sum(total - refunded_amount) filter (where is_post_barter),0)::int pwap
         from o),
-  c as (select t.*, (t.gross - t.refunds) net, s.* from t, s)
+  e as (select coalesce(sum(amount) filter (where category='marketing'),0) mkt,
+               coalesce(sum(amount) filter (where category='admin_tech'),0) adm
+        from expenses where expense_date between p_week_start and p_week_start + 6),
+  c as (select t.*, s.*, (t.gross - t.refunds) net from t, s),
+  k as (select c.*, round(net*pp/100)::int prod,
+               least(round(e.mkt), round(net*mp/100))::int mkt_c,
+               least(round(e.adm), round(net*ap/100))::int adm_c
+        from c, e),
+  p as (select k.*, greatest(net - prod - mkt_c - adm_c, 0)::int pool from k)
   select gen_random_uuid(), p_week_start, p_week_start + 6, n, gross, refunds, net,
-         round(net*pp/100)::int, round(net*mp/100)::int, round(net*ap/100)::int,
-         (net - round(net*pp/100) - round(net*mp/100) - round(net*ap/100))::int,
-         round((net - round(net*pp/100) - round(net*mp/100) - round(net*ap/100))*dp/100)::int,
-         ((net - round(net*pp/100) - round(net*mp/100) - round(net*ap/100)) - round((net - round(net*pp/100) - round(net*mp/100) - round(net*ap/100))*dp/100))::int,
+         prod, mkt_c, adm_c, pool,
+         round(pool*dp/100)::int, (pool - round(pool*dp/100))::int,
          pwap, round(pwap*pwp/100)::int,
-         (round((net - round(net*pp/100) - round(net*mp/100) - round(net*ap/100))*dp/100) + round(pwap*pwp/100))::int,
+         (round(pool*dp/100) + round(pwap*pwp/100))::int,
          'draft'::text, null::timestamptz, null::timestamptz, null::timestamptz, null::timestamptz, null::text, now()
-  from c;
+  from p;
 $$;
 
 -- Service role only: no public access to any table.

@@ -14,9 +14,9 @@ Classification (CLAUDE.md, product architecture): **Core Retail OS + brand confi
 
 ## Commercials (agreed 1 Oct 2026, stored in `app_settings`)
 
-On every online order: product cost 25% · marketing up to 25% · admin and tech support 10% · profit pool 40%, of which DevShop 25% (10% of the sale price). Pay with a Post: 1% of those orders. Razorpay pays Fresh For Paws first; every Monday 12 PM IST a statement goes out for reconciliation and closure, then one invoice (DevShop share + Pay with a Post fee), which Fresh For Paws transfers.
+On every online order: product cost 25% of the sale price, taken first · marketing at actual spend, counted up to 25% · admin and tech support at actual spend, counted up to 10% · the balance is the profit pool, of which DevShop gets 25%. Actuals are entered in `expenses` (category `marketing` or `admin_tech`), Meta spend included. Pay with a Post: 1% of those orders. Razorpay pays Fresh For Paws first; every Monday 12 PM IST a statement goes out for reconciliation and closure, then one invoice (DevShop share + Pay with a Post fee), which Fresh For Paws transfers.
 
-`select * from compute_weekly_statement('2026-10-05');` gives the week starting that Monday (IST). Tested: net ₹3,000 → DevShop ₹300; ₹2,000 Pay with a Post → ₹20; invoice ₹320.
+`select * from compute_weekly_statement('2026-10-05');` gives the week starting that Monday (IST). Tested locally on Postgres 16 (see below).
 
 ## Connection checklist
 
