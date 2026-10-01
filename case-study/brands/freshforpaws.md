@@ -15,7 +15,7 @@ One place for everything done on Fresh For Paws so far. Pulled together on 26 Se
 - 25% profit share. Pay with a Post at 1%.
 - ₹5,000 deposit, adjusted against actual onboarding tech costs.
 - NCNDA signed by both, 27 Sep 2026. Terms signed (per Virat, 30 Sep; not recorded on her page). Deposit ₹5,000 received 30 Sep 8:05 PM, UPI 307113869473. Build clock started 30 Sep; target 7 Oct.
-- Open: which sales the 25% applies to (all online orders, or growth above today's). Commercial-details email drafted, waiting on this.
+- Commercials closed 1 Oct: on every online order, product 25%, marketing up to 25%, admin/tech support 10%, profit pool 40%; DevShop 25% of the pool (= 10% of sale price). Razorpay stays; money lands in Srishti's account. Weekly Monday statement + invoice.
 
 ## Timeline
 | Date | What happened | Source |
@@ -30,6 +30,8 @@ One place for everything done on Fresh For Paws so far. Pulled together on 26 Se
 | 30 Sep | Call with Srishti; UPI QR shared on WhatsApp for the ₹5,000 deposit. Terms at 25% set on her page; terms email sent to srishti@freshforpaws.com | Supabase `retail_os_applications.terms`; Gmail "your terms are ready to sign" |
 
 Track page: https://www.viratmohan.com/retail-os/track/8ad86490-b731-49a1-92c8-a98a68ec0441
+
+| 1 Oct | Setup call. Minutes + commercials + step-by-step access (shipping, WordPress, domain/host, Meta, GA, GSC, Razorpay view) as PDF for WhatsApp; email drafted | Gmail draft "minutes of today's call" |
 
 ## Next step
 Collect WooCommerce admin access, product list and current order volume. Why: the build can't be scoped without catalog and order data.
