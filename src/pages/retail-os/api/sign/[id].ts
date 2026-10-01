@@ -7,7 +7,7 @@ import { sendEmail } from '../../../../lib/email';
 import { getOrigin } from '../../../../lib/http';
 import { buildTermLines } from '../../../../lib/retail-os-terms';
 import { json, clientIp, readJson } from '../../../../lib/retail-os-http';
-import { renderRetailOsEmail } from '../../../../lib/retail-os-email';
+import { renderRetailOsEmail, FOUNDER_INBOX } from '../../../../lib/retail-os-email';
 import { mailConfigured } from '../../../../lib/mail/send';
 import { syncLeadFromApplication } from '../../../../lib/lead-sync';
 import { subscribeBrandOnSign } from '../../../../lib/retail-os-daily-update';
@@ -51,6 +51,7 @@ export const POST: APIRoute = async ({ params, request }) => {
     sendEmail(
       {
         to: app.founder_email,
+        cc: FOUNDER_INBOX,
         subject: `${app.brand_name}: signed. Next, the deposit`,
         html: renderRetailOsEmail({
           preheader: 'Pay the ₹5,000 deposit to start your 7-day build.',
@@ -64,10 +65,13 @@ export const POST: APIRoute = async ({ params, request }) => {
       },
       env
     ).catch((err) => console.error('retail-os sign founder email failed', err));
-    if (env.ADMIN_NOTIFY_EMAIL) {
+    {
+      // Signed terms always land in founder@ (CLAUDE.md: Client access); ADMIN_NOTIFY_EMAIL, if set, gets a copy.
+      const extra = env.ADMIN_NOTIFY_EMAIL && env.ADMIN_NOTIFY_EMAIL.toLowerCase() !== FOUNDER_INBOX ? env.ADMIN_NOTIFY_EMAIL : undefined;
       sendEmail(
         {
-          to: env.ADMIN_NOTIFY_EMAIL,
+          to: FOUNDER_INBOX,
+          cc: extra,
           subject: `Signed: ${app.brand_name}`,
           html: renderRetailOsEmail({
             preheader: `${app.brand_name} accepted their terms.`,

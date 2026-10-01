@@ -21,7 +21,9 @@ const FONT = "Arial, Helvetica, sans-serif";
 export const LOGO_URL = 'https://www.viratmohan.com/retail-os/email/devshop-logo.png';
 
 // Every email carries the one canonical signature (mail/links.ts); the address comes from GMAIL_ADDRESS.
-export const SIGNATURE_HTML = signatureHtml('founder@viratmohan.com');
+/** Virat's business inbox: every signed term and client copy lands here. */
+export const FOUNDER_INBOX = 'founder@viratmohan.com';
+export const SIGNATURE_HTML = signatureHtml(FOUNDER_INBOX);
 const DISPLAY = "Anton, Impact, 'Arial Narrow', Arial, sans-serif";
 
 export function renderRetailOsEmail(e: RetailOsEmail): string {
