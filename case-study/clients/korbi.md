@@ -47,3 +47,6 @@ Design references (Shyam, 30 Sep): whitekailash.com, wheaty.in, muji.com/jp/ja/s
 - Application ebe48d68-2afe-410e-ba71-019fba090411, tracker https://www.viratmohan.com/retail-os/track/ebe48d68-2afe-410e-ba71-019fba090411
 - hide_forecast = true (new D2C start). Three design directions (A Shoji, B Night Road, C Craft) loaded for them to choose on the page.
 - Terms not yet sent on the page: the standard "Payments" line says customer payments collect into DevShop's account first, but Korbi uses its own Razorpay. Virat to confirm the payment flow, then send terms with perUnitFeeInr = 1000.
+
+- 2026-10-01: Shyam chose Direction A (Shoji) "with our original Korbi motifs". Marked chosen in the DB. Full homepage preview at /retail-os/korbi/home/ with fit check, Our Story and FAQ; motifs, logo, photos and founder note are placeholders until Korbi sends them. Fitment list is from the Carsfy H4 guide; Korbi to confirm.
+- Shopify: no collaborator access confirmed yet (request with code 7054 pending on our side). Korbi Supabase project: create_project timed out 3 times.
