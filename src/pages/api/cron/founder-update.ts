@@ -28,15 +28,20 @@ export const GET: APIRoute = withCronAlert('founder-update', async ({ request })
   }
   if (!mailConfigured(env)) return json({ error: 'Email is not configured' }, 503);
 
-  const results: { brand: string; to: string; sent: boolean }[] = [];
+  const results: { brand: string; to: string; sent: boolean; error?: string }[] = [];
   for (const b of built) {
+    if (!b.to || !b.to.trim()) {
+      console.warn('founder update skipped: no recipient for brand', b.brand_key);
+      results.push({ brand: b.brand_key, to: b.to, sent: false, error: 'No recipient email configured' });
+      continue;
+    }
     try {
       // Virat is always copied on what goes to a founder.
       await sendEmail({ to: b.to, cc: 'founder@viratmohan.com', subject: b.subject, html: b.html }, env);
       results.push({ brand: b.brand_key, to: b.to, sent: true });
     } catch (err) {
       console.error('founder update failed', b.brand_key, err);
-      results.push({ brand: b.brand_key, to: b.to, sent: false });
+      results.push({ brand: b.brand_key, to: b.to, sent: false, error: err instanceof Error ? err.message : String(err) });
     }
   }
   const failures = results.filter((r) => !r.sent).map((r) => r.brand);

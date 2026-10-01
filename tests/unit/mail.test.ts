@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { deliver, DAILY_CAP, nextQuotaSlot, OverQuotaError, type MailDeps, type QuotaStore } from '../../src/lib/mail/send';
+import { deliver, DAILY_CAP, nextQuotaSlot, OverQuotaError, splitRecipients, resendSend, type MailDeps, type QuotaStore } from '../../src/lib/mail/send';
 import { buildMime, fromB64url, openToken, sealToken, type GmailApi } from '../../src/lib/mail/gmail';
 import { cleanLinks, cleanTextLinks, cleanUrl, signatureHtml, signatureText } from '../../src/lib/mail/links';
 import { renderRetailOsEmail } from '../../src/lib/retail-os-email';
@@ -118,3 +118,37 @@ describe('no template ever leaves with a google.com/url link', () => {
     });
   }
 });
+
+describe('Resend multi-recipient parsing', () => {
+  it('splits comma and semicolon separated recipients', () => {
+    expect(splitRecipients('a@b.com, c@d.com; e@f.com')).toEqual(['a@b.com', 'c@d.com', 'e@f.com']);
+    expect(splitRecipients('single@domain.com')).toEqual(['single@domain.com']);
+    expect(splitRecipients('')).toEqual([]);
+    expect(splitRecipients(undefined)).toEqual([]);
+  });
+
+  it('resendSend formats to and cc as string arrays for Resend API', async () => {
+    const fetchMock = vi.fn(async (_url: string, _opts: any) => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: '123' }),
+      text: async () => '',
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await resendSend(
+      { RESEND_API_KEY: 'test-key', RESEND_FROM_EMAIL: 'sender@test.com' },
+      { to: 'founder1@brand.com, founder2@brand.com', cc: 'cc1@test.com; cc2@test.com', subject: 'Daily Update', html: '<p>Hi</p>' }
+    );
+
+    expect(fetchMock).toHaveBeenCalledOnce();
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.to).toEqual(['founder1@brand.com', 'founder2@brand.com']);
+    expect(body.cc).toEqual(['cc1@test.com', 'cc2@test.com']);
+    expect(body.from).toBe('sender@test.com');
+    expect(body.subject).toBe('Daily Update');
+
+    vi.unstubAllGlobals();
+  });
+});
+

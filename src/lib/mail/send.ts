@@ -46,7 +46,7 @@ export async function deliver(m: MailInput, deps: MailDeps, opts: { onOverQuota?
   const text = cleanTextLinks(m.text ?? (m.html ? htmlToText(m.html) : ''));
   m = { ...m, text };
   if (deps.gmail && deps.address) {
-    const recipients = ([m.to, m.cc ?? ''].join(',').split(',').filter((x) => x.trim()).length) || 1;
+    const recipients = ([...splitRecipients(m.to), ...splitRecipients(m.cc)].length) || 1;
     let ok = true;
     if (deps.quota) {
       try { ok = await deps.quota.reserve(quotaDay(deps.now), recipients, DAILY_CAP); }
@@ -99,11 +99,30 @@ export function supabaseQuota(sb: Sb): QuotaStore {
   };
 }
 
-async function resendSend(e: MailEnv, m: MailInput) {
+export function splitRecipients(raw?: string): string[] {
+  if (!raw) return [];
+  return raw
+    .split(/[,;]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+export async function resendSend(e: MailEnv, m: MailInput) {
+  const to = splitRecipients(m.to);
+  const cc = splitRecipients(m.cc);
+  if (!to.length) throw new Error(`Resend send failed: no valid recipient in 'to' (${m.to})`);
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { 'content-type': 'application/json', authorization: `Bearer ${e.RESEND_API_KEY}` },
-    body: JSON.stringify({ from: e.RESEND_FROM_EMAIL, to: [m.to], ...(m.cc ? { cc: m.cc.split(',').map((s) => s.trim()).filter(Boolean) } : {}), subject: m.subject, html: m.html, text: m.text ?? (m.html ? htmlToText(m.html) : ''), ...(m.replyTo ? { reply_to: m.replyTo } : {}) }),
+    body: JSON.stringify({
+      from: e.RESEND_FROM_EMAIL,
+      to,
+      ...(cc.length ? { cc } : {}),
+      subject: m.subject,
+      html: m.html,
+      text: m.text ?? (m.html ? htmlToText(m.html) : ''),
+      ...(m.replyTo ? { reply_to: m.replyTo } : {}),
+    }),
   });
   if (!res.ok) throw new Error(`Resend API error ${res.status}: ${(await res.text().catch(() => '')).slice(0, 500)}`);
 }
