@@ -239,11 +239,13 @@ footer .row{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;f
   try{seen=sessionStorage.getItem('korbiIntro')==='1'}catch(e){}
   function done(){intro.classList.add('done');try{sessionStorage.setItem('korbiIntro','1')}catch(e){}}
   if(reduce||seen){intro.classList.add('done')}else{
-    film.addEventListener('ended',function(){setTimeout(done,600)});
+    film.addEventListener('ended',function(){setTimeout(done,400)});
     film.addEventListener('error',done);
     skip.addEventListener('click',done);
+    intro.addEventListener('click',done);
+    film.addEventListener('stalled',done);
     var p=film.play(); if(p&&p.catch)p.catch(done);
-    setTimeout(done,12000);
+    setTimeout(done,8000);
   }
   // H4 fitment from Carsfy's 2026 H4 guide; KORBI to confirm the final list before launch.
   var cars=['Maruti Suzuki Swift','Maruti Suzuki Dzire','Maruti Suzuki Wagon R','Maruti Suzuki Baleno (before 2024)','Maruti Suzuki Alto 800','Maruti Suzuki Alto K10','Maruti Suzuki Celerio','Maruti Suzuki Ignis','Tata Punch','Tata Tiago','Hyundai i10','Hyundai i20','Hyundai Santro','Honda Amaze','Honda Brio','Toyota Etios','Nissan Magnite','Mahindra Bolero','Mahindra Thar'];
