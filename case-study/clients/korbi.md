@@ -56,3 +56,7 @@ Design references (Shyam, 30 Sep): whitekailash.com, wheaty.in, muji.com/jp/ja/s
 - 2026-10-01: Korbi collaterals received (Drive "Korbi · Brand collaterals"): logo (KORBI, red sun O, "THE LIGHT SAMURAI"), packaging sleeve with the samurai artwork and copy, a 7-second brand film, fonts Gilroy and Helvetica Neue, a 99 MB background TIF and a QR code. Homepage rebuilt with the film as the opening, their logo, artwork, packaging copy word for word and the Indian-scripts motif. Gilroy web licence to confirm (Outfit stands in). The "WhatsApp us" button points to Virat until Korbi gives its own number.
 
 - 2026-10-01: Media assets module built (core Retail OS): /retail-os/admin/media/korbi. Prince connects Shopify there once (store .myshopify.com + custom-app token with read_products), every product image imports into the library, and any image link can be copied for the site and posts.
+
+## Retail OS backend (1 Oct 2026)
+- Supabase project `korbi`, ref dajglwnvrhrxryzjkjka, region ap-southeast-1 (Singapore; Mumbai was intended, fine for now). Tables created: integrations, media_assets, products, orders (RLS on, server-only).
+- Waiting on GitHub repo virat-mohan/korbi (Virat creates; my access returns 403) to build the admin and link Vercel.
