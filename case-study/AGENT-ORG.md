@@ -7,7 +7,7 @@ Machines do the work. Money, people and promises stay with me. Every agent has o
 ```
 Virat Mohan, founder: decides money, people, promises
 │
-└── Myoho, chief of staff (master control, the viratmohan.com session)
+└── Myoho, co-founder (master control, the viratmohan.com session)
     │   sets every standard, runs the shared agents, briefs the brand CEOs,
     │   and is the only agent that reports to Virat directly
     │
