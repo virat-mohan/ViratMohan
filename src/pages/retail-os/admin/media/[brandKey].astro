@@ -1,0 +1,123 @@
+---
+export const prerender = false;
+import { getEnv } from '../../../../lib/env';
+import { brandsDb, type Brand } from '../../../../lib/brands';
+import { leadSb, listAccess } from '../../../../lib/lead-audit-db';
+import { listMedia, type MediaAsset } from '../../../../lib/media-assets';
+
+// Retail OS · Media assets (gated by src/middleware.ts). One brand's image library:
+// connect the Shopify store once, import every product image, copy any image's link.
+const key = String(Astro.params.brandKey ?? '').toLowerCase();
+let brand: Brand | null = null, assets: MediaAsset[] = [], shop: string | null = null, hasToken = false, loadError = '';
+try {
+  const env = getEnv();
+  brand = (await brandsDb(env).list()).find((b) => b.key === key) ?? null;
+  if (brand) {
+    const sb = leadSb(env);
+    assets = await listMedia(sb, key);
+    if (brand.lead_id) {
+      const row = (await listAccess(sb, brand.lead_id)).find((r) => r.source === 'shopify');
+      shop = (row?.config.shop as string | undefined) ?? null;
+      hasToken = !!row?.secret_enc;
+    }
+  }
+} catch (e) { loadError = e instanceof Error ? e.message : String(e); }
+const connected = !!shop && hasToken;
+const products = [...new Set(assets.map((a) => a.product_title ?? 'Other'))];
+---
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{brand ? `${brand.name} · Media assets` : 'Media assets'}</title><meta name="robots" content="noindex">
+<link rel="stylesheet" href="/brand/tokens.css">
+<style>
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.6 var(--sans);-webkit-font-smoothing:antialiased;}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 16px 96px;}
+.eyebrow{font:600 11px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--terracotta);margin:0 0 12px;}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(2.2rem,6vw,3rem);line-height:1.05;margin:0 0 10px;}
+h2{font-family:var(--serif);font-weight:400;font-size:1.5rem;margin:36px 0 14px;}
+.sub{color:var(--dim);margin:0 0 28px;max-width:62ch;}
+.panel{border:1px solid var(--line);border-radius:14px;background:#fff;padding:20px;display:grid;gap:12px;}
+.row{display:grid;grid-template-columns:1fr;gap:10px;} @media(min-width:640px){.row{grid-template-columns:1fr 1fr auto;align-items:end;}}
+label{display:block;font:600 12px/1.3 var(--sans);color:var(--dim);margin:0 0 4px;}
+input{width:100%;box-sizing:border-box;font:14px/1.4 var(--sans);padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);}
+.btn{font:600 14px var(--sans);padding:10px 18px;border-radius:999px;border:1px solid var(--ink);background:var(--ink);color:var(--paper);cursor:pointer;} .btn.ghost{background:transparent;color:var(--ink);}
+.btn:focus-visible,input:focus-visible{outline:2px solid var(--terracotta);outline-offset:2px;}
+.ok{color:#2B8C86;font-weight:600;} .msg{min-height:1.4em;font-size:14px;color:var(--dim);}
+.note{font-size:13px;color:var(--dim);}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;}
+.tile{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;display:grid;min-width:0;}
+.tile img{width:100%;aspect-ratio:1;object-fit:contain;background:#FAF7F0;display:block;}
+.tile div{padding:10px 12px;display:grid;gap:6px;font-size:12px;color:var(--dim);}
+.tile button{justify-self:start;font:600 12px var(--sans);padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:transparent;cursor:pointer;}
+.empty{border:1px dashed var(--line);border-radius:14px;padding:28px;color:var(--dim);text-align:center;}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <p class="eyebrow">DevShop Retail OS · {brand?.name ?? key}</p>
+  <h1>Media assets</h1>
+  <p class="sub">Every product image from the store, in one library. Connect Shopify once, import, and copy any image's link for the website, posts and ads.</p>
+  {loadError && <p class="msg">Couldn't load: {loadError}</p>}
+  {!brand && !loadError && <p class="msg">No brand with the key "{key}".</p>}
+
+  {brand && (
+    <section class="panel" aria-labelledby="conn">
+      <h2 id="conn" style="margin:0">Shopify {connected ? <span class="ok">· connected to {shop}</span> : null}</h2>
+      <p class="note">In the store's admin: Settings → Apps and sales channels → Develop apps → Create an app named "DevShop Retail OS" with read_products (add read_orders for sales), install it, and paste the Admin API token here once. It's stored encrypted and never shown again.</p>
+      <form id="connect" class="row">
+        <div><label for="shop">Store address</label><input id="shop" name="shop" placeholder="yourstore.myshopify.com" value={shop ?? ''} autocomplete="off"></div>
+        <div><label for="token">Admin API access token</label><input id="token" name="token" type="password" placeholder={hasToken ? 'Saved. Paste a new one to replace it.' : 'shpat_…'} autocomplete="off"></div>
+        <button class="btn" type="submit">{connected ? 'Save and import' : 'Connect and import'}</button>
+      </form>
+      {connected && <div><button class="btn ghost" id="import" type="button">Import images again</button></div>}
+      <div class="msg" id="msg" aria-live="polite"></div>
+    </section>
+  )}
+
+  {brand && (
+    <>
+      <h2>{assets.length} image{assets.length === 1 ? '' : 's'}</h2>
+      {assets.length === 0 ? (
+        <div class="empty">No images yet. Connect Shopify above and they'll appear here.</div>
+      ) : products.map((p) => (
+        <>
+          <p class="eyebrow" style="margin:22px 0 10px;color:var(--dim)">{p}</p>
+          <div class="grid">
+            {assets.filter((a) => (a.product_title ?? 'Other') === p).map((a) => (
+              <figure class="tile" style="margin:0">
+                <img src={a.url.includes('?') ? a.url : `${a.url}?width=480`} alt={a.alt ?? ''} loading="lazy" />
+                <div><span>{a.width && a.height ? `${a.width} × ${a.height}` : ''}</span><button type="button" data-url={a.url}>Copy link</button></div>
+              </figure>
+            ))}
+          </div>
+        </>
+      ))}
+    </>
+  )}
+</main>
+<script define:vars={{ key }}>
+  var msg = document.getElementById('msg');
+  function post(body) {
+    msg.textContent = 'Working… this can take a few seconds.';
+    return fetch('/retail-os/api/admin/media/' + key, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d.ok) { msg.textContent = 'Imported ' + d.imported + ' images.' + (d.salesNote ? ' Sales not connected yet: ' + d.salesNote : '') + ' Reloading…'; setTimeout(function () { location.reload(); }, 900); }
+        else msg.textContent = d.error || 'Something went wrong.';
+      })
+      .catch(function () { msg.textContent = 'Network error. Try again.'; });
+  }
+  var form = document.getElementById('connect');
+  if (form) form.addEventListener('submit', function (e) { e.preventDefault(); post({ action: 'connect', shop: document.getElementById('shop').value, token: document.getElementById('token').value }); });
+  var imp = document.getElementById('import');
+  if (imp) imp.addEventListener('click', function () { post({ action: 'import' }); });
+  document.querySelectorAll('[data-url]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      navigator.clipboard.writeText(b.dataset.url).then(function () { b.textContent = 'Copied'; }, function () { prompt('Copy this link', b.dataset.url); });
+    });
+  });
+</script>
+</body>
+</html>
