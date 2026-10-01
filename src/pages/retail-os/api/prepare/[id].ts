@@ -26,7 +26,8 @@ export const POST: APIRoute = async ({ params }) => {
   if (!app) return json({ status: 'error', error: 'Not found' }, 404);
 
   const [plan, design] = await Promise.all([db.getLatestBusinessPlan(id), db.getLatestDesignDirection(id)]);
-  if (plan && design) return json({ status: 'ready' }, 200);
+  const needPlan = !plan && !app.hide_forecast;
+  if (!needPlan && design) return json({ status: 'ready' }, 200);
 
   const recent = await db.countPrepsSince(new Date(Date.now() - 60 * 60 * 1000).toISOString());
   if (recent >= HOURLY_CAP) return json({ status: 'queued' }, 200);
@@ -35,7 +36,7 @@ export const POST: APIRoute = async ({ params }) => {
   if (!claimed) return json({ status: 'preparing' }, 200);
 
   const results = await Promise.allSettled([
-    plan ? Promise.resolve('exists') : createPlanForApplication(db, app, env.ANTHROPIC_API_KEY),
+    !needPlan ? Promise.resolve('exists') : createPlanForApplication(db, app, env.ANTHROPIC_API_KEY),
     design ? Promise.resolve('exists') : createDesignForApplication(db, app, env.ANTHROPIC_API_KEY),
   ]);
   const failures = results
