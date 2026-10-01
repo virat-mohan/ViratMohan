@@ -11,7 +11,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 export const GRAPH = 'https://graph.facebook.com/v23.0';
 export const ACCOUNTS = [
   { handle: '@viratemn', igId: '17841401892164011' },
-  { handle: '@vmviews', igId: '17841437222646246' },
+  { handle: '@viratmohan_devshop', igId: '17841437222646246' },
 ] as const;
 export const CTA = 'DM me D2C';
 const DAY = 86400000;
