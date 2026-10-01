@@ -52,3 +52,5 @@ Design references (Shyam, 30 Sep): whitekailash.com, wheaty.in, muji.com/jp/ja/s
 - Shopify: no collaborator access confirmed yet (request with code 7054 pending on our side). Korbi Supabase project: create_project timed out 3 times.
 
 - 2026-10-01: Shyam: "Korbi is the name of the Samurai who researched into LED tech for RHD market"; the original page, communication and packaging carry this story. They will fish out the original creatives. Added a "Legend of Korbi" section to the homepage draft (placeholder art until their originals arrive).
+
+- 2026-10-01: Korbi collaterals received (Drive "Korbi · Brand collaterals"): logo (KORBI, red sun O, "THE LIGHT SAMURAI"), packaging sleeve with the samurai artwork and copy, a 7-second brand film, fonts Gilroy and Helvetica Neue, a 99 MB background TIF and a QR code. Homepage rebuilt with the film as the opening, their logo, artwork, packaging copy word for word and the Indian-scripts motif. Gilroy web licence to confirm (Outfit stands in). The "WhatsApp us" button points to Virat until Korbi gives its own number.
