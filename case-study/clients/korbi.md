@@ -50,3 +50,5 @@ Design references (Shyam, 30 Sep): whitekailash.com, wheaty.in, muji.com/jp/ja/s
 
 - 2026-10-01: Shyam chose Direction A (Shoji) "with our original Korbi motifs". Marked chosen in the DB. Full homepage preview at /retail-os/korbi/home/ with fit check, Our Story and FAQ; motifs, logo, photos and founder note are placeholders until Korbi sends them. Fitment list is from the Carsfy H4 guide; Korbi to confirm.
 - Shopify: no collaborator access confirmed yet (request with code 7054 pending on our side). Korbi Supabase project: create_project timed out 3 times.
+
+- 2026-10-01: Shyam: "Korbi is the name of the Samurai who researched into LED tech for RHD market"; the original page, communication and packaging carry this story. They will fish out the original creatives. Added a "Legend of Korbi" section to the homepage draft (placeholder art until their originals arrive).
