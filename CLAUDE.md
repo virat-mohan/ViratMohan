@@ -116,3 +116,6 @@ Partner brands Virat co-owns (Moonglasses, Travaholic Caps) add @viratmohan_devs
 
 ## Every launch (case-study/LAUNCH-PLAYBOOK.md)
 Each brand go-live runs the same seven steps: audit every money path and link before go-live; tell the brand founder first; post on the brand's Instagram in its voice; post a joint announcement on @viratmohan_devshop in Virat's brand ("DEVSHOP RETAIL OS™ × <BRAND>™"); post a story on @viratemn tagging and linking to it; add a launch page on viratmohan.com (src/content/launches/<brand>.md, which also shows the homepage "Just launched" banner for 30 days); then check every link and report with all the live links. Show Virat every image before posting, and never stretch an image.
+
+## Always testing: live health check (scripts/health/check.mjs)
+A scheduled routine runs `node scripts/health/check.mjs` every 2 hours against every live brand and viratmohan.com. It checks that pages return 200, admin is locked, unsafe routes are refused, payment config is right (COD off, card off, UPI on) and homepage links load. When something fails, it is fixed in the owning repo (or briefed to that brand's session), re-checked live, and reported to founder@ only with the result. Add every new live brand to the BRANDS list on launch day.
