@@ -4,6 +4,8 @@ import type { APIRoute } from 'astro';
 import { getEnv } from '../../../lib/env';
 import { extractMessages, handleInbound, verifyMetaSignature } from '../../../lib/ingest/inbound';
 import { liveInboundDeps } from '../../../lib/ingest/inbound-db';
+import { inboxFromWebhook } from '../../../lib/whatsapp-inbox';
+import { serviceDb } from '../../../lib/ledger';
 
 // WhatsApp Cloud API webhook.
 // GET: Meta's verify-token handshake (hub.mode=subscribe, hub.verify_token, hub.challenge).
@@ -21,6 +23,12 @@ export const POST: APIRoute = async ({ request }) => {
   if (!verifyMetaSignature(raw, request.headers.get('x-hub-signature-256'), env.WHATSAPP_APP_SECRET)) return new Response('Bad signature', { status: 401 });
   let body: unknown;
   try { body = JSON.parse(raw); } catch { return new Response('Bad JSON', { status: 400 }); }
+  // Inbox first: every message and echo is kept for /retail-os/admin/inbox, whoever sent it.
+  try {
+    const sb = serviceDb(env); const { messages, statuses } = inboxFromWebhook(body);
+    if (messages.length) await sb.from('whatsapp_messages').upsert(messages, { onConflict: 'wa_message_id', ignoreDuplicates: true });
+    for (const st of statuses) await sb.from('whatsapp_messages').update({ status: st.status }).eq('wa_message_id', st.wa_message_id);
+  } catch (err) { console.error('whatsapp inbox store failed', err); }
   const msgs = extractMessages(body);
   if (!msgs.length) return new Response('ok', { status: 200 }); // status callbacks etc.
   const deps = liveInboundDeps(env);

@@ -1,0 +1,85 @@
+---
+export const prerender = false;
+import { getEnv } from '../../../lib/env';
+import { serviceDb } from '../../../lib/ledger';
+import { threads, type InboxMessage } from '../../../lib/whatsapp-inbox';
+
+// Inbox → WhatsApp (Retail OS core, gated by src/middleware.ts). Every conversation on the
+// connected WhatsApp Business number. With coexistence, replies sent from the phone app show
+// here too, and replies sent here show on the phone.
+const env = getEnv();
+const connected = !!(env.WHATSAPP_TOKEN && env.WHATSAPP_PHONE_NUMBER_ID);
+let msgs: InboxMessage[] = []; let loadError = '';
+try {
+  const { data, error } = await serviceDb(env).from('whatsapp_messages').select('*').order('at', { ascending: false }).limit(2000);
+  if (error) throw error; msgs = (data ?? []) as InboxMessage[];
+} catch (err) { loadError = err instanceof Error ? err.message : String(err); }
+const list = threads(msgs);
+const sel = Astro.url.searchParams.get('t') ?? list[0]?.phone ?? '';
+const open = list.find((t) => t.phone === sel);
+const convo = msgs.filter((m) => m.contact_phone === sel).sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
+const fmt = (d: string) => new Date(d).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' });
+const label = (t: { name: string | null; phone: string }) => t.name ? `${t.name}` : `+${t.phone}`;
+---
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WhatsApp Inbox</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="/brand/tokens.css">
+<style>
+*{box-sizing:border-box;} body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.55 var(--sans);}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 16px 60px;}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none;color:inherit;}.logo img{height:34px;width:auto;}.logo i{font-family:var(--serif);font-size:14px;color:var(--dim);}
+h1{font-family:var(--display);font-weight:400;text-transform:uppercase;font-size:2rem;margin:14px 0 2px;}
+.sub{color:var(--dim);margin:0 0 20px;}
+.grid{display:grid;grid-template-columns:300px 1fr;gap:16px;}
+@media (max-width:760px){.grid{grid-template-columns:1fr;}}
+.list a{display:block;padding:12px 14px;border-bottom:1px solid var(--line);text-decoration:none;color:inherit;background:#fffdf8;}
+.list a.on{background:#fff;box-shadow:inset 3px 0 0 var(--gold);}
+.list b{display:flex;justify-content:space-between;gap:8px;font-weight:600;} .list span{color:var(--dim);font-size:13px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dot{background:var(--terracotta);color:#fff;border-radius:10px;font-size:11px;padding:0 7px;font-weight:700;}
+.pane{background:#fffdf8;border:1px solid var(--line);border-radius:6px;padding:16px;min-height:300px;display:flex;flex-direction:column;}
+.msgs{flex:1;display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow-y:auto;}
+.m{max-width:78%;padding:9px 12px;border-radius:12px;white-space:pre-wrap;overflow-wrap:anywhere;}
+.m.in{background:var(--paper);align-self:flex-start;} .m.out{background:#efe2bf;align-self:flex-end;}
+.m small{display:block;color:var(--dim);font-size:11px;margin-top:3px;}
+textarea{width:100%;font:inherit;padding:10px;border:1px solid var(--line);border-radius:6px;background:#fff;min-height:70px;margin-top:12px;}
+button{font:600 14px var(--sans);padding:9px 16px;border:0;border-radius:6px;background:var(--ink);color:var(--paper);cursor:pointer;margin-top:8px;}
+.note{border:1px dashed var(--bronze);border-radius:6px;padding:12px 14px;color:var(--dim);font-size:14px;margin-bottom:16px;}
+.err{color:var(--terracotta);font-weight:600;} a{color:inherit;}
+</style>
+</head>
+<body><div class="wrap">
+<a class="logo" href="/founder"><img src="/retail-os/email/devshop-logo.png" alt="DevShop" width="88" height="34"><i>Retail OS™</i></a>
+<h1>WhatsApp inbox</h1>
+<p class="sub">Every conversation on the DevShop WhatsApp Business number, in one place. {list.length} conversations.</p>
+{!connected && <p class="note">Not connected yet. Messages appear here once the number is linked to the Cloud API in coexistence mode (Brand &amp; settings → Integrations). The phone app keeps working either way.</p>}
+{loadError && <p class="err">Could not load the inbox: {loadError}. Run migrations/0050_whatsapp_inbox.sql in Supabase.</p>}
+<div class="grid">
+  <nav class="list">
+    {list.length === 0 && <p class="sub">No messages yet.</p>}
+    {list.map((t) => <a href={`?t=${t.phone}`} class={t.phone === sel ? 'on' : ''}><b>{label(t)} {t.unread > 0 && <em class="dot">{t.unread}</em>}</b><span>{t.last.direction === 'out' ? 'You: ' : ''}{t.last.body}</span><span>{fmt(t.last.at)}</span></a>)}
+  </nav>
+  {open && <section class="pane">
+    <p style="margin:0 0 10px"><b>{label(open)}</b> · <a href={`https://wa.me/${open.phone}`} target="_blank" rel="noopener">+{open.phone}</a></p>
+    <div class="msgs" id="msgs">{convo.map((m) => <div class={`m ${m.direction}`}>{m.body}<small>{fmt(m.at)}{m.direction === 'out' && m.status ? ` · ${m.status}` : ''}</small></div>)}</div>
+    {open.canReply
+      ? <form id="f"><textarea name="text" placeholder="Write a reply" required></textarea><button>Send</button> <span class="err" id="e"></span></form>
+      : <p class="note" style="margin-top:12px">It's been more than 24 hours since their last message, so WhatsApp only allows an approved template. Reply from the phone app, or wait for them to write again.</p>}
+  </section>}
+</div>
+</div>
+<script define:vars={{ phone: open?.phone ?? '', unread: open?.unread ?? 0 }}>
+const box = document.getElementById('msgs'); if (box) box.scrollTop = box.scrollHeight;
+const post = (b) => fetch('/retail-os/api/admin/whatsapp/send', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ phone, ...b }) });
+if (phone && unread) post({ read: true });
+const f = document.getElementById('f');
+f?.addEventListener('submit', async (ev) => {
+  ev.preventDefault(); const btn = f.querySelector('button'); btn.disabled = true;
+  const r = await post({ text: f.text.value }); const j = await r.json().catch(() => ({}));
+  if (r.ok) location.reload(); else { document.getElementById('e').textContent = j.error || 'Could not send.'; btn.disabled = false; }
+});
+</script>
+</body></html>
