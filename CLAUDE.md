@@ -104,3 +104,6 @@ When building any new client, decide shipping with `recommendShipping()` in src/
 
 ## Every link must load before anything is sent
 Before sending any email, WhatsApp or post (by tool or by code), fetch every link in it and confirm it returns 200 with the right page. Never link a page until its deploy is live: deploy, check the live URL, then send. The site's mail sender enforces this (src/lib/mail/link-check.ts blocks sends with broken links); sessions sending through the Gmail connector must do the same check by hand first. Learned 1 Oct 2026: a Korbi email linked /retail-os/korbi/home/ before that page was deployed.
+
+## Brand dashboards: one standard (case-study/RETAIL-OS-ADMIN-STANDARD.md)
+Every brand admin uses the same navigation (Command Centre, Commerce, Inbox, Marketing, Growth Intelligence, Finance, Operations, Brand & settings, then Extensions for client-only pages), the same page names and paths, the same filter bar and the viratmohan.com look. Unused pages are hidden, not renamed; old paths redirect. Every brand gets the shared modules: WhatsApp inbox (own number via Embedded Signup in coexistence mode, bot later), Where orders came from, Integrations. Travaholic Caps is the reference implementation.
