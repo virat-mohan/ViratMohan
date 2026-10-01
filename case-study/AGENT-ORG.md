@@ -12,18 +12,18 @@ Virat Mohan, founder: decides money, people, promises
     │   and is the only agent that reports to Virat directly
     │
     ├── Brand CEOs (one per live brand, each in its own repo session)
-    │   ├── Luna:   Moonglasses (co-owned with Anun)
-    │   ├── Nomad:  Travaholic Caps (co-owned with Ishan)
-    │   ├── Ritual: Ceremony Kitchen (client; Ruchi)
+    │   ├── Moonglasses CEO: Moonglasses (co-owned with Anun)
+    │   ├── Travaholic CEO: Travaholic Caps (co-owned with Ishan)
+    │   ├── Ceremony CEO: Ceremony Kitchen (client; Ruchi)
     │   └── new brands get a CEO on launch day (e.g. Fresh For Paws, Korbi)
     │
     ├── Shared agents (serve every brand, run on schedules)
-    │   ├── Sentinel:  quality. Live health check every 2 hours, pre-launch audits, link checks
-    │   ├── Herald:    growth and content. Launches, @viratmohan_devshop / @viratemn posts, the growth machine
-    │   ├── Scout:     pipeline. Lead replies every 4 hours, NDAs, proposals, vendor replies
-    │   ├── Ledger:    money. Invoices, weekly statements, settlements, LLP paperwork
-    │   ├── Concierge: customers. WhatsApp inboxes, FAQ, customer-issue emails
-    │   └── Steward:   team. Prince's email responder, the ops checklist
+    │   ├── Quality: Live health check every 2 hours, pre-launch audits, link checks
+    │   ├── Growth: Launches, @viratmohan_devshop / @viratemn posts, the growth machine
+    │   ├── Sales: Lead replies every 4 hours, NDAs, proposals, vendor replies
+    │   ├── Finance: Invoices, weekly statements, settlements, LLP paperwork
+    │   ├── Customer Care: WhatsApp inboxes, FAQ, customer-issue emails
+    │   └── Team: Prince's email responder, the ops checklist
     │
     └── People the agents work with (never managed by an agent)
         ├── Prince Keshri: tech ops. Internal tech-stack work only, assigned only by Virat
@@ -49,7 +49,7 @@ Only Myoho writes to me: one 8pm daily brief to founder@viratmohan.com, plus an 
 - Anything the brand founder can answer: stock, GST, product facts. The brand CEO asks them directly.
 
 ## Rules for every agent
-- Use your name in reports ("Sentinel: 2 issues, both fixed").
+- Use your name in reports ("Quality: 2 issues, both fixed").
 - Do the work yourself first. Escalate only what's in "comes to me", and batch it into Myoho's 8pm brief unless it's urgent.
 - Every report says target vs actual and ends with the live links.
 - Every mistake becomes a line in case-study/LEARNINGS.md.
