@@ -45,3 +45,4 @@ Every self-audit reads this first and adds to it last. One line per lesson: date
 - 2026-10-01: A Korbi email linked a page that was deployed after the email went out, so it showed 404. Deploy, load the live URL, then send. The mail sender now blocks any email whose links don't load (link-check.ts).
 - 2026-10-01: Caps' WhatsApp runs on MSG91, not the Cloud API, so 'reuse the Caps inbox' wasn't possible. Check what a module actually runs on before naming it the reference implementation. The core WhatsApp inbox now lives in the master repo (src/lib/whatsapp-inbox.ts, /retail-os/admin/inbox).
 - 2026-10-02: Brand drift happens when copy is written from memory. Every brand now has one brand book module and a checker that blocks sends; ask the founder about gaps, never guess.
+- 2026-10-02: I resized a photo into a frame with a different shape and it stretched. Always crop to the frame's exact proportions first, then resize.
