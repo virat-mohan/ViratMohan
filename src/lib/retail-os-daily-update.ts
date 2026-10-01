@@ -57,7 +57,10 @@ export async function listActiveSubs(env: UpdateEnv): Promise<FounderUpdateSub[]
   return (data ?? []).map((r: Record<string, unknown>) => ({
     brand_key: String(r.brand_key),
     brand_name: String(r.brand_name),
-    to_emails: String(r.to_emails).split(',').map((s) => s.trim()).filter(Boolean),
+    to_emails: String(r.to_emails)
+      .split(/[,;\s]+/)
+      .map((s) => s.trim().replace(/^<|>$/g, ''))
+      .filter((s) => s.length > 0 && s.includes('@')),
     active: Boolean(r.active),
     started_on: (r.started_on as string) ?? null,
     waiting_on: (r.waiting_on as string) ?? null,
