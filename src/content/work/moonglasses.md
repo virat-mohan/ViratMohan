@@ -5,7 +5,8 @@ tagline: "An eyewear brand that shoots its own product photography and chases it
 domain: "https://moon-glasses.store"
 order: 1
 accent: "#2B2F63"
-badge: "New Launch"
+badge: "Live"
+href: "/launches/moonglasses"
 logo: "../../assets/logos/moonglasses.webp"
 ---
 
@@ -21,12 +22,12 @@ Moonglasses runs on one stack from storefront to spend: catalog, checkout, shipp
 
 ### Checkout & Recovery
 
-- Guest checkout, live pincode-based shipping rates, prepaid or cash-on-delivery with a small advance.
+- Guest checkout, UPI payments checked on the server, free shipping built into the price, and one clear discount per order.
 - A two-stage, **WhatsApp-first abandoned-cart sequence** — a plain nudge, then a coupon — catches carts the moment someone starts typing and vanishes.
 
 ### WhatsApp & Meta
 
-- A WhatsApp catalog message opens straight into a pre-filled cart on the real checkout — plus order updates, OTPs, and a shared inbox to reply from.
+- Order updates, OTPs and a shared WhatsApp inbox to reply from.
 - Meta pixel with a server-side mirror so a sale is counted once, not twice; ad briefs draft themselves off real sales signals, paused for a human yes before any spend goes out.
 
 ### Numbers, Honestly
