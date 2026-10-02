@@ -20,7 +20,7 @@ Not: routine product posts, offers or discounts, reposted UGC, ads. Those stay o
 
 ## How each post is written
 - **Collab caption** speaks to the brand's customer in the brand's voice (it must pass that brand's checkVoice). My handles add no hashtags of their own.
-- **Story on @viratemn** is always a founder story, never a shopper ad. It speaks to D2C founders in my voice: one line on what was built ("built and launched on DevShop Retail OS"), one proof point (a %), then "Let's talk." The link sticker opens WhatsApp with me (wa.me/919999277240 with a prefilled message), never the store. Selling to shoppers belongs on the brand's own account. (Decided 2 Oct 2026, Moonglasses launch: "Let's talk." with a store link confused both audiences.)
+- **Story on @viratemn** is always a founder story, never a shopper ad. It speaks to D2C founders in my voice: one line on what was built ("built and launched on DevShop Retail OS"), one proof point (a %), then "Let's talk." The link sticker opens WhatsApp with me (wa.me/918076919458 with a prefilled message), never the store. Selling to shoppers belongs on the brand's own account. (Decided 2 Oct 2026, Moonglasses launch: "Let's talk." with a store link confused both audiences.)
 - **Disclosure (ASCI):** I have a material connection. Partner brands say "my brand" or "co-founder" in the story. Client stories say "a brand I work with". Never present a brand I'm paid by or co-own as a neutral recommendation.
 - No real values (₹, orders, spend), ever. Percentages only.
 

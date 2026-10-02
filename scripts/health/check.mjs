@@ -68,5 +68,13 @@ async function check(name, b) {
 const only = process.argv[2];
 const report = [];
 for (const [n, b] of Object.entries(BRANDS)) if (!only || only === n) report.push(await check(n, b));
-console.log(JSON.stringify({ at: new Date().toISOString(), report }, null, 2));
+const out = { at: new Date().toISOString(), report };
+console.log(JSON.stringify(out, null, 2));
+// Optional: store the run on the org board. Set HEALTH_REPORT_URL (e.g. https://www.viratmohan.com/retail-os/api/health/report) and CRON_SECRET.
+if (process.env.HEALTH_REPORT_URL && process.env.CRON_SECRET) {
+  try {
+    const r = await fetch(process.env.HEALTH_REPORT_URL, { method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${process.env.CRON_SECRET}` }, body: JSON.stringify(out), signal: AbortSignal.timeout(15000) });
+    console.error(`health report posted: ${r.status}`);
+  } catch (e) { console.error(`health report not posted: ${e.message || e}`); }
+}
 process.exit(report.some((r) => r.failed) ? 1 : 0);

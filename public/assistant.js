@@ -7,7 +7,7 @@
   var state; try { state = JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch (e) {}
   if (!state) state = { id: (window.crypto && crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random()), messages: [], escalated: false };
   var save = function () { try { sessionStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
-  var WA = 'https://wa.me/919999277240?text=' + encodeURIComponent("Hi Virat, I was chatting with your assistant. Let's talk.");
+  var WA = 'https://wa.me/918076919458?text=' + encodeURIComponent("Hi Virat, I was chatting with your assistant. Let's talk.");
 
   if (!document.querySelector('link[href$="/brand/tokens.css"]')) {
     var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '/brand/tokens.css'; document.head.appendChild(l);

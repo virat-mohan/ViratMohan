@@ -172,3 +172,88 @@ describe('inbound WhatsApp', () => {
     expect(f.replies.at(-1)).toContain('sales ₹1,800');
   });
 });
+
+import { WELCOME_REPLY } from '../../src/lib/ingest/inbound';
+describe('DevShop welcome auto-reply', () => {
+  it('uses the approved text with the Retail OS link', () => {
+    expect(WELCOME_REPLY).toContain("I'm Virat");
+    expect(WELCOME_REPLY).toContain('7 days');
+    expect(WELCOME_REPLY).toContain('viratmohan.com/retail-os');
+  });
+});
+
+describe('founder line', () => {
+  const FOUNDER = '919999277240';
+  const founderDeps = () => {
+    const queued: string[] = [];
+    const f = fakeDeps({
+      founder: {
+        messagesLastHour: async () => 1,
+        answer: async (cmd) => `answer:${cmd}`,
+        queueRequest: async (text) => { queued.push(text); return 'abcdef12-3456-7890-abcd-ef1234567890'; },
+        markRead: async () => {},
+      },
+      shouldWelcome: async () => true,
+    });
+    return { ...f, queued };
+  };
+  it('founder expense keeps the ledger behaviour', async () => {
+    const f = founderDeps();
+    expect(await handleInbound(msg('f1', 'paid 1200 for caps courier upi', FOUNDER), f.deps)).toMatch(/logged|needs_review/);
+    expect(f.rows).toHaveLength(1);
+    expect(f.replies.join()).not.toContain('thanks for messaging DevShop');
+    expect(f.queued).toHaveLength(0);
+  });
+  it('founder status command is answered from live data', async () => {
+    const f = founderDeps();
+    expect(await handleInbound(msg('f2', 'Status', FOUNDER), f.deps)).toBe('founder_command');
+    expect(f.replies).toEqual(['answer:status']);
+    expect(await handleInbound(msg('f3', 'today', FOUNDER), f.deps)).toBe('founder_command');
+    expect(await handleInbound(msg('f4', 'help', FOUNDER), f.deps)).toBe('founder_command');
+    expect(f.replies[2]).toContain('priorities');
+  });
+  it('founder free text is queued, never executed, no welcome', async () => {
+    const f = founderDeps();
+    expect(await handleInbound(msg('f5', 'Email Korbi the new mockups', FOUNDER), f.deps)).toBe('founder_request');
+    expect(f.queued).toEqual(['Email Korbi the new mockups']);
+    expect(f.replies).toEqual(['Got it. Queued for Dev as request #abcdef. Confirm in Claude to start it.']);
+    expect(f.deps.toLead).not.toHaveBeenCalled();
+  });
+  it('rate-limits founder messages over 30 an hour', async () => {
+    const f = founderDeps();
+    f.deps.founder!.messagesLastHour = async () => 31;
+    expect(await handleInbound(msg('f6', 'status', FOUNDER), f.deps)).toBe('rate_limited');
+    expect(f.replies).toHaveLength(0);
+  });
+  it('a non-founder still gets the welcome', async () => {
+    const f = founderDeps();
+    expect(await handleInbound(msg('f7', 'status', '911111111111'), f.deps)).toBe('not_allowlisted');
+    expect(f.replies[0]).toContain('thanks for messaging DevShop');
+  });
+  it('echoes from the Business app never become founder commands', () => {
+    const body = { entry: [{ changes: [{ value: { message_echoes: [{ id: 'e1', from: '91DEVSHOP', to: FOUNDER, timestamp: '1790000000', type: 'text', text: { body: 'status' } }] } }] }] };
+    expect(extractMessages(body)).toHaveLength(0);
+  });
+});
+
+describe('founder brief', async () => {
+  const { briefLines, sendToFounder, flatParam } = await import('../../src/lib/founder-line');
+  const snap = { date: '2 Oct', brands: [{ name: 'Travaholic', orders: 3, revenue: 2400, prevOrders: 2, prevRevenue: 1600, unread: 1 }], devshopUnread: 2, needs: [{ brand: 'DevShop', text: 'a' }, { brand: 'X', text: 'b' }, { brand: 'Y', text: 'c' }, { brand: 'Z', text: 'd' }], blocked: [], queuedRequests: 2 };
+  it('is short, headline first, with the planner link', () => {
+    const l = briefLines(snap);
+    expect(l.length).toBeLessThanOrEqual(8);
+    expect(l[0]).toBe('2 Oct: 3 orders, ₹2,400 today');
+    expect(l.join('\n')).toContain('+1 more');
+    expect(l.at(-1)).toContain('org?tab=planner');
+  });
+  it('free text inside 24h, template outside once approved, skipped otherwise', async () => {
+    const sent: any[] = []; const logs: any[] = [];
+    const deps = (last: string | null, approved: boolean) => ({ now: new Date('2026-10-02T14:30:00Z'), lastInboundAt: async () => last, templateApproved: approved, send: async (...a: any[]) => { sent.push(a); }, log: async (r: any) => { logs.push(r); } });
+    expect(await sendToFounder('hi\nthere', '2 Oct', deps('2026-10-02T10:00:00Z', false))).toBe('text');
+    expect(await sendToFounder('hi\nthere', '2 Oct', deps('2026-09-30T10:00:00Z', false))).toBe('skipped');
+    expect(await sendToFounder('hi\nthere', '2 Oct', deps(null, true))).toBe('template');
+    expect(sent[1][2]).toEqual({ name: 'founder_daily_brief', lang: 'en', params: ['2 Oct', 'hi · there'] });
+    expect(flatParam('a\n\nb')).toBe('a · b');
+    expect(logs.map((x) => x.status)).toEqual(['sent', 'skipped_no_template', 'sent']);
+  });
+});

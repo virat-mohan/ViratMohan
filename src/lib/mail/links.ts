@@ -49,7 +49,7 @@ export function cleanTextLinks(text: string): string {
 
 // ── The one signature ───────────────────────────────────────────────────────
 export const SITE_URL = 'https://viratmohan.com';
-export const PHONE_DISPLAY = '+91 99992 77240';
+export const PHONE_DISPLAY = '+91 80769 19458';
 
 // The contact address people see is always founder@viratmohan.com, whichever mailbox actually sends.
 export const CONTACT_EMAIL = 'founder@viratmohan.com';
@@ -62,6 +62,6 @@ export function signatureHtml(address?: string): string {
   const f = 'Arial, Helvetica, sans-serif';
   const mail = address ? ` &middot; <a href="mailto:${escAttr(address)}" style="color:#7A6E62;text-decoration:none;">${escAttr(address)}</a>` : '';
   return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0 0;border-top:1px solid #D9CDB4;width:100%;"><tr><td style="padding:14px 0 0;">
-  <p style="margin:0;font-family:${f};font-size:13px;line-height:1.6;color:#4A4038;"><b style="color:#1A1410;">Virat Mohan</b> &middot; <a href="${SITE_URL}" style="color:#4A4038;text-decoration:none;">viratmohan.com</a> &middot; <a href="tel:+919999277240" style="color:#4A4038;text-decoration:none;">${PHONE_DISPLAY}</a>${mail}</p>
+  <p style="margin:0;font-family:${f};font-size:13px;line-height:1.6;color:#4A4038;"><b style="color:#1A1410;">Virat Mohan</b> &middot; <a href="${SITE_URL}" style="color:#4A4038;text-decoration:none;">viratmohan.com</a> &middot; <a href="tel:+918076919458" style="color:#4A4038;text-decoration:none;">${PHONE_DISPLAY}</a>${mail}</p>
 </td></tr></table>`;
 }

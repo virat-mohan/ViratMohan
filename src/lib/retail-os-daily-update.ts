@@ -12,7 +12,7 @@ import { getLiveBrands, type LiveBrand } from './retail-os-portfolio';
 import { buildBrandReport } from './retail-os-reports';
 import type { OpsTask } from './retail-os-ops';
 
-const WHATSAPP = 'https://wa.me/919999277240';
+const WHATSAPP = 'https://wa.me/918076919458';
 const SITE = 'https://www.viratmohan.com';
 
 export type UpdateEnv = { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: string; LEAD_TOKEN_SECRET?: string };

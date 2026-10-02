@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Shippori+Mincho:wght@400;500&display=swap">
 <link rel="preload" as="image" href="assets/intro-poster.jpg">
+<link rel="stylesheet" href="assets/store.css">
 <style>
 /* Direction A (Shoji), finished with Korbi's own identity: the logo, the red sun, the samurai artwork, the packaging copy and the many-scripts motif.
    Body face: Outfit stands in for Gilroy (Korbi's packaging font) until its web licence is confirmed. */
@@ -48,6 +49,29 @@ h1 b{font-weight:600}
 .price small{display:block;font:400 11px/1.4 var(--sans);letter-spacing:.18em;color:var(--dim);text-transform:uppercase;margin-top:6px}
 .stage{position:relative;background:var(--card);display:grid;place-items:center;overflow:hidden;min-height:440px}
 .stage .sun{position:absolute;width:min(46%,280px);aspect-ratio:1;border-radius:50%;background:var(--red);top:10%;right:12%}
+.shop{padding-block:clamp(56px,8vw,110px)}
+.shophead{display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap;margin-bottom:28px}
+.shophead h2{font:400 clamp(30px,4vw,48px)/1.1 var(--sans);margin:0}
+.shophead p{margin:0;color:var(--dim)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;max-width:980px;gap:clamp(12px,2.4vw,32px)}
+.prod{display:grid;gap:16px;min-width:0}
+.prod img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:8px;transition:transform .6s ease}
+.prod:hover img{transform:scale(1.015)}
+.prod .meta{display:grid;gap:4px}
+.prod .dot{width:12px;height:12px;border-radius:50%}
+.prod small{font:500 11px/1.4 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.prod b{font:500 clamp(15px,1.8vw,20px)/1.3 var(--sans)}
+.prod .pp{font-size:clamp(14px,1.6vw,17px)}.prod .pp em{font-style:normal;color:var(--dim);font-size:.85em}
+.prod .go{font-size:13px;text-decoration:underline;text-underline-offset:3px;color:var(--ink);margin-top:4px}
+.duo{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:clamp(12px,2vw,22px);width:min(88%,540px);margin-block:56px 72px}
+.duo .p{display:grid;gap:12px}
+.duo img{width:100%;height:auto;aspect-ratio:815/1036;object-fit:cover;border-radius:6px;box-shadow:0 24px 50px -18px #0000005e;transition:transform .5s ease}
+.duo .p:hover img{transform:translateY(-4px)}
+.duo span{font:500 11px/1.4 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--dim);text-align:center}
+.stage .shot{position:relative;z-index:1;width:min(70%,380px);height:auto;border-radius:6px;box-shadow:0 24px 60px #0000002e;margin-block:48px 64px}
+.temps img{width:100%;max-width:340px;height:auto;border-radius:6px;margin-bottom:18px}
+@media (max-width:640px){.temps{grid-template-columns:1fr 1fr!important}.temps div{padding:28px 12px 32px!important;border-right:1px solid var(--rule)!important}.temps .k{font-size:30px!important}.temps img{aspect-ratio:1/1;object-fit:cover}.temps p{font-size:14px}.stage{min-height:0}.duo{margin-block:28px 52px;width:92%}}
+.box .ballast{width:min(100%,380px);height:auto;border-radius:6px;margin-top:28px}
 .stage .ph{position:relative;z-index:1;margin-top:18%;width:min(56%,300px);aspect-ratio:4/3;border:1px dashed #00000040;background:#ffffffe6;display:grid;place-items:center;text-align:center;padding:18px;font:500 11px/1.6 var(--sans);letter-spacing:.2em;color:var(--dim)}
 .stage .spec{position:absolute;left:26px;right:26px;bottom:20px;display:flex;justify-content:space-between;font:500 11px/1 var(--sans);letter-spacing:.24em;color:var(--dim)}
 
@@ -119,10 +143,24 @@ h1 b{font-weight:600}
 footer{background:var(--ink);color:#BDBBB6;padding-block:44px 90px;display:grid;gap:22px}
 footer img{height:34px;width:auto}
 footer .row{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font:400 13px/1.6 var(--sans)}
-.wa{position:fixed;right:16px;bottom:calc(60px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--ink);color:#fff;font:500 13px/1 var(--sans);padding:13px 16px;border-radius:40px;display:flex;gap:8px;align-items:center;box-shadow:0 10px 24px -12px #0009}
+.wa{position:fixed;right:16px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--ink);color:#fff;font:500 13px/1 var(--sans);padding:13px 16px;border-radius:40px;display:flex;gap:8px;align-items:center;box-shadow:0 10px 24px -12px #0009}
 .wa i{width:8px;height:8px;border-radius:50%;background:#3BB26B}
 @media (prefers-reduced-motion:reduce){.intro{transition:none}}
+.duo .film,.dots{display:none}
+@media (max-width:860px){
+  .stage{display:block;padding:28px 0 64px}
+  .stage .sun{top:18px;right:6%;width:44%}
+  .duo{display:flex;width:auto;margin:0;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 16px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .duo::-webkit-scrollbar{display:none}
+  .duo .p{flex:0 0 78%;scroll-snap-align:center}
+  .duo .film{display:grid}
+  .duo video{width:100%;aspect-ratio:815/1036;object-fit:cover;border-radius:6px;background:#0d1117;box-shadow:0 24px 50px -18px #0000005e}
+  .dots{display:flex;justify-content:center;gap:8px;margin-top:18px}
+  .dots i{width:7px;height:7px;border-radius:50%;background:#0003;transition:background .3s,width .3s}
+  .dots i.on{background:var(--ink);width:20px;border-radius:4px}
+}
 </style>
+<link rel="stylesheet" href="assets/store.css">
 </head>
 <body>
 <div class="intro" id="intro" aria-label="KORBI brand film">
@@ -133,22 +171,37 @@ footer .row{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;f
 <div class="preview">PREVIEW · NOT LIVE</div>
 
 <header class="wrap"><a href="#top" aria-label="KORBI home"><img src="assets/korbi-logo.svg" alt="KORBI · The Light Samurai" width="114" height="38"></a>
-  <nav><a href="#legend" class="hide">The Legend</a><a href="#fit">Fit check</a><a href="#faq" class="hide">Help</a><a href="#top">Cart</a></nav></header>
+  <nav><a href="#shop">Shop</a><a href="#legend" class="hide">The Legend</a><a href="#fit" class="hide">Fit check</a><a href="#faq" class="hide">Help</a><button class="cartbtn" type="button" data-open-cart>Cart<b data-count hidden>0</b></button></nav></header>
 
 <main id="top">
 <section class="hero">
   <div class="copy wrap">
     <div>
-      <span class="tag">The Light Samurai · H4 LED</span>
+      <span class="tag">The Light Samurai · Road LED bulbs</span>
       <h1>Light your path.<br><b>Never blind the road ahead.</b></h1>
       <p class="lead">The only LED bulb developed in Japan specifically for India's right-hand drive market.</p>
     </div>
-    <div class="cta"><a class="btn" href="#fit">Check my car</a><span class="price">₹11,500<small>2 LED bulbs · 70 watts</small></span></div>
+    <div class="cta"><a class="btn" href="#shop">Shop the bulbs</a><span class="price">₹11,500<small>2 LED bulbs · 70 watts</small></span></div>
   </div>
   <div class="stage">
     <span class="sun" aria-hidden="true"></span>
-    <div class="ph">PRODUCT PHOTO<br>BULB AND BOX ON WHITE</div>
-    <div class="spec"><span>H4 · 2 LED BULBS</span><span>70 WATTS</span></div>
+    <div class="duo" id="reel" aria-label="KORBI film and the two bulbs. Swipe to see more."><div class="p film"><video muted loop playsinline preload="none" poster="assets/intro-poster.jpg" aria-label="KORBI brand film"><source src="assets/korbi-intro.mp4" type="video/mp4"></video><span>The Light Samurai</span></div><a href="products/warm-white/" class="p"><img src="assets/bulb-4300k.jpg" alt="KORBI 4300K Warm White bulb, lit" width="815" height="1036"><span>4300K · Warm White</span></a><a href="products/cool-white/" class="p"><img src="assets/bulb-6000k.jpg" alt="KORBI 6000K Cool White bulb, lit" width="815" height="1036"><span>6000K · Cool White</span></a></div>
+    <div class="dots" id="dots" aria-hidden="true"><i class="on"></i><i></i><i></i></div>
+    <div class="spec"><span>9 HOLDER TYPES</span><span>2-YEAR WARRANTY</span></div>
+  </div>
+</section>
+
+<section class="shop wrap" id="shop">
+  <div class="shophead"><h2>Shop the range</h2><p>Two colours. Nine holder types. One price for the pair.</p></div>
+  <div class="grid2">
+    <a class="prod" href="products/warm-white/">
+      <img src="assets/bulb-4300k.jpg" alt="KORBI 4300K Warm White bulb, lit" loading="lazy" width="815" height="1036">
+      <div class="meta"><span class="dot" style="background:#E9A84E"></span><small>For all weather</small><b>Road LED Bulbs · 4300K Warm White</b><span class="pp">₹11,500 <em>for the pair</em></span><span class="go">View and choose holder type</span></div>
+    </a>
+    <a class="prod" href="products/cool-white/">
+      <img src="assets/bulb-6000k.jpg" alt="KORBI 6000K Cool White bulb, lit" loading="lazy" width="815" height="1036">
+      <div class="meta"><span class="dot" style="background:#CFE0FF;box-shadow:inset 0 0 0 1px #0002"></span><small>Bright white</small><b>Road LED Bulbs · 6000K Cool White</b><span class="pp">₹11,500 <em>for the pair</em></span><span class="go">View and choose holder type</span></div>
+    </a>
   </div>
 </section>
 
@@ -165,8 +218,8 @@ footer .row{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;f
 </section>
 
 <section class="temps">
-  <div><span class="k">4300K<i style="background:#E9A84E"></i></span><p>For all weather. Warm light for rain and fog.</p></div>
-  <div><span class="k">6000K<i style="background:#E8EEF8;box-shadow:inset 0 0 0 1px #ccc"></i></span><p>For a bright white driving style.</p></div>
+  <div><img src="assets/bulb-4300k.jpg" alt="KORBI 4300K Warm White bulb, lit" width="815" height="1036" loading="lazy"><span class="k">4300K<i style="background:#E9A84E"></i></span><p><b>Warm White.</b> For all weather. Warm light for rain and fog.</p></div>
+  <div><img src="assets/bulb-6000k.jpg" alt="KORBI 6000K Cool White bulb, lit" width="815" height="1036" loading="lazy"><span class="k">6000K<i style="background:#E8EEF8;box-shadow:inset 0 0 0 1px #ccc"></i></span><p><b>Cool White.</b> For a bright white driving style.</p></div>
 </section>
 
 <section class="cut wrap">
@@ -183,10 +236,10 @@ footer .row{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;f
 </section>
 
 <section class="fit wrap" id="fit">
-  <div><h2>Will it fit my car?</h2><p>KORBI is an H4 bulb. Pick your car to check. Not listed? Message us and we'll confirm.</p></div>
+  <div><h2>Will it fit my car?</h2><p>KORBI comes in nine holder types. Your car's bulb type is in the owner's manual or printed on the old bulb. Not sure? Message us with your car and year and we'll tell you.</p></div>
   <div class="fitbox">
-    <label for="car">YOUR CAR</label>
-    <select id="car"><option value="">Choose your car</option></select>
+    <label for="car">YOUR BULB TYPE</label>
+    <select id="car"><option value="">Choose your bulb type</option></select>
     <div class="result" id="fitResult" aria-live="polite">Your answer appears here.</div>
   </div>
 </section>
@@ -199,7 +252,8 @@ footer .row{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;f
     <div><b>03</b><span>Zip ties</span></div>
     <div><b>04</b><span>Some cool stickers</span></div>
   </div>
-  <div class="spec"><span>H4</span><span>70 watts</span><span>4300K or 6000K</span></div>
+  <div class="spec"><span>70 watts</span><span>12V</span><span>IP68 certified</span><span>2-year warranty</span><span>4300K or 6000K</span></div>
+  <img class="ballast" src="assets/ballast.jpg" alt="The KORBI ballast: input 12V, 5.83A, power 70W" width="765" height="1160" loading="lazy">
 </section>
 
 <section class="scripts">
@@ -222,7 +276,7 @@ footer .row{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;f
   <details><summary>Which colour should I choose?</summary><p>4300K is for all weather: warm light for rain and fog. 6000K is for a bright white driving style.</p></details>
   <details><summary>Will it blind oncoming drivers?</summary><p>No. KORBI's precision-engineered beam pattern lights your path without blinding oncoming traffic.</p></details>
   <details><summary>What's in the box?</summary><p>2 LED bulbs attached to the ballast, a fitting tool, zip ties and some cool stickers.</p></details>
-  <details><summary>Can I fit it myself?</summary><p>KORBI is an H4 replacement and the fitting tool is in the box.</p></details>
+  <details><summary>Can I fit it myself?</summary><p>Yes. It's plug and play for your holder type, and the fitting tool is in the box.</p></details>
 </section>
 </main>
 
@@ -230,7 +284,7 @@ footer .row{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;f
   <img src="assets/korbi-logo-white.svg" alt="KORBI" width="102" height="34">
   <div class="row"><span>KORBI · The Light Samurai · korbi.in</span><span>Shipping · Returns · Contact</span></div>
 </footer>
-<a class="wa" href="https://wa.me/919999277240" target="_blank" rel="noopener noreferrer"><i></i>WhatsApp us</a>
+<a class="wa" href="https://wa.me/918076919458" target="_blank" rel="noopener noreferrer"><i></i>WhatsApp us</a>
 
 <script>
 (function(){
@@ -247,15 +301,24 @@ footer .row{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;f
     var p=film.play(); if(p&&p.catch)p.catch(done);
     setTimeout(done,8000);
   }
-  // H4 fitment from Carsfy's 2026 H4 guide; KORBI to confirm the final list before launch.
-  var cars=['Maruti Suzuki Swift','Maruti Suzuki Dzire','Maruti Suzuki Wagon R','Maruti Suzuki Baleno (before 2024)','Maruti Suzuki Alto 800','Maruti Suzuki Alto K10','Maruti Suzuki Celerio','Maruti Suzuki Ignis','Tata Punch','Tata Tiago','Hyundai i10','Hyundai i20','Hyundai Santro','Honda Amaze','Honda Brio','Toyota Etios','Nissan Magnite','Mahindra Bolero','Mahindra Thar'];
+  // Holder types as listed on korbi.in (both colours), 2 Oct 2026.
+  var cars=['H1','H4','H7','H8','H11','HB3','HIR2','9005','9012'];
   var sel=document.getElementById('car'),out=document.getElementById('fitResult');
-  cars.concat(['My car is not listed']).forEach(function(c){var o=document.createElement('option');o.textContent=c;o.value=c;sel.appendChild(o)});
+  cars.concat(['I don\'t know my type']).forEach(function(c){var o=document.createElement('option');o.textContent=c;o.value=c;sel.appendChild(o)});
   sel.addEventListener('change',function(){
     if(!sel.value){out.textContent='Your answer appears here.';return}
-    out.innerHTML=sel.value==='My car is not listed'?'Message us with your car and year, and we\'ll confirm the fit.':'<b>Yes, KORBI fits the '+sel.value+'.</b> Choose 4300K or 6000K.';
+    out.innerHTML=sel.value==='I don\'t know my type'?'Message us with your car and year, and we\'ll tell you which one fits.':'<b>Yes, KORBI comes in '+sel.value+'.</b> Choose <a href="products/warm-white/" style="text-decoration:underline">4300K Warm White</a> or <a href="products/cool-white/" style="text-decoration:underline">6000K Cool White</a>.';
   });
 })();
 </script>
+<script>
+(function(){
+  var reel=document.getElementById('reel');if(!reel)return;
+  var dots=[].slice.call(document.querySelectorAll('#dots i')),v=reel.querySelector('video');
+  reel.addEventListener('scroll',function(){var w=reel.firstElementChild.getBoundingClientRect().width+12,i=Math.round(reel.scrollLeft/w);dots.forEach(function(d,k){d.classList.toggle('on',k===i)})},{passive:true});
+  if(v&&'IntersectionObserver' in window&&!matchMedia('(prefers-reduced-motion: reduce)').matches)new IntersectionObserver(function(e){if(e[0].isIntersecting&&getComputedStyle(v).display!=='none'){var p=v.play();if(p&&p.catch)p.catch(function(){})}else v.pause()},{threshold:.5}).observe(v);
+})();
+</script>
+<script src="assets/store.js"></script>
 </body>
 </html>

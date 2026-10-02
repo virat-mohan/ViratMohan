@@ -95,7 +95,7 @@ describe('cleanLinks', () => {
     expect(cleanTextLinks('Go to https://www.google.com/url?q=https://viratmohan.com/&sa=E now')).toBe('Go to https://viratmohan.com/ now');
   });
   it('signature is canonical and links straight to the site', () => {
-    expect(signatureText(ME)).toContain('Virat Mohan · viratmohan.com · +91 99992 77240');
+    expect(signatureText(ME)).toContain('Virat Mohan · viratmohan.com · +91 80769 19458');
     expect(signatureHtml(ME)).toContain('href="https://viratmohan.com"');
     expect(signatureHtml(ME)).toContain(ME);
   });

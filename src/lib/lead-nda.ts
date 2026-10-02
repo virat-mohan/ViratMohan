@@ -9,7 +9,7 @@ export const DEVSHOP_PARTY = {
   name: 'Virat Mohan, trading as DevShop Retail OS™',
   address: 'Villa 111, Laburnum, Sushant Lok Phase 1, Gurugram, Haryana 122001, India',
   email: 'founder@viratmohan.com',
-  phone: '+91 99992 77240',
+  phone: '+91 80769 19458',
 };
 
 export type NdaParty = { name: string; address: string; represented?: string };

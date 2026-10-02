@@ -1,0 +1,26 @@
+---
+import { STATUS_LABEL, type OrgNode } from '../../lib/org-board';
+interface Props { node: OrgNode }
+const { node } = Astro.props;
+const u = node.latest;
+const st = u?.status ?? 'none';
+const when = (iso: string) => new Date(iso).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' });
+---
+<details class={`oc k-${node.kind}${node.active ? '' : ' open-seat'}`}>
+  <summary>
+    <span class="oc-top"><span class={`dot s-${st}`} title={STATUS_LABEL[st]}></span><span class="oc-id">{node.id}</span><span class="oc-st">{STATUS_LABEL[st]}</span></span>
+    <span class="oc-name">{node.name}</span>
+    <span class="oc-role">{node.role}</span>
+    {u && <span class="oc-line"><b>Working on</b> {u.summary}</span>}
+    {u && u.pending.length > 0 && <span class="oc-line"><b>Pending</b> {u.pending.join(' · ')}</span>}
+    {u?.stuck_on && <span class="oc-line warn"><b>Stuck on</b> {u.stuck_on}</span>}
+    {u?.help_needed && <span class="oc-line warn"><b>Help needed</b> {u.help_needed}</span>}
+  </summary>
+  <div class="oc-more">
+    {node.owns.length > 0 && <p><b>Owns</b> {node.owns.join(', ')}</p>}
+    {node.may_decide && <p><b>May decide</b> {node.may_decide}</p>}
+    {node.must_escalate && <p><b>Must escalate</b> {node.must_escalate}</p>}
+    <p class="oc-h">Last {node.history.length} update{node.history.length === 1 ? '' : 's'}</p>
+    {node.history.length ? <ol>{node.history.map((h) => <li><span class={`dot s-${h.status ?? 'none'}`}></span> <span class="oc-when">{when(h.at)}</span> {h.summary}{h.next_step ? <> · next: {h.next_step}</> : null}{h.links.map((l) => <> · <a href={l}>link</a></>)}</li>)}</ol> : <p class="oc-when">None yet.</p>}
+  </div>
+</details>

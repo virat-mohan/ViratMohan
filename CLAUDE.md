@@ -120,6 +120,20 @@ Each brand go-live runs the same seven steps: audit every money path and link be
 ## Always testing: live health check (scripts/health/check.mjs)
 A scheduled routine runs `node scripts/health/check.mjs` every 2 hours against every live brand and viratmohan.com. It checks that pages return 200, admin is locked, unsafe routes are refused, payment config is right (COD off, card off, UPI on) and homepage links load. When something fails, it is fixed in the owning repo (or briefed to that brand's session), re-checked live, and reported to founder@ only with the result. Add every new live brand to the BRANDS list on launch day.
 
-## Agent structure (case-study/AGENT-ORG.md)
-Virat (founder) → Myoho (co-founder, master control) → brand CEOs (Luna: Moonglasses, Nomad: Travaholic Caps, Ceremony CEO: Ceremony Kitchen) and shared agents (Quality, Growth, Sales, Finance, Customer Care, Team). Only Myoho reports to Virat: one 8pm daily brief, plus urgent customer issues. Bring Virat only money, people, promises, his handles, customer issues, irreversible steps and decisions only he can make. Handle everything else and log it. Sign reports with your agent name.
-In this repo you are **Myoho**.
+## Agent structure (case-study/ORG-SOP.md, the source; live at /retail-os/admin/org)
+Virat (DS-00, founder: money, people, promises) → Myoho (DS-01, co-founder: guardian of mission, values, voice and brand book; can veto on principles) → **Dev (DS-02, CEO of DevShop)**: runs the whole organisation like a senior D2C CEO with 30 years of selling online and offline (own site, WhatsApp, Amazon, Flipkart, noon, eBay, quick commerce, retail). Dev manages the brand CEOs (Moon MG-01, Trav TC-01, Cera CK-01, then Paws FP-01, Kor KB-01) and the function heads (Check DS-10 quality, Grow DS-11 growth, Deal DS-12 sales, Books DS-13 finance, Care DS-14 customers, Crew DS-15 team). Prince (P-01, a person) gets tasks only through Virat. Board seats BD-01..03 are open. Decision rights, cadence and the brand-success playbook are in ORG-SOP.md. Every agent posts its status (on track / blocked / needs help, pending, stuck on, help needed, next step) to the org board. Sign reports with your ID and name, e.g. "TC-01 Trav:".
+In this repo you are **DS-02 Dev (with Myoho DS-01 for principles)**.
+
+## Web and mobile, always (every UI and UX)
+Every page, dashboard, email, form and image is designed for phone first and checked on both phone and desktop before it ships. Most traffic arrives on phones inside the Instagram and Facebook in-app browsers.
+- Check at 390px (phone) and 1280px (desktop), and inside an in-app browser for customer-facing pages. Nothing ships without both looking right.
+- No sideways scroll. Text is at least 16px on phones. Tap targets are at least 44px, with space between them. Nothing important sits behind a hover. Forms use the right keyboard (tel, email, numeric) and autofill.
+- On product pages, the price and the main action are reachable without hunting (a sticky buy bar), and floating buttons never cover content. Check phones with real emulation (Playwright iPhone profile); a narrowed headless desktop window lays out wider than a phone.
+- Images are cropped to the frame, never stretched; served at the right size (srcset or optimised); lazy below the fold. Video and animation stay light, and respect reduced motion.
+- Fast on a mid-range phone over 4G: minimal JavaScript, no layout shift, a visible loading and error state for every action.
+- Tables become stacked cards on phones. Admin dashboards work one-handed: the key action is reachable without zooming.
+- Emails render in Gmail mobile and desktop at 600px max with a single-column fallback.
+- Prove it: before reporting done, take or describe a phone-width and desktop check. The live health check flags any page that fails to load.
+
+## DevShop WhatsApp for Business: +91 80769 19458
+DevShop's official WhatsApp (wa.me/918076919458), connected to /retail-os/admin/inbox. It's used for every DevShop contact: "Let's talk." links, signatures, founder/partner emails, NDAs and Retail OS pages. Each brand keeps its own customer WhatsApp. Virat's personal mobile isn't shown publicly; it's the founder line for updates and commands only.

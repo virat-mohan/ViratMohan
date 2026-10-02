@@ -41,13 +41,13 @@ Own brand. Virat Mohan is the founder; DevShop Retail OS is the product. Every a
 ## 6. Channel house style
 - Instagram: @viratmohan_devshop (DevShop/Retail OS posts; collabs on partner-brand milestones only) and @viratemn (founder stories: what I built, one % proof point, "Let's talk.", link sticker to WhatsApp, never a store). Nothing posts without Virat's email approval ("Approve collab: <brand> <topic>"). Personal reels target D2C founders. UTM: utm_source=instagram&utm_campaign=founder_<brand>_<date>. site.ts also lists instagram.com/viratmohan_devshop (confirm which handles are current).
 - Email: branded HTML via `renderRetailOsEmail` (paper/ink, gold, terracotta, stripe, logo, signature cc founder@). Short, one next step. Plain text only as fallback.
-- WhatsApp: "Let's talk." link wa.me/919999277240 with a prefilled line.
+- WhatsApp: "Let's talk." link wa.me/918076919458 with a prefilled line.
 - Site CTA: "Let's talk."
 
 ## 7. Current facts
 - Site: https://viratmohan.com
 - Email / sender: founder@viratmohan.com; client access always to tech@viratmohan.com
-- WhatsApp: +91 99992 77240
+- WhatsApp: +91 80769 19458
 - Location: Gurugram, Haryana, IN
 - Offer: Retail OS (live in 7 days, results every Monday); ₹5,000 onboarding deposit; NDA first. Pricing per brand.
 - Shipping: not applicable.
