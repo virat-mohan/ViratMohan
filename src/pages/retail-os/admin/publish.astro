@@ -1,0 +1,66 @@
+---
+export const prerender = false;
+import { getEnv } from '../../../lib/env';
+import { serviceDb } from '../../../lib/ledger';
+
+// Posts prepared for Virat's own Instagram. Nothing goes out until he taps Publish.
+let rows: any[] = []; let loadError = '';
+try {
+  const { data, error } = await serviceDb(getEnv()).from('social_publish_queue').select('*').order('created_at', { ascending: false }).limit(30);
+  if (error) throw error; rows = data ?? [];
+} catch (e) { loadError = e instanceof Error ? e.message : String(e); }
+const ready = rows.filter((r) => r.status === 'ready');
+const done = rows.filter((r) => r.status !== 'ready');
+---
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Publish to Instagram</title><meta name="robots" content="noindex">
+<link rel="stylesheet" href="/brand/tokens.css">
+<style>
+*{box-sizing:border-box} body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.55 var(--sans)}
+.wrap{max-width:760px;margin:0 auto;padding:24px 16px 60px}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none;color:inherit}.logo img{height:34px}.logo i{font-family:var(--serif);font-size:14px;color:var(--dim)}
+h1{font-family:var(--display);font-weight:400;text-transform:uppercase;font-size:2rem;margin:14px 0 4px}
+.sub{color:var(--dim);margin:0 0 24px}
+.card{background:#fffdf8;border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:18px;display:grid;grid-template-columns:160px 1fr;gap:16px}
+@media (max-width:560px){.card{grid-template-columns:1fr}}
+.card img{width:100%;height:auto;border:1px solid var(--line)}
+.k{font:700 11px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--terracotta)}
+.cap{white-space:pre-wrap;font-size:14px;margin:8px 0}
+.note{color:var(--dim);font-size:13px}
+button{font:600 14px var(--sans);padding:10px 18px;border:0;border-radius:6px;background:var(--ink);color:var(--paper);cursor:pointer;margin-right:8px}
+button.o{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.err{color:var(--terracotta);font-weight:600;font-size:13px} a{color:inherit}
+</style></head>
+<body><div class="wrap">
+<a class="logo" href="/founder"><img src="/retail-os/email/devshop-logo.png" alt="DevShop" width="88" height="34"><i>Retail OS™</i></a>
+<h1>Publish to Instagram</h1>
+<p class="sub">Posts prepared for your own accounts. Nothing goes out until you tap Publish.</p>
+{loadError && <p class="err">Could not load: {loadError}</p>}
+{ready.length === 0 && <p class="sub">Nothing waiting.</p>}
+{ready.map((r) => (
+  <div class="card" data-id={r.id}>
+    <img src={r.image_url} alt="" loading="lazy">
+    <div>
+      <p class="k">@{r.handle} · {r.kind}{r.after_id ? ' · after the post above' : ''}</p>
+      {r.caption && <p class="cap">{r.caption}</p>}
+      {r.note && <p class="note">{r.note}</p>}
+      {r.error && <p class="err">Last try: {r.error}</p>}
+      <button data-act="publish">Publish</button><button class="o" data-act="cancel">Cancel</button>
+      <p class="err" data-msg></p>
+    </div>
+  </div>
+))}
+{done.length > 0 && <p class="sub" style="margin-top:30px">Done: {done.map((r) => <span>@{r.handle} {r.kind}: {r.permalink ? <a href={r.permalink}>{r.status}</a> : r.status}. </span>)}</p>}
+</div>
+<script>
+document.querySelectorAll('.card').forEach((c) => c.querySelectorAll('button').forEach((b) => b.addEventListener('click', async () => {
+  const id = (c as HTMLElement).dataset.id; const cancel = (b as HTMLElement).dataset.act === 'cancel';
+  c.querySelectorAll('button').forEach((x) => ((x as HTMLButtonElement).disabled = true));
+  const r = await fetch('/retail-os/api/admin/social/publish', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id, cancel }) });
+  const j = await r.json().catch(() => ({}));
+  if (r.ok) location.reload(); else { (c.querySelector('[data-msg]') as HTMLElement).textContent = j.error || 'Failed.'; c.querySelectorAll('button').forEach((x) => ((x as HTMLButtonElement).disabled = false)); }
+})));
+</script>
+</body></html>

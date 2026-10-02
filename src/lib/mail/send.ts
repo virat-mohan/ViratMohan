@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 import { buildMime, b64url, fetchGmail, gmailConfigured, htmlToText, openToken, viratFromHeader, type GmailApi } from './gmail';
 import { nextOpenSlot } from '../notify-hours';
 import { cleanLinks, cleanTextLinks } from './links';
+import { brokenLinks, linksIn, BrokenLinkError } from './link-check';
 
 export const DAILY_CAP = 400; // guard below Gmail's ~500/day so replies to leads always have room
 
@@ -27,6 +28,7 @@ export type MailDeps = {
   enqueue: ((m: MailInput, sendAfter: Date) => Promise<void>) | null;
   resend: ((m: MailInput) => Promise<void>) | null;
   log?: (msg: string) => void;
+  checkLinks?: boolean; // default on: every link must load before the email goes
 };
 
 export const quotaDay = (now: Date) => now.toISOString().slice(0, 10);
@@ -45,6 +47,10 @@ export async function deliver(m: MailInput, deps: MailDeps, opts: { onOverQuota?
   m = { ...m, html: m.html ? cleanLinks(m.html) : undefined };
   const text = cleanTextLinks(m.text ?? (m.html ? htmlToText(m.html) : ''));
   m = { ...m, text };
+  if (deps.checkLinks !== false) {
+    const bad = await brokenLinks(linksIn(m.html, m.text));
+    if (bad.length) throw new BrokenLinkError(bad);
+  }
   if (deps.gmail && deps.address) {
     const recipients = ([...splitRecipients(m.to), ...splitRecipients(m.cc)].length) || 1;
     let ok = true;

@@ -1,0 +1,35 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const launches = (await getCollection('launches')).sort((a, b) => b.data.launchedOn.getTime() - a.data.launchedOn.getTime());
+const fmt = (d: Date) => d.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+<Base title="Launches — Virat Mohan" description="Every brand that has gone live on DevShop Retail OS." path="/launches">
+  <section class="section">
+    <div class="container">
+      <p class="eyebrow" style="color: var(--terracotta)">DevShop Retail OS</p>
+      <h1 class="l-title">Launches</h1>
+      <p class="dim l-sub">Every brand that has gone live on DevShop Retail OS.</p>
+      <div class="l-grid">
+        {launches.map((l) => (
+          <a class="l-card" href={`/launches/${l.id}`}>
+            <img src={l.data.image} alt={l.data.headline} loading="lazy" width="1080" height="1350" />
+            <p class="l-date">{fmt(l.data.launchedOn)}</p>
+            <h2>{l.data.headline}</h2>
+            <p class="dim">{l.data.standfirst}</p>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+</Base>
+<style>
+  .l-title { font-family: var(--display); text-transform: uppercase; font-size: clamp(2.6rem, 8vw, 4.5rem); line-height: .95; margin: .4rem 0 .6rem; }
+  .l-sub { max-width: 52ch; margin-bottom: 2.5rem; }
+  .l-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 2rem; }
+  .l-card { text-decoration: none; color: inherit; display: block; }
+  .l-card img { width: 100%; height: auto; display: block; border: 1px solid var(--line); }
+  .l-date { font: 700 11px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--terracotta); margin: 1rem 0 .4rem; }
+  .l-card h2 { font-family: var(--serif); font-weight: 400; font-size: 1.6rem; margin: 0 0 .3rem; }
+</style>

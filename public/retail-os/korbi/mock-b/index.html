@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Korbi · Night Road (mockup B)</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Shippori+Mincho:wght@500&display=swap">
+<style>
+/* Mockup B · Night Road: the cutoff beam is the hero, live on a night road; tapping 4300K or 6000K changes the light. Below the fold the page turns light. Cosmetic only. */
+:root{--night:#0B0F16;--night2:#141A24;--white:#FFFFFF;--mist:#AAB3C0;--warm:#F2B35B;--cool:#EAF1FF;--light:#F4F6FA;--ink:#151A22;--dim:#4A5463;--rule:#DDE2EA;--sans:"Inter",Helvetica,Arial,sans-serif;--jp:"Shippori Mincho",Georgia,serif;color-scheme:dark}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--night);color:var(--white);font:400 15px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none;pointer-events:none}
+.mock{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:9;background:#fff;color:#0B0F16;font:600 11px/1 var(--sans);letter-spacing:.16em;padding:9px 14px;border-radius:30px;white-space:nowrap}
+.hero{position:relative;min-height:min(100vh,860px);display:grid;align-content:end;overflow:hidden}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+header{position:absolute;top:0;left:0;right:0;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:24px clamp(16px,5vw,64px)}
+.logo{font:600 16px/1 var(--sans);letter-spacing:.5em}
+nav{display:flex;gap:clamp(14px,3vw,36px);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--mist)}
+@media (max-width:640px){nav .hide{display:none}}
+.copy{position:relative;z-index:2;padding:0 clamp(16px,5vw,64px) clamp(48px,8vw,96px);display:grid;gap:22px;max-width:860px}
+.eyebrow{font:600 11px/1 var(--sans);letter-spacing:.28em;text-transform:uppercase;color:var(--warm)}
+h1{font:300 clamp(42px,7vw,96px)/1 var(--sans);letter-spacing:-.03em;margin:0}
+h1 b{font-weight:600}
+.lead{color:var(--mist);max-width:46ch;margin:0;font-size:clamp(15px,1.4vw,18px)}
+.temps{display:flex;gap:10px;flex-wrap:wrap}
+.temps button{font:600 12px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;padding:16px 20px;border:1px solid #ffffff33;background:#ffffff0f;color:#fff;cursor:pointer;display:flex;gap:10px;align-items:center;backdrop-filter:blur(6px)}
+.temps button i{width:10px;height:10px;border-radius:50%}
+.temps button[aria-pressed="true"]{background:#fff;color:var(--night)}
+.temps button:focus-visible{outline:2px solid var(--warm);outline-offset:2px}
+.buy{display:flex;align-items:center;gap:20px;flex-wrap:wrap;margin-top:6px}
+.buy a{background:var(--warm);color:var(--night);font:600 13px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;padding:17px 26px}
+.buy span{font:500 22px/1 var(--sans)}
+.light{background:var(--light);color:var(--ink)}
+.strip{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--rule)}
+@media (max-width:720px){.strip{grid-template-columns:1fr}}
+.strip div{padding:clamp(24px,3vw,40px) clamp(16px,5vw,64px);border-right:1px solid var(--rule)}
+.strip div:last-child{border-right:0}
+.strip b{display:block;font:600 11px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;margin-bottom:10px}
+.strip p{margin:0;color:var(--dim)}
+.compare{padding:clamp(56px,8vw,120px) clamp(16px,5vw,64px);display:grid;gap:28px}
+.compare h2{font:300 clamp(30px,4vw,56px)/1.05 var(--sans);letter-spacing:-.02em;margin:0;max-width:18ch}
+.compare h2 b{font-weight:600}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:720px){.pair{grid-template-columns:1fr}}
+.pair figure{margin:0;background:var(--night);border-radius:4px;overflow:hidden}
+.pair svg{display:block;width:100%;height:auto}
+.pair figcaption{padding:14px 18px;font:500 12px/1.4 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--mist)}
+.box{display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(24px,5vw,72px);padding:clamp(48px,7vw,100px) clamp(16px,5vw,64px);border-top:1px solid var(--rule);align-items:center}
+@media (max-width:720px){.box{grid-template-columns:1fr}}
+.box h3{font:300 clamp(26px,3vw,40px)/1.15 var(--sans);margin:0}
+.box ul{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.box li{display:flex;gap:14px;align-items:baseline;border-bottom:1px solid var(--rule);padding-bottom:12px;color:var(--dim)}
+.box li span{font:500 12px/1 var(--sans);color:var(--ink);min-width:28px}
+.jp{font:500 14px/1 var(--jp);letter-spacing:.3em;color:var(--dim);margin-top:18px}
+footer{background:var(--night);color:var(--mist);padding:30px clamp(16px,5vw,64px) 84px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:12px;letter-spacing:.14em;text-transform:uppercase}
+</style>
+</head>
+<body>
+<div class="mock">MOCKUP B · NIGHT ROAD · DESIGN ONLY</div>
+<section class="hero">
+  <canvas id="road" aria-hidden="true"></canvas>
+  <header><span class="logo">KORBI</span><nav><a>Shop</a><a class="hide">Fit check</a><a class="hide">About</a><a>Cart</a></nav></header>
+  <div class="copy">
+    <span class="eyebrow">India's first RHD cutoff specific LED bulb</span>
+    <h1>A clean cutoff.<br><b>Made for Indian roads.</b></h1>
+    <p class="lead">Japanese designed, built for Indian driving standards. Light the road ahead, never the eyes of the car coming the other way.</p>
+    <div class="temps" role="group" aria-label="Colour temperature">
+      <button type="button" id="t43" aria-pressed="true"><i style="background:#F2B35B"></i>4300K · all weather</button>
+      <button type="button" id="t60" aria-pressed="false"><i style="background:#EAF1FF"></i>6000K · bright white</button>
+    </div>
+    <div class="buy"><a>Check my car</a><span>₹11,500</span></div>
+  </div>
+</section>
+
+<main class="light">
+  <section class="strip">
+    <div><b>Japanese technology</b><p>Quality and durability come before quantity.</p></div>
+    <div><b>Plug and play</b><p>H4 fitment. The fitting tool is in the box.</p></div>
+    <div><b>Two colours</b><p>4300K for all weather, 6000K for a bright white driving style.</p></div>
+  </section>
+
+  <section class="compare">
+    <h2>The difference is <b>where the light stops.</b></h2>
+    <div class="pair">
+      <figure><svg viewBox="0 0 400 220" aria-hidden="true"><rect width="400" height="220" fill="#0B0F16"/><path d="M200 220 L-40 220 L120 70 L280 70 L440 220 Z" fill="#fff" opacity=".07"/><ellipse cx="200" cy="120" rx="210" ry="90" fill="#FFF6E0" opacity=".22"/><circle cx="330" cy="60" r="3" fill="#FFE9C4"/><circle cx="345" cy="60" r="3" fill="#FFE9C4"/></svg><figcaption>Without a proper cutoff · light spills into oncoming traffic</figcaption></figure>
+      <figure><svg viewBox="0 0 400 220" aria-hidden="true"><rect width="400" height="220" fill="#0B0F16"/><path d="M200 220 L-40 220 L120 70 L280 70 L440 220 Z" fill="#fff" opacity=".07"/><path d="M0 220 L0 112 L150 112 L185 140 L400 140 L400 220 Z" fill="#F2B35B" opacity=".42"/><path d="M0 112 L150 112 L185 140 L400 140" stroke="#F2B35B" stroke-width="1.5" fill="none"/><circle cx="330" cy="60" r="3" fill="#FFE9C4"/><circle cx="345" cy="60" r="3" fill="#FFE9C4"/></svg><figcaption>Korbi · flat cutoff, steps up on the kerb side</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="box">
+    <div><h3>Everything you need, in one box.</h3><p class="jp">KORBI · 光</p></div>
+    <ul>
+      <li><span>01</span>The bulbs, attached to the ballast</li>
+      <li><span>02</span>A fitting tool</li>
+      <li><span>03</span>Zip ties</li>
+      <li><span>04</span>Some cool stickers</li>
+    </ul>
+  </section>
+</main>
+<footer><span>Korbi · korbi.in</span><span>Shipping · Returns · Contact</span></footer>
+
+<script>
+(function(){
+  var c=document.getElementById('road'),x=c.getContext('2d'),w,h,t=0,reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var WARM={core:'rgba(255,214,150,.95)',mid:'rgba(242,179,91,.32)',edge:'rgba(242,179,91,.9)'},COOL={core:'rgba(245,249,255,.98)',mid:'rgba(190,214,255,.3)',edge:'rgba(234,241,255,.95)'},col=WARM;
+  function size(){var d=Math.min(2,devicePixelRatio||1),r=c.getBoundingClientRect();w=r.width;h=r.height;c.width=w*d;c.height=h*d;x.setTransform(d,0,0,d,0,0)}
+  function draw(){
+    var g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,'#05080D');g.addColorStop(1,'#141A24');x.fillStyle=g;x.fillRect(0,0,w,h);
+    var hy=h*.46,cx=w*.56;
+    x.fillStyle='rgba(255,255,255,.3)';for(var i=0;i<60;i++)x.fillRect((i*137.7)%w,(i*71.3)%(hy*.9),1,1);
+    x.fillStyle='#0F141C';x.beginPath();x.moveTo(cx-w*.015,hy);x.lineTo(cx+w*.015,hy);x.lineTo(w*1.1,h);x.lineTo(-w*.1,h);x.closePath();x.fill();
+    var cut=hy+(h-hy)*.2,stepX=cx-w*.05,up=hy+(h-hy)*.03;
+    x.save();x.beginPath();x.moveTo(-w*.1,h);x.lineTo(-w*.1,up);x.lineTo(stepX-w*.1,up);x.lineTo(stepX,cut);x.lineTo(w*1.1,cut);x.lineTo(w*1.1,h);x.closePath();x.clip();
+    var b=x.createRadialGradient(cx,h*1.08,10,cx,h*.9,Math.max(w,h)*.95);b.addColorStop(0,col.core);b.addColorStop(.35,col.mid);b.addColorStop(1,'rgba(0,0,0,0)');
+    x.globalAlpha=.92+.05*Math.sin(t/70);x.fillStyle=b;x.fillRect(0,0,w,h);x.restore();x.globalAlpha=1;
+    x.strokeStyle=col.edge;x.lineWidth=1.5;x.beginPath();x.moveTo(-w*.1,up);x.lineTo(stepX-w*.1,up);x.lineTo(stepX,cut);x.lineTo(w*1.1,cut);x.stroke();
+    x.fillStyle='rgba(255,255,255,.55)';
+    for(var k=0;k<10;k++){var p=((k/10)+(reduce?0:t/1000))%1,y=hy+(h-hy)*p*p,l=4+48*p*p,ww=1+6*p*p;x.globalAlpha=Math.min(1,p*1.6);x.fillRect(cx-ww/2,y,ww,l)}
+    x.globalAlpha=1;x.fillStyle='rgba(255,236,200,.9)';var oy=hy+(h-hy)*.07;x.beginPath();x.arc(cx+w*.06,oy,2.4,0,7);x.arc(cx+w*.08,oy,2.4,0,7);x.fill();
+    t++;if(!reduce)requestAnimationFrame(draw);
+  }
+  size();draw();addEventListener('resize',function(){size();if(reduce)draw()});
+  var a=document.getElementById('t43'),bb=document.getElementById('t60');
+  [a,bb].forEach(function(btn){btn.addEventListener('click',function(){col=btn===bb?COOL:WARM;a.setAttribute('aria-pressed',String(btn===a));bb.setAttribute('aria-pressed',String(btn===bb));if(reduce)draw()})});
+})();
+</script>
+</body>
+</html>

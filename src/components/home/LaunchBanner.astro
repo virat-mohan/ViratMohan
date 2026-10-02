@@ -1,0 +1,24 @@
+---
+import { getCollection } from 'astro:content';
+// The newest launch from the last 30 days, as a quiet band under the hero.
+const recent = (await getCollection('launches'))
+  .filter((l) => Date.now() - l.data.launchedOn.getTime() < 30 * 864e5)
+  .sort((a, b) => b.data.launchedOn.getTime() - a.data.launchedOn.getTime())[0];
+---
+{recent && (
+  <a class="lb" href={`/launches/${recent.id}`}>
+    <span class="lb-k">Just launched</span>
+    <span class="lb-t">{recent.data.headline}</span>
+    <span class="lb-s">{recent.data.standfirst}</span>
+    <span class="lb-go">See the launch →</span>
+  </a>
+)}
+<style>
+  .lb { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem 1rem; justify-content: center; padding: 14px 16px; background: var(--ink); color: var(--paper); text-decoration: none; text-align: center; }
+  .lb-k { font: 700 11px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--terracotta); }
+  .lb-t { font-family: var(--display); text-transform: uppercase; font-size: 1.25rem; letter-spacing: .02em; }
+  .lb-s { font-family: var(--serif); font-size: 1.05rem; opacity: .85; }
+  .lb-go { font: 600 13px/1 var(--sans); color: var(--gold); }
+  .lb:hover .lb-go { text-decoration: underline; }
+  @media (max-width: 520px) { .lb-s { display: none; } }
+</style>

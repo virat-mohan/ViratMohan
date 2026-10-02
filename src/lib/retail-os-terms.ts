@@ -14,6 +14,12 @@ export function buildTermLines(app: RetailOsApplication, terms: RetailOsTerms): 
       label: 'Partnership model',
       value: 'AI-Enabler™ / Co-Founder: DevShop builds the brand with you from zero and holds 50% of the brand IP. There is no separate profit-pool split.',
     });
+  } else if (terms.perUnitFeeInr) {
+    lines.push({
+      label: "DevShop's fee",
+      value: `₹${terms.perUnitFeeInr.toLocaleString('en-IN')} for every unit sold through the online store. Offline sales are not included. There is no profit-pool split.`,
+    });
+    lines.push({ label: 'Brand IP', value: 'Stays entirely yours.' });
   } else {
     lines.push({
       label: "DevShop's share",

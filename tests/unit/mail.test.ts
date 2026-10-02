@@ -21,7 +21,7 @@ class CountingQuota implements QuotaStore {
   used = 0;
   async reserve(_d: string, n: number, cap: number) { if (this.used + n > cap) return false; this.used += n; return true; }
 }
-const deps = (p: Partial<MailDeps>): MailDeps => ({ now: NOW, gmail: null, address: ME, quota: null, enqueue: null, resend: null, log: () => {}, ...p });
+const deps = (p: Partial<MailDeps>): MailDeps => ({ now: NOW, gmail: null, address: ME, quota: null, enqueue: null, resend: null, log: () => {}, checkLinks: false, ...p });
 
 /** Decode every base64 MIME part so assertions see the real text and HTML. */
 const decodeParts = (mime: string) => mime.split(/\r\n\r\n/).slice(1).map((b) => { const t = b.split('\r\n--')[0].replace(/\r\n/g, ''); return /^[A-Za-z0-9+/=]+$/.test(t) ? Buffer.from(t, 'base64').toString('utf8') : b; }).join('\n');
@@ -152,3 +152,14 @@ describe('Resend multi-recipient parsing', () => {
   });
 });
 
+
+import { linksIn, brokenLinks } from '../../src/lib/mail/link-check';
+describe('link check before send', () => {
+  it('finds links, skips mailto and WhatsApp', () => {
+    expect(linksIn('<a href="https://viratmohan.com/x">x</a> mailto:a@b.c https://wa.me/91999', 'see https://korbi.in.')).toEqual(['https://viratmohan.com/x', 'https://korbi.in']);
+  });
+  it('reports links that do not load', async () => {
+    const f = (async (u: string) => ({ status: u.includes('missing') ? 404 : 200 })) as unknown as typeof fetch;
+    expect(await brokenLinks(['https://a.com/ok', 'https://a.com/missing'], f)).toEqual([{ url: 'https://a.com/missing', status: 404 }]);
+  });
+});
