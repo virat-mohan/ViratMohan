@@ -12,3 +12,11 @@ When a brand goes live on DevShop Retail OS, the launch runs in this order. The 
 8. **Check and report.** Load every link (200), then send me one report with all the live links: store, brand post, DevShop post, story and launch page.
 
 Rules that always apply: nothing goes on my handles without my approval; no rupee figures, only percentages; images are cropped to the frame's exact proportions, never stretched; and every image is shown to me before it's posted.
+
+## Announcement SOP (for each brand tie-up)
+- **Carousel on @viratmohan_devshop**, 4 slides: the hook, why the category exists, the brand, then why I said yes and what DevShop runs. The brand is **tagged**, never added as a collaborator.
+- **Story on @viratemn**, kicker "NEW BRAND TIE-UP", with a link sticker to the brand.
+- **LinkedIn document post** (the PDF of the carousel).
+- **Launch page** at /launches/<brand>, with the automatic 30-day homepage "Just launched" banner, plus the /work entry. No separate splash page.
+- **Assets** hosted at public/launches/<brand>/ and posted through Buffer from those URLs. Every link must load (200) before anything is posted. No money terms or profit shares anywhere.
+- **Look:** the viratmohan.com poster look leads (paper, Anton, the 4-colour band), with the brand's colour as an accent only. The reference build is ~/Desktop/freshforpaws-os/launch/source.
