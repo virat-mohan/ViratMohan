@@ -1,5 +1,6 @@
 // Supabase-backed dependencies for handleInbound and the export importer.
 import type { Env } from '../env';
+import { WELCOME_REPLY } from './inbound';
 import { insertLedgerRows, serviceDb, type LedgerRow } from '../ledger';
 import { liveDeps, notify } from '../notify';
 import type { BrandIndex, Split } from './brand-detect';
@@ -99,6 +100,16 @@ export function liveInboundDeps(env: Env, sb: Db = serviceDb(env), now = new Dat
         return c ? { brandKey: c.brandKey, confidence: c.confidence } : null;
       }
       : undefined,
+    shouldWelcome: async (phone) => {
+      const since = new Date(now.getTime() - 864e5).toISOString();
+      const [recent, talking] = await Promise.all([
+        sb.from('whatsapp_messages').select('id').eq('contact_phone', phone).eq('direction', 'out').eq('sent_by', 'bot').gte('at', since).limit(1),
+        sb.from('whatsapp_messages').select('id').eq('contact_phone', phone).eq('direction', 'out').eq('sent_by', 'dashboard').limit(1),
+      ]);
+      const ok = !(recent.data?.length) && !(talking.data?.length);
+      if (ok) await sb.from('whatsapp_messages').insert({ direction: 'out', contact_phone: phone, body: WELCOME_REPLY, status: 'sent', sent_by: 'bot' });
+      return ok;
+    },
     reply: async (to, text) => { await notify({ channel: 'whatsapp', to, text }, nd, { replyToInbound: true }); },
     toLead: async (m) => {
       // Existing Retail OS chat-lead table; one row per phone, transcript appended by the lead flow.

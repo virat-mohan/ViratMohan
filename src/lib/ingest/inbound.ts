@@ -37,7 +37,20 @@ export type InboundDeps = {
   claudeBrand?: (text: string) => Promise<{ brandKey: string | null; confidence: number } | null>;
   reply: (to: string, text: string) => Promise<void>; // immediate reply (notify with replyToInbound)
   toLead: (m: Inbound) => Promise<void>;
+  /** False when this number already got the welcome in the last 24h, or Virat is already talking to them. */
+  shouldWelcome?: (phone: string) => Promise<boolean>;
 };
+
+/** DevShop WhatsApp auto-reply to anyone new (approved by Virat, 2 Oct 2026). */
+export const WELCOME_REPLY = [
+  "Hi, thanks for messaging DevShop. I'm Virat.",
+  '',
+  'I build and run online businesses for founders: a working store in 7 days, run for you, with results every Monday.',
+  '',
+  "Tell me your brand and what you'd like to sell, and I'll reply personally today.",
+  '',
+  'See how it works: viratmohan.com/retail-os',
+].join('\n');
 
 export type InboundResult =
   | 'duplicate' | 'not_allowlisted' | 'undone' | 'nothing_to_undo' | 'summary' | 'answered' | 'ignored' | 'logged' | 'needs_review' | 'asked';
@@ -69,7 +82,7 @@ export async function handleInbound(m: Inbound, deps: InboundDeps): Promise<Inbo
   if (!(await deps.markSeen(m.messageId, m.from))) return 'duplicate';
   const sender = await deps.findSender(m.from);
   if (!sender) {
-    await deps.reply(m.from, 'Thanks for your message. I will get back to you soon. – Virat');
+    if (!deps.shouldWelcome || (await deps.shouldWelcome(m.from))) await deps.reply(m.from, WELCOME_REPLY);
     await deps.toLead(m);
     return 'not_allowlisted';
   }

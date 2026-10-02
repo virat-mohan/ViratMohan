@@ -172,3 +172,12 @@ describe('inbound WhatsApp', () => {
     expect(f.replies.at(-1)).toContain('sales ₹1,800');
   });
 });
+
+import { WELCOME_REPLY } from '../../src/lib/ingest/inbound';
+describe('DevShop welcome auto-reply', () => {
+  it('uses the approved text with the Retail OS link', () => {
+    expect(WELCOME_REPLY).toContain("I'm Virat");
+    expect(WELCOME_REPLY).toContain('7 days');
+    expect(WELCOME_REPLY).toContain('viratmohan.com/retail-os');
+  });
+});
