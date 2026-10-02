@@ -60,3 +60,10 @@ Design references (Shyam, 30 Sep): whitekailash.com, wheaty.in, muji.com/jp/ja/s
 ## Retail OS backend (1 Oct 2026)
 - Supabase project `korbi`, ref dajglwnvrhrxryzjkjka, region ap-southeast-1 (Singapore; Mumbai was intended, fine for now). Tables created: integrations, media_assets, products, orders (RLS on, server-only).
 - Waiting on GitHub repo virat-mohan/korbi (Virat creates; my access returns 403) to build the admin and link Vercel.
+
+## Product facts (from korbi.in screenshots Virat shared, 2 Oct 2026)
+- Two products: Road LED Bulbs 4300K (Warm White) and Road LED Bulbs 6000K (Cool White), ₹11,500 each, taxes included.
+- Holder types for both: H1, H4, H7, H8, H11, HB3, HIR2, 9005, 9012. (The homepage said H4 only before; corrected.)
+- Claims on the store: class-leading brightness, two-year warranty, IP68 certified. The ballast label reads input 12V, 5.83A, power 70W.
+- The store shows 4 reviews on 4300K. These aren't used on the homepage until we have the review text.
+- Homepage photos are cropped from those screenshots (bulb-4300k, bulb-6000k, ballast). Replace them with originals once Shopify syncs into Korbi's Media assets.
