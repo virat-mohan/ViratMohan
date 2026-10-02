@@ -146,6 +146,19 @@ footer .row{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;f
 .wa{position:fixed;right:16px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--ink);color:#fff;font:500 13px/1 var(--sans);padding:13px 16px;border-radius:40px;display:flex;gap:8px;align-items:center;box-shadow:0 10px 24px -12px #0009}
 .wa i{width:8px;height:8px;border-radius:50%;background:#3BB26B}
 @media (prefers-reduced-motion:reduce){.intro{transition:none}}
+.duo .film,.dots{display:none}
+@media (max-width:860px){
+  .stage{display:block;padding:28px 0 64px}
+  .stage .sun{top:18px;right:6%;width:44%}
+  .duo{display:flex;width:auto;margin:0;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 16px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .duo::-webkit-scrollbar{display:none}
+  .duo .p{flex:0 0 78%;scroll-snap-align:center}
+  .duo .film{display:grid}
+  .duo video{width:100%;aspect-ratio:815/1036;object-fit:cover;border-radius:6px;background:#0d1117;box-shadow:0 24px 50px -18px #0000005e}
+  .dots{display:flex;justify-content:center;gap:8px;margin-top:18px}
+  .dots i{width:7px;height:7px;border-radius:50%;background:#0003;transition:background .3s,width .3s}
+  .dots i.on{background:var(--ink);width:20px;border-radius:4px}
+}
 </style>
 <link rel="stylesheet" href="assets/store.css">
 </head>
@@ -172,7 +185,8 @@ footer .row{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;f
   </div>
   <div class="stage">
     <span class="sun" aria-hidden="true"></span>
-    <div class="duo"><a href="products/warm-white/" class="p"><img src="assets/bulb-4300k.jpg" alt="KORBI 4300K Warm White bulb, lit" width="815" height="1036"><span>4300K · Warm White</span></a><a href="products/cool-white/" class="p"><img src="assets/bulb-6000k.jpg" alt="KORBI 6000K Cool White bulb, lit" width="815" height="1036"><span>6000K · Cool White</span></a></div>
+    <div class="duo" id="reel" aria-label="KORBI film and the two bulbs. Swipe to see more."><div class="p film"><video muted loop playsinline preload="none" poster="assets/intro-poster.jpg" aria-label="KORBI brand film"><source src="assets/korbi-intro.mp4" type="video/mp4"></video><span>The Light Samurai</span></div><a href="products/warm-white/" class="p"><img src="assets/bulb-4300k.jpg" alt="KORBI 4300K Warm White bulb, lit" width="815" height="1036"><span>4300K · Warm White</span></a><a href="products/cool-white/" class="p"><img src="assets/bulb-6000k.jpg" alt="KORBI 6000K Cool White bulb, lit" width="815" height="1036"><span>6000K · Cool White</span></a></div>
+    <div class="dots" id="dots" aria-hidden="true"><i class="on"></i><i></i><i></i></div>
     <div class="spec"><span>9 HOLDER TYPES</span><span>2-YEAR WARRANTY</span></div>
   </div>
 </section>
@@ -295,6 +309,14 @@ footer .row{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;f
     if(!sel.value){out.textContent='Your answer appears here.';return}
     out.innerHTML=sel.value==='I don\'t know my type'?'Message us with your car and year, and we\'ll tell you which one fits.':'<b>Yes, KORBI comes in '+sel.value+'.</b> Choose <a href="products/warm-white/" style="text-decoration:underline">4300K Warm White</a> or <a href="products/cool-white/" style="text-decoration:underline">6000K Cool White</a>.';
   });
+})();
+</script>
+<script>
+(function(){
+  var reel=document.getElementById('reel');if(!reel)return;
+  var dots=[].slice.call(document.querySelectorAll('#dots i')),v=reel.querySelector('video');
+  reel.addEventListener('scroll',function(){var w=reel.firstElementChild.getBoundingClientRect().width+12,i=Math.round(reel.scrollLeft/w);dots.forEach(function(d,k){d.classList.toggle('on',k===i)})},{passive:true});
+  if(v&&'IntersectionObserver' in window&&!matchMedia('(prefers-reduced-motion: reduce)').matches)new IntersectionObserver(function(e){if(e[0].isIntersecting&&getComputedStyle(v).display!=='none'){var p=v.play();if(p&&p.catch)p.catch(function(){})}else v.pause()},{threshold:.5}).observe(v);
 })();
 </script>
 <script src="assets/store.js"></script>
