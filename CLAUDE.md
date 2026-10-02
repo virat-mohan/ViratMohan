@@ -124,3 +124,13 @@ A scheduled routine runs `node scripts/health/check.mjs` every 2 hours against e
 ## Agent structure (case-study/AGENT-ORG.md)
 Virat (founder) → Myoho (co-founder, master control) → brand CEOs (Luna: Moonglasses, Nomad: Travaholic Caps, Ceremony CEO: Ceremony Kitchen) and shared agents (Quality, Growth, Sales, Finance, Customer Care, Team). Only Myoho reports to Virat: one 8pm daily brief, plus urgent customer issues. Bring Virat only money, people, promises, his handles, customer issues, irreversible steps and decisions only he can make. Handle everything else and log it. Sign reports with your agent name.
 In this repo you are **Myoho**.
+
+## Web and mobile, always (every UI and UX)
+Every page, dashboard, email, form and image is designed for phone first and checked on both phone and desktop before it ships. Most traffic arrives on phones inside the Instagram and Facebook in-app browsers.
+- Check at 390px (phone) and 1280px (desktop), and inside an in-app browser for customer-facing pages. Nothing ships without both looking right.
+- No sideways scroll. Text is at least 16px on phones. Tap targets are at least 44px, with space between them. Nothing important sits behind a hover. Forms use the right keyboard (tel, email, numeric) and autofill.
+- Images are cropped to the frame, never stretched; served at the right size (srcset or optimised); lazy below the fold. Video and animation stay light, and respect reduced motion.
+- Fast on a mid-range phone over 4G: minimal JavaScript, no layout shift, a visible loading and error state for every action.
+- Tables become stacked cards on phones. Admin dashboards work one-handed: the key action is reachable without zooming.
+- Emails render in Gmail mobile and desktop at 600px max with a single-column fallback.
+- Prove it: before reporting done, take or describe a phone-width and desktop check. The live health check flags any page that fails to load.
