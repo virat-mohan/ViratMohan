@@ -67,3 +67,7 @@ Design references (Shyam, 30 Sep): whitekailash.com, wheaty.in, muji.com/jp/ja/s
 - Claims on the store: class-leading brightness, two-year warranty, IP68 certified. The ballast label reads input 12V, 5.83A, power 70W.
 - The store shows 4 reviews on 4300K. These aren't used on the homepage until we have the review text.
 - Homepage photos are cropped from those screenshots (bulb-4300k, bulb-6000k, ballast). Replace them with originals once Shopify syncs into Korbi's Media assets.
+
+## Preview store (2 Oct 2026)
+- Homepage hero and "Shop the range" show both bulbs side by side. Each bulb has its own product page (/products/warm-white/, /products/cool-white/) with a colour switch, holder-type picker, quantity, a working cart (kept in the browser) and a full spec table. Checkout is held until Korbi approves.
+- Specs I still need from Korbi before launch: brightness (lumens), rated life (hours), cooling type, CANBUS/error-free, bulb dimensions, and whether shipping is free.
