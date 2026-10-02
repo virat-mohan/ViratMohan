@@ -58,6 +58,8 @@ export const WELCOME_REPLY = [
   "Tell me your brand and what you'd like to sell, and I'll reply personally today.",
   '',
   'See how it works: viratmohan.com/retail-os',
+  '',
+  'www.viratmohan.com',
 ].join('\n');
 
 export type InboundResult =
