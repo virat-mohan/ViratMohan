@@ -69,7 +69,12 @@ export async function handleInbound(m: Inbound, deps: InboundDeps): Promise<Inbo
   if (!(await deps.markSeen(m.messageId, m.from))) return 'duplicate';
   const sender = await deps.findSender(m.from);
   if (!sender) {
-    await deps.reply(m.from, 'Thanks for your message. I will get back to you soon. – Virat');
+    const greeting = "Hi, thanks for messaging DevShop. I'm Virat.\n\n" +
+      "I build and run online businesses for founders: a working store in 7 days, run for you, with results every Monday.\n\n" +
+      "Tell me your brand and what you'd like to sell, and I'll reply personally today.\n\n" +
+      "See how it works: viratmohan.com/retail-os\n\n" +
+      "www.viratmohan.com";
+    await deps.reply(m.from, greeting);
     await deps.toLead(m);
     return 'not_allowlisted';
   }
