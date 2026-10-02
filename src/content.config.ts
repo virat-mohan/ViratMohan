@@ -44,4 +44,20 @@ const work = defineCollection({
     }),
 });
 
-export const collections = { writing, work };
+// One entry per brand launch on DevShop Retail OS (see case-study/LAUNCH-PLAYBOOK.md).
+// The newest launch inside 30 days shows as the homepage banner.
+const launches = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/launches' }),
+  schema: z.object({
+    brand: z.string(),
+    headline: z.string(),
+    standfirst: z.string(),
+    launchedOn: z.coerce.date(),
+    store: z.string().url(),
+    relationship: z.enum(['co-owned', 'client']),
+    image: z.string(),
+    instagram: z.string().url().optional(),
+  }),
+});
+
+export const collections = { writing, work, launches };

@@ -1,0 +1,26 @@
+---
+import { getCollection } from 'astro:content';
+// Every launch from the last 30 days, newest first, as one quiet band under the hero.
+const recent = (await getCollection('launches'))
+  .filter((l) => Date.now() - l.data.launchedOn.getTime() < 30 * 864e5)
+  .sort((a, b) => b.data.launchedOn.getTime() - a.data.launchedOn.getTime() || a.data.brand.localeCompare(b.data.brand));
+---
+{recent.length > 0 && (
+  <div class="lb">
+    <span class="lb-k">Just launched</span>
+    {recent.map((l, i) => (
+      <>{i > 0 && <span class="lb-dot" aria-hidden="true">·</span>}<a class="lb-t" href={`/launches/${l.id}`}>{l.data.brand}</a></>
+    ))}
+    <a class="lb-go" href="/launches">See all launches →</a>
+  </div>
+)}
+<style>
+  .lb { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem .9rem; justify-content: center; padding: 14px 16px; background: var(--ink); color: var(--paper); text-align: center; }
+  .lb a { color: inherit; text-decoration: none; }
+  .lb-k { font: 700 11px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--terracotta); }
+  .lb-t { font-family: var(--display); text-transform: uppercase; font-size: 1.25rem; letter-spacing: .02em; }
+  .lb-t:hover { color: var(--gold); }
+  .lb-dot { color: var(--gold); }
+  .lb-go { font: 600 13px/1 var(--sans); color: var(--gold) !important; }
+  .lb-go:hover { text-decoration: underline; }
+</style>

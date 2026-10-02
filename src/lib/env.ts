@@ -33,6 +33,9 @@ export type Env = {
   WHATSAPP_TOKEN: string;
   WHATSAPP_PHONE_NUMBER_ID: string;
   WHATSAPP_PAYOUT_TEMPLATE: string; // approved template name for "payout sent" outside the 24h window
+  // MSG91 WhatsApp sending (BSP-managed number sends via MSG91 API, not direct Cloud API)
+  MSG91_AUTHKEY: string;
+  MSG91_INTEGRATED_NUMBER: string; // DevShop's WhatsApp number with country code, e.g. '918076919458'
   // Gmail: every email leaves from Virat's own mailbox (src/lib/mail). Resend is the fallback.
   GMAIL_CLIENT_ID: string;
   GMAIL_CLIENT_SECRET: string;
@@ -83,6 +86,8 @@ export function getEnv(): Env {
     WHATSAPP_TOKEN: process.env.WHATSAPP_TOKEN ?? '',
     WHATSAPP_PHONE_NUMBER_ID: process.env.WHATSAPP_PHONE_NUMBER_ID ?? '',
     WHATSAPP_PAYOUT_TEMPLATE: process.env.WHATSAPP_PAYOUT_TEMPLATE ?? '',
+    MSG91_AUTHKEY: process.env.MSG91_AUTHKEY ?? '',
+    MSG91_INTEGRATED_NUMBER: process.env.MSG91_INTEGRATED_NUMBER ?? '',
     GMAIL_CLIENT_ID: process.env.GMAIL_CLIENT_ID ?? '',
     GMAIL_CLIENT_SECRET: process.env.GMAIL_CLIENT_SECRET ?? '',
     GMAIL_REFRESH_TOKEN: process.env.GMAIL_REFRESH_TOKEN ?? '',

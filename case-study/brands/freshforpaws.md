@@ -1,4 +1,51 @@
-# Fresh For Paws
+# Fresh For Paws: brand book
+
+## 1. Status and relationship
+Client (pure client, profit share). NCNDA signed 27 Sep 2026, deposit received 30 Sep, build clock started 30 Sep, target 7 Oct. Brands table status: "lead". Founder: Srishti Bhatia. WooCommerce front stays; Retail OS runs behind it. No collabs on Virat's handles; anonymised % stories only.
+
+## 2. Sources (with dates)
+- This file's history below (26 Sep to 1 Oct 2026, from Gmail, Supabase and this repo)
+- Supabase `brands` row `freshforpaws` and `retail_os_applications` 8ad86490 (read 2 Oct 2026)
+- freshforpaws.com homepage (fetched 2 Oct 2026)
+
+## 3. Name, tagline, positioning
+- Name: "Fresh For Paws". Sub-lines: "Fresh For Purrs" (cats), "Mini Paws" (puppies).
+- Tagline: "Choose Fresh, Choose Fresh For Paws!" (from website, 2 Oct 2026, confirm with founder)
+- Positioning: 100% natural, ready-to-eat, pre-portioned dog and cat meals; no defrosting, grain-free, filler-free (from website, 2 Oct 2026, confirm with founder). Founded 13 Jun 2018 by Srishti Bhatia, certified canine nutritionist (from website, 2 Oct 2026, confirm).
+
+## 4. Voice
+- Attributes: warm, friendly, playful, pet-parent focused (from website, 2 Oct 2026, confirm with founder).
+- Do / don't: Not known: ask Srishti.
+- Banned and retired phrases: Not known: ask Srishti.
+
+## 5. Visual
+- Colours (hex): Not known: ask Srishti (website shows a warm palette; no hex confirmed).
+- Fonts: Not known: ask Srishti.
+- Logo usage: Not known: ask Srishti.
+- Photo / illustration: playful illustrations featuring Vanilla, a golden lab (from website, 2 Oct 2026, confirm with founder).
+
+## 6. Channel house style
+- Instagram: @freshforpaws. Caption style, hashtags: Not known: ask Srishti.
+- Email: brand email on their domain planned (Resend); sender not set yet.
+- WhatsApp: +91 97179 70559 on the website (from website, 2 Oct 2026, confirm); keep this or a new API number is an open task.
+- Store CTA: Not known: ask Srishti.
+
+## 7. Current facts
+- Site: https://freshforpaws.com (WooCommerce). Contact contact@freshforpaws.com; founder srishti@freshforpaws.com.
+- Offers: free shipping over ₹999; subscription monthly plans (website, 2 Oct 2026, confirm). Pay with a Post at 1%.
+- Payment: application says COD and prepaid; Razorpay stays. Retail OS standard is COD off: confirm with Virat/Srishti.
+- Shipping: light product, free shipping inside the price under the Retail OS rule; current site rule is free over ₹999. Delivery zones Delhi NCR, Gurugram, Noida; capacity, slots and cold chain still to come from Srishti.
+
+## 8. Gaps (ask Srishti Bhatia)
+- Is there a brand book? Colours, fonts, logo files and usage.
+- Voice do/don't, banned phrases, hashtags, sign-off, store CTA.
+- Confirm tagline, WhatsApp number and sender address.
+- COD: keep or switch to prepaid only (Retail OS standard)?
+- Shipping: free over ₹999 or free on all; delivery method, slots, cold chain.
+
+---
+
+## History and deal (kept from the original file)
 
 One place for everything done on Fresh For Paws so far. Pulled together on 26 Sep 2026 from Gmail, the ViratMohan.com Supabase project and this repo.
 

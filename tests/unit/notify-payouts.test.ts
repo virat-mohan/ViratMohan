@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { createHmac } from 'node:crypto';
-import { isOpenHours, nextOpenSlot, notify, viratFrom, type NotifyDeps } from '../../src/lib/notify';
+import { isOpenHours, nextOpenSlot, notify, viratFrom, sendWhatsAppMSG91, type NotifyDeps } from '../../src/lib/notify';
 import { createPayout, narration, parseWebhook, verifyWebhook } from '../../src/lib/payouts/razorpayx';
 import { gateFromEnv } from '../../src/lib/settle-run';
 
@@ -61,5 +61,61 @@ describe('RazorpayX', () => {
   it('payouts default to dry run; caps come from env in rupees', () => {
     expect(gateFromEnv({ PAYOUTS_ENABLED: '', PAYOUT_CAP_PER_PAYOUT_INR: '', PAYOUT_CAP_WEEKLY_INR: '' })).toEqual({ enabled: false, perPayoutCapPaise: null, weeklyCapPaise: null });
     expect(gateFromEnv({ PAYOUTS_ENABLED: 'true', PAYOUT_CAP_PER_PAYOUT_INR: '50000', PAYOUT_CAP_WEEKLY_INR: '200000' })).toEqual({ enabled: true, perPayoutCapPaise: 5_000_000, weeklyCapPaise: 20_000_000 });
+  });
+});
+
+describe('MSG91 WhatsApp send', () => {
+  const env = {
+    RESEND_API_KEY: '', RESEND_FROM_EMAIL: '',
+    WHATSAPP_TOKEN: 'meta-token', WHATSAPP_PHONE_NUMBER_ID: 'meta-id',
+    MSG91_AUTHKEY: 'msg91-key', MSG91_INTEGRATED_NUMBER: '+91 80769 19458',
+  };
+
+  it('formats text messages with recipient_number, integrated_number and text', async () => {
+    let capturedUrl = '';
+    let capturedInit: any;
+    const fakeFetch = (async (url: string, init: any) => {
+      capturedUrl = url;
+      capturedInit = init;
+      return new Response(JSON.stringify({ status: 'success', hasError: false }), { status: 200 });
+    }) as typeof fetch;
+
+    await sendWhatsAppMSG91(env, '+91 91400 67354', 'Hello there', undefined, fakeFetch);
+
+    expect(capturedUrl).toBe('https://control.msg91.com/api/v5/whatsapp/whatsapp-outbound-message/');
+    expect(capturedInit.headers.authkey).toBe('msg91-key');
+    expect(capturedInit.headers['content-type']).toBe('application/json');
+    const body = JSON.parse(capturedInit.body);
+    expect(body).toEqual({
+      integrated_number: '918076919458',
+      recipient_number: '919140067354',
+      content_type: 'text',
+      text: 'Hello there',
+    });
+  });
+
+  it('formats template messages with components', async () => {
+    let capturedInit: any;
+    const fakeFetch = (async (_url: string, init: any) => {
+      capturedInit = init;
+      return new Response(JSON.stringify({ status: 'success' }), { status: 200 });
+    }) as typeof fetch;
+
+    await sendWhatsAppMSG91(env, '919140067354', '', { name: 'welcome_template', lang: 'en', params: ['John'] }, fakeFetch);
+
+    const body = JSON.parse(capturedInit.body);
+    expect(body.content_type).toBe('template');
+    expect(body.recipient_number).toBe('919140067354');
+    expect(body.payload.template.name).toBe('welcome_template');
+    expect(body.payload.template.components[0].parameters[0].text).toBe('John');
+  });
+
+  it('throws on MSG91 fail response', async () => {
+    const fakeFetch = (async () => {
+      return new Response(JSON.stringify({ status: 'fail', hasError: true, errors: 'recipient_number not found' }), { status: 400 });
+    }) as typeof fetch;
+
+    await expect(sendWhatsAppMSG91(env, '919140067354', 'hi', undefined, fakeFetch))
+      .rejects.toThrow('MSG91 WhatsApp send failed: 400');
   });
 });

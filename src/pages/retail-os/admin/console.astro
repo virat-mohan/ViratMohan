@@ -8,18 +8,19 @@ import { resolvePeriod, comparePeriod, beforeAfter, pctChange, addDays, PERIODS,
 import { getOpsDb, progressByBrand, planByObjective, OPS_STATUSES, STATUS_LABEL as OPS_STATUS_LABEL, PRIORITY_LABEL, OWNER_LABEL } from '../../../lib/retail-os-ops';
 import type { TeamMember, OpsTask, OpsLog, Objective, ObjectivePlan } from '../../../lib/retail-os-ops';
 import { serviceDb } from '../../../lib/ledger';
+import { loadBrandRow, loadDevShopRow, buildNeedsYou, type BrandRow, type DevShopRow } from '../../../lib/command-centre';
 import { JOURNEY, EXITS, health, pipeline, stepFor, indexOf, daysToLive, goLiveTarget } from '../../../lib/lead-journey';
 import { brandsDb, termsLine, STATUS_LABEL, type Brand } from '../../../lib/brands';
 import { loadSocial, ensureWeeklyBrief } from '../../../lib/virat-social-db';
 import { rankReels, shareRate, CTA, type RankKey } from '../../../lib/virat-social';
 
-// The founder console (viratmohan.com/founder; gated by src/middleware.ts). Four tabs:
+// The founder console (viratmohan.com/founder; gated by src/middleware.ts). Tabs: Command Centre (default, ?tab=today),
 // CRM pipeline, Team, Live brands (sales and spend for a chosen period, high-level only,
 // plus actions), and Brands & contacts. Brand owners never see this page.
 const env = getEnv();
 const db = getRetailOsDb(env);
 const url = Astro.url;
-const tab = ['crm', 'team', 'live', 'brands', 'social'].includes(url.searchParams.get('tab') ?? '') ? url.searchParams.get('tab')! : 'crm';
+const tab = ['today', 'crm', 'team', 'live', 'brands', 'social'].includes(url.searchParams.get('tab') ?? '') ? url.searchParams.get('tab')! : 'today';
 
 // ── Live brands: period, comparison and before/after Retail OS ─────────────
 const today = istToday();
@@ -73,7 +74,22 @@ const rowsFor = (c: Metrics, p: Metrics, perDay?: [number, number]): Row[] => {
 };
 const show = (v: number, f: Row[3]) => (f === 'x' ? (v ? `${v.toFixed(2)}×` : '—') : f === 'inr' ? inr(v) : (Math.round(v * 10) / 10).toLocaleString('en-IN'));
 const tone = (a: number, b: number, up: boolean) => { const v = pctChange(a, b); return v === null || v === 0 ? '' : (v > 0) === up ? 'good' : 'bad'; };
-const q = (extra: Record<string, string>) => { const p = new URLSearchParams({ tab: 'live', period: pkey, compare: cmode, ...(pkey === 'custom' ? { from: curR.start, to: addDays(curR.end, -1) } : {}) }); for (const [k, v] of Object.entries(extra)) p.set(k, v); if (extra.period && extra.period !== 'custom') { p.delete('from'); p.delete('to'); } return `/retail-os/admin/console?${p}`; };
+const q = (extra: Record<string, string>) => { const p = new URLSearchParams({ tab: tab === 'today' ? 'today' : 'live', period: pkey, compare: cmode, ...(pkey === 'custom' ? { from: curR.start, to: addDays(curR.end, -1) } : {}) }); for (const [k, v] of Object.entries(extra)) p.set(k, v); if (extra.period && extra.period !== 'custom') { p.delete('from'); p.delete('to'); } return `/retail-os/admin/console?${p}`; };
+
+// ── Command Centre (?tab=today): one row per live brand, same columns ─────
+const PRINCE_ID = '7ccc4990-12b8-424b-93cf-724645fbac69';
+const adminFor = (lb: { key: string; name: string }) => { const w = metaFor(lb)?.website; return w ? `${(/^https?:/.test(w) ? w : `https://${w}`).replace(/\/+$/, '')}/admin` : null; };
+let ccRows: (BrandRow & { adminUrl: string | null })[] = [];
+let ccDev: DevShopRow = { unread: null, oldestUnreadAt: null, newLeads7d: null, postsReady: null, princeDueSoon: null, princeOverdue: null };
+if (tab === 'today') {
+  const [rows, dev] = await Promise.all([
+    Promise.all(liveBrands.map((b) => loadBrandRow(b, current, previous).then((r) => ({ ...r, adminUrl: adminFor(b) })))),
+    env.SUPABASE_URL ? loadDevShopRow(serviceDb(env), PRINCE_ID, today).catch(() => ccDev) : Promise.resolve(ccDev),
+  ]);
+  ccRows = rows; ccDev = dev;
+}
+const needs = tab === 'today' ? buildNeedsYou(ccRows, ccDev) : [];
+const nd = (v: number | null | undefined, f: (x: number) => string = (x) => x.toLocaleString('en-IN')) => (v == null ? null : f(v));
 
 // ── Brands registry ────────────────────────────────────────────────────────
 let brands: Brand[] = [];
@@ -191,13 +207,17 @@ const href = (t: string, extra = '') => `/retail-os/admin/console?tab=${t}${extr
   .addrow{display:grid;grid-template-columns:2fr 1fr 1fr 1.4fr 1fr 1fr auto;gap:6px;align-items:center;margin-top:10px;}
   @media (max-width:800px){ .addrow{grid-template-columns:1fr 1fr;} }
   .clock{font-size:12px;font-weight:700;color:var(--sage,#2B8C86);} .clock.over{color:var(--terracotta);}
+  .cc{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px;}
+  .cc dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:8px 0;font-size:13px;} .cc dt{color:var(--dim);} .cc dd{margin:0;text-align:right;overflow-wrap:anywhere;}
+  .cc .btn{margin:4px 4px 0 0;} .needs{border-color:var(--gold);} .needs-list{margin:0 0 8px;padding-left:18px;} .needs-list li{margin:4px 0;overflow-wrap:anywhere;}
+  @media (max-width:520px){ .top nav a{margin:0 12px 0 0;display:inline-block;} section{padding:14px;} }
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="top">
     <div><a class="logo" href="/founder" aria-label="DevShop Retail OS"><img src="/retail-os/email/devshop-logo.png" alt="DevShop" width="140" height="54" /><i>Retail OS™</i></a><h1>Founder console</h1></div>
-    <nav><a href="/retail-os/admin/leads">Leads</a><a href="/retail-os/admin">Applications</a><a href="/retail-os/admin/brands">Brands</a><a href="/retail-os/admin/invoices">Invoices</a><a href="/retail-os/admin/faq">FAQ inbox</a><a href="/retail-os/admin/reports">Reports</a></nav>
+    <nav><a href="/retail-os/admin/leads">Leads</a><a href="/retail-os/admin">Applications</a><a href="/retail-os/admin/brands">Brands</a><a href="/retail-os/admin/invoices">Invoices</a><a href="/retail-os/admin/inbox">WhatsApp inbox</a><a href="/retail-os/admin/faq">FAQ inbox</a><a href="/retail-os/admin/publish">Publish</a><a href="/launches">Launches</a><a href="/retail-os/admin/reports">Reports</a></nav>
   </div>
   {priorities.length > 0 && (
     <section>
@@ -216,12 +236,62 @@ const href = (t: string, extra = '') => `/retail-os/admin/console?tab=${t}${extr
     </section>
   )}
   <div class="tabs">
+    <a class={tab === 'today' ? 'on' : ''} href={href('today')}>Command Centre</a>
     <a class={tab === 'crm' ? 'on' : ''} href={href('crm')}>CRM pipeline{(onVirat.length + appsOnYou.length + waitingEmails) ? <b>{onVirat.length + appsOnYou.length + waitingEmails}</b> : null}</a>
     <a class={tab === 'team' ? 'on' : ''} href={href('team')}>Team &amp; tasks{teamOnYou ? <b>{teamOnYou}</b> : null}</a>
     <a class={tab === 'live' ? 'on' : ''} href={href('live')}>Live brands</a>
     <a class={tab === 'brands' ? 'on' : ''} href={href('brands')}>Brands &amp; contacts</a>
     <a class={tab === 'social' ? 'on' : ''} href={href('social')}>Social</a>
   </div>
+
+  {tab === 'today' && (<>
+    <section class="needs">
+      <p class="eyebrow">Needs you</p>
+      {needs.length ? <ul class="needs-list">{needs.map((n) => <li><b>{n.brand}</b> · <a href={n.href}>{n.text}</a></li>)}</ul> : <p class="note">Nothing waiting on you from the data this page can read.</p>}
+      <p class="note">Only what comes to you (AGENT-ORG): customer issues, posts on your handles, Prince. Sources: brand whatsapp_conversations, brand orders (paid, no AWB, over 24h), DevShop whatsapp_messages, social_publish_queue, retail_os_ops_tasks.</p>
+    </section>
+    <div class="filters">{PERIODS.map((p) => <a class={p.key === pkey ? 'on' : ''} href={q({ period: p.key })}>{p.label}</a>)}</div>
+    <form class="filters custom" method="get" action="/retail-os/admin/console">
+      <input type="hidden" name="tab" value={tab === 'today' ? 'today' : 'live'} /><input type="hidden" name="period" value="custom" /><input type="hidden" name="compare" value={cmode} />
+      <label>From <input type="date" name="from" max={today} value={pkey === 'custom' ? curR.start : ''} required /></label>
+      <label>To <input type="date" name="to" max={today} value={pkey === 'custom' ? addDays(curR.end, -1) : ''} required /></label>
+      <button class={`btn${pkey === 'custom' ? ' on' : ''}`} type="submit">Custom range</button>
+    </form>
+    <div class="filters"><span class="note" style="align-self:center;">Compare with:</span>{COMPARES.map((c) => <a class={c.key === cmode ? 'on' : ''} href={q({ compare: c.key })}>{c.label}</a>)}</div>
+    <p class="note" style="margin:-4px 0 14px;"><b>{curR.label}</b> vs <b>{cmpR.label}</b>.</p>
+    <section>
+      <h2>Live brands</h2>
+      {ccRows.length === 0 && <p class="note">No live brands connected (RETAIL_OS_LIVE_BRANDS).</p>}
+      <div class="cc">
+        {ccRows.map((r) => (
+          <div class="card">
+            <h4>{r.name}</h4>
+            <dl>
+              <dt>Orders</dt><dd>{nd(r.orders) ?? <span class="note">no data</span>}{r.orders != null && r.prevOrders != null && <span class={`note ${tone(r.orders, r.prevOrders, true)}`}> {pct(r.orders, r.prevOrders)} vs {r.prevOrders}</span>}</dd>
+              <dt>Net sales</dt><dd>{nd(r.netSales, inr) ?? <span class="note">no data</span>}{r.netSales != null && r.prevNetSales != null && <span class={`note ${tone(r.netSales, r.prevNetSales, true)}`}> {pct(r.netSales, r.prevNetSales)} vs {inr(r.prevNetSales)}</span>}</dd>
+              <dt>Checkout → paid</dt><dd>{r.checkout ? <>{r.checkout.started ? Math.round((r.checkout.paid / r.checkout.started) * 100) : 0}% <span class="note">{r.checkout.paid} of {r.checkout.started}</span></> : <span class="note">no data</span>}</dd>
+              <dt>Ad spend</dt><dd>{nd(r.adSpend, inr) ?? <span class="note">no data</span>}</dd>
+              <dt>Cost per order</dt><dd>{nd(r.costPerOrder, inr) ?? <span class="note">no data</span>}</dd>
+              <dt>Unread WhatsApp</dt><dd>{nd(r.unread) ?? <span class="note">no data</span>}</dd>
+            </dl>
+            <p class="note">Sources: store orders (non-cancelled, net of discounts and refunds); Meta Ads insights via the store's token; checkout from {r.checkout?.source ?? 'none'}; inbox from whatsapp_conversations.unread_count. Cost per order = all ad spend ÷ all orders.{r.error && <> <span class="bad">{r.error}.</span></>}</p>
+            {r.adminUrl ? <p><a class="btn" href={r.adminUrl}>Admin</a> <a class="btn" href={`${r.adminUrl}/inbox`}>WhatsApp inbox</a></p> : <p class="note">No website set in Brands, so no admin link.</p>}
+          </div>
+        ))}
+        <div class="card">
+          <h4>DevShop</h4>
+          <dl>
+            <dt>Unread WhatsApp</dt><dd>{nd(ccDev.unread) ?? <span class="note">no data</span>}</dd>
+            <dt>New leads, 7 days</dt><dd>{nd(ccDev.newLeads7d) ?? <span class="note">no data</span>}</dd>
+            <dt>Posts waiting</dt><dd>{nd(ccDev.postsReady) ?? <span class="note">no data</span>}</dd>
+            <dt>Prince, due in 3 days</dt><dd>{nd(ccDev.princeDueSoon) ?? <span class="note">no data</span>}{ccDev.princeOverdue ? <span class="note bad"> · {ccDev.princeOverdue} overdue</span> : null}</dd>
+          </dl>
+          <p class="note">Sources: whatsapp_messages (in, unread), leads.created_at, social_publish_queue (ready), retail_os_ops_tasks (open). Not tied to the period filter.</p>
+          <p><a class="btn" href="/retail-os/admin/inbox">WhatsApp inbox</a> <a class="btn" href="/retail-os/admin/publish">Publish</a> <a class="btn" href={href('team')}>Team</a></p>
+        </div>
+      </div>
+    </section>
+  </>)}
 
   {tab === 'social' && (<>
     {!socialToken && <section><p class="eyebrow">One thing needed</p><p>Add <b>META_VIRAT_SOCIAL_TOKEN</b> in Vercel (viratmohan.com, Production) from the system user <i>viratsocialsync</i> in the "Virat Mohan Social" portfolio. Why: without it the daily sync cannot read the reels, so the panel stays empty. Paste it only into Vercel, never in chat or email.</p></section>}
@@ -357,7 +427,7 @@ const href = (t: string, extra = '') => `/retail-os/admin/console?tab=${t}${extr
   {tab === 'live' && (<>
     <div class="filters">{PERIODS.map((p) => <a class={p.key === pkey ? 'on' : ''} href={q({ period: p.key })}>{p.label}</a>)}</div>
     <form class="filters custom" method="get" action="/retail-os/admin/console">
-      <input type="hidden" name="tab" value="live" /><input type="hidden" name="period" value="custom" /><input type="hidden" name="compare" value={cmode} />
+      <input type="hidden" name="tab" value={tab === 'today' ? 'today' : 'live'} /><input type="hidden" name="period" value="custom" /><input type="hidden" name="compare" value={cmode} />
       <label>From <input type="date" name="from" max={today} value={pkey === 'custom' ? curR.start : ''} required /></label>
       <label>To <input type="date" name="to" max={today} value={pkey === 'custom' ? addDays(curR.end, -1) : ''} required /></label>
       <button class={`btn${pkey === 'custom' ? ' on' : ''}`} type="submit">Custom range</button>

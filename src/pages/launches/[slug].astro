@@ -1,0 +1,38 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection, render } from 'astro:content';
+import { site } from '../../data/site';
+
+export async function getStaticPaths() {
+  return (await getCollection('launches')).map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+const fmt = d.launchedOn.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+const host = new URL(d.store).hostname.replace(/^www\./, '');
+---
+<Base title={`${d.headline} — Virat Mohan`} description={d.standfirst} path={`/launches/${entry.id}`}>
+  <article class="section">
+    <div class="container lp">
+      <p class="eyebrow" style="color: var(--terracotta)"><a class="link-underline" href="/launches">Launches</a> · {fmt}</p>
+      <h1 class="lp-title">{d.headline}</h1>
+      <p class="lp-stand dim">{d.standfirst}</p>
+      <img class="lp-img" src={d.image} alt={d.headline} width="1080" height="1350" />
+      <div class="prose"><Content /></div>
+      <p class="lp-links">
+        <a class="link-underline" href={d.store}>Visit {host} →</a>
+        {d.instagram && <a class="link-underline" href={d.instagram}>See the launch post →</a>}
+      </p>
+      <p class="lp-cta"><a href={`https://wa.me/${site.whatsapp}?text=${encodeURIComponent(`Hi Virat, I saw ${d.brand} go live. I'd like to talk about Retail OS for my brand.`)}`}>Let's talk.</a></p>
+    </div>
+  </article>
+</Base>
+<style>
+  .lp { max-width: 68ch; }
+  .lp-title { font-family: var(--display); text-transform: uppercase; font-size: clamp(2.4rem, 8vw, 4.2rem); line-height: .95; margin: .4rem 0 .8rem; }
+  .lp-stand { font-family: var(--serif); font-size: 1.35rem; margin: 0 0 2rem; }
+  .lp-img { width: 100%; max-width: 480px; height: auto; display: block; margin: 0 0 2.5rem; border: 1px solid var(--line); }
+  .lp-links { display: flex; flex-wrap: wrap; gap: 1.5rem; margin: 2rem 0; }
+  .lp-cta a { font-family: var(--serif); font-size: 2rem; color: var(--ink); text-decoration: none; border-bottom: 2px solid var(--gold); }
+</style>
