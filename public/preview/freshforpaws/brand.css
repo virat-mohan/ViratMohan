@@ -1,9 +1,15 @@
 :root{
-  /* Fresh For Paws brand colours. PROVISIONAL until checked against freshforpaws.com */
-  --ffp-green:#2F5233;      /* primary: logo and packaging green */
-  --ffp-cream:#F7F1E3;      /* secondary: warm cream */
-  --ffp-paper:#FDFBF6;      /* page background */
-  --ffp-ink:#1E241C;        /* text */
-  --ffp-accent:#FF6B4A;     /* single CTA accent */
-  --ffp-line:rgba(30,36,28,.12);
+  /* Fresh For Paws brand tokens, measured from freshforpaws.com screenshots (2 Oct 2026).
+     Confirm exact hex against the live CSS when the site is reachable. */
+  --ffp-teal:#06A6A0;       /* primary: top bar, logo, CTAs */
+  --ffp-teal-2:#18AFAA;     /* headings, icons */
+  --ffp-mint:#E0F2F0;       /* hero and section wash */
+  --ffp-paper:#FBF8F2;      /* warm page background */
+  --ffp-white:#FFFFFF;
+  --ffp-ink:#333333;        /* headings */
+  --ffp-body:#4C4C4C;       /* body text */
+  --ffp-line:rgba(6,166,160,.18);
+  --ffp-green:var(--ffp-teal); --ffp-cream:var(--ffp-mint); --ffp-accent:var(--ffp-teal);
+  --ffp-font-head:'Josefin Sans',system-ui,sans-serif;   /* site: bold geometric caps; closest free match, confirm */
+  --ffp-font-body:'Questrial',system-ui,sans-serif;      /* site: light geometric sans; closest free match, confirm */
 }
