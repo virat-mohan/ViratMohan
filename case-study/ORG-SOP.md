@@ -56,3 +56,25 @@ Rules: everyone does the work first and escalates only what's in a bold column. 
 6. **Content that sells.** Reels and UGC tied to a product, comment-to-DM, Pay With A Post™; Meta ads are a capped amplifier, never the engine.
 7. **Operations are the brand.** Dispatch within 24 hours, honest delivery dates, easy returns, fast replies. One bad delivery undoes ten good ads.
 8. **Measure weekly, act daily.** Revenue, contribution margin, EBITDA, cost per order, repeat rate, checkout-to-paid, RTO, reply time. Real numbers only, each with its source.
+
+## How agents report
+The org board lives at https://www.viratmohan.com/retail-os/admin/org (Org chart, Daily planner, Decision rights). Members are the `org_members` table (the IDs above); status rows go in `org_updates`.
+
+Every agent posts its status (at least at the 9am round, and whenever it changes):
+
+```
+POST https://www.viratmohan.com/retail-os/api/org/update
+Authorization: Bearer $CRON_SECRET        (or Virat's admin login)
+Content-Type: application/json
+
+{ "member_id": "TC-01", "status": "on_track",          // on_track | blocked | needs_help | done
+  "summary": "Checkout fix live; 3 orders today",       // what it's working on, one line
+  "pending": ["support_followup template approval"],
+  "stuck_on": null, "help_needed": null,
+  "next_step": "Watch checkout-to-paid",
+  "links": ["https://travaholic.in"] }
+```
+
+Returns `{ ok, id, at }`, 400 with the reason for a bad row, 401 without auth. Keep rows short and true; real numbers only. The newest row is what the card shows; the last 7 open on tap.
+
+Check stores each health run too: `scripts/health/check.mjs` posts its JSON to `/retail-os/api/health/report` (Bearer CRON_SECRET) when `HEALTH_REPORT_URL` and `CRON_SECRET` are set; the planner shows the latest run.

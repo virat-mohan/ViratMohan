@@ -217,7 +217,7 @@ const href = (t: string, extra = '') => `/retail-os/admin/console?tab=${t}${extr
 <div class="wrap">
   <div class="top">
     <div><a class="logo" href="/founder" aria-label="DevShop Retail OS"><img src="/retail-os/email/devshop-logo.png" alt="DevShop" width="140" height="54" /><i>Retail OS™</i></a><h1>Founder console</h1></div>
-    <nav><a href="/retail-os/admin/leads">Leads</a><a href="/retail-os/admin">Applications</a><a href="/retail-os/admin/brands">Brands</a><a href="/retail-os/admin/invoices">Invoices</a><a href="/retail-os/admin/inbox">WhatsApp inbox</a><a href="/retail-os/admin/faq">FAQ inbox</a><a href="/retail-os/admin/publish">Publish</a><a href="/launches">Launches</a><a href="/retail-os/admin/reports">Reports</a></nav>
+    <nav><a href="/retail-os/admin/org">Org</a><a href="/retail-os/admin/leads">Leads</a><a href="/retail-os/admin">Applications</a><a href="/retail-os/admin/brands">Brands</a><a href="/retail-os/admin/invoices">Invoices</a><a href="/retail-os/admin/inbox">WhatsApp inbox</a><a href="/retail-os/admin/faq">FAQ inbox</a><a href="/retail-os/admin/publish">Publish</a><a href="/launches">Launches</a><a href="/retail-os/admin/reports">Reports</a></nav>
   </div>
   {priorities.length > 0 && (
     <section>
@@ -247,6 +247,7 @@ const href = (t: string, extra = '') => `/retail-os/admin/console?tab=${t}${extr
   {tab === 'today' && (<>
     <section class="needs">
       <p class="eyebrow">Needs you</p>
+      <p class="note" style="margin:-4px 0 8px;"><a href="/retail-os/admin/org?tab=planner">Daily planner and org board →</a></p>
       {needs.length ? <ul class="needs-list">{needs.map((n) => <li><b>{n.brand}</b> · <a href={n.href}>{n.text}</a></li>)}</ul> : <p class="note">Nothing waiting on you from the data this page can read.</p>}
       <p class="note">Only what comes to you (AGENT-ORG): customer issues, posts on your handles, Prince. Sources: brand whatsapp_conversations, brand orders (paid, no AWB, over 24h), DevShop whatsapp_messages, social_publish_queue, retail_os_ops_tasks.</p>
     </section>

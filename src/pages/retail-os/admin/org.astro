@@ -1,0 +1,210 @@
+---
+export const prerender = false;
+import { getEnv } from '../../../lib/env';
+import { serviceDb } from '../../../lib/ledger';
+import { getLiveBrands, istToday, addDays, type Period } from '../../../lib/retail-os-portfolio';
+import { loadBrandRow, loadDevShopRow, buildNeedsYou, type DevShopRow } from '../../../lib/command-centre';
+import { loadOrg, buildTree, flatten, latestHealth, loadBrandMoney, plannerPeriods, withTimeout, STATUS_LABEL, type OrgNode, type BrandMoney, type Cell, type HealthRun } from '../../../lib/org-board';
+import { brandsDb, type Brand } from '../../../lib/brands';
+import OrgCard from '../../../components/org/OrgCard.astro';
+
+// The org board (gated by src/middleware.ts under /retail-os/admin). Tabs: Org chart (default),
+// Daily planner (founder view), Decision rights. Members and decision rights: case-study/ORG-SOP.md.
+const env = getEnv();
+const tab = ['chart', 'planner', 'rights'].includes(Astro.url.searchParams.get('tab') ?? '') ? Astro.url.searchParams.get('tab')! : 'chart';
+const sb = env.SUPABASE_URL ? serviceDb(env) : null;
+const today = istToday();
+const PRINCE_ID = '7ccc4990-12b8-424b-93cf-724645fbac69';
+
+const org = sb ? (await withTimeout(loadOrg(sb), 10_000)) ?? { members: [], updates: [], error: 'timed out' } : { members: [], updates: [], error: 'Supabase not configured' };
+const roots = buildTree(org.members, org.updates);
+const all = flatten(roots);
+const byId = new Map(all.map((x) => [x.node.id, x.node]));
+const virat = byId.get('DS-00');
+const myoho = byId.get('DS-01');
+const dev = byId.get('DS-02');
+const besideVirat = (virat?.children ?? []).filter((c) => c.id !== 'DS-01');
+const brandCeos = (dev?.children ?? []).filter((c) => c.kind === 'brand_ceo');
+const functions = (dev?.children ?? []).filter((c) => c.kind !== 'brand_ceo');
+const stuck = all.map((x) => x.node).filter((n) => n.latest?.status === 'blocked' || n.latest?.status === 'needs_help');
+
+// ── Planner ───────────────────────────────────────────────────────────────
+const live = getLiveBrands();
+let registry: Brand[] = [];
+let money: BrandMoney[] = [];
+let needs: ReturnType<typeof buildNeedsYou> = [];
+let health: HealthRun | null = null;
+if (tab === 'planner') {
+  const norm = (x: string) => x.toLowerCase().replace(/[^a-z0-9]/g, '');
+  registry = (await withTimeout(brandsDb(env).list(), 8_000)) ?? [];
+  const metaFor = (lb: { key: string; name: string }) => registry.find((b) => b.key === lb.key || norm(b.name) === norm(lb.name) || b.key.startsWith(norm(lb.key)) || norm(lb.key).startsWith(b.key));
+  const adminFor = (lb: { key: string; name: string }) => { const w = metaFor(lb)?.website; return w ? `${(/^https?:/.test(w) ? w : `https://${w}`).replace(/\/+$/, '')}/admin` : null; };
+  const p = plannerPeriods(today);
+  const yesterday: Period = { key: 'daily', label: 'Yesterday', start: addDays(today, -1), end: today };
+  const emptyDev: DevShopRow = { unread: null, oldestUnreadAt: null, newLeads7d: null, postsReady: null, princeDueSoon: null, princeOverdue: null };
+  const [rows, devRow, m, h] = await Promise.all([
+    Promise.all(live.map((b) => loadBrandRow(b, p.today, yesterday).then((r) => ({ ...r, adminUrl: adminFor(b) })))),
+    sb ? withTimeout(loadDevShopRow(sb, PRINCE_ID, today), 10_000) : Promise.resolve(null),
+    Promise.all(live.map((b) => loadBrandMoney(b, p))),
+    sb ? withTimeout(latestHealth(sb), 8_000) : Promise.resolve(null),
+  ]);
+  needs = buildNeedsYou(rows, devRow ?? emptyDev);
+  money = m; health = h;
+}
+const customerIssues = needs.filter((n) => n.kind === 'customer');
+const inr = (n: number) => '₹' + Math.round(n).toLocaleString('en-IN');
+const sum = (cells: Cell[]): Cell => cells.length && cells.every((c) => c.value !== null) ? { value: cells.reduce((s, c) => s + (c.value as number), 0) } : { value: null, missing: cells.length ? 'one or more brands have no data' : 'no live brands configured' };
+const total = { today: sum(money.map((x) => x.today)), mtd: sum(money.map((x) => x.mtd)), lastMonth: sum(money.map((x) => x.lastMonth)) };
+const when = (iso: string) => new Date(iso).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' });
+const healthFails = health ? health.report.flatMap((r) => r.results.filter((x) => !x.ok).map((x) => `${r.brand}: ${x.check}${x.detail ? ` (${x.detail})` : ''}`)) : [];
+
+// ── Decision rights (ORG-SOP.md) ──────────────────────────────────────────
+const RIGHTS_COLS = ['Brand CEO', 'Function head', 'Dev (CEO)', 'Myoho', 'Virat', 'Board'];
+const RIGHTS: [string, string[]][] = [
+  ['Store, checkout, content, flows, fixes inside the brand book', ['Decides', 'Decides in its area', 'Can overrule', 'Checks principles', 'Informed (8pm brief)', 'No']],
+  ["Ads inside the brand's cap and ROAS floor", ['Decides', 'No', 'Can pause', 'No', 'Informed', 'No']],
+  ['Raise an ad cap, top up, new spend', ['Proposes', 'No', 'Recommends', 'No', '**Decides', 'No']],
+  ['Prices, offers, discounts, free shipping', ['Proposes', 'No', 'Recommends', 'Checks fairness', '**Decides', 'No']],
+  ['Anything sent to a brand, founder or client', ['Drafts', 'Drafts', 'Reviews', 'Checks voice', '**Approves and sends', 'No']],
+  ["Posts on Virat's handles", ['Drafts', 'Grow drafts', 'Reviews', 'Checks voice', '**Approves (publish tap)', 'No']],
+  ['Work for Prince', ['No', 'Crew drafts', 'Recommends', 'No', '**Assigns', 'No']],
+  ['New brand, new market, new channel', ['Proposes', 'Deal proposes', 'Recommends with a plan', 'Checks mission', '**Decides', 'Advises (once formed)']],
+  ['Terms, NDAs, legal, equity, hiring', ['No', 'No', 'Prepares', 'Checks values', '**Decides', 'Advises on major ones']],
+  ['Anything irreversible', ['No', 'No', 'Stops and asks', 'Can veto on principles', '**Decides', 'Advises']],
+];
+const href = (t: string) => `/retail-os/admin/org?tab=${t}`;
+const cell = (c: Cell) => c.value === null ? null : inr(c.value);
+---
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Org board — DevShop</title><meta name="robots" content="noindex" />
+<link rel="stylesheet" href="/brand/tokens.css">
+<style>
+  body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.55 var(--sans);-webkit-font-smoothing:antialiased;}
+  a{color:inherit;text-underline-offset:3px;}
+  .wrap{max-width:1180px;margin-inline:auto;padding:28px 16px 72px;}
+  .top{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px;margin-bottom:18px;}
+  h1{font-family:var(--serif);font-weight:400;font-size:clamp(2rem,5vw,2.6rem);line-height:1.05;margin:0;}
+  h2{font-family:var(--serif);font-weight:400;font-size:1.35rem;margin:0 0 12px;}
+  .eyebrow{font:600 11px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--terracotta);margin:0 0 10px;}
+  .top nav a{font-size:14px;font-weight:600;margin-left:14px;text-decoration:none;display:inline-block;padding:10px 0;}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin:0 0 22px;}
+  .tabs a{text-decoration:none;font:600 14px var(--sans);padding:12px 14px;border-radius:10px 10px 0 0;color:var(--dim);}
+  .tabs a.on{color:var(--ink);background:rgba(255,255,255,.5);border:1px solid var(--line);border-bottom-color:var(--paper);margin-bottom:-1px;}
+  section{border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:18px;background:rgba(255,255,255,.35);}
+  .note{font-size:13px;color:var(--dim);}
+  table{width:100%;border-collapse:collapse;font-size:14px;} th,td{padding:8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;} th{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);} td.num,th.num{text-align:right;white-space:nowrap;}
+  .nd{color:var(--dim);font-size:12.5px;white-space:normal;text-align:left;}
+  .scroll{overflow-x:auto;}
+  ul.plain{margin:0;padding-left:18px;} ul.plain li{margin:6px 0;overflow-wrap:anywhere;}
+  /* Org chart */
+  .lvl{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;position:relative;padding-top:18px;}
+  .lvl::before{content:'';position:absolute;top:0;left:50%;height:18px;border-left:1px solid var(--line);}
+  .lvl.first{padding-top:0;} .lvl.first::before{display:none;}
+  .lvl .lab{flex-basis:100%;text-align:center;font:600 11px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:6px 0 2px;}
+  .oc{flex:0 1 250px;border:1px solid var(--line);border-radius:14px;background:#fff;text-align:left;}
+  .oc.k-founder,.oc.k-cofounder,.oc.k-ceo{border-color:var(--gold);}
+  .oc.open-seat{background:transparent;border-style:dashed;}
+  .oc summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;flex-direction:column;gap:3px;min-height:44px;}
+  .oc summary::-webkit-details-marker{display:none;}
+  .oc-top{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim);} .oc-id{font-weight:700;letter-spacing:.06em;} .oc-st{margin-left:auto;}
+  .oc-name{font-family:var(--serif);font-size:1.3rem;line-height:1.15;} .oc-role{font-size:13px;color:var(--dim);}
+  .oc-line{font-size:13px;overflow-wrap:anywhere;} .oc-line b{font-weight:600;color:var(--dim);margin-right:4px;} .oc-line.warn b{color:var(--terracotta);}
+  .oc-more{padding:0 14px 12px;font-size:13px;border-top:1px solid var(--line);} .oc-more p{margin:8px 0;} .oc-more b{color:var(--dim);font-weight:600;}
+  .oc-more ol{margin:0;padding-left:18px;} .oc-more li{margin:4px 0;} .oc-h{font:600 11px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--dim);} .oc-when{color:var(--dim);font-size:12px;}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--line);flex:none;}
+  .s-on_track{background:#7f9a72;} .s-done{background:var(--sage);} .s-needs_help{background:var(--gold);} .s-blocked{background:var(--terracotta);}
+  .stack{display:none;}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--dim);margin:0 0 14px;} .legend span{display:inline-flex;align-items:center;gap:6px;}
+  @media (max-width:760px){
+    .tree{display:none;} .stack{display:block;}
+    .stack .row{margin:0 0 10px;padding-left:calc(var(--d) * 14px);border-left:1px solid transparent;}
+    .stack .oc{display:block;}
+    .top nav a{margin:0 14px 0 0;}
+    section{padding:14px;}
+    .rights thead{display:none;} .rights tr{display:block;border-bottom:1px solid var(--line);padding:10px 0;} .rights td{display:flex;justify-content:space-between;gap:12px;border:0;padding:3px 0;} .rights td::before{content:attr(data-l);color:var(--dim);font-size:13px;} .rights td:first-child{font-weight:600;} .rights td:first-child::before{display:none;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div><p class="eyebrow">DevShop Retail OS</p><h1>Org board</h1></div>
+    <nav><a href="/retail-os/admin/console">Command Centre</a><a href="/retail-os/admin/console?tab=team">Team</a><a href="/retail-os/admin/inbox">WhatsApp inbox</a></nav>
+  </div>
+  <div class="tabs">
+    <a class={tab === 'chart' ? 'on' : ''} href={href('chart')}>Org chart</a>
+    <a class={tab === 'planner' ? 'on' : ''} href={href('planner')}>Daily planner</a>
+    <a class={tab === 'rights' ? 'on' : ''} href={href('rights')}>Decision rights</a>
+  </div>
+  {org.error && <section><p class="note">The org tables could not be read ({org.error}).</p></section>}
+
+  {tab === 'chart' && (<>
+    <div class="legend">{(['on_track', 'needs_help', 'blocked', 'done', 'none'] as const).map((s) => <span><i class={`dot s-${s}`}></i>{STATUS_LABEL[s]}</span>)}<span>Tap a card for its rights and last 7 updates.</span></div>
+    <div class="tree">
+      {virat && <div class="lvl first"><OrgCard node={virat} /></div>}
+      {besideVirat.length > 0 && <div class="lvl"><span class="lab">Also reporting to Virat</span>{besideVirat.map((n) => <OrgCard node={n} />)}</div>}
+      {myoho && <div class="lvl"><OrgCard node={myoho} /></div>}
+      {dev && <div class="lvl"><OrgCard node={dev} /></div>}
+      {brandCeos.length > 0 && <div class="lvl"><span class="lab">Brand CEOs</span>{brandCeos.map((n) => <OrgCard node={n} />)}</div>}
+      {functions.length > 0 && <div class="lvl"><span class="lab">Function heads</span>{functions.map((n) => <OrgCard node={n} />)}</div>}
+    </div>
+    <div class="stack">{all.map(({ node, depth }) => <div class="row" style={`--d:${depth}`}><OrgCard node={node} /></div>)}</div>
+    <p class="note">Source: org_members (from case-study/ORG-SOP.md) and the newest org_updates row per member. Agents post with POST /retail-os/api/org/update.</p>
+  </>)}
+
+  {tab === 'planner' && (<>
+    <section>
+      <p class="eyebrow">1 · Needs you</p>
+      {needs.length ? <ul class="plain">{needs.map((n) => <li><b>{n.brand}</b> · <a href={n.href}>{n.text}</a></li>)}</ul> : <p class="note">Nothing waiting on you from the data this page can read.</p>}
+    </section>
+    <section>
+      <p class="eyebrow">2 · Revenue (net sales)</p>
+      <div class="scroll"><table>
+        <thead><tr><th>Brand</th><th class="num">Today</th><th class="num">Month to date</th><th class="num">Last month</th></tr></thead>
+        <tbody>
+          {money.map((b) => <tr><td>{b.name}</td>{[b.today, b.mtd, b.lastMonth].map((c) => <td class="num">{cell(c) ?? <span class="nd">no data: {'missing' in c ? c.missing : ''}</span>}</td>)}</tr>)}
+          <tr><td><b>Total</b></td>{[total.today, total.mtd, total.lastMonth].map((c) => <td class="num"><b>{cell(c) ?? <span class="nd">no data</span>}</b></td>)}</tr>
+        </tbody>
+      </table></div>
+      <p class="note">Source: each store's orders (not cancelled), net of discounts and refunds, IST days.</p>
+    </section>
+    <section>
+      <p class="eyebrow">3 · Contribution profit and EBITDA, month to date</p>
+      <div class="scroll"><table>
+        <thead><tr><th>Brand</th><th class="num">Contribution profit</th><th class="num">EBITDA</th></tr></thead>
+        <tbody>{money.map((b) => <tr><td>{b.name}</td>{[b.contribution, b.ebitda].map((c) => <td class="num">{cell(c) ?? <span class="nd">no data: {'missing' in c ? c.missing : ''}</span>}</td>)}</tr>)}</tbody>
+      </table></div>
+      <p class="note">Contribution = net sales − product cost − Meta ad spend − WhatsApp cost − barter. EBITDA also takes off the store's expenses table. Shown only when the real product cost is set; never estimated.</p>
+    </section>
+    <section>
+      <p class="eyebrow">4 · Troubleshooting</p>
+      <h2>Health check</h2>
+      {health ? (healthFails.length ? <ul class="plain">{healthFails.map((f) => <li>{f}</li>)}</ul> : <p>All checks passed.</p>) : <p class="note">No stored run yet. scripts/health/check.mjs posts here once HEALTH_REPORT_URL and CRON_SECRET are set where it runs.</p>}
+      {health && <p class="note">Last run {when(health.at)} · {health.failed} failing.</p>}
+      <h2>Open customer issues</h2>
+      {customerIssues.length ? <ul class="plain">{customerIssues.map((n) => <li><b>{n.brand}</b> · <a href={n.href}>{n.text}</a></li>)}</ul> : <p class="note">None from the inboxes and orders this page can read.</p>}
+      <h2>Blocked or asking for help</h2>
+      {stuck.length ? <ul class="plain">{stuck.map((n) => <li><b>{n.id} {n.name}</b> · {STATUS_LABEL[n.latest!.status!]}: {n.latest!.stuck_on ?? n.latest!.summary}{n.latest!.help_needed ? <> · help: {n.latest!.help_needed}</> : null}</li>)}</ul> : <p class="note">Nobody is blocked.</p>}
+    </section>
+    <section>
+      <p class="eyebrow">5 · Today's plan</p>
+      {all.filter((x) => x.node.latest?.next_step).length ? <ul class="plain">{all.filter((x) => x.node.latest?.next_step).map(({ node }) => <li><b>{node.id} {node.name}</b> · {node.latest!.next_step}</li>)}</ul> : <p class="note">No next steps posted yet.</p>}
+    </section>
+  </>)}
+
+  {tab === 'rights' && (
+    <section>
+      <p class="eyebrow">Who may decide what</p>
+      <table class="rights">
+        <thead><tr><th>Decision</th>{RIGHTS_COLS.map((c) => <th>{c}</th>)}</tr></thead>
+        <tbody>{RIGHTS.map(([d, cells]) => <tr><td>{d}</td>{cells.map((v, i) => <td data-l={RIGHTS_COLS[i]}>{v.startsWith('**') ? <b>{v.slice(2)}</b> : v}</td>)}</tr>)}</tbody>
+      </table>
+      <p class="note">Everyone does the work first and escalates only what's in bold. Myoho can stop anything that breaks the mission, values or brand book, but doesn't run operations. Dev runs operations and answers to Myoho on principles and to Virat on money, people and promises. Source: case-study/ORG-SOP.md.</p>
+    </section>
+  )}
+</div>
+</body>
+</html>
