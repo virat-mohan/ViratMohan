@@ -121,13 +121,13 @@ h1 b{font-weight:600}
 footer{background:var(--ink);color:#BDBBB6;padding-block:44px 90px;display:grid;gap:22px}
 footer img{height:34px;width:auto}
 footer .row{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font:400 13px/1.6 var(--sans)}
-.wa{position:fixed;right:16px;bottom:calc(60px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--ink);color:#fff;font:500 13px/1 var(--sans);padding:13px 16px;border-radius:40px;display:flex;gap:8px;align-items:center;box-shadow:0 10px 24px -12px #0009}
+.wa{position:fixed;right:16px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--ink);color:#fff;font:500 13px/1 var(--sans);padding:13px 16px;border-radius:40px;display:flex;gap:8px;align-items:center;box-shadow:0 10px 24px -12px #0009}
 .wa i{width:8px;height:8px;border-radius:50%;background:#3BB26B}
 @media (prefers-reduced-motion:reduce){.intro{transition:none}}
 </style>
 <link rel="stylesheet" href="../../assets/store.css">
 </head>
-<body>
+<body class="has-buybar">
 <div class="preview">PREVIEW · NOT LIVE</div>
 <header class="wrap"><a href="../../" aria-label="KORBI home"><img src="../../assets/korbi-logo.svg" alt="KORBI · The Light Samurai" width="114" height="38"></a>
   <nav><a href="../../#shop">Shop</a><a href="../../#fit" class="hide">Fit check</a><a href="../../#faq" class="hide">Help</a><button class="cartbtn" type="button" data-open-cart>Cart<b data-count hidden>0</b></button></nav></header>
@@ -173,6 +173,7 @@ footer .row{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;f
   <div class="row"><span>KORBI · The Light Samurai · korbi.in</span><span>Shipping · Returns · Contact</span></div>
 </footer>
 <a class="wa" href="https://wa.me/919999277240" target="_blank" rel="noopener noreferrer"><i></i>WhatsApp us</a>
+<div class="buybar" id="buybar" aria-hidden="true"><div><b>4300K · Warm White</b><small>₹11,500 · pair · <span id="bbh">H1</span></small></div><button class="btn" type="button" id="add2">Add to cart</button></div>
 <script src="../../assets/store.js"></script>
 <script>
 (function(){
@@ -180,6 +181,10 @@ footer .row{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;f
   document.getElementById('minus').onclick=function(){q=Math.max(1,q-1);qs.textContent=q};
   document.getElementById('plus').onclick=function(){q=Math.min(10,q+1);qs.textContent=q};
   document.getElementById('add').onclick=function(){korbiAdd('warm-white',document.querySelector('input[name=holder]:checked').value,q)};
+  var add=document.getElementById('add'),bar=document.getElementById('buybar'),bbh=document.getElementById('bbh');
+  document.getElementById('add2').onclick=function(){add.click()};
+  document.querySelectorAll('input[name=holder]').forEach(function(r){r.onchange=function(){bbh.textContent=r.value}});
+  if('IntersectionObserver' in window)new IntersectionObserver(function(e){var on=!e[0].isIntersecting;bar.classList.toggle('on',on);document.body.classList.toggle('bar-on',on);bar.setAttribute('aria-hidden',!on)}).observe(add);
   var main=document.getElementById('main');
   document.querySelectorAll('.thumbs button').forEach(function(b){b.onclick=function(){main.src=b.dataset.src;document.querySelectorAll('.thumbs button').forEach(function(x){x.setAttribute('aria-pressed',x===b)})}});
 })();

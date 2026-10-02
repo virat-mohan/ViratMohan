@@ -70,6 +70,7 @@ h1 b{font-weight:600}
 .duo span{font:500 11px/1.4 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--dim);text-align:center}
 .stage .shot{position:relative;z-index:1;width:min(70%,380px);height:auto;border-radius:6px;box-shadow:0 24px 60px #0000002e;margin-block:48px 64px}
 .temps img{width:100%;max-width:340px;height:auto;border-radius:6px;margin-bottom:18px}
+@media (max-width:640px){.temps{grid-template-columns:1fr 1fr!important}.temps div{padding:28px 12px 32px!important;border-right:1px solid var(--rule)!important}.temps .k{font-size:30px!important}.temps img{aspect-ratio:1/1;object-fit:cover}.temps p{font-size:14px}.stage{min-height:0}.duo{margin-block:28px 52px;width:92%}}
 .box .ballast{width:min(100%,380px);height:auto;border-radius:6px;margin-top:28px}
 .stage .ph{position:relative;z-index:1;margin-top:18%;width:min(56%,300px);aspect-ratio:4/3;border:1px dashed #00000040;background:#ffffffe6;display:grid;place-items:center;text-align:center;padding:18px;font:500 11px/1.6 var(--sans);letter-spacing:.2em;color:var(--dim)}
 .stage .spec{position:absolute;left:26px;right:26px;bottom:20px;display:flex;justify-content:space-between;font:500 11px/1 var(--sans);letter-spacing:.24em;color:var(--dim)}
@@ -142,10 +143,24 @@ h1 b{font-weight:600}
 footer{background:var(--ink);color:#BDBBB6;padding-block:44px 90px;display:grid;gap:22px}
 footer img{height:34px;width:auto}
 footer .row{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font:400 13px/1.6 var(--sans)}
-.wa{position:fixed;right:16px;bottom:calc(60px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--ink);color:#fff;font:500 13px/1 var(--sans);padding:13px 16px;border-radius:40px;display:flex;gap:8px;align-items:center;box-shadow:0 10px 24px -12px #0009}
+.wa{position:fixed;right:16px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--ink);color:#fff;font:500 13px/1 var(--sans);padding:13px 16px;border-radius:40px;display:flex;gap:8px;align-items:center;box-shadow:0 10px 24px -12px #0009}
 .wa i{width:8px;height:8px;border-radius:50%;background:#3BB26B}
 @media (prefers-reduced-motion:reduce){.intro{transition:none}}
+.duo .film,.dots{display:none}
+@media (max-width:860px){
+  .stage{display:block;padding:28px 0 64px}
+  .stage .sun{top:18px;right:6%;width:44%}
+  .duo{display:flex;width:auto;margin:0;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 16px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .duo::-webkit-scrollbar{display:none}
+  .duo .p{flex:0 0 78%;scroll-snap-align:center}
+  .duo .film{display:grid}
+  .duo video{width:100%;aspect-ratio:815/1036;object-fit:cover;border-radius:6px;background:#0d1117;box-shadow:0 24px 50px -18px #0000005e}
+  .dots{display:flex;justify-content:center;gap:8px;margin-top:18px}
+  .dots i{width:7px;height:7px;border-radius:50%;background:#0003;transition:background .3s,width .3s}
+  .dots i.on{background:var(--ink);width:20px;border-radius:4px}
+}
 </style>
+<link rel="stylesheet" href="assets/store.css">
 </head>
 <body>
 <div class="intro" id="intro" aria-label="KORBI brand film">
@@ -170,7 +185,8 @@ footer .row{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;f
   </div>
   <div class="stage">
     <span class="sun" aria-hidden="true"></span>
-    <div class="duo"><a href="products/warm-white/" class="p"><img src="assets/bulb-4300k.jpg" alt="KORBI 4300K Warm White bulb, lit" width="815" height="1036"><span>4300K · Warm White</span></a><a href="products/cool-white/" class="p"><img src="assets/bulb-6000k.jpg" alt="KORBI 6000K Cool White bulb, lit" width="815" height="1036"><span>6000K · Cool White</span></a></div>
+    <div class="duo" id="reel" aria-label="KORBI film and the two bulbs. Swipe to see more."><div class="p film"><video muted loop playsinline preload="none" poster="assets/intro-poster.jpg" aria-label="KORBI brand film"><source src="assets/korbi-intro.mp4" type="video/mp4"></video><span>The Light Samurai</span></div><a href="products/warm-white/" class="p"><img src="assets/bulb-4300k.jpg" alt="KORBI 4300K Warm White bulb, lit" width="815" height="1036"><span>4300K · Warm White</span></a><a href="products/cool-white/" class="p"><img src="assets/bulb-6000k.jpg" alt="KORBI 6000K Cool White bulb, lit" width="815" height="1036"><span>6000K · Cool White</span></a></div>
+    <div class="dots" id="dots" aria-hidden="true"><i class="on"></i><i></i><i></i></div>
     <div class="spec"><span>9 HOLDER TYPES</span><span>2-YEAR WARRANTY</span></div>
   </div>
 </section>
@@ -293,6 +309,14 @@ footer .row{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;f
     if(!sel.value){out.textContent='Your answer appears here.';return}
     out.innerHTML=sel.value==='I don\'t know my type'?'Message us with your car and year, and we\'ll tell you which one fits.':'<b>Yes, KORBI comes in '+sel.value+'.</b> Choose <a href="products/warm-white/" style="text-decoration:underline">4300K Warm White</a> or <a href="products/cool-white/" style="text-decoration:underline">6000K Cool White</a>.';
   });
+})();
+</script>
+<script>
+(function(){
+  var reel=document.getElementById('reel');if(!reel)return;
+  var dots=[].slice.call(document.querySelectorAll('#dots i')),v=reel.querySelector('video');
+  reel.addEventListener('scroll',function(){var w=reel.firstElementChild.getBoundingClientRect().width+12,i=Math.round(reel.scrollLeft/w);dots.forEach(function(d,k){d.classList.toggle('on',k===i)})},{passive:true});
+  if(v&&'IntersectionObserver' in window&&!matchMedia('(prefers-reduced-motion: reduce)').matches)new IntersectionObserver(function(e){if(e[0].isIntersecting&&getComputedStyle(v).display!=='none'){var p=v.play();if(p&&p.catch)p.catch(function(){})}else v.pause()},{threshold:.5}).observe(v);
 })();
 </script>
 <script src="assets/store.js"></script>

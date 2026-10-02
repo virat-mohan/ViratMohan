@@ -128,6 +128,7 @@ In this repo you are **Myoho**.
 Every page, dashboard, email, form and image is designed for phone first and checked on both phone and desktop before it ships. Most traffic arrives on phones inside the Instagram and Facebook in-app browsers.
 - Check at 390px (phone) and 1280px (desktop), and inside an in-app browser for customer-facing pages. Nothing ships without both looking right.
 - No sideways scroll. Text is at least 16px on phones. Tap targets are at least 44px, with space between them. Nothing important sits behind a hover. Forms use the right keyboard (tel, email, numeric) and autofill.
+- On product pages, the price and the main action are reachable without hunting (a sticky buy bar), and floating buttons never cover content. Check phones with real emulation (Playwright iPhone profile); a narrowed headless desktop window lays out wider than a phone.
 - Images are cropped to the frame, never stretched; served at the right size (srcset or optimised); lazy below the fold. Video and animation stay light, and respect reduced motion.
 - Fast on a mid-range phone over 4G: minimal JavaScript, no layout shift, a visible loading and error state for every action.
 - Tables become stacked cards on phones. Admin dashboards work one-handed: the key action is reachable without zooming.
