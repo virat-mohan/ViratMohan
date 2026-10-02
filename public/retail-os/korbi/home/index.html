@@ -9,7 +9,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Shippori+Mincho:wght@400;500&display=swap">
 <link rel="preload" as="image" href="assets/intro-poster.jpg">
-<link rel="stylesheet" href="assets/store.css">
 <style>
 /* Direction A (Shoji), finished with Korbi's own identity: the logo, the red sun, the samurai artwork, the packaging copy and the many-scripts motif.
    Body face: Outfit stands in for Gilroy (Korbi's packaging font) until its web licence is confirmed. */
@@ -70,6 +69,7 @@ h1 b{font-weight:600}
 .duo span{font:500 11px/1.4 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--dim);text-align:center}
 .stage .shot{position:relative;z-index:1;width:min(70%,380px);height:auto;border-radius:6px;box-shadow:0 24px 60px #0000002e;margin-block:48px 64px}
 .temps img{width:100%;max-width:340px;height:auto;border-radius:6px;margin-bottom:18px}
+@media (max-width:640px){.temps{grid-template-columns:1fr 1fr!important}.temps div{padding:28px 12px 32px!important;border-right:1px solid var(--rule)!important}.temps .k{font-size:30px!important}.temps img{aspect-ratio:1/1;object-fit:cover}.temps p{font-size:14px}.stage{min-height:0}.duo{margin-block:28px 52px;width:92%}}
 .box .ballast{width:min(100%,380px);height:auto;border-radius:6px;margin-top:28px}
 .stage .ph{position:relative;z-index:1;margin-top:18%;width:min(56%,300px);aspect-ratio:4/3;border:1px dashed #00000040;background:#ffffffe6;display:grid;place-items:center;text-align:center;padding:18px;font:500 11px/1.6 var(--sans);letter-spacing:.2em;color:var(--dim)}
 .stage .spec{position:absolute;left:26px;right:26px;bottom:20px;display:flex;justify-content:space-between;font:500 11px/1 var(--sans);letter-spacing:.24em;color:var(--dim)}
@@ -142,10 +142,11 @@ h1 b{font-weight:600}
 footer{background:var(--ink);color:#BDBBB6;padding-block:44px 90px;display:grid;gap:22px}
 footer img{height:34px;width:auto}
 footer .row{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font:400 13px/1.6 var(--sans)}
-.wa{position:fixed;right:16px;bottom:calc(60px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--ink);color:#fff;font:500 13px/1 var(--sans);padding:13px 16px;border-radius:40px;display:flex;gap:8px;align-items:center;box-shadow:0 10px 24px -12px #0009}
+.wa{position:fixed;right:16px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--ink);color:#fff;font:500 13px/1 var(--sans);padding:13px 16px;border-radius:40px;display:flex;gap:8px;align-items:center;box-shadow:0 10px 24px -12px #0009}
 .wa i{width:8px;height:8px;border-radius:50%;background:#3BB26B}
 @media (prefers-reduced-motion:reduce){.intro{transition:none}}
 </style>
+<link rel="stylesheet" href="assets/store.css">
 </head>
 <body>
 <div class="intro" id="intro" aria-label="KORBI brand film">

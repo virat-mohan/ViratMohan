@@ -6,6 +6,7 @@ Every page, dashboard, image and email must look calm, soothing and premium, fit
 - Plenty of white space, one idea per screen, soft contrast, no clutter, no loud colours or gimmicks.
 - Gentle motion only. One authored look, no dark mode, same as the homepage. All surfaces use /brand/tokens.css (https://viratmohan.com/brand/tokens.css). Works at phone width with no sideways scroll.
 - If it isn't beautiful and easy on the eyes, it isn't done.
+- Mobile first, as a rule: most people see every page, store and email on a phone. Design and check at 390px first, then desktop. Before anything ships: no sideways scroll, tap targets at least 44px, the price and the main action reachable without hunting (sticky buy bar on product pages), floating buttons never cover content, and real phone emulation (Playwright iPhone profile), not a narrowed desktop window.
 
 ## Voice
 Every ask explains why. Every task has a SMART goal and reports target vs actual.
