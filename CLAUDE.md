@@ -134,3 +134,6 @@ Every page, dashboard, email, form and image is designed for phone first and che
 - Tables become stacked cards on phones. Admin dashboards work one-handed: the key action is reachable without zooming.
 - Emails render in Gmail mobile and desktop at 600px max with a single-column fallback.
 - Prove it: before reporting done, take or describe a phone-width and desktop check. The live health check flags any page that fails to load.
+
+## DevShop WhatsApp for Business: +91 80769 19458
+DevShop's official WhatsApp (wa.me/918076919458), connected to /retail-os/admin/inbox. It's used for every DevShop contact: "Let's talk." links, signatures, founder/partner emails, NDAs and Retail OS pages. Each brand keeps its own customer WhatsApp. Virat's personal mobile isn't shown publicly; it's the founder line for updates and commands only.
