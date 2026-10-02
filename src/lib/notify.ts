@@ -37,6 +37,8 @@ export async function notify(m: Outbound, deps: NotifyDeps, opts: { replyToInbou
 export type NotifyEnv = {
   RESEND_API_KEY: string; RESEND_FROM_EMAIL: string;
   WHATSAPP_TOKEN: string; WHATSAPP_PHONE_NUMBER_ID: string;
+  // MSG91 BSP-managed sending (preferred when set)
+  MSG91_AUTHKEY: string; MSG91_INTEGRATED_NUMBER: string;
 };
 
 /** Always "Virat Mohan <address>", whatever display name the env carries. */
@@ -58,13 +60,51 @@ export async function sendWhatsAppCloud(env: NotifyEnv, to: string, text: string
   if (!res.ok) throw new Error(`WhatsApp send failed: ${res.status} ${await res.text().catch(() => '')}`);
 }
 
+/** Send a WhatsApp message via MSG91's outbound API (for BSP-managed numbers). */
+export async function sendWhatsAppMSG91(env: NotifyEnv, to: string, text: string, template?: { name: string; lang: string; params: string[] }, fetchImpl: typeof fetch = fetch): Promise<void> {
+  if (!env.MSG91_AUTHKEY || !env.MSG91_INTEGRATED_NUMBER) throw new Error('MSG91 WhatsApp is not configured');
+  const payload: Record<string, unknown> = template
+    ? {
+        integrated_number: env.MSG91_INTEGRATED_NUMBER,
+        content_type: 'template',
+        payload: {
+          messaging_product: 'whatsapp', type: 'template',
+          template: {
+            name: template.name, language: { code: template.lang },
+            to_and_components: [{ to: [to], components: Object.fromEntries(template.params.map((v, i) => [`body_${i + 1}`, { type: 'text', value: v }])) }],
+          },
+        },
+      }
+    : {
+        integrated_number: env.MSG91_INTEGRATED_NUMBER,
+        content_type: 'text',
+        payload: {
+          to, type: 'text', messaging_product: 'whatsapp',
+          text: { body: text, preview_url: false },
+          recipient_type: 'individual',
+        },
+      };
+  const res = await fetchImpl('https://control.msg91.com/api/v5/whatsapp/whatsapp-outbound-message/', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', accept: 'application/json', authkey: env.MSG91_AUTHKEY },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error(`MSG91 WhatsApp send failed: ${res.status} ${await res.text().catch(() => '')}`);
+}
+
+/** Pick the right WhatsApp transport: MSG91 when configured (BSP-managed), else Meta Cloud API. */
+export async function sendWhatsApp(env: NotifyEnv, to: string, text: string, template?: { name: string; lang: string; params: string[] }): Promise<void> {
+  if (env.MSG91_AUTHKEY && env.MSG91_INTEGRATED_NUMBER) return sendWhatsAppMSG91(env, to, text, template);
+  return sendWhatsAppCloud(env, to, text, template);
+}
+
 type Sb = { from: (t: string) => any };
 
 export function liveDeps(env: NotifyEnv, sb: Sb, now = new Date()): NotifyDeps {
   return {
     now,
     sendEmail: async (to, subject, html) => { await sendEmail({ to, subject, html }, { RESEND_API_KEY: env.RESEND_API_KEY, RESEND_FROM_EMAIL: viratFrom(env.RESEND_FROM_EMAIL) }); },
-    sendWhatsApp: (to, text, template) => sendWhatsAppCloud(env, to, text, template),
+    sendWhatsApp: (to, text, template) => sendWhatsApp(env, to, text, template),
     enqueue: async (m, sendAfter) => {
       const row = {
         channel: m.channel, recipient: m.to, subject: m.channel === 'email' ? m.subject : null,
