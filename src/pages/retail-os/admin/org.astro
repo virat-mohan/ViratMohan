@@ -35,7 +35,9 @@ let registry: Brand[] = [];
 let money: BrandMoney[] = [];
 let needs: ReturnType<typeof buildNeedsYou> = [];
 let health: HealthRun | null = null;
+let requests: { id: string; at: string; text: string; status: string }[] = [];
 if (tab === 'planner') {
+  if (sb) requests = ((await withTimeout((async () => (await sb.from('founder_requests').select('id, at, text, status').in('status', ['queued', 'confirmed']).order('at', { ascending: false }).limit(20)).data ?? [])(), 8_000)) ?? []) as typeof requests;
   const norm = (x: string) => x.toLowerCase().replace(/[^a-z0-9]/g, '');
   registry = (await withTimeout(brandsDb(env).list(), 8_000)) ?? [];
   const metaFor = (lb: { key: string; name: string }) => registry.find((b) => b.key === lb.key || norm(b.name) === norm(lb.name) || b.key.startsWith(norm(lb.key)) || norm(lb.key).startsWith(b.key));
@@ -160,6 +162,11 @@ const cell = (c: Cell) => c.value === null ? null : inr(c.value);
   {tab === 'visual' && <OrgVisual nodes={all.map((x) => x.node)} updates={org.updates} today={today} />}
 
   {tab === 'planner' && (<>
+    <section>
+      <p class="eyebrow">Your WhatsApp requests</p>
+      {requests.length ? <ul class="plain">{requests.map((r) => <li><b>#{r.id.replace(/-/g, '').slice(0, 6)}</b> · {r.status === 'queued' ? 'Queued' : 'Confirmed'} · {when(r.at)}<br />{r.text.slice(0, 300)}</li>)}</ul> : <p class="note">No open requests. Text the DevShop number from your phone; anything that isn't a command is queued here.</p>}
+      <p class="note">Source: founder_requests. Nothing runs until it's confirmed in Claude.</p>
+    </section>
     <section>
       <p class="eyebrow">1 · Needs you</p>
       {needs.length ? <ul class="plain">{needs.map((n) => <li><b>{n.brand}</b> · <a href={n.href}>{n.text}</a></li>)}</ul> : <p class="note">Nothing waiting on you from the data this page can read.</p>}

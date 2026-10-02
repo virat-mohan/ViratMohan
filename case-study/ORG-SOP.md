@@ -42,9 +42,17 @@ Rules: everyone does the work first and escalates only what's in a bold column. 
 
 ## How it runs every day (IST)
 - **Hourly to 2-hourly:** Check runs the live health check; Care watches the inboxes; brand CEOs fix and log.
-- **9am:** each brand CEO posts its status (orders, cost per order, what's stuck, what help it needs) to the org board.
+- **9am:** each brand CEO posts its status (orders, cost per order, what's stuck, what help it needs) to the org board. The roll-call also reads queued founder requests (`founder_requests`, status queued) and Dev asks Virat to confirm each in Claude.
 - **12pm and 3pm:** Dev reviews the board, unblocks or reassigns, and escalates only decision items.
-- **8pm:** Myoho sends Virat the daily brief: needs you, customer issues, brands target vs actual, revenue and EBITDA, done today, live links.
+- **8pm:** Myoho sends Virat the daily brief: needs you, customer issues, brands target vs actual, revenue and EBITDA, done today, queued founder requests, live links. The short version also goes to his WhatsApp (919999277240) by the `founder-brief` cron (20:00 IST): free text inside 24 hours of his last message, else the `founder_daily_brief` utility template once approved.
+
+## Founder line (WhatsApp)
+Virat texts the DevShop WhatsApp number from his personal number (919999277240). Replies are short summaries (headline first, top 3, a link).
+- `status` / `today`, `inbox`, `agents`, `priorities`, `help`: answered from live data.
+- An amount ("paid 1200 courier upi"): logged to the ledger as before.
+- Anything else: stored in `founder_requests` as queued and answered "Queued for Dev as request #id". Nothing is executed from WhatsApp; Dev confirms each in Claude, then sets status confirmed / done / declined with a result.
+- Echoes of what Virat sends customers from the Business app (coexistence) are stored as outbound and never treated as commands. 30 founder messages an hour at most.
+- Urgent customer issues: `founderAlert(text)` in src/lib/founder-line-db.ts, same 24-hour / template rule.
 - **Monday:** results to every brand founder (Virat sends); weekly P&L and EBITDA per brand from Books.
 
 ## How Dev runs the brands (the playbook from 30 years of selling online and offline)

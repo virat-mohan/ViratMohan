@@ -14,6 +14,7 @@ import {
   brandQuestion, detectBrand, parseAnswer, questionOptions, splitAmount, TAG_THRESHOLD,
   type BrandIndex, type BrandTag, type Split,
 } from './brand-detect';
+import { FOUNDER_PHONE, FOUNDER_RATE_PER_HOUR, HELP_TEXT, parseFounderCommand, queuedText, type FounderCommand } from '../founder-line';
 import { classifyMessage, formatInr, REVIEW_THRESHOLD, markDuplicates, toLedgerRow, type Classified, type KnownOrder } from './whatsapp';
 
 export type Sender = { phone: string; name: string; defaultBrand: string | null; role: string };
@@ -39,6 +40,13 @@ export type InboundDeps = {
   toLead: (m: Inbound) => Promise<void>;
   /** False when this number already got the welcome in the last 24h, or Virat is already talking to them. */
   shouldWelcome?: (phone: string) => Promise<boolean>;
+  /** Founder line (Virat's personal number). Absent = treat him like anyone else. */
+  founder?: {
+    messagesLastHour: () => Promise<number>; // includes this one
+    answer: (cmd: Exclude<FounderCommand, 'help'>) => Promise<string>; // short summary from live data
+    queueRequest: (text: string, at: string) => Promise<string>; // returns the new founder_requests id
+    markRead: (messageId: string) => Promise<void>;
+  };
 };
 
 /** DevShop WhatsApp auto-reply to anyone new (approved by Virat, 2 Oct 2026). */
@@ -53,6 +61,7 @@ export const WELCOME_REPLY = [
 ].join('\n');
 
 export type InboundResult =
+  | 'founder_command' | 'founder_request' | 'rate_limited'
   | 'duplicate' | 'not_allowlisted' | 'undone' | 'nothing_to_undo' | 'summary' | 'answered' | 'ignored' | 'logged' | 'needs_review' | 'asked';
 
 /** Meta's X-Hub-Signature-256: "sha256=" + hex HMAC-SHA256(raw body, app secret). */
@@ -80,7 +89,27 @@ export const loggedText = (paise: number, what: string, brand: string, mode: Cla
 
 export async function handleInbound(m: Inbound, deps: InboundDeps): Promise<InboundResult> {
   if (!(await deps.markSeen(m.messageId, m.from))) return 'duplicate';
-  const sender = await deps.findSender(m.from);
+  let sender = await deps.findSender(m.from);
+  // Founder line: only Virat's personal number. Never the welcome; never executes anything.
+  if (m.from === FOUNDER_PHONE && deps.founder) {
+    const f = deps.founder;
+    await f.markRead(m.messageId);
+    if ((await f.messagesLastHour()) > FOUNDER_RATE_PER_HOUR) return 'rate_limited';
+    const text = m.text.trim();
+    const cmd = parseFounderCommand(text);
+    if (cmd) {
+      await deps.reply(m.from, cmd === 'help' ? HELP_TEXT : await f.answer(cmd));
+      return 'founder_command';
+    }
+    const isLedger = ['undo', 'summary'].includes(text.toLowerCase()) || !!(await deps.openQuestion(m.from)) || !!classifyMessage(text, { products: [] }).amountPaise;
+    if (!isLedger) {
+      if (!text) return 'ignored';
+      const id = await f.queueRequest(text, m.at);
+      await deps.reply(m.from, queuedText(id));
+      return 'founder_request';
+    }
+    sender ??= { phone: m.from, name: 'Virat', defaultBrand: null, role: 'founder' };
+  }
   if (!sender) {
     if (!deps.shouldWelcome || (await deps.shouldWelcome(m.from))) await deps.reply(m.from, WELCOME_REPLY);
     await deps.toLead(m);

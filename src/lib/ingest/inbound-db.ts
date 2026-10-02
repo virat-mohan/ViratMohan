@@ -7,6 +7,8 @@ import type { BrandIndex, Split } from './brand-detect';
 import { norm } from './brand-detect';
 import type { InboundDeps } from './inbound';
 import { classifyWithClaude } from './whatsapp';
+import { FOUNDER_PHONE, agentLines, briefLines, inboxLines, priorityLines } from '../founder-line';
+import { latestPriorities, loadFounderSnapshot, memberStatuses } from '../founder-line-db';
 
 type Db = ReturnType<typeof serviceDb>;
 
@@ -109,6 +111,24 @@ export function liveInboundDeps(env: Env, sb: Db = serviceDb(env), now = new Dat
       const ok = !(recent.data?.length) && !(talking.data?.length);
       if (ok) await sb.from('whatsapp_messages').insert({ direction: 'out', contact_phone: phone, body: WELCOME_REPLY, status: 'sent', sent_by: 'bot' });
       return ok;
+    },
+    founder: {
+      messagesLastHour: async () => {
+        const { count } = await sb.from('whatsapp_messages').select('id', { count: 'exact', head: true }).eq('contact_phone', FOUNDER_PHONE).eq('direction', 'in').gte('at', new Date(now.getTime() - 3600_000).toISOString());
+        return count ?? 0;
+      },
+      answer: async (cmd) => {
+        if (cmd === 'agents') return agentLines(await memberStatuses(sb)).join('\n');
+        if (cmd === 'priorities') return priorityLines(await latestPriorities(sb)).join('\n');
+        const snap = await loadFounderSnapshot(env, sb);
+        return (cmd === 'inbox' ? inboxLines(snap) : briefLines(snap, { withNeeds: false })).join('\n');
+      },
+      queueRequest: async (text, at) => {
+        const { data, error } = await sb.from('founder_requests').insert({ text: text.slice(0, 4000), at }).select('id').single();
+        if (error) throw error;
+        return (data as { id: string }).id;
+      },
+      markRead: async (id) => { await sb.from('whatsapp_messages').update({ read_at: now.toISOString() }).eq('wa_message_id', id); },
     },
     reply: async (to, text) => { await notify({ channel: 'whatsapp', to, text }, nd, { replyToInbound: true }); },
     toLead: async (m) => {

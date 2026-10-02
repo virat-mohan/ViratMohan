@@ -25,6 +25,7 @@ export type DevShopRow = {
   newLeads7d: number | null;
   postsReady: number | null;
   princeDueSoon: number | null; princeOverdue: number | null;
+  founderQueued?: number | null; // founder_requests waiting for Dev to confirm
 };
 
 async function safe<T>(fn: () => Promise<T>): Promise<T | null> {
@@ -82,19 +83,20 @@ export async function loadDevShopRow(sb: SupabaseClient, princeId: string, today
   const in3 = new Date(Date.parse(`${today}T00:00:00Z`) + 3 * 86400_000).toISOString().slice(0, 10);
   const weekAgo = new Date(Date.now() - 7 * 24 * HOUR).toISOString();
   const count = async (q: PromiseLike<{ count: number | null; error: unknown }>) => { const r = await q; return r.error ? null : r.count ?? 0; };
-  const [wa, leads, posts, due, overdue] = await Promise.all([
-    safe(async () => { const r = await sb.from('whatsapp_messages').select('at').eq('direction', 'in').is('read_at', null).order('at').limit(500); return r.error ? null : (r.data ?? []) as { at: string }[]; }),
+  const [wa, leads, posts, due, overdue, queued] = await Promise.all([
+    safe(async () => { const r = await sb.from('whatsapp_messages').select('at').eq('direction', 'in').neq('contact_phone', '919999277240').is('read_at', null).order('at').limit(500); return r.error ? null : (r.data ?? []) as { at: string }[]; }),
     safe(() => count(sb.from('leads').select('id', { count: 'exact', head: true }).gte('created_at', weekAgo))),
     safe(() => count(sb.from('social_publish_queue').select('id', { count: 'exact', head: true }).eq('status', 'ready'))),
     safe(() => count(sb.from('retail_os_ops_tasks').select('id', { count: 'exact', head: true }).eq('member_id', princeId).not('status', 'in', '(done,na)').gte('due_on', today).lte('due_on', in3))),
     safe(() => count(sb.from('retail_os_ops_tasks').select('id', { count: 'exact', head: true }).eq('member_id', princeId).not('status', 'in', '(done,na)').lt('due_on', today))),
+    safe(() => count(sb.from('founder_requests').select('id', { count: 'exact', head: true }).eq('status', 'queued'))),
   ]);
-  return { unread: wa ? wa.length : null, oldestUnreadAt: wa?.[0]?.at ?? null, newLeads7d: leads, postsReady: posts, princeDueSoon: due, princeOverdue: overdue };
+  return { unread: wa ? wa.length : null, oldestUnreadAt: wa?.[0]?.at ?? null, newLeads7d: leads, postsReady: posts, princeDueSoon: due, princeOverdue: overdue, founderQueued: queued };
 }
 
 // ── Needs you (pure) ──────────────────────────────────────────────────────
 
-export type NeedItem = { brand: string; text: string; href: string; kind: 'customer' | 'handles' | 'people' };
+export type NeedItem = { brand: string; text: string; href: string; kind: 'customer' | 'handles' | 'people' | 'request' };
 
 /** Only AGENT-ORG "comes to me" items: customer issues, posts on his handles, people (Prince). */
 export function buildNeedsYou(
@@ -110,6 +112,7 @@ export function buildNeedsYou(
   }
   if (dev.unread && old(dev.oldestUnreadAt)) out.push({ brand: 'DevShop', kind: 'customer', text: `${dev.unread} unread WhatsApp${dev.unread === 1 ? '' : 's'}, oldest over 4 hours`, href: '/retail-os/admin/inbox' });
   if (dev.postsReady) out.push({ brand: 'DevShop', kind: 'handles', text: `${dev.postsReady} post${dev.postsReady === 1 ? '' : 's'} waiting for your approval`, href: '/retail-os/admin/publish' });
+  if (dev.founderQueued) out.push({ brand: 'DevShop', kind: 'request', text: `${dev.founderQueued} WhatsApp request${dev.founderQueued === 1 ? '' : 's'} from you waiting to be confirmed in Claude`, href: '/retail-os/admin/org?tab=planner' });
   if (dev.princeOverdue) out.push({ brand: 'DevShop', kind: 'people', text: `${dev.princeOverdue} of Prince's task${dev.princeOverdue === 1 ? ' is' : 's are'} overdue`, href: '/retail-os/admin/console?tab=team' });
   return out;
 }
