@@ -1,0 +1,9 @@
+:root{
+  /* Fresh For Paws brand colours. PROVISIONAL until checked against freshforpaws.com */
+  --ffp-green:#2F5233;      /* primary: logo and packaging green */
+  --ffp-cream:#F7F1E3;      /* secondary: warm cream */
+  --ffp-paper:#FDFBF6;      /* page background */
+  --ffp-ink:#1E241C;        /* text */
+  --ffp-accent:#FF6B4A;     /* single CTA accent */
+  --ffp-line:rgba(30,36,28,.12);
+}
