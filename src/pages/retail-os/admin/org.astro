@@ -7,11 +7,12 @@ import { loadBrandRow, loadDevShopRow, buildNeedsYou, type DevShopRow } from '..
 import { loadOrg, buildTree, flatten, latestHealth, loadBrandMoney, plannerPeriods, withTimeout, STATUS_LABEL, type OrgNode, type BrandMoney, type Cell, type HealthRun } from '../../../lib/org-board';
 import { brandsDb, type Brand } from '../../../lib/brands';
 import OrgCard from '../../../components/org/OrgCard.astro';
+import OrgVisual from '../../../components/org/OrgVisual.astro';
 
 // The org board (gated by src/middleware.ts under /retail-os/admin). Tabs: Org chart (default),
 // Daily planner (founder view), Decision rights. Members and decision rights: case-study/ORG-SOP.md.
 const env = getEnv();
-const tab = ['chart', 'planner', 'rights'].includes(Astro.url.searchParams.get('tab') ?? '') ? Astro.url.searchParams.get('tab')! : 'chart';
+const tab = ['chart', 'visual', 'planner', 'rights'].includes(Astro.url.searchParams.get('tab') ?? '') ? Astro.url.searchParams.get('tab')! : 'chart';
 const sb = env.SUPABASE_URL ? serviceDb(env) : null;
 const today = istToday();
 const PRINCE_ID = '7ccc4990-12b8-424b-93cf-724645fbac69';
@@ -136,6 +137,7 @@ const cell = (c: Cell) => c.value === null ? null : inr(c.value);
   </div>
   <div class="tabs">
     <a class={tab === 'chart' ? 'on' : ''} href={href('chart')}>Org chart</a>
+    <a class={tab === 'visual' ? 'on' : ''} href={href('visual')}>Visualiser</a>
     <a class={tab === 'planner' ? 'on' : ''} href={href('planner')}>Daily planner</a>
     <a class={tab === 'rights' ? 'on' : ''} href={href('rights')}>Decision rights</a>
   </div>
@@ -154,6 +156,8 @@ const cell = (c: Cell) => c.value === null ? null : inr(c.value);
     <div class="stack">{all.map(({ node, depth }) => <div class="row" style={`--d:${depth}`}><OrgCard node={node} /></div>)}</div>
     <p class="note">Source: org_members (from case-study/ORG-SOP.md) and the newest org_updates row per member. Agents post with POST /retail-os/api/org/update.</p>
   </>)}
+
+  {tab === 'visual' && <OrgVisual nodes={all.map((x) => x.node)} updates={org.updates} today={today} />}
 
   {tab === 'planner' && (<>
     <section>

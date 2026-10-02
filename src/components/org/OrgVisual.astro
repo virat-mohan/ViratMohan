@@ -1,0 +1,126 @@
+---
+// Visualiser tab: a live network of the org. Data is server-rendered as JSON; a small vanilla script draws inline SVG.
+import type { OrgNode, OrgUpdate } from '../../lib/org-board';
+import { layoutWide, layoutNarrow, buildEdges, replayDays, isRecent } from '../../lib/org-visual';
+interface Props { nodes: OrgNode[]; updates: OrgUpdate[]; today: string }
+const { nodes, updates, today } = Astro.props;
+const now = Date.now();
+const latest = new Map(nodes.map((n) => [n.id, n.latest]));
+const data = {
+  wide: layoutWide(nodes), narrow: layoutNarrow(nodes), edges: buildEdges(nodes, latest), days: replayDays(today, updates),
+  members: Object.fromEntries(nodes.map((n) => [n.id, { id: n.id, name: n.name, role: n.role, kind: n.kind, owns: n.owns, may_decide: n.may_decide, must_escalate: n.must_escalate, latest: n.latest, history: n.history, recent: isRecent(n.latest?.at, now) }])),
+};
+---
+<div class="viz">
+  <div class="vbar">
+    <div class="vf" role="group" aria-label="Filter">
+      <button data-f="all" class="on">All</button><button data-f="brand">Brands</button><button data-f="function">Functions</button><button data-f="blocked">Blocked only</button>
+    </div>
+    <div class="vd" role="group" aria-label="Last 7 days"><span>Last 7 days</span></div>
+  </div>
+  <div class="vstage"><svg id="vsvg" role="img" aria-label="Org network"></svg></div>
+  <div class="vlegend">
+    <span><i class="r s-on_track"></i>On track</span><span><i class="r s-needs_help"></i>Needs help</span><span><i class="r s-blocked"></i>Blocked</span><span><i class="r s-done"></i>Done</span><span><i class="r s-none"></i>No update</span>
+    <span><svg width="28" height="10"><line x1="0" y1="5" x2="28" y2="5" stroke="var(--ink)" stroke-opacity=".35"/></svg>Reports to</span>
+    <span><svg width="28" height="10"><line x1="0" y1="5" x2="28" y2="5" stroke="var(--terracotta)" stroke-dasharray="4 3"/></svg>Help needed from</span>
+    <span>Soft pulse: updated in the last 2 hours</span>
+  </div>
+  <noscript><p class="note">The network needs JavaScript; the Org chart tab shows the same data.</p></noscript>
+  <aside id="vpanel" class="vpanel" hidden aria-live="polite"><button class="vx" aria-label="Close">×</button><div id="vbody"></div></aside>
+</div>
+<script type="application/json" id="vdata" set:html={JSON.stringify(data).replace(/</g, '\\u003c')}></script>
+<style is:global>
+  .viz{position:relative;}
+  .vbar{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;margin-bottom:12px;}
+  .vf,.vd{display:flex;flex-wrap:wrap;gap:6px;align-items:center;} .vd span{font-size:13px;color:var(--dim);margin-right:4px;}
+  .viz button{font:600 14px var(--sans);min-height:44px;min-width:44px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;}
+  .viz button.on{background:var(--ink);color:var(--paper);}
+  .vstage{border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.35);}
+  #vsvg{display:block;width:100%;height:auto;}
+  #vsvg .n{cursor:pointer;} #vsvg .n:focus{outline:none;} #vsvg .n:focus .ring{stroke-width:5;}
+  #vsvg .n text{font-family:var(--sans);fill:var(--ink);pointer-events:none;}
+  #vsvg .dimmed{opacity:.15;transition:opacity .4s;} #vsvg g,#vsvg line,#vsvg path{transition:opacity .4s;}
+  .ring{fill:var(--paper);stroke-width:3.5;}
+  .s-on_track{stroke:var(--sage);background:var(--sage);} .s-done{stroke:var(--gold);background:var(--gold);} .s-needs_help{stroke:var(--gold);background:var(--gold);} .s-blocked{stroke:var(--terracotta);background:var(--terracotta);} .s-none{stroke:var(--line);background:var(--line);}
+  .ring.s-needs_help{stroke-dasharray:6 3;}
+  @keyframes vpulse{0%,100%{opacity:.0;transform:scale(1);}50%{opacity:.35;transform:scale(1.18);}}
+  .pulse{fill:none;stroke:var(--gold);stroke-width:2;transform-box:fill-box;transform-origin:center;animation:vpulse 3.2s ease-in-out infinite;}
+  @media (prefers-reduced-motion:reduce){.pulse{animation:none;opacity:.3;} #vsvg g,#vsvg line,#vsvg path{transition:none;}}
+  .vlegend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--dim);margin:12px 0;align-items:center;}
+  .vlegend span{display:inline-flex;align-items:center;gap:6px;} .vlegend i.r{width:12px;height:12px;border-radius:50%;display:inline-block;background:transparent!important;border:3px solid;border-color:inherit;}
+  .vlegend i.s-on_track{border-color:var(--sage);} .vlegend i.s-needs_help{border-color:var(--gold);border-style:dashed;} .vlegend i.s-blocked{border-color:var(--terracotta);} .vlegend i.s-done{border-color:var(--gold);} .vlegend i.s-none{border-color:var(--line);}
+  .vpanel{position:fixed;top:0;right:0;bottom:0;width:min(420px,100%);background:var(--paper);border-left:1px solid var(--line);padding:24px;overflow-y:auto;z-index:20;box-shadow:-12px 0 40px rgba(0,0,0,.06);font-size:16px;}
+  .vpanel h3{font-family:var(--serif);font-weight:400;font-size:1.6rem;margin:0 0 4px;} .vpanel .k{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin:16px 0 4px;}
+  .vpanel p,.vpanel li{margin:0 0 6px;overflow-wrap:anywhere;} .vpanel ul{padding-left:18px;margin:0;}
+  .vx{position:absolute;top:12px;right:12px;font-size:22px!important;}
+  @media (max-width:760px){
+    .vpanel{top:auto;left:0;width:auto;max-height:78vh;border-left:0;border-top:1px solid var(--line);border-radius:18px 18px 0 0;}
+    .vd{overflow-x:auto;flex-wrap:nowrap;max-width:100%;}
+  }
+</style>
+<script>
+  const D = JSON.parse(document.getElementById('vdata')!.textContent || '{}');
+  const svg = document.getElementById('vsvg') as unknown as SVGSVGElement;
+  const NS = 'http://www.w3.org/2000/svg';
+  const LBL: Record<string, string> = { on_track: 'On track', blocked: 'Blocked', needs_help: 'Needs help', done: 'Done' };
+  let filter = 'all'; let day: string | null = null;
+  const esc = (s: unknown) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
+  const el = (t: string, a: Record<string, string | number>) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, String(a[k])); return e; };
+  const statusOf = (id: string) => day ? (D.days.find((d: any) => d.day === day)?.status[id] ?? null) : (D.members[id]?.latest?.status ?? null);
+  function draw() {
+    const narrow = window.matchMedia('(max-width:760px)').matches;
+    const nodes = narrow ? D.narrow.nodes : D.wide;
+    const R = narrow ? 30 : 34;
+    svg.setAttribute('viewBox', narrow ? `0 0 360 ${D.narrow.height}` : '0 0 1200 760');
+    svg.replaceChildren();
+    const pos = new Map(nodes.map((n: any) => [n.id, n]));
+    const defs = el('defs', {}); const mk = el('marker', { id: 'ah', viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' });
+    mk.appendChild(el('path', { d: 'M0,0 L10,5 L0,10 z', fill: 'var(--terracotta)' })); defs.appendChild(mk); svg.appendChild(defs);
+    if (narrow) for (const b of D.narrow.bands) { const t = el('text', { x: 12, y: b.y + 8, 'font-size': 13, fill: 'var(--dim)', 'letter-spacing': '.08em' }); t.textContent = b.label.toUpperCase(); svg.appendChild(t); }
+    const visible = (id: string) => { const m = D.members[id]; const g = (pos.get(id) as any)?.group;
+      return filter === 'all' || (filter === 'brand' && g === 'brand') || (filter === 'function' && g === 'function') || (filter === 'blocked' && (statusOf(id) === 'blocked' || statusOf(id) === 'needs_help')) || (filter !== 'blocked' && (g === 'top' || g === 'centre') && !!m); };
+    for (const e of D.edges) {
+      if (narrow && e.kind === 'reports') continue; // bands already show the structure on a phone
+      const a: any = pos.get(e.from), b: any = pos.get(e.to); if (!a || !b) continue;
+      const dx = b.x - a.x, dy = b.y - a.y, L = Math.hypot(dx, dy) || 1;
+      const x1 = a.x + dx / L * R, y1 = a.y + dy / L * R, x2 = b.x - dx / L * (R + 4), y2 = b.y - dy / L * (R + 4);
+      const on = visible(e.from) && visible(e.to);
+      if (e.kind === 'reports') svg.appendChild(el('line', { x1, y1, x2, y2, stroke: 'var(--ink)', 'stroke-opacity': .22, 'stroke-width': 1, class: on ? '' : 'dimmed' }));
+      else if (!day) { const mx = (x1 + x2) / 2 - dy / L * 40, my = (y1 + y2) / 2 + dx / L * 40;
+        const p = el('path', { d: `M${x1},${y1} Q${mx},${my} ${x2},${y2}`, fill: 'none', stroke: 'var(--terracotta)', 'stroke-width': 1.6, 'stroke-dasharray': '5 4', 'marker-end': 'url(#ah)', class: on || filter === 'blocked' ? '' : 'dimmed' });
+        const t = el('title', {}); t.textContent = e.text; p.appendChild(t); svg.appendChild(p); }
+    }
+    for (const n of nodes) {
+      const m = D.members[n.id]; const s = statusOf(n.id) ?? 'none';
+      const g = el('g', { class: 'n' + (visible(n.id) ? '' : ' dimmed'), transform: `translate(${n.x},${n.y})`, tabindex: 0, role: 'button', 'aria-label': `${m.name}, ${m.role}, ${LBL[s] ?? 'no update'}` });
+      if (m.recent && !day) g.appendChild(el('circle', { r: R + 6, class: 'pulse' }));
+      g.appendChild(el('circle', { r: R, class: `ring s-${s}` }));
+      const t1 = el('text', { 'text-anchor': 'middle', y: -1, 'font-size': narrow ? 16 : 16, 'font-weight': 600 }); t1.textContent = n.short;
+      const t2 = el('text', { 'text-anchor': 'middle', y: 16, 'font-size': 11, fill: 'var(--dim)' }); t2.textContent = n.id;
+      g.append(t1, t2);
+      g.addEventListener('click', () => open(n.id)); g.addEventListener('keydown', (ev: any) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); open(n.id); } });
+      svg.appendChild(g);
+    }
+  }
+  const panel = document.getElementById('vpanel')!, body = document.getElementById('vbody')!;
+  const sec = (k: string, v: unknown) => v && (!Array.isArray(v) || v.length) ? `<p class="k">${k}</p>${Array.isArray(v) ? `<ul>${v.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : `<p>${esc(v)}</p>`}` : '';
+  const when = (iso: string) => new Date(iso).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' });
+  function open(id: string) {
+    const m = D.members[id]; const u = m.latest;
+    body.innerHTML = `<p class="k" style="margin-top:0">${esc(m.id)}</p><h3>${esc(m.name)}</h3><p>${esc(m.role)}</p>`
+      + `<p class="k">Status</p><p>${u ? `${esc(LBL[u.status] ?? 'Not set')} · ${when(u.at)}` : 'No update yet'}</p>`
+      + sec('Working on', u?.summary) + sec('Pending', u?.pending) + sec('Stuck on', u?.stuck_on) + sec('Help needed', u?.help_needed) + sec('Next step', u?.next_step)
+      + (m.history?.length ? `<p class="k">Last ${m.history.length} updates</p><ul>${m.history.map((h: any) => `<li>${when(h.at)} · ${esc(LBL[h.status] ?? '')}: ${esc(h.summary)}</li>`).join('')}</ul>` : '')
+      + sec('Owns', m.owns) + sec('May decide', m.may_decide) + sec('Must escalate', m.must_escalate);
+    panel.hidden = false; (panel.querySelector('.vx') as HTMLElement).focus();
+  }
+  panel.querySelector('.vx')!.addEventListener('click', () => { panel.hidden = true; });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') panel.hidden = true; });
+  document.querySelectorAll<HTMLButtonElement>('.vf button').forEach((b) => b.addEventListener('click', () => { filter = b.dataset.f!; document.querySelectorAll('.vf button').forEach((x) => x.classList.toggle('on', x === b)); draw(); }));
+  const vd = document.querySelector('.vd')!;
+  const mkDay = (label: string, val: string | null) => { const b = document.createElement('button'); b.textContent = label; if (val === null) b.classList.add('on');
+    b.addEventListener('click', () => { day = val; vd.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b)); draw(); }); vd.appendChild(b); };
+  for (const d of D.days.slice(0, 6)) mkDay(new Date(`${d.day}T12:00:00+05:30`).toLocaleDateString('en-IN', { weekday: 'short', timeZone: 'Asia/Kolkata' }), d.day);
+  mkDay('Now', null);
+  draw(); window.matchMedia('(max-width:760px)').addEventListener('change', draw);
+</script>
