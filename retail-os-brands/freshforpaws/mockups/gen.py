@@ -3,22 +3,28 @@ OUT='/home/user/ViratMohan/public/preview/freshforpaws'
 # Brand tokens. PROVISIONAL: read from the 24 Sep design research of freshforpaws.com (deep natural green + warm cream).
 # Replace with the exact hex codes from freshforpaws.com before Srishti sees this. One file: brand.css.
 BRAND_CSS=""":root{
-  /* Fresh For Paws brand colours. PROVISIONAL until checked against freshforpaws.com */
-  --ffp-green:#2F5233;      /* primary: logo and packaging green */
-  --ffp-cream:#F7F1E3;      /* secondary: warm cream */
-  --ffp-paper:#FDFBF6;      /* page background */
-  --ffp-ink:#1E241C;        /* text */
-  --ffp-accent:#FF6B4A;     /* single CTA accent */
-  --ffp-line:rgba(30,36,28,.12);
+  /* Fresh For Paws brand tokens, measured from freshforpaws.com screenshots (2 Oct 2026).
+     Confirm exact hex against the live CSS when the site is reachable. */
+  --ffp-teal:#06A6A0;       /* primary: top bar, logo, CTAs */
+  --ffp-teal-2:#18AFAA;     /* headings, icons */
+  --ffp-mint:#E0F2F0;       /* hero and section wash */
+  --ffp-paper:#FBF8F2;      /* warm page background */
+  --ffp-white:#FFFFFF;
+  --ffp-ink:#333333;        /* headings */
+  --ffp-body:#4C4C4C;       /* body text */
+  --ffp-line:rgba(6,166,160,.18);
+  --ffp-green:var(--ffp-teal); --ffp-cream:var(--ffp-mint); --ffp-accent:var(--ffp-teal);
+  --ffp-font-head:'Josefin Sans',system-ui,sans-serif;   /* site: bold geometric caps; closest free match, confirm */
+  --ffp-font-body:'Questrial',system-ui,sans-serif;      /* site: light geometric sans; closest free match, confirm */
 }"""
 NAV=[('index.html','Home'),('shop.html','Shop'),('plan.html','Build a plan'),('recipe.html','Recipes'),('about.html','Our story'),('faq.html','FAQ')]
 CATS=[('Dog meals','For adult dogs'),('Fresh For Purrs','For cats'),('Mini Paws','For puppies'),('Treats & toppers','For every bowl'),('Combos','Try a few')]
-RECIPES=[('Chicken & Pumpkin','Sample recipe'),('Lamb & Lentil','Sample recipe'),('Paneer & Quinoa','Sample recipe'),('Fish & Sweet Potato','Sample recipe')]
-TRUST=['100% natural','No fillers','Grain-free','Ready to eat']
-FAQ=[('Is it really ready to eat?','Yes. Open the pack and serve. (Storage and shelf life per recipe: Srishti to confirm.)'),
+RECIPES=[('Liv-Love','Liver & Carrot · dogs'),('Liv-Love','Liver & Pumpkin · dogs'),('Purrfect Chicken Delight','Fresh For Purrs · cats'),('Liverlicious','Liver & Carrot · Fresh For Purrs')]
+TRUST=['100% natural','Ready to eat','Grain-free','No fillers','No synthetic vitamins or minerals']
+FAQ=[('Is it really ready to eat?','Yes. No scooping, no defrosting, no guesswork: open the pack and serve. (Storage and shelf life per recipe: to confirm.)'),
      ('How much should my dog eat?','Build a plan: answer three questions and you get a daily portion for your dog.'),
      ('Where do you deliver?','Delhi NCR, Gurugram and Noida today. (Zones and slots: Srishti to confirm.)'),
-     ('Who makes the food?','Srishti Bhatia, a certified canine nutritionist, who started Fresh For Paws in 2018 for her dog Vanilla.'),
+     ('Who makes the food?','Srishti Bhatia, a certified canine nutritionist, who created every recipe herself after almost two years of research. She started Fresh For Paws on 13 June 2018, inspired by her dog Vanilla.'),
      ('Can I switch from kibble?','Yes. Mix it in over 7 to 10 days. (Transition guide: Srishti to confirm.)')]
 def page(d, slug, title, body):
     nav=''.join(f'<a href="{h}"{" aria-current=page" if h==slug else ""}>{n}</a>' for h,n in NAV)
@@ -29,9 +35,13 @@ def page(d, slug, title, body):
 <body><div class="mock">Mockup {d['key'].upper()} · {d['name']} · sample content, not live</div>
 <header class="nav"><a class="logo" href="index.html">Fresh&nbsp;For&nbsp;Paws</a><nav>{nav}</nav><a class="btn small" href="plan.html">{d['cta']}</a></header>
 <main>{body}</main>
-<footer class="foot"><div><b>Fresh For Paws</b><br>Real food for dogs and cats, cooked in Delhi NCR since 2018.</div><div class="links">{nav}</div><div class="small">Mockup by DevShop Retail OS for review. Photos, prices and recipes are placeholders until Srishti confirms.</div></footer>
+<footer class="foot"><div><b>Fresh For Paws</b><br>Choose Fresh, Choose Fresh For Paws! With love for our furry friends, since 2018.</div><div class="links">{nav}</div><div class="small">Mockup by DevShop Retail OS for review. Photos, prices and recipes are placeholders until Srishti confirms.</div></footer>
 <a class="sticky" href="plan.html">{d['cta']}</a></body></html>"""
-def ph(label, cls='ph'): return f'<div class="{cls}" role="img" aria-label="{html.escape(label)}"><span>{html.escape(label)}</span></div>'
+IMG={'Photo: Srishti and Vanilla':'srishti-vanilla','Photo: meal spooned into a bowl, dog mid-bite':'hero-dog','Video: customer reel of a dog eating (from @freshforpaws)':'shihtzu','Photo: one cooked meal in a ceramic bowl, natural light':'hero-dog'}
+def ph(label, cls='ph'):
+    if label in IMG: return f'<img class="{cls} real" src="../img/{IMG[label]}.webp" alt="{html.escape(label.split(chr(58)+chr(32),1)[-1])}" loading="lazy">'
+    return _ph(label, cls)
+def _ph(label, cls='ph'): return f'<div class="{cls}" role="img" aria-label="{html.escape(label)}"><span>{html.escape(label)}</span></div>'
 def cards(items, cls='card'):
     return ''.join(f'<a class="{cls}" href="recipe.html">{ph("Photo: "+a)}<b>{a}</b><span>{b}</span><span class="price">₹ TBD</span></a>' for a,b in items)
 def faqs(): return ''.join(f'<details><summary>{q}</summary><p>{a}</p></details>' for q,a in FAQ)
@@ -42,14 +52,14 @@ def quiz(d):
 <label>Weight (kg)<input type="number" min="1" max="80" value="12"></label>
 <label>Activity<select><option>Relaxed</option><option>Active</option><option>Very active</option></select></label>
 <button class="btn">See my plan</button>
-<div class="result" hidden><b>Your sample plan</b><p>2 packs a day of Chicken &amp; Pumpkin. Portions are worked out by Srishti's feeding guide (to confirm). Price per day: ₹ TBD.</p><a class="btn" href="shop.html">Start with this plan</a></div></form></section>"""
+<div class="result" hidden><b>Your sample plan</b><p>Sample: 2 packs a day of Liv-Love. Portions are worked out by Srishti's feeding guide (to confirm). Price per day: ₹ TBD.</p><a class="btn" href="shop.html">Start with this plan</a></div></form></section>"""
 def faq_page(d): return f'<section class="wrap narrow"><p class="kick">Questions</p><h1>Everything pet parents ask</h1>{faqs()}</section>'
 def about(d): return f"""<section class="wrap narrow story"><p class="kick">Our story</p><h1>It started with Vanilla</h1>{ph('Photo: Srishti and Vanilla','ph tall')}
-<p>Srishti Bhatia started Fresh For Paws in June 2018, cooking for her own dog, Vanilla. She is a certified canine nutritionist, and every recipe still goes through her.</p>
-<p>The food is 100% natural and ready to eat: real proteins, vegetables and fruit, no fillers and no grains.</p>
+<p>Srishti Bhatia, a commerce graduate from Delhi University, started Fresh For Paws on 13 June 2018. Her dog Vanilla was the inspiration. Every recipe is her own, built after almost two years of research on each ingredient and its nutritional value. She is a certified canine nutritionist.</p>
+<p>The food is 100% natural and ready to eat: high-quality proteins, vegetables and fruit, grain-free, with no fillers and no synthetic vitamins or minerals.</p>
 <p>Fresh For Paws won Pet Food of the Year at the Indian Pet Industry Awards.</p></section>"""
-def recipe(d): return f"""<section class="pdp wrap">{ph('Photo: Chicken & Pumpkin, plated','ph sq')}
-<div><p class="kick">Dog meals · sample recipe</p><h1>Chicken &amp; Pumpkin</h1><p class="lead">Real chicken, pumpkin and greens, cooked gently and ready to serve.</p>
+def recipe(d): return f"""<section class="pdp wrap">{'<img class="ph sq real" src="../img/range-dogs.webp" alt="Fresh For Paws packs">'}
+<div><p class="kick">Dog meals</p><h1>Liv-Love</h1><p class="lead">Liver &amp; Carrot. A complete, ready-to-eat meal for dogs. (Ingredients and nutrition: from the product sheet.)</p>
 <p class="price big">₹ TBD <small>per pack · pack size TBD</small></p><a class="btn" href="plan.html">Add to my plan</a>
 <ul class="chips">{''.join(f'<li>{t}</li>' for t in TRUST)}</ul>
 <h3>What's inside</h3><p>Ingredient list and nutrition table: from Srishti's product sheet.</p>{ph('Photo: ingredient flat-lay','ph wide')}</div></section>"""
@@ -59,31 +69,31 @@ def shop(d): return f"""<section class="wrap"><p class="kick">Shop</p><h1>Fresh 
 D={}
 # ---------------- A: Fresh, Trusted, Elevated (The Farmer's Dog / Ollie / Butternut Box UX) ----------------
 D['a']=dict(key='a',name='Fresh, Trusted, Elevated',cta='Build my plan',quiz_h="Let's find your dog's daily plan",
- fonts='https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;600&display=swap',
- css="""body{font-family:Inter,system-ui,sans-serif}h1,h2,h3,.logo{font-family:Fraunces,Georgia,serif;font-weight:600}
+ fonts='https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@600;700&family=Questrial&display=swap',
+ css="""body{font-family:var(--ffp-font-body);color:var(--ffp-body)}h1,h2,h3,.logo{font-family:var(--ffp-font-head);font-weight:700;color:var(--ffp-ink)}
 .hero{display:grid;grid-template-columns:1.1fr 1fr;gap:40px;align-items:center;padding:56px 20px}
 .hero h1{font-size:clamp(40px,6vw,68px);line-height:1.02;margin:0 0 16px}.hero p{font-size:19px}
 .trust{background:var(--ffp-green);color:var(--ffp-cream);display:flex;flex-wrap:wrap;justify-content:center;gap:10px 34px;padding:14px 16px;font-weight:600;font-size:14px}
 .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}.steps div{background:var(--ffp-cream);border-radius:18px;padding:22px}
-.steps b{font-family:Fraunces,serif;font-size:36px;color:var(--ffp-accent)}
+.steps b{font-family:var(--ffp-font-head);font-size:36px;color:var(--ffp-accent)}
 .btn{border-radius:999px}@media(max-width:760px){.hero{grid-template-columns:1fr;padding:28px 20px}.steps{grid-template-columns:1fr}}""",
  home=lambda d: f"""<section class="hero wrap"><div><p class="kick">Fresh food for dogs and cats · Delhi NCR</p><h1>Real food.<br>Ready to eat.</h1>
-<p>Cooked from real proteins and vegetables by a certified canine nutritionist. No fillers, no grains, nothing artificial.</p>
+<p>100% natural, ready-to-eat meals, portioned for your pet's calorie intake. Every recipe created by Srishti, a certified canine nutritionist.</p>
 <a class="btn" href="plan.html">Build my dog's plan</a> <a class="link" href="shop.html">or shop recipes</a></div>{ph('Photo: meal spooned into a bowl, dog mid-bite','ph tall')}</section>
 <div class="trust">{''.join(f'<span>✓ {t}</span>' for t in TRUST)}</div>
-<section class="wrap"><h2>How it works</h2><div class="steps"><div><b>1</b><h3>Tell us about your dog</h3><p>Three questions: pet, weight, activity.</p></div><div><b>2</b><h3>Get a daily plan</h3><p>Recipes and portions picked for your dog.</p></div><div><b>3</b><h3>Fresh to your door</h3><p>Ready-to-eat packs, delivered across Delhi NCR.</p></div></div></section>
-<section class="wrap"><h2>Recipes they finish</h2><div class="grid">{cards(RECIPES)}</div></section>
-<section class="wrap split">{ph('Photo: Srishti and Vanilla','ph tall')}<div><p class="kick">Since 2018</p><h2>Started for Vanilla. Made for yours.</h2><p>Srishti Bhatia, a certified canine nutritionist, began cooking for her dog Vanilla. Every recipe still goes through her.</p><a class="link" href="about.html">Read our story</a></div></section>
+<section class="wrap"><h2>How it works</h2><div class="steps"><div><b>1</b><h3>We cook with love</h3><p>Nutritionally balanced, pre-portioned meals made from real food.</p></div><div><b>2</b><h3>Portioned for your pet</h3><p>Three questions, and you get the right amount for your pet's calorie needs.</p></div><div><b>3</b><h3>Open and serve</h3><p>No scooping, no defrosting, no guesswork.</p></div></div></section>
+<section class="wrap"><h2>Recipes they finish</h2><div class="grid">{cards(RECIPES)}</div><img class="range" src="../img/range-dogs.webp" alt="The Fresh For Paws range for dogs" loading="lazy"><img class="range" src="../img/range-cats.webp" alt="The Fresh For Purrs range for cats" loading="lazy"></section>
+<section class="wrap split">{ph('Photo: Srishti and Vanilla','ph tall')}<div><p class="kick">Since 2018</p><h2>Started for Vanilla. Made for yours.</h2><p>Srishti Bhatia started Fresh For Paws on 13 June 2018, inspired by her dog Vanilla. She spent almost two years researching every ingredient before the first meal. She is a certified canine nutritionist.</p><a class="link" href="about.html">Read our story</a></div></section>
 <section class="wrap"><h2>Pet parents say</h2><div class="grid">{''.join(f'<blockquote>“Customer review from the website or Google (to add).”<cite>Name, city</cite></blockquote>' for _ in range(3))}</div></section>
 <section class="wrap narrow"><h2>Questions</h2>{faqs()}</section>""")
 # ---------------- B: Quiet Kitchen Editorial (Maev / Aesop UX) ----------------
 D['b']=dict(key='b',name='Quiet Kitchen Editorial',cta='Find their meal',quiz_h='Three questions, one considered plan',
- fonts='https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Inter:wght@400;500&display=swap',
- css="""body{font-family:Inter,system-ui,sans-serif;letter-spacing:.005em}h1,h2,h3,.logo{font-family:Newsreader,Georgia,serif;font-weight:400}
+ fonts='https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@600;700&family=Questrial&display=swap',
+ css="""body{font-family:var(--ffp-font-body);color:var(--ffp-body)}h1,h2,h3,.logo{font-family:var(--ffp-font-head);font-weight:700;color:var(--ffp-ink)}
 .hero{min-height:78vh;display:grid;place-items:end start;position:relative;padding:0}.hero .ph{position:absolute;inset:0;border-radius:0;min-height:0}
 .hero .copy{position:relative;padding:48px 24px;max-width:720px}.hero h1{font-size:clamp(44px,7vw,84px);line-height:1;margin:0 0 14px}
-.essay{max-width:640px;margin:0 auto;font-size:19px;line-height:1.7}.essay p:first-of-type::first-letter{font-family:Newsreader,serif;font-size:64px;float:left;line-height:.8;margin:6px 10px 0 0;color:var(--ffp-green)}
-.band{padding:96px 0}.stat{font-family:Newsreader,serif;font-size:clamp(28px,4vw,44px);text-align:center;max-width:820px;margin:0 auto;color:var(--ffp-green)}
+.essay{max-width:640px;margin:0 auto;font-size:19px;line-height:1.7}.essay p:first-of-type::first-letter{font-family:var(--ffp-font-head);font-size:64px;float:left;line-height:.8;margin:6px 10px 0 0;color:var(--ffp-green)}
+.band{padding:96px 0}.stat{font-family:var(--ffp-font-head);font-size:clamp(28px,4vw,44px);text-align:center;max-width:820px;margin:0 auto;color:var(--ffp-green)}
 .btn{border-radius:2px;letter-spacing:.06em;text-transform:uppercase;font-size:13px}.grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:40px}
 .nav{border-bottom:0}""",
  home=lambda d: f"""<section class="hero">{ph('Photo: one cooked meal in a ceramic bowl, natural light','ph')}<div class="copy"><h1>Cooked like dinner.<br>Served in a bowl.</h1><a class="btn" href="plan.html">Find their meal</a></div></section>
@@ -94,11 +104,11 @@ D['b']=dict(key='b',name='Quiet Kitchen Editorial',cta='Find their meal',quiz_h=
 <section class="band wrap narrow"><h2>Questions</h2>{faqs()}</section>""")
 # ---------------- C: Loud & Pack-Led (BARK UX), kept in FFP's own colours ----------------
 D['c']=dict(key='c',name='Pack-Led, Community First',cta="Build my dog's box",quiz_h="Build your dog's box",
- fonts='https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Inter:wght@400;600&display=swap',
- css="""body{font-family:Inter,system-ui,sans-serif}h1,h2,h3,.logo{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;letter-spacing:-.02em}
+ fonts='https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@600;700&family=Questrial&display=swap',
+ css="""body{font-family:var(--ffp-font-body);color:var(--ffp-body)}h1,h2,h3,.logo{font-family:var(--ffp-font-head);font-weight:700;color:var(--ffp-ink)}
 .hero{display:grid;grid-template-columns:1fr 340px;gap:32px;align-items:center;padding:40px 0}.hero h1{font-size:clamp(46px,8vw,96px);line-height:.92;margin:0 0 14px;color:var(--ffp-green)}
 .reel{aspect-ratio:9/16;border-radius:26px;min-height:0}
-.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.tiles a{text-decoration:none;border-radius:22px;padding:30px 22px;font-family:'Bricolage Grotesque',sans-serif;font-size:30px;font-weight:800;color:var(--ffp-cream);background:var(--ffp-green);min-height:150px;display:flex;align-items:flex-end}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.tiles a{text-decoration:none;border-radius:22px;padding:30px 22px;font-family:var(--ffp-font-head);font-size:30px;font-weight:800;color:var(--ffp-cream);background:var(--ffp-green);min-height:150px;display:flex;align-items:flex-end}
 .tiles a:nth-child(2){background:var(--ffp-accent)}.tiles a:nth-child(3){background:var(--ffp-ink)}
 .wall{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.wall .ph{aspect-ratio:1;min-height:0;border-radius:14px}
 .btn{border-radius:14px;font-weight:700}@media(max-width:760px){.hero{grid-template-columns:1fr}.tiles{grid-template-columns:1fr}.wall{grid-template-columns:repeat(2,1fr)}}""",
@@ -114,16 +124,16 @@ a{color:inherit}img{max-width:100%}.wrap{max-width:1160px;margin:0 auto;padding:
 .mock{background:var(--ffp-ink);color:var(--ffp-cream);font-size:12px;text-align:center;padding:6px 12px}
 .nav{display:flex;align-items:center;gap:20px;padding:16px 20px;max-width:1160px;margin:0 auto;border-bottom:1px solid var(--ffp-line)}
 .nav nav{display:flex;gap:18px;flex:1;flex-wrap:wrap}.nav nav a{text-decoration:none;font-size:15px;opacity:.8}.nav nav a[aria-current]{opacity:1;font-weight:600}
-.logo{font-size:22px;text-decoration:none;color:var(--ffp-green)}
+.logo{font-size:20px;text-decoration:none;color:var(--ffp-teal)!important;text-transform:uppercase;letter-spacing:.02em}
 .btn{display:inline-block;background:var(--ffp-accent);color:#fff;border:0;padding:14px 26px;font-weight:600;text-decoration:none;cursor:pointer;font-size:16px;font-family:inherit}
 .btn.small{padding:10px 18px;font-size:14px}.link{font-weight:600;color:var(--ffp-green)}
 .kick{text-transform:uppercase;letter-spacing:.12em;font-size:12px;font-weight:600;color:var(--ffp-green);margin:0 0 10px}
 h1{font-size:clamp(34px,5vw,54px);line-height:1.08;margin:0 0 18px}h2{font-size:clamp(28px,3.6vw,40px);line-height:1.1;margin:0 0 24px}
 .ph{background:repeating-linear-gradient(135deg,var(--ffp-cream) 0 14px,rgba(47,82,51,.06) 14px 28px);border-radius:18px;min-height:220px;display:grid;place-items:center;text-align:center;padding:16px;color:var(--ffp-green);font-size:13px;font-weight:600}
-.ph.tall{min-height:440px}.ph.sq{aspect-ratio:1;min-height:0}.ph.wide{min-height:200px}
+.ph.tall{min-height:440px}img.real{width:100%;object-fit:cover;padding:0;display:block;background:none}.ph.sq{aspect-ratio:1;min-height:0}.ph.wide{min-height:200px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:24px}
 .card{text-decoration:none;display:flex;flex-direction:column;gap:4px}.card .ph{aspect-ratio:4/5;min-height:0;margin-bottom:8px}.card span{font-size:14px;opacity:.75}.price{font-weight:600;opacity:1!important}
-.split{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.range{width:100%;margin-top:28px;border-radius:18px;background:#fff}.split{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
 details{border-bottom:1px solid var(--ffp-line);padding:16px 0}summary{cursor:pointer;font-weight:600;font-size:17px}
 blockquote{margin:0;background:var(--ffp-cream);border-radius:18px;padding:24px;font-size:17px}cite{display:block;margin-top:10px;font-size:14px;font-style:normal;opacity:.7}
 .tabs{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:28px}.tabs a{border:1px solid var(--ffp-line);border-radius:999px;padding:8px 16px;text-decoration:none;font-size:14px}
@@ -142,6 +152,6 @@ open(f'{OUT}/brand.css','w').write(BRAND_CSS)
 for k,d in D.items():
     p=f'{OUT}/{k}'; os.makedirs(p,exist_ok=True)
     open(f'{p}/style.css','w').write(BASE+d['css'])
-    pages={'index.html':('Home',d['home'](d)),'shop.html':('Shop',shop(d)),'plan.html':('Build a plan',quiz(d)),'recipe.html':('Chicken & Pumpkin',recipe(d)),'about.html':('Our story',about(d)),'faq.html':('FAQ',faq_page(d))}
+    pages={'index.html':('Home',d['home'](d)),'shop.html':('Shop',shop(d)),'plan.html':('Build a plan',quiz(d)),'recipe.html':('Liv-Love',recipe(d)),'about.html':('Our story',about(d)),'faq.html':('FAQ',faq_page(d))}
     for s,(t,b) in pages.items(): open(f'{p}/{s}','w').write(page(d,s,t,b))
 print('ok')

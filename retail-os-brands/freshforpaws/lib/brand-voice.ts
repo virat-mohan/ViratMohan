@@ -1,4 +1,4 @@
-// Fresh For Paws brand book module (v0.1, 2 Oct 2026). Source: ../BRAND-BOOK.md, which cites its sources.
+// Fresh For Paws brand book module (v0.2, 2 Oct 2026). Source: ../BRAND-BOOK.md, which cites its sources.
 // Draft until Srishti signs off. Every gap is a question for her, never a guess.
 export type Finding = { level: 'block' | 'warn'; rule: string; match: string };
 export type Kind = 'store' | 'email' | 'whatsapp' | 'post' | 'ad';
@@ -10,13 +10,18 @@ export const BRAND = {
   site: 'freshforpaws.com',
   founder: 'Srishti Bhatia',
   facts: [
-    'Started in June 2018 by Srishti Bhatia for her dog Vanilla',
+    'Started on 13 June 2018 by Srishti Bhatia, inspired by her dog Vanilla',
+    'Every recipe is Srishti\'s own, after almost two years of research',
+    'Portioned for the pet\'s calorie intake; no scooping, no defrosting, no guesswork',
+    'No synthetic vitamins or minerals added',
     'Srishti is a certified canine nutritionist',
     '100% natural, ready to eat, grain-free, no fillers',
     'Pet Food of the Year, Indian Pet Industry Awards',
   ],
   voice: 'Warm, direct and proud of the food: a knowledgeable friend who cooks for their own dog. Confident about real ingredients, never clinical. Founder-led.',
-  colours: { green: '#2F5233', cream: '#F7F1E3', paper: '#FDFBF6', ink: '#1E241C', accent: '#FF6B4A' }, // PROVISIONAL: verify against freshforpaws.com
+  colours: { teal: '#06A6A0', teal2: '#18AFAA', mint: '#E0F2F0', paper: '#FBF8F2', white: '#FFFFFF', ink: '#333333', body: '#4C4C4C' }, // measured from site screenshots 2 Oct 2026; confirm from live CSS
+  tagline: 'Choose Fresh, Choose Fresh For Paws!',
+  logoLine: 'With love for our furry friends',
   cta: { store: 'Build my plan' },
 } as const;
 
