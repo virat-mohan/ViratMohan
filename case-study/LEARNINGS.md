@@ -56,3 +56,4 @@ Every self-audit reads this first and adds to it last. One line per lesson: date
 
 - 2 Oct 2026, founder line: Virat's own number must be routed before the allowlist/welcome check, and coexistence echoes (message_echoes) must never reach command handling. Founder WhatsApp text only queues work; nothing executes from a message.
 - 2026-10-03: Travaholic Caps was listed as a marketplace though it sells only its own caps. A format label says how a brand sells, so check what it actually does before grouping it; marketplace means many sellers.
+- 2026-10-03: The brand book listed 'grain-free' from the old site, but Fresh For Paws is launching rice recipes and Mini Paws already has rice. Claims that will change with the range are blocked in checkVoice(), not just removed from one page; Srishti's title is 'certified canine & feline nutritionist' (cats too).

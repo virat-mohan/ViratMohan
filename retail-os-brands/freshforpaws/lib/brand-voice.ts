@@ -14,8 +14,8 @@ export const BRAND = {
     'Every recipe is Srishti\'s own, after almost two years of research',
     'Portioned for the pet\'s calorie intake; no scooping, no defrosting, no guesswork',
     'No synthetic vitamins or minerals added',
-    'Srishti is a certified canine nutritionist',
-    '100% natural, ready to eat, grain-free, no fillers',
+    'Srishti is a certified canine & feline nutritionist',
+    '100% natural, ready to eat, no fillers',
     'Pet Food of the Year, Indian Pet Industry Awards',
   ],
   voice: 'Warm, direct and proud of the food: a knowledgeable friend who cooks for their own dog. Confident about real ingredients, never clinical. Founder-led.',
@@ -27,6 +27,8 @@ export const BRAND = {
 
 // Claims that need Srishti's confirmation before they can be used.
 const UNCONFIRMED: [RegExp, string][] = [
+  [/\bgrain[- ]?free\b|\bno grains?\b|\bwithout grains?\b/i, 'never say grain-free: rice recipes and Mini Paws contain rice'],
+  [/\bcanine nutritionist\b/i, 'write "canine & feline nutritionist"'],
   [/\bvet[- ]?(formulated|approved|recommended)\b/i, 'vet claim not confirmed'],
   [/\bhuman[- ]grade\b/i, 'human-grade not confirmed'],
   [/\bpreservative[- ]free\b|\bno preservatives\b/i, 'preservative claim not confirmed'],
@@ -60,7 +62,7 @@ export function brandVoicePrompt(kind: Kind): string {
     `Voice: ${BRAND.voice}`,
     `Only these facts may be stated: ${BRAND.facts.join('; ')}.`,
     `Sub-brands are written exactly "${BRAND.subBrands.cats}" (cats) and "${BRAND.subBrands.puppies}" (puppies).`,
-    'Never claim: vet-formulated, human-grade, preservative-free, AAFCO, cooked daily, or any health outcome. No prices unless given.',
+    'Never claim: grain-free, vet-formulated, human-grade, preservative-free, AAFCO, cooked daily, or any health outcome. No prices unless given.',
     'Never mention DevShop or Retail OS.',
   ].join('\n');
 }
