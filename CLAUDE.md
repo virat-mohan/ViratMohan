@@ -137,3 +137,13 @@ Every page, dashboard, email, form and image is designed for phone first and che
 
 ## DevShop WhatsApp for Business: +91 80769 19458
 DevShop's official WhatsApp (wa.me/918076919458), connected to /retail-os/admin/inbox. It's used for every DevShop contact: "Let's talk." links, signatures, founder/partner emails, NDAs and Retail OS pages. Each brand keeps its own customer WhatsApp. Virat's personal mobile isn't shown publicly; it's the founder line for updates and commands only.
+
+## Live brands come first: never break a running business
+Live brands take real orders and real money every hour. Any build, migration or maintenance must leave them working exactly as before unless a change is the intended fix.
+- **Separate work from live.** Work in a branch or worktree, never in a live brand's main tree. Merge only after tests pass and a Vercel preview of the branch has been checked: home, product page, cart, checkout up to payment, and admin login.
+- **Money paths need extra care.** Checkout, payments, orders, stock, discounts, shipping, settlement, P&L and customer data change only when that is the task. They need tests for the change and a live check straight after deploy. Never mix them into unrelated work.
+- **Deploy, then prove it.** After every deploy to a live brand, run `node scripts/health/check.mjs <brand>` and load checkout. If anything fails, roll back at once in Vercel (promote the previous deployment), then investigate.
+- **Back up before writing data.** Before any write to a live brand's database (bulk updates, deletes, backfills, migrations), save the affected rows first, and run the change in one transaction with a count check. Never trigger customer messages from a backfill.
+- **Pick the quiet hour.** Risky changes to a live brand go out between 2am and 6am IST, never during a launch, a sale or a campaign push.
+- **One owner per live repo at a time.** Check for other sessions working on the same repo (ListAgents) before touching it. If one is, hand the work over rather than editing in parallel.
+- **When unsure, stop and ask** the brand's CEO Agent or the CTO Agent before changing anything live. Mistakes here cost real revenue.
