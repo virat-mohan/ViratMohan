@@ -1,11 +1,15 @@
 ---
 category: "Marketplace Platform"
 brand: "India Contemporary"
-tagline: "A curated marketplace connecting India's leading contemporary artists directly to European collectors."
+tagline: "A curated marketplace bringing India's contemporary artists directly to European collectors."
 domain: "https://indiacontemporary.net"
 order: 5
 accent: "#9C7A4A"
 founder: "Vijit Veer Hooda"
+format: "marketplace"
+status: "Live"
+href: "https://indiacontemporary.net"
+preview: "/launches/previews/india-contemporary.webp"
 ---
 
 If your business is two-sided — buyers and sellers, collectors and makers — this same marketplace structure can be licensed and built for you: the catalogue, the no-login application flow, the admin tools. A fixed monthly licence or revenue-share, scoped on a call.

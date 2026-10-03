@@ -1,11 +1,14 @@
 ---
 category: "Booking & Property Management"
 brand: "Travaholic Stays"
-tagline: "The villas booking platform with dynamic benchmark pricing and a central reservation system."
+tagline: "Villa stays in Goa and beyond, with benchmark pricing and one central reservation system."
 domain: "https://travaholicstays.com"
+href: "https://travaholicstays.com"
 order: 3
 accent: "#3E6FA6"
 logo: "../../assets/logos/travaholic-stays.png"
+format: "product"
+preview: "/launches/previews/travaholic-stays.webp"
 ---
 
 This same system can be licensed for your own rental or booking business — a fixed monthly licence, or revenue-share instead, scoped to what you need. New features worked out on a call.

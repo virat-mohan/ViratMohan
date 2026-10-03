@@ -1,10 +1,11 @@
 ---
 category: "Social Content Operations Platform"
 brand: "Content-ment"
-tagline: "Drafting, approval, and export in one integrated workflow — not three disconnected tools."
+tagline: "Drafting, approval and export of content in one workflow, instead of three separate tools."
 order: 7
 accent: "#2B8C86"
-status: "Built. Not live yet."
+format: "product"
+status: "Early build"
 ---
 
 Content teams typically stitch together a drafting tool, a separate approval chain (usually email or Slack), and a third tool for export and scheduling — with the actual status of any piece of content living in someone's head. Content-ment puts all three stages inside one workflow, so nothing is waiting on a thread nobody can find.

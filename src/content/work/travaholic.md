@@ -1,11 +1,15 @@
 ---
 category: "E-Commerce Infrastructure"
 brand: "Travaholic"
-tagline: "A complete D2C commerce backbone — live in two days, not two months."
+tagline: "Travel caps I co-own, each design a Chapter; the store where Retail OS was first built."
 domain: "https://travaholic.in"
 order: 2
 accent: "#D9714B"
 logo: "../../assets/logos/travaholic.png"
+format: "marketplace"
+status: "Live"
+href: "https://www.travaholic.in"
+preview: "/launches/previews/travaholic.webp"
 ---
 
 This exact system can be licensed and running for your business. **Own it** for a one-time build fee, go **fully managed** on a monthly licence, or **start now, pay later** on a small share of sales. Travaholic itself runs on ₹1.5–4L to own, ₹15–40k/month managed, or 1–3% of sales — scope always negotiable on a call.

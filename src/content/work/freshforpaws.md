@@ -1,12 +1,15 @@
 ---
 category: "Retail OS · Pet Food D2C"
 brand: "Fresh For Paws"
-tagline: "Ready-to-eat natural meals for dogs, cats and puppies, by a certified canine nutritionist."
+tagline: "Natural ready-to-eat meals for dogs and cats, made by a certified canine nutritionist."
 domain: "https://freshforpaws.com"
 order: 5
 accent: "#9c7a4a"
 badge: "New"
-href: "/launches/freshforpaws"
+format: "d2c"
+status: "Launching"
+href: "https://freshforpaws.com"
+preview: "/launches/previews/freshforpaws.webp"
 ---
 
 Fresh For Paws is Srishti Bhatia's brand. She's a certified canine nutritionist who has made ready-to-eat natural meals for dogs, cats and puppies since 2018.

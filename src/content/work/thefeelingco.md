@@ -1,11 +1,15 @@
 ---
 category: "Info & Enquiry Platform"
 brand: "The Feeling Co."
-tagline: "A complete digital operation for a boutique wedding-planning business — a brand site, lead capture, internal tools, and content, running without a single external subscription."
+tagline: "A boutique wedding and celebration brand; I built its site, enquiries and tools on Retail OS."
 domain: "https://thefeelingco.online"
 order: 4
 accent: "#E91E8C"
 logo: "../../assets/logos/thefeelingco.png"
+format: "d2c"
+status: "Live"
+href: "https://thefeelingco.online"
+preview: "/launches/previews/thefeelingco.webp"
 ---
 
 If your business runs on enquiries — weddings, events, any boutique service business — this same system can be built for you. A custom-scoped engagement; the fastest way to a number is a short call.

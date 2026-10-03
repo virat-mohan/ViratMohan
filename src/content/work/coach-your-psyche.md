@@ -1,10 +1,11 @@
 ---
 category: "AI Mental Wellness Platform"
 brand: "Coach Your Psyche"
-tagline: "Four personality-styled AI therapists, full session history, and pay-per-message billing — built for real, ongoing use."
+tagline: "AI coaching with four distinct personalities and full session history, built for ongoing use."
 order: 8
 accent: "#7C5CBF"
-status: "Built. Not live yet."
+format: "product"
+status: "Pre-launch"
 ---
 
 Most AI wellness tools default to one generic assistant voice and a flat subscription, whether someone uses it once a month or every day. Coach Your Psyche is built around choice and actual usage instead: four distinct personality-styled therapists to talk to, a real session history so context carries forward, and billing that scales with how much someone actually uses it.
