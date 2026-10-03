@@ -9,5 +9,7 @@ describe('Fresh For Paws brand voice', () => {
   it('allows the domain', () => { expect(blocks('Order at freshforpaws.com')).toEqual([]); });
   it('blocks DevShop leaks', () => { expect(blocks("Powered by DevShop. Let's talk.")).toHaveLength(1); });
   it('warns on prices', () => { expect(checkVoice('Only ₹249').some((f) => f.level === 'warn')).toBe(true); });
+  it('blocks grain-free (rice recipes)', () => { expect(blocks('Grain-free meals')).toHaveLength(1); expect(blocks('No grains at all')).toHaveLength(1); });
+  it('requires canine & feline', () => { expect(blocks('Srishti is a certified canine nutritionist')).toHaveLength(1); expect(blocks('Srishti is a certified canine & feline nutritionist')).toEqual([]); });
   it('prompt carries the rules', () => { expect(brandVoicePrompt('post')).toContain('Fresh For Purrs'); });
 });

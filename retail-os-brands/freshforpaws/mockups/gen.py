@@ -23,11 +23,11 @@ BRAND_CSS="""@font-face{font-family:'Josefin Sans';font-style:normal;font-weight
 NAV=[('index.html','Home'),('shop.html','Shop'),('plan.html','Build a plan'),('recipe.html','Recipes'),('about.html','Our story'),('faq.html','FAQ')]
 CATS=[('Dog meals','For adult dogs'),('Fresh For Purrs','For cats'),('Mini Paws','For puppies'),('Treats & toppers','For every bowl'),('Combos','Try a few')]
 RECIPES=[('Liv-Love','Liver & Carrot · dogs'),('Liv-Love','Liver & Pumpkin · dogs'),('Purrfect Chicken Delight','Fresh For Purrs · cats'),('Liverlicious','Liver & Carrot · Fresh For Purrs')]
-TRUST=['100% natural','Ready to eat','Grain-free','No fillers','No synthetic vitamins or minerals']
+TRUST=['100% natural','Ready to eat','No fillers','No synthetic vitamins or minerals']
 FAQ=[('Is it really ready to eat?','Yes. No scooping, no defrosting, no guesswork: open the pack and serve. (Storage and shelf life per recipe: to confirm.)'),
      ('How much should my dog eat?','Build a plan: answer three questions and you get a daily portion for your dog.'),
      ('Where do you deliver?','Delhi NCR, Gurugram and Noida today. (Zones and slots: Srishti to confirm.)'),
-     ('Who makes the food?','Srishti Bhatia, a certified canine nutritionist, who created every recipe herself after almost two years of research. She started Fresh For Paws on 13 June 2018, inspired by her dog Vanilla.'),
+     ('Who makes the food?','Srishti Bhatia, a certified canine &amp; feline nutritionist, who created every recipe herself after almost two years of research. She started Fresh For Paws on 13 June 2018, inspired by her dog Vanilla.'),
      ('Can I switch from kibble?','Yes. Mix it in over 7 to 10 days. (Transition guide: Srishti to confirm.)')]
 def page(d, slug, title, body):
     nav=''.join(f'<a href="{h}"{" aria-current=page" if h==slug else ""}>{n}</a>' for h,n in NAV)
@@ -57,8 +57,8 @@ def quiz(d):
 <div class="result" hidden><b>Your sample plan</b><p>Sample: 2 packs a day of Liv-Love. Portions are worked out by Srishti's feeding guide (to confirm). Price per day: ₹ TBD.</p><a class="btn" href="shop.html">Start with this plan</a></div></form></section>"""
 def faq_page(d): return f'<section class="wrap narrow"><p class="kick">Questions</p><h1>Everything pet parents ask</h1>{faqs()}</section>'
 def about(d): return f"""<section class="wrap narrow story"><p class="kick">Our story</p><h1>It started with Vanilla</h1>{ph('Photo: Srishti and Vanilla','ph tall')}
-<p>Srishti Bhatia, a commerce graduate from Delhi University, started Fresh For Paws on 13 June 2018. Her dog Vanilla was the inspiration. Every recipe is her own, built after almost two years of research on each ingredient and its nutritional value. She is a certified canine nutritionist.</p>
-<p>The food is 100% natural and ready to eat: high-quality proteins, vegetables and fruit, grain-free, with no fillers and no synthetic vitamins or minerals.</p>
+<p>Srishti Bhatia, a commerce graduate from Delhi University, started Fresh For Paws on 13 June 2018. Her dog Vanilla was the inspiration. Every recipe is her own, built after almost two years of research on each ingredient and its nutritional value. She is a certified canine &amp; feline nutritionist.</p>
+<p>The food is 100% natural and ready to eat: high-quality proteins, vegetables and fruit, with no fillers and no synthetic vitamins or minerals.</p>
 <p>Fresh For Paws won Pet Food of the Year at the Indian Pet Industry Awards.</p></section>"""
 def recipe(d): return f"""<section class="pdp wrap">{'<img class="ph sq real" src="../img/range-dogs.webp" alt="Fresh For Paws packs">'}
 <div><p class="kick">Dog meals</p><h1>Liv-Love</h1><p class="lead">Liver &amp; Carrot. A complete, ready-to-eat meal for dogs. (Ingredients and nutrition: from the product sheet.)</p>
@@ -80,12 +80,12 @@ D['a']=dict(key='a',name='Fresh, Trusted, Elevated',cta='Build my plan',quiz_h="
 .steps b{font-family:var(--ffp-font-head);font-size:36px;color:var(--ffp-accent)}
 .btn{border-radius:999px}@media(max-width:760px){.hero{grid-template-columns:1fr;padding:28px 20px}.steps{grid-template-columns:1fr}}""",
  home=lambda d: f"""<section class="hero wrap"><div><p class="kick">Fresh food for dogs and cats</p><h1>Real food.<br>Ready to eat.</h1>
-<p>100% natural, ready-to-eat meals, portioned for your pet's calorie intake. Every recipe created by Srishti, a certified canine nutritionist.</p>
+<p>100% natural, ready-to-eat meals, portioned for your pet's calorie intake. Every recipe created by Srishti, a certified canine &amp; feline nutritionist.</p>
 <a class="btn" href="plan.html">Build my dog's plan</a> <a class="link" href="shop.html">or shop recipes</a></div>{ph('Photo: meal spooned into a bowl, dog mid-bite','ph tall')}</section>
 <div class="trust">{''.join(f'<span>✓ {t}</span>' for t in TRUST)}</div>
 <section class="wrap"><h2>How it works</h2><div class="steps"><div><b>1</b><h3>We cook with love</h3><p>Nutritionally balanced, pre-portioned meals made from real food.</p></div><div><b>2</b><h3>Portioned for your pet</h3><p>Three questions, and you get the right amount for your pet's calorie needs.</p></div><div><b>3</b><h3>Open and serve</h3><p>No scooping, no defrosting, no guesswork.</p></div></div></section>
 <section class="wrap"><h2>Recipes they finish</h2><div class="grid">{cards(RECIPES)}</div><img class="range" src="../img/range-dogs.webp" alt="The Fresh For Paws range for dogs" loading="lazy"><img class="range" src="../img/range-cats.webp" alt="The Fresh For Purrs range for cats" loading="lazy"></section>
-<section class="wrap split">{ph('Photo: Srishti and Vanilla','ph tall')}<div><p class="kick">Since 2018</p><h2>Started for Vanilla. Made for yours.</h2><p>Srishti Bhatia started Fresh For Paws on 13 June 2018, inspired by her dog Vanilla. She spent almost two years researching every ingredient before the first meal. She is a certified canine nutritionist.</p><a class="link" href="about.html">Read our story</a></div></section>
+<section class="wrap split">{ph('Photo: Srishti and Vanilla','ph tall')}<div><p class="kick">Since 2018</p><h2>Started for Vanilla. Made for yours.</h2><p>Srishti Bhatia started Fresh For Paws on 13 June 2018, inspired by her dog Vanilla. She spent almost two years researching every ingredient before the first meal. She is a certified canine &amp; feline nutritionist.</p><a class="link" href="about.html">Read our story</a></div></section>
 <section class="wrap"><h2>Pet parents say</h2><div class="grid quotes">{''.join(f'<blockquote>“Customer review from the website or Google (to add).”<cite>Name, city</cite></blockquote>' for _ in range(3))}</div></section>
 <section class="wrap narrow"><h2>Questions</h2>{faqs()}</section>""")
 # ---------------- B: Quiet Kitchen Editorial (Maev / Aesop UX) ----------------
@@ -100,8 +100,8 @@ D['b']=dict(key='b',name='Quiet Kitchen Editorial',cta='Find their meal',quiz_h=
 .btn{border-radius:2px;letter-spacing:.08em;text-transform:uppercase;font-size:15px}.grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:40px}
 .nav{border-bottom:0}""",
  home=lambda d: f"""<section class="hero">{ph('Photo: one cooked meal in a ceramic bowl, natural light','ph')}<div class="copy"><h1>Cooked like dinner.<br>Served in a bowl.</h1><a class="btn" href="plan.html">Find their meal</a></div></section>
-<section class="band wrap"><div class="essay"><p>Every Fresh For Paws meal begins in a kitchen, not a factory line: real proteins, vegetables and fruit, cooked gently and packed ready to serve.</p><p>Srishti Bhatia started it in 2018 for her dog, Vanilla. She is a certified canine nutritionist, and every recipe still passes through her hands.</p></div></section>
-<section class="band" style="background:var(--ffp-cream)"><p class="stat wrap">No fillers. No grains. Nothing your dog can't pronounce.</p></section>
+<section class="band wrap"><div class="essay"><p>Every Fresh For Paws meal begins in a kitchen, not a factory line: real proteins, vegetables and fruit, cooked gently and packed ready to serve.</p><p>Srishti Bhatia started it in 2018 for her dog, Vanilla. She is a certified canine &amp; feline nutritionist, and every recipe still passes through her hands.</p></div></section>
+<section class="band" style="background:var(--ffp-cream)"><p class="stat wrap">No fillers. No synthetics. Nothing your dog can't pronounce.</p></section>
 <section class="band wrap"><h2>The recipes</h2><div class="grid">{cards(RECIPES)}</div></section>
 <section class="band wrap split">{ph('Photo: ingredients on a wooden board','ph tall')}<div><p class="kick">The kitchen</p><h2>Ingredients you would cook with</h2><p>Each recipe page tells one ingredient story at a time: the protein, how it is cooked, and the nutritionist's note.</p><a class="link" href="recipe.html">Read a recipe</a></div></section>
 <section class="band wrap narrow"><h2>Questions</h2>{faqs()}</section>""")
@@ -119,7 +119,7 @@ D['c']=dict(key='c',name='Pack-Led, Community First',cta="Build my dog's box",qu
 <section class="wrap"><div class="tiles"><a href="shop.html">For dogs</a><a href="shop.html">For cats</a><a href="shop.html">For puppies</a></div></section>
 <section class="wrap"><h2>Fan favourites</h2><div class="grid">{cards(RECIPES)}</div></section>
 <section class="wrap"><h2>#ChooseFreshForPaws</h2><div class="wall">{''.join(ph('Customer photo '+str(i+1)) for i in range(8))}</div></section>
-<section class="wrap split">{ph('Photo: Srishti and Vanilla','ph tall')}<div><h2>Started for Vanilla</h2><p>Srishti Bhatia, certified canine nutritionist, has been cooking for dogs since 2018.</p><a class="link" href="about.html">Our story</a></div></section>
+<section class="wrap split">{ph('Photo: Srishti and Vanilla','ph tall')}<div><h2>Started for Vanilla</h2><p>Srishti Bhatia, certified canine &amp; feline nutritionist, has been cooking for dogs since 2018.</p><a class="link" href="about.html">Our story</a></div></section>
 <section class="wrap narrow"><h2>Questions</h2>{faqs()}</section>""")
 
 BASE="""*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}body{margin:0;background:var(--ffp-paper);color:var(--ffp-ink);font-size:16px;line-height:1.6;overflow-x:hidden}

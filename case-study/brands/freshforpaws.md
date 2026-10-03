@@ -11,7 +11,7 @@ Client (pure client, profit share). NCNDA signed 27 Sep 2026, deposit received 3
 ## 3. Name, tagline, positioning
 - Name: "Fresh For Paws". Sub-lines: "Fresh For Purrs" (cats), "Mini Paws" (puppies).
 - Tagline: "Choose Fresh, Choose Fresh For Paws!" (from website, 2 Oct 2026, confirm with founder)
-- Positioning: 100% natural, ready-to-eat, pre-portioned dog and cat meals; no defrosting, grain-free, filler-free (from website, 2 Oct 2026, confirm with founder). Founded 13 Jun 2018 by Srishti Bhatia, certified canine nutritionist (from website, 2 Oct 2026, confirm).
+- Positioning: 100% natural, ready-to-eat, pre-portioned dog and cat meals; no defrosting, filler-free (never "grain-free": rice recipes from end Oct 2026; Mini Paws has rice) (from website, 2 Oct 2026, confirm with founder). Founded 13 Jun 2018 by Srishti Bhatia, certified canine nutritionist (from website, 2 Oct 2026, confirm).
 
 ## 4. Voice
 - Attributes: warm, friendly, playful, pet-parent focused (from website, 2 Oct 2026, confirm with founder).

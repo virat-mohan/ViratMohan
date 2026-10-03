@@ -15,8 +15,9 @@ Sources: screenshots of freshforpaws.com shared by Virat (2 Oct 2026: home, Abou
 - Meals are portioned for the pet's calorie intake, "based on our veterinarian nutritionist's recommendations" (site wording; use only as written).
 - No scooping, no defrosting, no guesswork. Convenient, light and easy to carry.
 - **No synthetic vitamins or minerals added.**
-- Srishti is a **certified canine nutritionist**.
-- Food is **100% natural, ready to eat, grain-free, no fillers**: real proteins, vegetables and fruit.
+- Srishti is a **certified canine & feline nutritionist** (wording set by Virat, 3 Oct 2026, because the range covers cats too).
+- Food is **100% natural, ready to eat, no fillers**: real proteins, vegetables and fruit.
+- **Never say grain-free** (Virat, 3 Oct 2026): rice recipes launch at the end of October 2026 and the puppy food (Mini Paws) already contains rice.
 - Won **Pet Food of the Year**, Indian Pet Industry Awards. Srishti: 2nd Runner Up, Pet Entrepreneur of the Year (Female), April 2021.
 - Sold online and in pet stores; also on Amazon and Flipkart.
 
@@ -33,6 +34,9 @@ Dogs: Liv-Love (Liver & Carrot), Liv-Love (Liver & Pumpkin), Peanut Butter treat
 Warm, direct, proud of the food. A knowledgeable friend who cooks for their own dog. Confident about ingredients without sounding clinical. Founder-led: Srishti and Vanilla are the proof.
 - Do: real ingredients by name; "ready to eat"; short sentences; the pet as family.
 - Don't: medical or cure claims; fear about other foods; claims not on this page.
+
+## Claims never allowed
+grain-free (rice recipes; see Story).
 
 ## Claims not allowed until Srishti confirms (GAP)
 vet-formulated · human-grade · preservative-free · AAFCO · shelf life numbers · "fresh daily" · delivery times · prices · any health outcome.
