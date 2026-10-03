@@ -1,28 +1,8 @@
 {
   "crons": [
     {
-      "path": "/api/cron/settle",
-      "schedule": "30 6 * * 1"
-    },
-    {
-      "path": "/api/cron/outbox",
-      "schedule": "35 3 * * *"
-    },
-    {
-      "path": "/api/cron/lead-mail",
-      "schedule": "*/10 * * * *"
-    },
-    {
-      "path": "/retail-os/api/cron/lead-access",
-      "schedule": "40 4 * * *"
-    },
-    {
       "path": "/api/cron/virat-social",
       "schedule": "45 2 * * *"
-    },
-    {
-      "path": "/api/cron/founder-brief",
-      "schedule": "30 14 * * *"
     }
   ],
   "rewrites": [
