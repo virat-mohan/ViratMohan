@@ -67,9 +67,7 @@ const isExt = (u) => /^https?:/.test(u);
           {g.items.map((p) => (
             <li class="work-teaser__item" data-reveal style={`--c: ${p.data.accent}`}>
               <a class="work-teaser__link" href={linkOf(p)} {...(isExt(linkOf(p)) ? { target: '_blank', rel: 'noopener' } : {})}>
-                {p.data.preview && (
-                  <img class="work-teaser__shot" src={p.data.preview} width="800" height="500" alt={`${p.data.brand} live site`} loading="lazy" decoding="async" />
-                )}
+                
                 <span class="work-teaser__brand">{p.data.brand}</span>
                 <span class="work-teaser__line">{p.data.tagline}</span>
                 {p.data.status && <span class="work-teaser__badge">{p.data.status}</span>}
