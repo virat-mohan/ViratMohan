@@ -3,6 +3,22 @@
     {
       "path": "/api/cron/virat-social",
       "schedule": "45 2 * * *"
+    },
+    {
+      "path": "/api/cron/settle",
+      "schedule": "30 6 * * 1"
+    },
+    {
+      "path": "/api/cron/outbox",
+      "schedule": "35 3 * * *"
+    },
+    {
+      "path": "/api/cron/lead-mail",
+      "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/cron/founder-update",
+      "schedule": "30 3 * * 1"
     }
   ],
   "rewrites": [

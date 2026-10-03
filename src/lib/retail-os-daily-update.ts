@@ -1,6 +1,6 @@
 // Daily Founder Update: one email per live brand, from the day it signs.
-// It says what I did in the last 24 hours and why it matters, shows the real
-// last-24h numbers (or "pre-launch" when the store isn't live yet), and links
+// It says what I did this past week and why it matters, shows the real
+// last-7-day numbers (or "pre-launch" when the store isn't live yet), and links
 // the brand's live journey page. Recipients live in retail_os_founder_update_subs,
 // so a brand is subscribed the moment it signs. The founder-update cron
 // (src/pages/api/cron/founder-update.ts) sends these; nothing here invents a
@@ -127,7 +127,7 @@ export async function buildFounderUpdate(env: UpdateEnv, sub: FounderUpdateSub, 
   try {
     const brand: LiveBrand | undefined = getLiveBrands().find((b) => b.key === sub.brand_key);
     if (brand) {
-      const r = await buildBrandReport(brand, 'daily');
+      const r = await buildBrandReport(brand, 'weekly');
       orders = r.current.orders;
       netSales = r.current.netSales;
     }
@@ -145,14 +145,14 @@ export async function buildFounderUpdate(env: UpdateEnv, sub: FounderUpdateSub, 
   const lines: string[] = [
     `Hi ${greetNames(sub)},`,
     done.length
-      ? `Here's what ${ivDone} done on ${sub.brand_name} in the last 24 hours, and what's next.`
+      ? `Here's what ${ivDone} done on ${sub.brand_name} this past week, and what's next.`
       : `A quick note on ${sub.brand_name}: here's where things stand and what's next.`,
   ];
   if (done.length) {
-    lines.push('Done in the last 24 hours:');
+    lines.push('Done this past week:');
     for (const t of done.slice(0, 6)) lines.push(`✓ ${t.task}`);
   } else {
-    lines.push(`Setup continued behind the scenes today. ${Ill} have the next milestones in tomorrow’s update.`);
+    lines.push(`Setup continued behind the scenes this week. ${Ill} have the next milestones in next week’s update.`);
   }
   // Gentle reminder of what's on the founder's side, so they always know where the ball is.
   if (sub.waiting_on) lines.push(`When you have a moment: ${sub.waiting_on}.`);
@@ -160,14 +160,14 @@ export async function buildFounderUpdate(env: UpdateEnv, sub: FounderUpdateSub, 
   lines.push(`Any comments? Just reply and ${ill} fold them into tomorrow’s plan.`);
 
   const rows = hasMetrics
-    ? [{ label: 'Orders (last 24h)', value: String(orders) }, { label: 'Net sales (last 24h)', value: inr(netSales as number) }]
-    : [{ label: 'Orders (last 24h)', value: '0' }, { label: 'Revenue (last 24h)', value: '₹0 — pre-launch build' }];
+    ? [{ label: 'Orders (last 7 days)', value: String(orders) }, { label: 'Net sales (last 7 days)', value: inr(netSales as number) }]
+    : [{ label: 'Orders (last 7 days)', value: '0' }, { label: 'Revenue (last 7 days)', value: '₹0 — pre-launch build' }];
 
   const secret = env.LEAD_TOKEN_SECRET ?? '';
   const secondary = secret.length >= 32 ? { label: 'See your live journey', url: journeyUrl(sub.brand_key, secret) } : undefined;
 
   const html = renderRetailOsEmail({
-    preheader: done.length ? `${done.length} thing${done.length > 1 ? 's' : ''} done on ${sub.brand_name} in the last 24 hours.` : `Where ${sub.brand_name} stands today.`,
+    preheader: done.length ? `${done.length} thing${done.length > 1 ? 's' : ''} done on ${sub.brand_name} this past week.` : `Where ${sub.brand_name} stands today.`,
     eyebrow: `Daily Founder Update · ${sub.brand_name}`,
     heading: `${sub.brand_name}: ${todayLabel}`,
     lines,
@@ -176,5 +176,5 @@ export async function buildFounderUpdate(env: UpdateEnv, sub: FounderUpdateSub, 
     secondary,
   });
 
-  return { to: sub.to_emails.join(', '), subject: `${sub.brand_name} — your daily update (${todayLabel})`, html, brand_key: sub.brand_key, done: done.length, hasMetrics };
+  return { to: sub.to_emails.join(', '), subject: `${sub.brand_name} — your weekly update (${todayLabel})`, html, brand_key: sub.brand_key, done: done.length, hasMetrics };
 }

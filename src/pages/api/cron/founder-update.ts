@@ -19,7 +19,7 @@ export const GET: APIRoute = withCronAlert('founder-update', async ({ request })
   if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) return json({ error: 'Backend not configured' }, 503);
 
   const today = istToday();
-  const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+  const since = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
   const subs = await listActiveSubs(env);
   const built = await Promise.all(subs.map((s) => buildFounderUpdate(env, s, since, today)));
 
