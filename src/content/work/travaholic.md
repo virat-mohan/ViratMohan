@@ -6,7 +6,7 @@ domain: "https://travaholic.in"
 order: 2
 accent: "#D9714B"
 logo: "../../assets/logos/travaholic.png"
-format: "marketplace"
+format: "d2c"
 status: "Live"
 href: "https://www.travaholic.in"
 preview: "/launches/previews/travaholic.webp"

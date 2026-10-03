@@ -42,7 +42,7 @@ const work = defineCollection({
       // product's own section instead of /work/<id>.
       href: z.string().optional(),
       // how it sells, for the grouped homepage list
-      format: z.enum(['d2c', 'marketplace', 'subscription', 'product', 'other']).optional(),
+      format: z.enum(['d2c', 'marketplace', 'subscription', 'platform', 'product', 'other']).optional(),
       // a real screenshot of the live site, in public/launches/previews
       preview: z.string().optional(),
     }),

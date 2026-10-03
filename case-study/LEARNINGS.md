@@ -55,3 +55,4 @@ Every self-audit reads this first and adds to it last. One line per lesson: date
 - 2026-10-02: Mockup section spacing silently failed because .wrap{padding:0 20px} beat section{padding} on specificity, so headings sat on the block above. Check rhythm in a real render (Playwright iPhone + 1280px), not by reading CSS; self-host fonts so the render matches what visitors see.
 
 - 2 Oct 2026, founder line: Virat's own number must be routed before the allowlist/welcome check, and coexistence echoes (message_echoes) must never reach command handling. Founder WhatsApp text only queues work; nothing executes from a message.
+- 2026-10-03: Travaholic Caps was listed as a marketplace though it sells only its own caps. A format label says how a brand sells, so check what it actually does before grouping it; marketplace means many sellers.

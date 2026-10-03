@@ -1,0 +1,150 @@
+---
+// /devshop/ai-agents — the AI Agent approach: how DevShop runs brands with
+// Myoho, Dev and the agent team. Public page: no client names, numbers,
+// money terms or internal IDs. /devshop/myoho redirects here (vercel.json).
+const title = 'The AI Agent approach · DevShop';
+const description = 'How I run every brand with AI agents: Myoho guards the principles, Dev runs the work, and humans decide money, people and promises.';
+const shared = [
+  ['Quality', 'Checks every live store every 2 hours, audits launches, loads every link before it is sent.'],
+  ['Growth', 'Launches, content and the owned channels that bring orders without leaning on ads.'],
+  ['Sales', 'Replies to new enquiries, prepares agreements and proposals for me to approve.'],
+  ['Finance', 'Invoices, weekly statements and the numbers behind every brand.'],
+  ['Customer care', 'Watches the inboxes and answers customers in each brand’s own voice.'],
+  ['Team', 'Keeps the people I work with clear on their tasks, only when I assign them.'],
+];
+const day = [
+  ['All day', 'Health checks run every 2 hours. Inboxes are watched. Brand agents fix and log.'],
+  ['9am', 'Roll-call. Every brand CEO agent reports what moved, what is stuck and what it needs.'],
+  ['12pm · 3pm', 'Dev reviews the board, unblocks the work and raises only the real decisions.'],
+  ['8pm', 'One daily brief to me: what needs me, customer issues, target vs actual, what got done.'],
+];
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href="https://www.viratmohan.com/devshop/ai-agents" />
+  <link rel="stylesheet" href="/brand/tokens.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 17px; line-height: 1.6; overflow-x: hidden; }
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
+    nav { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 22px 0; font-size: 15px; }
+    nav a { color: var(--ink); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; }
+    nav b { font-family: var(--display); font-weight: 400; letter-spacing: .04em; font-size: 20px; }
+    section { padding: 64px 0; border-top: 1px solid var(--line); }
+    .k { font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--terracotta); margin: 0 0 14px; }
+    h1 { font-family: var(--display); font-weight: 400; text-transform: uppercase; font-size: clamp(3rem, 11vw, 6.5rem); line-height: .95; margin: 0 0 24px; }
+    h2 { font-family: var(--display); font-weight: 400; text-transform: uppercase; font-size: clamp(1.9rem, 6vw, 3rem); line-height: 1; margin: 0 0 18px; }
+    h3 { font-family: var(--display); font-weight: 400; text-transform: uppercase; font-size: 1.3rem; margin: 0 0 6px; letter-spacing: .02em; }
+    .lede { font-family: var(--serif); font-size: clamp(1.4rem, 3.6vw, 2rem); line-height: 1.3; max-width: 760px; margin: 0; }
+    .dim { color: var(--dim); max-width: 680px; }
+    .hero { padding: 48px 0 72px; border-top: 0; }
+    .tree { display: grid; gap: 14px; margin-top: 28px; }
+    .node { padding: 22px 22px 20px; background: color-mix(in srgb, var(--c) 9%, var(--paper)); border-top: 6px solid var(--c); border-radius: 2px; }
+    .node p { margin: 0; color: var(--dim); }
+    .node .who { font-family: var(--serif); font-style: italic; font-size: 1.15rem; color: var(--ink); margin-bottom: 4px; }
+    .arrow { text-align: center; color: var(--gold); font-size: 22px; line-height: 1; }
+    .grid { list-style: none; padding: 0; margin: 28px 0 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+    .grid li { min-width: 0; border-left: 2px solid var(--gold); padding: 4px 0 4px 16px; }
+    .grid p { margin: 0; color: var(--dim); }
+    .day { list-style: none; padding: 0; margin: 28px 0 0; }
+    .day li { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 18px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+    .day b { font-family: var(--display); font-weight: 400; font-size: 1.3rem; color: var(--terracotta); }
+    .rights { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-top: 28px; }
+    .rights > div { padding: 22px; border-radius: 2px; background: color-mix(in srgb, var(--c) 9%, var(--paper)); border-top: 6px solid var(--c); }
+    .rights ul { margin: 0; padding-left: 18px; }
+    .rights li { margin: 6px 0; }
+    .cta { text-align: center; padding: 88px 0 96px; }
+    .cta a { display: inline-flex; align-items: center; min-height: 52px; padding: 0 30px; background: var(--ink); color: var(--paper); text-decoration: none; font-weight: 700; font-size: 18px; border-radius: 999px; transition: background .3s ease; }
+    .cta a:hover { background: var(--terracotta); }
+    footer { padding: 28px 0 40px; border-top: 1px solid var(--line); font-size: 14px; color: var(--dim); }
+    footer a { color: var(--ink); }
+    @media (min-width: 900px) {
+      .tree.two { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 760px) {
+      section { padding: 48px 0; }
+      .grid, .rights { grid-template-columns: minmax(0, 1fr); }
+      .day li { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+    }
+    @media (prefers-reduced-motion: reduce) { .cta a { transition: none; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav><a href="/devshop"><b>DEVSHOP</b></a><a href="/retail-os/">Retail OS →</a></nav>
+
+    <section class="hero">
+      <p class="k">DevShop · The AI Agent approach</p>
+      <h1>Machines do the work. People decide.</h1>
+      <p class="lede">Every brand I run has a team of AI agents behind it. They work every hour of the day, on one standard, and they bring me only what a human should decide: money, people and promises.</p>
+    </section>
+
+    <section>
+      <p class="k">Who is who</p>
+      <h2>One co-founder, one CEO, a team for every brand</h2>
+      <div class="tree">
+        <div class="node" style="--c: var(--ink)"><h3>Virat</h3><p class="who">Founder</p><p>Decides money, people and promises. Approves everything that goes to a founder, a customer or the public.</p></div>
+        <div class="arrow" aria-hidden="true">↓</div>
+        <div class="node" style="--c: var(--gold)"><h3>Myoho</h3><p class="who">My AI co-founder</p><p>The guardian of the mission, the values, the voice and every brand book. Myoho doesn't run the day-to-day; it can stop anything that breaks those principles.</p></div>
+        <div class="arrow" aria-hidden="true">↓</div>
+        <div class="node" style="--c: var(--terracotta)"><h3>Dev</h3><p class="who">The CEO agent</p><p>Runs the work. Dev leads every brand CEO agent and every shared agent, unblocks what is stuck and raises only the real decisions.</p></div>
+        <div class="arrow" aria-hidden="true">↓</div>
+        <div class="tree two" style="margin-top:0">
+          <div class="node" style="--c: var(--cobalt)"><h3>Brand CEO agents</h3><p class="who">One per brand</p><p>Each brand gets its own CEO agent on launch day. It runs the store, checkout, content and flows inside the guardrails, and reports every morning.</p></div>
+          <div class="node" style="--c: var(--sage)"><h3>Shared agents</h3><p class="who">Serving every brand</p><p>Quality, growth, sales, finance, customer care and team. Built once, used by every brand.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <p class="k">Shared agents</p>
+      <h2>Built once, working for every brand</h2>
+      <ul class="grid">
+        {shared.map(([h, p]) => <li><h3>{h}</h3><p>{p}</p></li>)}
+      </ul>
+    </section>
+
+    <section>
+      <p class="k">Every day</p>
+      <h2>Roll-call and reporting</h2>
+      <p class="dim">Nobody has to chase an update. The day has a rhythm, and it ends with one short brief to me.</p>
+      <ul class="day">
+        {day.map(([t, p]) => <li><b>{t}</b><span>{p}</span></li>)}
+      </ul>
+    </section>
+
+    <section>
+      <p class="k">One standard</p>
+      <h2>Every brand runs the same way</h2>
+      <ul class="grid">
+        <li><h3>Brand book lock</h3><p>Every word and image is checked against the brand's own book before it goes out. A gap is asked of the founder, never guessed.</p></li>
+        <li><h3>Health checks</h3><p>Every live store is checked every 2 hours: pages load, admin is locked, payments are set up right.</p></li>
+        <li><h3>Money-path audit</h3><p>Before any launch, every path a customer pays through, and every link, is tested end to end.</p></li>
+      </ul>
+    </section>
+
+    <section>
+      <p class="k">Decision rights</p>
+      <h2>What agents do alone, what comes to a human</h2>
+      <div class="rights">
+        <div style="--c: var(--sage)"><h3>Agents act alone</h3><ul><li>Fixes to the store, checkout and content, inside the brand book</li><li>Ads inside the cap the founder set</li><li>Health checks, audits and logs</li><li>Drafting replies, posts and proposals</li></ul></div>
+        <div style="--c: var(--terracotta)"><h3>Always a human</h3><ul><li>Prices, offers and new spend</li><li>Anything sent to a founder, customer or the public</li><li>Terms, legal, hiring and assigning people</li><li>New brands, new channels, anything irreversible</li></ul></div>
+      </div>
+      <p class="dim" style="margin-top:22px">Every agent does the work first. It only asks when the decision is truly a human's.</p>
+    </section>
+
+    <section class="cta">
+      <h2>Want a team like this behind your brand?</h2>
+      <p><a href="https://wa.me/918076919458" target="_blank" rel="noopener">Let's talk.</a></p>
+    </section>
+
+    <footer><a href="/mission">Virat Mohan</a> · I build the machine that gets good products to the world.</footer>
+  </div>
+</body>
+</html>

@@ -5,9 +5,10 @@ const projects = (await getCollection('work')).sort(
   (a, b) => a.data.order - b.data.order
 );
 const groups = [
-  { key: 'd2c', title: 'D2C', formats: ['d2c'] },
+  { key: 'd2c', title: 'D2C · E-commerce', formats: ['d2c'] },
   { key: 'marketplace', title: 'Marketplace', formats: ['marketplace'] },
   { key: 'subscription', title: 'Subscription', formats: ['subscription'] },
+  { key: 'platform', title: 'Platforms', formats: ['platform'] },
   { key: 'other', title: 'Products & other builds', formats: ['product', 'other', undefined] },
 ].map((g) => ({ ...g, items: projects.filter((p) => g.formats.includes(p.data.format)) }))
  .filter((g) => g.items.length);

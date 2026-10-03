@@ -1,12 +1,12 @@
 ---
-category: "Info & Enquiry Platform"
+category: "Events Enquiry Platform"
 brand: "The Feeling Co."
-tagline: "A boutique wedding and celebration brand; I built its site, enquiries and tools on Retail OS."
+tagline: "Events enquiry platform for a boutique wedding and celebration brand; I built its site, enquiries and tools on Retail OS."
 domain: "https://thefeelingco.online"
 order: 4
 accent: "#E91E8C"
 logo: "../../assets/logos/thefeelingco.png"
-format: "d2c"
+format: "platform"
 status: "Live"
 href: "https://thefeelingco.online"
 preview: "/launches/previews/thefeelingco.webp"
