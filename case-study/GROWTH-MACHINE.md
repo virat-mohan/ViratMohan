@@ -33,3 +33,4 @@ UTM values must be exactly these (lower case) so the console classifies them. Li
 - **Weekly:** drop the weakest channel's effort into the strongest; repost the best-selling content; refresh the WhatsApp and email sends from what sold.
 - **Honesty:** only real numbers from the store and the ad account; a channel with too few orders to judge says so.
 - **Never:** fake reviews, bought followers, spam DMs outside the 24-hour window, discount claims in ads, posting on the founder's personal handles without email approval.
+- **Launching a reel:** work the first hour by `REEL-LAUNCH-SOP.md` — the keyword, the three self-comments, the replies and the comment-to-DM lead magnet that feed channels 1 and 2.
