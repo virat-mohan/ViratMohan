@@ -247,6 +247,8 @@ Applies to **new** repos/packages. Existing production repos keep their names un
 
 Execution-only items (not permanent products): `DevShop video reel`, `URGENT: fix unauthenticated /api/admin…` (security incident — a false positive confirmed this session; `proxy.ts` already gates admin on both stores), `Update /devshop project grid to real statuses`, `Email drafts for Vishal Malhotra`, `FlowerBasket vendor outreach`, individual Employee Support Agent onboardings. These should ultimately be governed by the Work Registry, not retained as standalone products.
 
+The Work Registry foundation now exists (control plane): one canonical work object, lifecycle, ownership, deduplication, repository locks, escalation, approvals, incidents and an append-only audit trail. Contract `src/lib/work/`, schema `migrations/0055_work_registry.sql` (applied and verified on the control-plane DB, tracked in the migration ledger as `0055_work_registry`), a database-backed registry over those tables, a health-check runner that bridges `scripts/health/check.mjs` failures into Work Registry items, docs `case-study/WORK-REGISTRY.md`. Not wired to any live schedule; existing work-like tables are unchanged.
+
 ---
 
 ## 12. Anti-duplication rule (also in `CLAUDE.md`)
@@ -282,6 +284,12 @@ The canonical Retail OS Brand Plane (registration authority, layers, identity co
 - **Superseded:** the control-plane incubator is archived at `case-study/archive/retail-os-brand-config-incubator/` (history preserved, out of every active path). Its `brands/*.ts` registrations were not carried over; each brand's configuration belongs in its own repo.
 - **Brand data:** one Supabase project per brand, and the database is bound to its brand key. No multi-tenancy decision.
 - **Open:** whether the central registry should also record the package and starter version a brand runs (the source of truth today is the brand repo); when the starter becomes its own template repo.
+
+## 14a. Work Registry (control plane)
+
+`case-study/WORK-REGISTRY.md` is authoritative. One canonical work object for DevShop, Retail OS, every brand, founders, agents, incidents, support, alerts, improvements and opportunities, so one issue is one work item with one accountable owner. Control plane: `src/lib/work/` (pure, framework-neutral), `migrations/0055_work_registry.sql` (applied and verified on `vszjwgxvqoqyixpfthwl`, tracked in the migration ledger as `0055_work_registry`), and the database-backed registry over those tables (`db-store.ts`, `db-registry.ts`). Health-check runner bridges `scripts/health/check.mjs` failures into Work Registry items. No new repository or package; extract to a shared package when a brand plane or agent runtime must read it directly. The Control Tower will use it; nothing live reads or writes the registry yet.
+
+Rule: do not create a new ticket, task, request or incident system. Use the Work Registry; if it does not cover a need, extend it.
 
 ## 15. Sources
 
