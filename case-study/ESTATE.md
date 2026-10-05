@@ -1,133 +1,282 @@
 # DevShop / Retail OS — canonical estate
 
-**One source of truth for what exists in the estate: every repository, project, brand and package, which group it belongs to, and what it is called now vs. what it should be called.** Read this before creating any new repository, project or package. If something here is wrong or missing, fix it here first.
+**The single source of truth for the estate: the business hierarchy, every Claude Project, every repository, every brand/client, and what each is called now vs. what it should be called.** Read this before creating any new Claude Project, repository, package or major subsystem (see §12, the anti-duplication rule).
 
 - **As of:** 2026-10-05
 - **Owner:** Virat (master control: the viratmohan.com Claude Code session).
-- **Scope:** the `virat-mohan` GitHub org + the brand/client records that have no repository yet.
+- **Authority:** classifications in §2–§9 are confirmed by Virat (2026-10-05). Do not re-classify unless you hit a genuine, unresolvable contradiction.
 
 ---
 
-## 1. How to use this (the estate guard)
+## 1. Canonical company hierarchy
 
-Before you create a repository, Supabase project, package or "module", do this in order:
+```
+VIRATMOHAN.COM  (founder / master web presence; also the control-plane expression of DevShop)
+   ↓
+DEVSHOP  (the commercial company / product layer)
+ ├── COMPANY & GOVERNANCE
+ ├── CORE PLATFORM
+ ├── RETAIL OS
+ │    ├── PLATFORM
+ │    ├── SHARED PACKAGES
+ │    ├── OWNED BRANDS
+ │    ├── ACTIVE CLIENTS
+ │    ├── PASSIVE / LEGACY CLIENTS
+ │    └── CLIENT-SPECIFIC EXTENSIONS
+ ├── FUTURE VERTICALS / REUSABLE IP
+ └── CUSTOM BUILDS
+```
 
-1. **Find the group** in §4 that the thing belongs to.
-2. **Check it does not already exist** under that group (repo list in §5, brand records in §6).
-3. If a home already exists, **extend or configure it** — do not fork a new one.
-4. If nothing fits, it is genuinely new: **classify it** (which of the five capability classes in `CLAUDE.md` → "Retail OS product architecture"), **name it** by the standard in §7, and **add a row here in the same change.**
-
-The sequence is always **standardise → template → configure → measure → improve**. Never: client request → bespoke build → new fork → repeat. A new repo that is not in this document is, by definition, off-standard.
-
----
-
-## 2. Vocabulary (used exactly, everywhere)
-
-These are different things. Keep them distinct in copy, code and planning.
-
-- **PRODUCT** — a thing DevShop sells/operates as a standard. There is one core product: **Retail OS**. "DevShop" is the company/brand that makes it; "Custom Build" is bespoke work outside Retail OS.
-- **BRAND** — a commercial identity we run Retail OS for (a client brand, e.g. Travaholic, Moon, Fresh For Paws), or our own (DevShop). A brand is not a repo and not a project; it may map to one, many, or none.
-- **PROJECT** — a deployable application instance (an app + its environment/DB). Today each live brand is its own app + its own Supabase project (the current environment model; no multi-tenancy decision has been made).
-- **MODULE** — a capability inside Retail OS (e.g. Inventory Master, Commerce, CRM / Leads). Core, optional-reusable, or client-specific. A module is code/feature, not a repo.
-- **PACKAGE** — a versioned, shared library consumed by projects (e.g. `@retail-os/brand-config`). Shared code lives in a package, built once, consumed everywhere.
-- **REPOSITORY** — a Git repo. It may hold a project, a package, the control plane, or legacy code. Repo name ≠ brand name ≠ project name.
+- **viratmohan.com** = founder/master web presence. **DevShop** = the commercial company/product layer. Do not create a duplicate "ViratMohan platform" business outside DevShop.
+- **Opportunities Unlocked LLP is NOT part of the current business architecture.** Do not represent it as a current business, product or project.
 
 ---
 
-## 3. Canonical groups
+## 2. Canonical groups (use these exactly)
 
-1. **DEVSHOP CORE** — the company's own surfaces and shared tooling that are not a single brand's store.
-2. **RETAIL OS — CONTROL PLANE** — the master-control app and standards (`ViratMohan` / viratmohan.com).
-3. **RETAIL OS — SHARED PACKAGES** — versioned libraries consumed by brand projects (`retail-os-brand-config`).
-4. **RETAIL OS — LIVE BRANDS / ACTIVE CLIENTS** — brands we run Retail OS for in production, including paid active clients still in build.
-5. **CLIENT-SPECIFIC EXTENSIONS** — code built for exactly one client, never forced into core (e.g. Ceremony Finance, Ceremony Ops).
-6. **REUSABLE IP / EXPERIMENTS** — prototypes and reusable ideas not yet productised.
-7. **LEGACY / ARCHIVE CANDIDATES** — superseded or dormant repos kept for history; archive only when Virat says so.
+| # | Group | Holds |
+|---|---|---|
+| 01 | DevShop Company & Governance | Company, governance, finance, legal, financing, founder-control, org matters |
+| 02 | DevShop Core Platform | Reusable DevShop infra, intelligence, control, agents, shared operating capabilities |
+| 03 | Retail OS Platform | Retail OS architecture, standards, central platform work, shared packages, audits |
+| 04 | Owned Brands | Businesses/brands owned or directly controlled by Virat/DevShop |
+| 05 | Active Clients | Paid or currently active client engagements |
+| 06 | Prospects & Sales | Leads, proposals, opportunities not yet active clients |
+| 07 | Revisit / Experiments / Future IP | Experiments, future brands, dormant ideas, reusable IP not in active production |
+| 08 | Passive / Legacy Clients | Past/passive clients or completed client work retained for reference/IP/vertical reuse |
+| 09 | Closed / Lost | Closed or lost commercial opportunities |
+| 10 | Founder / Personal | Virat's personal brand, personal finance, founder-level personal projects |
+| 11 | Work Items | Temporary execution work — incidents, campaigns, tasks, audits, deliverables |
 
----
-
-## 4. Group → what belongs there (decisions)
-
-- **Control plane is `ViratMohan` (Astro).** It holds standards, brand books, routines and master control. Astro is the control-plane framework; it is not the preferred framework for new brand stores.
-- **New brand stores default to Next.js** (the brand plane). KORBI stays on Astro but Astro is not preferred for new stores.
-- **Shared structured brand data has exactly one home: `@retail-os/brand-config`.** Do not create a second structured Brand Foundation / Brand Memory schema anywhere. In-repo `brand-voice.ts` / `retail-os-brand.ts` files are **consumers/adapters**, not rival authorities.
-- **Ceremony Finance and Ceremony Ops are client-specific extensions** of Ceremony Kitchen (`ceremony-os`), not core Retail OS modules.
-- **A brand with no repo is still part of the estate** — it lives in §6 until (and if) a project is built.
+A work item does not become a permanent product just because it has a Claude Project today (§11, §12).
 
 ---
 
-## 5. The canonical estate table (repositories)
+## 3. Commercial status vs. technical status (keep separate)
 
-All 12 repos under `virat-mohan` (GitHub `list_repos`, 2026-10-05). Frameworks/status from prior read-only estate scans + each repo's own files; **do not rename any production repo now** — the "Rename later?" column records intent only.
+Every client carries **two** independent statuses:
 
-| Repository | Current name | Group | Brand / Product | Purpose | Framework | Status | Target name | Rename later? |
-|---|---|---|---|---|---|---|---|---|
-| ViratMohan | `ViratMohan` | Control plane | DevShop / viratmohan.com | Master control, standards, brand books, routines | Astro + Supabase (`vszjwgxvqoqyixpfthwl`) | Active production (public) | `devshop-control-plane` | Later, low priority — many links point at it; do not rename now |
-| retail-os-brand-config | `retail-os-brand-config` | Shared packages | Retail OS (`@retail-os/brand-config`) | Versioned brand identity + Foundation + Memory contract | TypeScript package (ships `dist`) | Active (private) | — (already canonical) | No |
-| moon-glasses | `moon-glasses` | Live brands | Moon / Moonglasses | Live store | Next.js 16 + Supabase | Active production (public) | `retail-os-moon` | Later — live store; rename only in a planned window |
-| Travaholic_caps | `Travaholic_caps` | Live brands | Travaholic | Live store | Next.js 16 + Supabase | Active production (public) | `retail-os-travaholic` | Later — live store; rename only in a planned window |
-| korbi | `korbi` | Live brands | KORBI (Ankay Holdings) | Live store | Astro (not preferred for new stores) | Active production (private) | `retail-os-korbi` | Later — live store; Astro stays for now |
-| ceremony-os | `ceremony-os` | Client-specific extensions | Ceremony Kitchen (Ceremony Finance + Ceremony Ops) | Ops/finance backend behind viratmohan.com/devshop/ceremonykitchen | Next.js | Active production (private) | `retail-os-ext-ceremony` | Later — client-specific; keep name clear it is not core |
-| indiacontemporary.net | `indiacontemporary.net` | Live brands (verify) | India Contemporary | Art marketplace, "built on Retail OS" | Vite + React + Supabase | Public; production status to confirm with Virat | `retail-os-indiacontemporary` | Later — confirm live/active first |
-| thefeelingco | `thefeelingco` | Live brands (verify) | The Feeling Co by Radhika | Events/decor site, "built on Retail OS" | Static HTML + React | Private; production status to confirm with Virat | `retail-os-thefeelingco` | Later — confirm live/active first |
-| Content-ment | `Content-ment` | Reusable IP / experiments | — (content/marketing-ops SaaS) | Content/marketing-ops dashboard prototype | Next.js + Prisma + Radix | Experiment / reusable IP (public) | `devshop-content-ops` (if productised) | Only if productised |
-| Travaholic | `Travaholic` | Legacy / archive candidate | Travaholic (original) | Predecessor "emergent" app to Travaholic_caps | Python + React | Superseded (public) | — | Archive candidate — **only on Virat's say-so** |
-| Coachyourpsyche | `Coachyourpsyche` | Legacy / archive candidate | Coach Your Psyche | Emergent coaching app | (emergent app) | Dormant (private) | — | Archive candidate — **only on Virat's say-so** |
-| Mystique | `Mystique` | Legacy / archive candidate | Mystique | Emergent ecommerce app | (emergent app) | Dormant (private) | — | Archive candidate — **only on Virat's say-so** |
+- **Commercial:** Prospect · Paid Active · Passive · Closed/Lost
+- **Technical:** Retail OS Live · Implementation Active · Custom Build · Legacy · No implementation identified
 
-**Note on production status:** `indiacontemporary.net` and `thefeelingco` say "built on Retail OS" but I have not confirmed with Virat that they are live, paying or active. Marked *verify*, not assumed active. A domain existing is not proof of an active engagement.
+A website/domain is **not** proof of an active technical implementation. See the Active Client Register (§7).
 
 ---
 
-## 6. Brands / clients with no dedicated repository
+## 4. Claude Project → canonical group → target name
 
-A brand record (Supabase row, brand book, domain) is **not** proof of a technical implementation. These belong in the estate but have no repo today.
+Claude Projects cannot be renamed through this session's tooling. This is the authoritative map; renaming is a manual UI action by Virat using the "Target name" column.
 
-| Brand / client | Status | Repo | Framework / deployment | Database | Relationship to Retail OS | Source |
-|---|---|---|---|---|---|---|
-| **Fresh For Paws** (`freshforpaws.com`) | **RETAIL OS — LIVE / ACTIVE CLIENT** (paid). NCNDA 27 Sep 2026, deposit 30 Sep, build clock started 30 Sep, target 7 Oct 2026. Founder Srishti Bhatia. | **ACTIVE CLIENT — NO DEDICATED REPOSITORY IDENTIFIED** | WooCommerce storefront stays live; Retail OS runs behind it. No dedicated Next.js/Astro repo found in the 12-repo estate. | Supabase control-plane `brands` row `freshforpaws` + `retail_os_applications` 8ad86490 (viratmohan.com project). No dedicated brand DB/project identified. | Active paid client; Retail OS operates behind the existing WooCommerce front. | `case-study/brands/freshforpaws.md`; GitHub `list_repos` 2026-10-05 (no match); grep of this repo. |
-| Fresh For Purrs / Mini Paws | Sub-lines of Fresh For Paws | (same as above) | (same) | (same) | Part of the Fresh For Paws engagement | `case-study/brands/freshforpaws.md` |
-| Aloo Chips | Brand book only; status to confirm | None identified | — | — | Brand record; no implementation confirmed | `case-study/brands/aloochips.md` |
-| Radico Khaitan | Brand book only; status to confirm | None identified | — | — | Brand record; no implementation confirmed | `case-study/brands/radico-khaitan.md` |
-| The Party Collective | Brand book only; status to confirm | None identified | — | — | Brand record; no implementation confirmed | `case-study/brands/the-party-collective.md` |
-| Blak Sand | Brand book only; status to confirm | None identified | — | — | Brand record; no implementation confirmed | `case-study/brands/blak-sand.md` |
-| Layover Studio | Brand book only; status to confirm | None identified | — | — | Brand record; no implementation confirmed | `case-study/brands/layover-studio.md` |
+### 01 — DevShop Company & Governance
+| Current Project | Target name | Notes |
+|---|---|---|
+| DevShop Master Control | `01 — DevShop \| Company & Governance` | Founder/control-plane governance, central orchestration |
+| DevShop Improvement System | `01 — DevShop \| Improvement System` | Continuous improvement of DevShop itself |
+| Myoho | `01 — DevShop \| Governance (Myoho principles)` | Founder-level strategic principles |
+| Devshop LLP incorporation | `01 — DevShop \| LLP Incorporation` | Company formation/governance |
+| DevShop Compliance | `01 — DevShop \| Compliance` | Corporate/legal/compliance |
+| Virat Mohan DevShop P&L | `01 — DevShop \| P&L` | DevShop financial management |
+| DevShop partner document | `01 — DevShop \| Partner Documentation` | Company/partner docs |
+| DevShop partner / financing — Vishal Malhotra / Wiiz | `01 — DevShop \| Partner & Assurance (Vishal/Wiiz)` | **Spans governance + third-party architecture assurance + company financing** (see §6). Not a sales lead or client. |
 
-> Do **not** create a repository automatically for any of the above. A repo is created only when the work needs one and Virat approves it.
+### 02 — DevShop Core Platform
+| Current Project | Target name | Capability type |
+|---|---|---|
+| DevShop Brain self-learning system | `02 — DevShop \| Brain` | Core intelligence / learning |
+| Email control tower | `02 — DevShop \| Email Control Tower` | Core comms/control |
+| DevShop WhatsApp business access | `02 — DevShop \| WhatsApp Control` | Core control comms |
+| DevShop FAQ document and bot | `02 — DevShop \| FAQ Bot` | **Marketing / sales asset** (not an independent product) |
+| Build Social panel on founder dashboard | `02 — DevShop \| Founder Control Centre (Social)` | Founder Control Centre capability |
+| Employee Support Agent onboarding | `02 — DevShop \| Employee Support Agent` | Reusable people/agent infra (individual onboardings are Work Items beneath it) |
+| SOP: Instagram reel launch playbook | `02 — DevShop \| SOP: IG Reel Launch` | Reusable company SOP (promote out of Work Items) |
+
+### 03 — Retail OS Platform
+| Current Project | Target name | Capability / vertical |
+|---|---|---|
+| DevShop RetailOS project to-do list | `03 — Retail OS \| Platform Planning` | Platform work surface, not a commercial product |
+| Creator commerce engine architecture audit | `03 — Retail OS \| Creator Commerce Audit` | Platform architecture / reusable capability |
+| Restaurant F&B DevShop | `03 — Retail OS \| F&B Vertical` | **F&B vertical** — reusable DevShop vertical offering, not one client |
+
+### 04 — Owned Brands
+| Current Project | Target name | Notes |
+|---|---|---|
+| Moon-glasses | `04 — Owned Brand \| Moon` | Owned brand |
+
+### 05 — Active Clients
+| Current Project | Target name | Notes |
+|---|---|---|
+| Korbi | `05 — Active Client \| Korbi` | Active client |
+| Travaholic Caps | `05 — Active Client \| Travaholic Caps` | Active client |
+| Ceremony Kitchen | `05 — Active Client \| Ceremony Kitchen` | Active client |
+| Fresh For Paws | `05 — Active Client \| Fresh For Paws` | **Paid active client** (see §7) |
+| FlowerBasket vendor outreach | (work item) | Underlying client = **The Feeling Co / FlowerBasket** (active client work); outreach itself is a Work Item (§11) |
+
+### 06 — Prospects & Sales
+| Current Project | Target name |
+|---|---|
+| Rakhi Taneja retail OS proposal | `06 — Prospect \| Rakhi Taneja` |
+| Aloochips.com consolidation | `06 — Prospect \| Aloo Chips` |
+| The Party Collective | `06 — Prospect \| The Party Collective` |
+| Raghu Antiques | `06 — Prospect \| Raghu Antiques` |
+| Radico Khaitan marketing proposal | `06 — Prospect \| Radico Khaitan` |
+
+### 07 — Revisit / Experiments / Future IP
+| Current Project | Target name | Notes |
+|---|---|---|
+| Pookie t-shirt brand shop | `07 — Future Brand \| Pookie` | Future/experimental brand, not an active owned brand |
+| Coach your Psyche | `07 — Revisit \| Coach Your Psyche` | Experiment |
+| Content-ment main deployment | `07 — Revisit \| Content-ment` | Revisit / reusable IP / experiment |
+| Clarity Campaign Sales marketplace | `07 — Revisit \| Clarity Campaign Sales` | Experiment / reusable IP |
+| Vintage Sunglasses brand | `07 — Future Brand \| Vintage Sunglasses` | Future brand (not current owned production brand) |
+
+### 08 — Passive / Legacy Clients
+| Current Project | Target name | Reusable IP |
+|---|---|---|
+| India Contemporary | `08 — Passive Client \| India Contemporary` | Marketplace architecture & patterns — potential future IP |
+| Travaholic Website | `08 — Passive Client \| Travaholic Stays (villas)` | **Real Estate marketplace architecture — reusable future-vertical IP** (do not confuse legacy client with the future vertical; do not reactivate the client to reuse the architecture) |
+
+### 09 — Closed / Lost
+| Current Project | Target name |
+|---|---|
+| Blak Sand | `09 — Closed/Lost \| Blak Sand` |
+
+### 10 — Founder / Personal
+| Current Project | Target name | Notes |
+|---|---|---|
+| Virat Mohan social content strategy | `10 — Founder \| Social Content Strategy` | Personal brand |
+| Virat Mohan website | `10 — Founder \| viratmohan.com` | Founder/master web presence — distinct from DevShop the company (see §1) |
+| VM Personal Income | `10 — Founder \| Personal Finance` | Personal finance |
+
+### 11 — Work Items (execution-only; govern under the Work Registry ultimately)
+| Current Project | Target name | Belongs under |
+|---|---|---|
+| DevShop video reel | `11 — Work \| DevShop Video Content` | DevShop marketing/content (ongoing workstream only) |
+| URGENT: fix unauthenticated /api/admin… | `11 — Incident \| Admin API Authentication` | Platform/control work (security incident) |
+| Update /devshop project grid to real statuses | `11 — Work \| Project Grid Statuses` | DevShop Master Control / Company Operations |
+| Email drafts for Vishal Malhotra | `11 — Work \| Vishal/Wiiz Email Drafts` | Vishal/Wiiz relationship (§6) |
+| FlowerBasket vendor outreach | `11 — Work \| FlowerBasket Outreach` | The Feeling Co / FlowerBasket (active client work) |
 
 ---
 
-## 7. Naming standard
+## 5. Repository estate (fresh inspection, `list_repos` 2026-10-05)
 
-Applies to **new** repos/packages/modules. Existing production repos are **not** renamed now (see the table's "Rename later?" column).
+All 12 repositories under `virat-mohan`. The previous scan's list was complete — no additional repositories were found. **Do not rename any production repo now**; "Rename?" records intent only.
 
-- **Brand store project repo:** `retail-os-<brand>` — e.g. `retail-os-moon`, `retail-os-travaholic`, `retail-os-korbi`.
-- **Shared Retail OS package:** `@retail-os/<capability>` (npm scope) in repo `retail-os-<capability>` — e.g. `@retail-os/brand-config`.
-- **DevShop-level shared tool/capability (not one brand):** `devshop-<capability>` — e.g. `devshop-control-plane`, `devshop-content-ops`.
-- **Client-specific extension:** `retail-os-ext-<client>` — e.g. `retail-os-ext-ceremony`.
-- **Module names inside Retail OS** are canonical and fixed (see `CLAUDE.md`): Brand Dashboard / Command Centre, Commerce, Orders, Products, **Inventory Master** (never renamed), Customers, Marketing, Acquisition / MoF / CRO, CRM / Leads, Growth Intelligence, Finance / Unit Economics, Operations, Reporting, AI / Brain, Tasks / Approvals, Integrations, optional Creator / Influencer, optional Experimentation.
+| Repository | Business / brand | Claude Project | Group | Framework | Database | Deployment | Status | Target name | Rename? |
+|---|---|---|---|---|---|---|---|---|---|
+| ViratMohan | DevShop control plane / viratmohan.com | DevShop Master Control; Virat Mohan website | 03 (+10) | Astro | Supabase `vszjwgxvqoqyixpfthwl` | viratmohan.com (public) | Active production | `devshop-control-plane` | Later — many links point here; defer |
+| retail-os-brand-config | Retail OS (`@retail-os/brand-config`) | Retail OS platform | 03 (shared pkg) | TS package (ships `dist`) | — | consumed via git SHA pin (private) | Active | — (canonical) | No |
+| moon-glasses | Moon (owned brand) | Moon-glasses | 04 | Next.js 16 | Supabase | Vercel (public) | Active production — **Retail OS Live** | `retail-os-moon` | Later — live store; planned window only |
+| Travaholic_caps | Travaholic (active client) | Travaholic Caps | 05 | Next.js 16 | Supabase | Vercel (public) | Active production — **Retail OS Live** | `retail-os-travaholic` | Later — live store; planned window only |
+| korbi | KORBI / Ankay Holdings (active client) | Korbi | 05 | Astro | — | private | Active production — **Retail OS Live** (Astro stays) | `retail-os-korbi` | Later — live; Astro valid, no migration |
+| ceremony-os | Ceremony Kitchen (active client) | Ceremony Kitchen | 05 + client-specific ext. | Next.js | Supabase | viratmohan.com/devshop/ceremonykitchen (private) | Active production | `retail-os-ext-ceremony` | Later — client-specific extension |
+| thefeelingco | The Feeling Co / FlowerBasket (active client) | FlowerBasket vendor outreach | 05 | Static HTML + React | — | private | Active client; **implementation status to confirm** | `retail-os-thefeelingco` | Later — confirm implementation first |
+| indiacontemporary.net | India Contemporary (passive client) | India Contemporary | 08 | Vite + React | Supabase | public | **Passive** / Technical: **Legacy** | `retail-os-indiacontemporary` | No — passive; keep for IP |
+| Travaholic | Travaholic Stays — villas (passive/legacy client) | Travaholic Website | 08 | Python + React (emergent) | — | public | **Passive/Legacy** / Technical: **Legacy** | — | No — legacy; **Real Estate marketplace reusable IP** |
+| Content-ment | Content/marketing-ops SaaS prototype | Content-ment main deployment | 07 | Next.js + Prisma + Radix | Prisma DB | public | Experiment / reusable IP | `devshop-content-ops` (only if productised) | No |
+| Coachyourpsyche | Coach Your Psyche | Coach your Psyche | 07 | emergent app | — | private | Revisit / experiment (dormant) | — | No |
+| Mystique | Mystique (ecommerce) | — (no Claude Project mapped) | 07 | emergent app | — | private | Revisit / experiment (dormant). **No Claude Project mapped — confirm disposition with Virat** | — | No |
 
----
-
-## 8. Shared-lineage findings
-
-- **Travaholic_caps and moon-glasses share a lineage.** Both are Next.js 16 Retail OS brand stores with the same shape: `lib/retail-os-brand.ts` (identity), `lib/brand.ts` (profile re-export), `lib/brand-voice.ts` (voice/checkVoice), `proxy.ts` gating `/admin` + `/api/admin/*`. Moon came slightly earlier; caps is the current reference implementation for the admin standard and the Brand Foundation consumer pattern. Treat improvements proven on one as candidates to port to the other and to templatise — not to re-invent per brand.
-- **One brand-config authority, consumed by both.** Both stores consume `@retail-os/brand-config` (pinned by commit SHA). Neither holds a second structured schema.
-
----
-
-## 9. Not part of the current architecture
-
-- **Opportunities Unlocked LLP** is **not** a current business, product or project in this architecture. Do not represent it as one in any estate map, copy or plan. If it becomes relevant, Virat decides and it is added here first.
+> No repository exists for: Fresh For Paws, Pookie, Vintage Sunglasses, Aloo Chips, Radico Khaitan, The Party Collective, Raghu Antiques, Rakhi Taneja, Blak Sand, Clarity Campaign Sales, Restaurant F&B vertical, and the DevShop Core/Governance projects. Do not create repos automatically.
 
 ---
 
-## 10. Sources
+## 6. The Vishal Malhotra / Wiiz relationship
+
+Vishal Malhotra is co-founder of **Wiiz**. The relationship spans three things at once — classify it across all three, never as a mere sales lead or client:
+
+1. **Company & Governance** (01) — partner relationship.
+2. **Third-party architecture assurance** — Vishal is introducing his technology team to audit and harden the entire DevShop architecture as an independent third party.
+3. **Company financing** — expected to provide loans to DevShop LLP.
+
+Do not create a separate product category for Vishal/Wiiz. `Email drafts for Vishal Malhotra` is a **Work Item** (§11) under this relationship.
+
+---
+
+## 7. Active Client Register (commercial vs. technical status)
+
+| Client | Commercial | Technical | Repository | Notes |
+|---|---|---|---|---|
+| **Travaholic Caps** | Paid Active | **Retail OS Live** | `Travaholic_caps` | Reference implementation for the admin standard + Brand Foundation consumer pattern |
+| **Ceremony Kitchen** | Paid Active | Implementation Active (Retail OS + client-specific extensions) | `ceremony-os` | Ceremony Finance & Ceremony Ops are client-specific extensions, not core modules |
+| **Korbi** | Paid Active | **Retail OS Live** (Astro) | `korbi` | KORBI / Ankay Holdings |
+| **Fresh For Paws** (`freshforpaws.com`) | **Paid Active** | **ACTIVE PAID CLIENT — NO DEDICATED REPOSITORY IDENTIFIED** | — | NCNDA 27 Sep 2026, deposit 30 Sep, build clock started 30 Sep, target 7 Oct 2026. Founder Srishti Bhatia. WooCommerce front stays; Retail OS runs behind it. Supabase control-plane `brands` row `freshforpaws` + `retail_os_applications` 8ad86490. **No repo created.** Source: `case-study/brands/freshforpaws.md`. |
+| **The Feeling Co / FlowerBasket** | Active (client work) | To confirm — repo `thefeelingco` is static HTML + React | `thefeelingco` | Surfaced via FlowerBasket vendor outreach work item; confirm current technical state with Virat |
+
+> A domain alone is not proof of a technical implementation. Fresh For Paws appears here regardless of repository existence.
+
+---
+
+## 8. Owned & future brands
+
+| Brand | Status | Repo |
+|---|---|---|
+| **Moon / Moonglasses** | Owned brand — active, Retail OS Live | `moon-glasses` |
+| **Pookie (t-shirts)** | **Future / experimental brand** — not an active owned production brand | none |
+| **Vintage Sunglasses** | **Future brand / experiment** — not a current owned production brand | none |
+
+---
+
+## 9. Passive / legacy clients & reusable IP
+
+| Client | Commercial | Technical | Repo | Reusable IP |
+|---|---|---|---|---|
+| **India Contemporary** | Passive | Legacy / Passive | `indiacontemporary.net` | Art-marketplace architecture & patterns — potential future IP |
+| **Travaholic Stays (villas)** | Passive / Legacy | Legacy | `Travaholic` | **Real Estate marketplace architecture — reusable future-vertical IP.** Keep the client record and the architecture; do not reactivate the client merely because the IP is useful; do not confuse the legacy client with the future Real Estate vertical. |
+
+Other reusable IP: `Content-ment` (content/marketing-ops patterns); `indiacontemporary.net` + `Travaholic` (marketplace patterns).
+
+---
+
+## 10. Naming standards (future)
+
+Applies to **new** repos/packages. Existing production repos keep their names until an explicit rename window (§5).
+
+- **Retail OS brand store repo:** `retail-os-<brand>` — `retail-os-travaholic`, `retail-os-moon`, `retail-os-ceremony`.
+- **Shared Retail OS package:** `@retail-os/<capability>` (e.g. `@retail-os/brand-config`).
+- **DevShop Core reusable infra:** `devshop-<capability>` — genuine reusable infrastructure only.
+- **Future vertical, when genuinely independent:** `devshop-<vertical>-<capability>` — not created just because a vertical exists conceptually.
+- **Client-specific extension:** `retail-os-ext-<client>`.
+- **Module names inside Retail OS are canonical and fixed** (see `CLAUDE.md`), e.g. **Inventory Master** (never renamed).
+
+**Claude Project naming format:** `<NN> — <Group> | <Name>` (e.g. `05 — Active Client | Travaholic Caps`). Full map in §4. Renaming is a manual UI action by Virat — this session's tooling cannot perform it.
+
+---
+
+## 11. Work items
+
+Execution-only items (not permanent products): `DevShop video reel`, `URGENT: fix unauthenticated /api/admin…` (security incident — a false positive confirmed this session; `proxy.ts` already gates admin on both stores), `Update /devshop project grid to real statuses`, `Email drafts for Vishal Malhotra`, `FlowerBasket vendor outreach`, individual Employee Support Agent onboardings. These should ultimately be governed by the Work Registry, not retained as standalone products.
+
+---
+
+## 12. Anti-duplication rule (also in `CLAUDE.md`)
+
+Before creating a new Claude Project, repository, package or major subsystem:
+
+1. Search the estate (this document).
+2. Determine whether the capability already exists.
+3. Determine whether it belongs in an existing project.
+4. Determine whether it is a work item rather than a permanent project.
+5. Only create a new project/repository when there is a genuine architectural/business boundary.
+
+**Never duplicate** — without explicit architecture approval — any of: Retail OS, Brand Foundation, Control Plane, Brain, a shared package, a brand repository, or a platform capability.
+
+---
+
+## 13. Technology direction
+
+- **Control plane → Astro** (`ViratMohan`).
+- **Retail OS brand plane → Next.js** (default for new brand-plane work).
+- **Shared packages → framework-neutral** where practical (`@retail-os/brand-config`).
+- Existing Astro brands (KORBI) remain valid. Do not migrate production systems merely for framework uniformity.
+
+---
+
+## 14. Sources
 
 - GitHub `list_repos` for `virat-mohan` (2026-10-05) — the 12 repos in §5.
-- Prior read-only estate scans (Stage 0 rebaseline + Stage 7/8/9) — frameworks, deployment and status per repo.
-- `case-study/brands/*.md` — brand books (Fresh For Paws and the brand-only records in §6).
-- `CLAUDE.md` — product architecture, capability classes, canonical module names, control/brand/shared-package decisions.
-- Virat (2026-10-05) — Fresh For Paws is a paid active client and must be in the estate.
+- Virat (2026-10-05) — confirmed classification of Claude Projects (§2–§9), Fresh For Paws paid-active, Vishal/Wiiz tri-classification, Travaholic Stays legacy + Real Estate IP.
+- Prior read-only estate scans — frameworks, deployment, status per repo.
+- `case-study/brands/*.md`, `CLAUDE.md`.
 
-Anything not confirmed above is marked *verify* / *to confirm*, not asserted.
+Anything not confirmed above is marked *to confirm*, not asserted.
