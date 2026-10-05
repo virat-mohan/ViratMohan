@@ -117,7 +117,7 @@ Four tabs: Morning Board (material exceptions from `buildMorningBoard()`), Work 
 - CRM, Economics/P&L, Growth Engine modules
 - Full CHRO performance engine
 - AI concierge or autonomous remediation
-- Breadcrumbs and mobile-first responsive shell for Founder and Brand dashboards (canonical requirement, not yet built)
+- Breadcrumbs and mobile-first responsive shell for Founder and Brand dashboards (implemented: `control-tower.astro`, `starters/next-brand-plane/components/Breadcrumbs.tsx`, `globals.css`)
 - Autonomous agent execution runtime
 
 ## Brand data isolation

@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import type { DashboardSectionView } from '@retail-os/brand-config/dashboard-sections';
 import type { HeaderModel } from '@retail-os/brand-config/render-contract';
 import { DashboardNav } from './DashboardNav';
+import { Breadcrumbs } from './Breadcrumbs';
 
 interface DashboardShellProps {
   sections: DashboardSectionView[];
@@ -30,6 +31,10 @@ export function DashboardShell({ sections, header, children }: DashboardShellPro
         logoAlt={header.logoAlt}
       />
       <main className="dashboard-shell__main">
+        <Breadcrumbs
+          sections={sections}
+          brandName={header.brandName}
+        />
         {children}
       </main>
     </div>

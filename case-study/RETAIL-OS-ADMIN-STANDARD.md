@@ -107,15 +107,29 @@ Moon is the second live brand consuming the canonical dashboard contract:
 
 These are distinct. Do not merge them into one giant interface.
 
-## Dashboard UX requirements (canonical, not yet built)
+## Dashboard UX (implemented)
 
 ### Breadcrumbs
 
-Every Retail OS dashboard (Founder Control Tower and every Brand Dashboard) must have a consistent breadcrumb system showing the user's location in the application hierarchy. Breadcrumbs must be reusable across the canonical dashboard shell. Examples: `Command Centre → Control Tower → Morning Board`; `Moon Glasses → Growth → Campaigns → Campaign Detail`.
+Every Retail OS dashboard (Founder Control Tower and every Brand Dashboard) has a consistent breadcrumb system showing the user's location in the application hierarchy. Breadcrumbs are derived from the real route/page context, not hardcoded.
+
+**Founder Control Tower** (`control-tower.astro`): `Command Centre › Control Tower › [tab]`. The default Morning Board tab shows `Command Centre › Control Tower`; deeper tabs append the tab name.
+
+**Brand Dashboards** (`starters/next-brand-plane/components/Breadcrumbs.tsx`): `Brand Name › Section › Page`. Derives crumbs from `usePathname()` + the `DashboardSectionView[]` sections. Integrated into `DashboardShell.tsx` so every brand gets it automatically.
 
 ### Mobile-first usability
 
-All dashboards must be genuinely usable on mobile as a first-class operating use case. The mobile experience must prioritise: critical exceptions, approvals, KPIs, work status, drill-downs, quick actions (where authority permits), fast navigation. Do not merely shrink desktop layouts. Use responsive/reflowed views, appropriate mobile navigation, readable typography, usable touch targets and sensible information hierarchy. The canonical dashboard shell should be designed so breadcrumbs and responsive behaviour are reusable across Founder and Brand dashboards rather than re-implemented per application.
+All dashboards are genuinely usable on mobile as a first-class operating use case.
+
+**Founder Control Tower** responsive breakpoints:
+- ≤600px: KPIs reflow to 2×2 grid, pipeline stages to 4-column grid, item rows wrap with title first, agent/brand grids go single-column, touch targets ≥44px, no sideways scroll.
+- ≤390px: pipeline stages to 2-column grid, KPIs stack.
+
+**Brand Dashboards** (`globals.css`):
+- ≤768px: sidebar collapses to fixed bottom navigation (horizontal scroll), main content gets phone-safe padding.
+- ≤600px: `.data-table` (the canonical responsive table class) hides `<thead>` and stacks `<td>` as labelled cards via `data-label` attribute.
+
+Breadcrumbs and responsive patterns are built into the shared shell (`DashboardShell.tsx`, `globals.css`) so new brands inherit them from the starter.
 
 ## Architectural rule
 

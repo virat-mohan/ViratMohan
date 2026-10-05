@@ -129,6 +129,36 @@ body {
   }
 }
 
+/* — Breadcrumbs — */
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  font-size: 0.8125rem;
+  color: rgba(0, 0, 0, 0.45);
+  margin-bottom: 1rem;
+}
+
+.breadcrumbs__item { display: inline-flex; align-items: center; gap: 2px; }
+.breadcrumbs__sep { margin: 0 4px; }
+.breadcrumbs__link { color: var(--ds-gold, #d4af37); text-decoration: none; }
+.breadcrumbs__link:hover { text-decoration: underline; }
+.breadcrumbs__current { color: var(--ds-ink, #1a1410); font-weight: 500; }
+
+/* — Responsive data cards (tables → stacked on mobile) — */
+.data-table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
+.data-table th { text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: rgba(0, 0, 0, 0.45); padding: 0.5rem 0.75rem; border-bottom: 1px solid rgba(0, 0, 0, 0.08); }
+.data-table td { padding: 0.75rem; border-bottom: 1px solid rgba(0, 0, 0, 0.04); vertical-align: top; }
+
+@media (max-width: 600px) {
+  .data-table thead { display: none; }
+  .data-table, .data-table tbody, .data-table tr, .data-table td { display: block; }
+  .data-table tr { padding: 0.75rem 0; border-bottom: 1px solid rgba(0, 0, 0, 0.06); }
+  .data-table td { padding: 0.25rem 0; border: none; }
+  .data-table td::before { content: attr(data-label); display: block; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; color: rgba(0, 0, 0, 0.4); margin-bottom: 2px; }
+}
+
 /* Command Centre */
 .command-centre h1 {
   font-family: var(--ds-font-display, 'Anton', sans-serif);

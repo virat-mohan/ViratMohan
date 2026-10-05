@@ -80,13 +80,16 @@ const BRAND_STATUS: Record<string, string> = {
   korbi: 'Retail OS Live',
 };
 
-const tab = ['board', 'pipeline', 'agents', 'brands'].includes(Astro.url.searchParams.get('tab') ?? '') ? Astro.url.searchParams.get('tab')! : 'board';
+const TAB_NAMES = ['board', 'pipeline', 'agents', 'brands'] as const;
+const TAB_LABEL: Record<string, string> = { board: 'Morning Board', pipeline: 'Work Pipeline', agents: 'Agents', brands: 'Brands' };
+const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_NAMES[number]) ? Astro.url.searchParams.get('tab')! : 'board';
 ---
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Founder Control Tower — DevShop Retail OS</title>
+  <title>{TAB_LABEL[tab]} — Founder Control Tower — DevShop Retail OS</title>
+  <link rel="stylesheet" href="/brand/tokens.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet" />
@@ -108,24 +111,32 @@ const tab = ['board', 'pipeline', 'agents', 'brands'].includes(Astro.url.searchP
       --display: 'DM Serif Display', serif;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: var(--sans); background: var(--paper); color: var(--ink); line-height: 1.5; }
+    body { font-family: var(--sans); background: var(--paper); color: var(--ink); line-height: 1.5; -webkit-text-size-adjust: 100%; }
     .shell { max-width: 960px; margin: 0 auto; padding: 24px 16px 64px; }
+
+    /* — Breadcrumbs — */
+    .breadcrumbs { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--ink-muted); margin-bottom: 12px; flex-wrap: wrap; }
+    .breadcrumbs a { color: var(--gold); text-decoration: none; }
+    .breadcrumbs a:hover { text-decoration: underline; }
+    .breadcrumbs .sep { color: var(--border); }
+    .breadcrumbs .current { color: var(--ink); font-weight: 500; }
+
     h1 { font-family: var(--display); font-size: 1.5rem; font-weight: 400; margin-bottom: 4px; }
     .subtitle { font-size: 0.85rem; color: var(--ink-muted); margin-bottom: 24px; }
     .tabs { display: flex; gap: 4px; margin-bottom: 24px; flex-wrap: wrap; }
-    .tab { padding: 6px 14px; border-radius: 6px; font-size: 0.82rem; text-decoration: none; color: var(--ink-muted); border: 1px solid var(--border); background: none; }
+    .tab { padding: 8px 14px; border-radius: 6px; font-size: 0.82rem; text-decoration: none; color: var(--ink-muted); border: 1px solid var(--border); background: none; min-height: 44px; display: inline-flex; align-items: center; }
     .tab.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
     .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 16px; }
     .card h2 { font-family: var(--display); font-size: 1.1rem; font-weight: 400; margin-bottom: 12px; }
     .card h3 { font-size: 0.85rem; font-weight: 600; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
     .empty { color: var(--ink-muted); font-size: 0.85rem; font-style: italic; }
-    .kpi-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
-    .kpi { flex: 1; min-width: 100px; text-align: center; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); }
+    .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+    .kpi { text-align: center; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); }
     .kpi-val { font-family: var(--display); font-size: 1.6rem; }
     .kpi-label { font-size: 0.72rem; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.04em; }
     .item-row { display: flex; gap: 8px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
     .item-row:last-child { border-bottom: none; }
-    .tag { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 0.72rem; font-weight: 600; color: #fff; }
+    .tag { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 0.72rem; font-weight: 600; color: #fff; white-space: nowrap; }
     .tag-p0 { background: var(--tag-p0); }
     .tag-p1 { background: var(--tag-p1); }
     .tag-p2 { background: var(--tag-p2); }
@@ -150,18 +161,58 @@ const tab = ['board', 'pipeline', 'agents', 'brands'].includes(Astro.url.searchP
     .brand-impl { background: #E3F2FD; color: #1565C0; }
     .brand-work { font-size: 0.82rem; color: var(--ink-muted); }
     .notice { padding: 12px 16px; border-radius: 8px; background: #FFF8E1; border: 1px solid #FFE082; font-size: 0.82rem; color: #6D5B00; margin-bottom: 16px; }
+
+    /* — Mobile-first responsive — */
+    @media (max-width: 600px) {
+      .shell { padding: 16px 16px 48px; }
+      h1 { font-size: 1.25rem; }
+      .kpi-row { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .kpi-val { font-size: 1.3rem; }
+      .card { padding: 14px; }
+      .pipeline { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+      .stage { padding: 8px 4px; }
+      .stage-count { font-size: 1.1rem; }
+      .stage-label { font-size: 0.65rem; }
+      .item-row { flex-wrap: wrap; gap: 4px; padding: 10px 0; }
+      .item-row span[style*="flex:1"] { width: 100%; flex: none !important; order: -1; font-weight: 500; }
+      .agent-grid { grid-template-columns: 1fr; }
+      .brand-grid { grid-template-columns: 1fr; }
+      .tabs { gap: 6px; }
+      .tab { padding: 8px 12px; font-size: 0.8rem; }
+    }
+
+    @media (max-width: 390px) {
+      .pipeline { grid-template-columns: repeat(2, 1fr); }
+      .kpi-row { grid-template-columns: 1fr 1fr; }
+    }
   </style>
 </head>
 <body>
   <div class="shell">
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a href="/retail-os/admin/console">Command Centre</a>
+      <span class="sep" aria-hidden="true">›</span>
+      {tab === 'board' ? (
+        <span class="current">Control Tower</span>
+      ) : (
+        <a href="?tab=board">Control Tower</a>
+      )}
+      {tab !== 'board' && (
+        <>
+          <span class="sep" aria-hidden="true">›</span>
+          <span class="current">{TAB_LABEL[tab]}</span>
+        </>
+      )}
+    </nav>
+
     <h1>Founder Control Tower</h1>
     <p class="subtitle">DevShop Retail OS — {now.toISOString().slice(0, 10)} — Read-only operating view</p>
 
-    <div class="tabs">
-      <a class={`tab ${tab === 'board' ? 'active' : ''}`} href="?tab=board">Morning Board</a>
-      <a class={`tab ${tab === 'pipeline' ? 'active' : ''}`} href="?tab=pipeline">Work Pipeline</a>
-      <a class={`tab ${tab === 'agents' ? 'active' : ''}`} href="?tab=agents">Agents</a>
-      <a class={`tab ${tab === 'brands' ? 'active' : ''}`} href="?tab=brands">Brands</a>
+    <div class="tabs" role="tablist">
+      <a class={`tab ${tab === 'board' ? 'active' : ''}`} href="?tab=board" role="tab" aria-selected={tab === 'board'}>Morning Board</a>
+      <a class={`tab ${tab === 'pipeline' ? 'active' : ''}`} href="?tab=pipeline" role="tab" aria-selected={tab === 'pipeline'}>Work Pipeline</a>
+      <a class={`tab ${tab === 'agents' ? 'active' : ''}`} href="?tab=agents" role="tab" aria-selected={tab === 'agents'}>Agents</a>
+      <a class={`tab ${tab === 'brands' ? 'active' : ''}`} href="?tab=brands" role="tab" aria-selected={tab === 'brands'}>Brands</a>
     </div>
 
     {dataSource === 'supabase' ? (
