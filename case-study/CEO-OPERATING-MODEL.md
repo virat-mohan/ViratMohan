@@ -55,7 +55,7 @@ Every operation uses technology responsibly:
 
 ## Implementation status
 
-The CEO operating layer contract is implemented in `src/lib/ceo/` (4 source files, 1 test file, 31 tests). Pure deterministic logic — no AI invocations, no framework, no network.
+The CEO operating layer is implemented in `src/lib/ceo/` (8 source files, 2 test files, 70 tests). Pure deterministic logic — no AI invocations, no framework, no network.
 
 ### What exists (`src/lib/ceo/`)
 
@@ -64,8 +64,13 @@ The CEO operating layer contract is implemented in `src/lib/ceo/` (4 source file
 | `types.ts` | Agent registry (14 agents), autonomy model (15 grants), communication context types, question model, morning board types, audit categories, tech cost guardrails |
 | `coordinator.ts` | Request classifier, owner determination, duplicate detection, audit loop (blocked/overdue/recurring/security), question routing and lifecycle |
 | `morning-board.ts` | Material-exceptions-only view: critical incidents (P0/P1), pending approvals, blocked work (≥1 day), overdue, unassigned past triage |
+| `founder-input.ts` | Canonical founder → CEO input representation. Classifies text into 8 kinds (context, question, instruction, approval, decision, work_request, evidence, relationship) with urgency detection |
+| `context-pack.ts` | Deterministic, bounded context assembly. Relevance-driven: morning board only for status queries, related work by brand/text, brand summary, pending approvals for approval inputs. Bounded to 10 related items, 5 recent decisions, 20 audit findings |
+| `authority.ts` | Authority check against the autonomy model. Maps input kind → required capability → autonomy grant → allowed/denied with holder. Prince assignment guard. Approval authority resolution |
+| `response.ts` | Structured CEO response model. Produces operating decisions (act, recommend, escalate, answer, acknowledge, delegate, attach_to_work) with selected owner, required approval, related work, delegation target and next step |
 | `index.ts` | Re-exports |
 | `ceo.test.ts` | 31 tests across 10 scenarios (simple task, technical issue, question routing, blocked work, approval, duplicates, cross-brand patterns, recurring problems, cost guardrails, morning board) |
+| `runtime.test.ts` | 39 tests across 4 suites (founder input classification, authority checks, context pack, CEO response) |
 
 ### CEO autonomy grants (as coded)
 
@@ -108,6 +113,17 @@ Deterministic, idempotent, no LLM. Same check failing again attaches to the open
 The Founder Control Tower page (`/retail-os/admin/control-tower`) reads the real Work Registry from the control-plane Supabase database. It is read-only: it does not create, modify or close work, does not route agents, does not send communications, does not remediate, does not approve spend. Its data source is the control-plane Work Registry via `loadRegistry()` → `createSupabaseWorkStore()` → Supabase. Server-side only (no service-role key in the browser). Protected by admin auth middleware.
 
 Four tabs: Morning Board (material exceptions from `buildMorningBoard()`), Work Pipeline (eight-stage view from `buildControlTowerView()`), Agents (registry, autonomy grants), Brands (portfolio with honest status).
+
+### CEO runtime foundation (implemented, not wired to live systems)
+
+The runtime foundation provides the context and decision structure for CEO operations without autonomous execution:
+
+1. **Founder input classification** (`founder-input.ts`): text → 8 canonical kinds with urgency, brand scope, work association. Not every message creates work.
+2. **Context pack** (`context-pack.ts`): assembles bounded, relevance-driven context (morning board, related work, brand summary, audit findings, pending approvals, active locks). Does NOT load everything.
+3. **Authority check** (`authority.ts`): maps any action to the autonomy model and determines CEO authority (L0–L4). Prince assignment blocked. Unknown capabilities default to L4 (human decision).
+4. **Structured response** (`response.ts`): produces operating decisions (act/recommend/escalate/delegate/acknowledge) with owner, approval requirements, related work and next step. No execution — context and decision only.
+
+**Not connected**: email sending, WhatsApp sending, production deployment, financial approvals, spend, legal commitments, external communications, irreversible actions. The runtime foundation is the context/decision layer; execution is future work.
 
 ### What does NOT exist yet
 
