@@ -200,10 +200,10 @@ Do not create a separate product category for Vishal/Wiiz. `Email drafts for Vis
 | **Travaholic Caps** | Paid Active | **Retail OS Live** | `Travaholic_caps` | Reference implementation for the admin standard + Brand Foundation consumer pattern |
 | **Ceremony Kitchen** | Paid Active | Implementation Active (Retail OS + client-specific extensions) | `ceremony-os` | Ceremony Finance & Ceremony Ops are client-specific extensions, not core modules |
 | **Korbi** | Paid Active | **Retail OS Live** (Astro) | `korbi` | KORBI / Ankay Holdings |
-| **Fresh For Paws** (`freshforpaws.com`) | **Paid Active** | **ACTIVE PAID CLIENT — NO DEDICATED REPOSITORY IDENTIFIED** | — | NCNDA 27 Sep 2026, deposit 30 Sep, build clock started 30 Sep, target 7 Oct 2026. Founder Srishti Bhatia. WooCommerce front stays; Retail OS runs behind it. Supabase control-plane `brands` row `freshforpaws` + `retail_os_applications` 8ad86490. **No repo created.** Brand Plane: **READY FOR FUTURE PROVISIONING — IMPLEMENTATION NOT STARTED.** Source: `case-study/brands/freshforpaws.md`. |
+| **Fresh For Paws** (`freshforpaws.com`) | **Paid Active** | **Staged — not deployed** | — | NCNDA 27 Sep 2026, deposit 30 Sep, build clock started 30 Sep, target 7 Oct 2026. Founder Srishti Bhatia. WooCommerce front stays; Retail OS runs behind it. Supabase control-plane `brands` row `freshforpaws` + `retail_os_applications` 8ad86490. **No dedicated repo created.** Staged Retail OS backend exists in `retail-os-brands/freshforpaws/` (schema, WooCommerce integration, brand voice, design mockups) but nothing is deployed: no Supabase project provisioned, no edge functions live, no dashboard, no production connection. Future dashboard = **Next.js Brand Plane** (from `starters/next-brand-plane` in `retail-os-brand-config`), not Astro. Future Brand CEO = FP-01 Paws. Source: `case-study/brands/freshforpaws.md`. |
 | **The Feeling Co / FlowerBasket** | Active (client work) | To confirm — repo `thefeelingco` is static HTML + React | `thefeelingco` | Surfaced via FlowerBasket vendor outreach work item; confirm current technical state with Virat |
 
-> A domain alone is not proof of a technical implementation. Fresh For Paws appears here regardless of repository existence.
+> A domain alone is not proof of a technical implementation. Fresh For Paws has staged backend code in `retail-os-brands/freshforpaws/` but no deployed infrastructure or dedicated repository.
 
 ---
 

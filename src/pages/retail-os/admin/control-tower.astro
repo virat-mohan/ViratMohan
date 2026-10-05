@@ -1,0 +1,325 @@
+---
+export const prerender = false;
+import { InMemoryWorkRegistry } from '../../../lib/work/registry';
+import { buildControlTowerView } from '../../../lib/control-tower/view';
+import { buildMorningBoard } from '../../../lib/ceo/morning-board';
+import { AGENT_REGISTRY, CEO_AUTONOMY, findAgent, directReports } from '../../../lib/ceo/types';
+import { CONTROL_TOWER_STAGES } from '../../../lib/control-tower/types';
+import type { MorningBoardItem } from '../../../lib/ceo/types';
+import type { ControlTowerStage, WorkSummary } from '../../../lib/control-tower/types';
+
+const now = new Date();
+const registry = new InMemoryWorkRegistry();
+
+const view = buildControlTowerView(registry);
+const board = buildMorningBoard(registry, now);
+const dev = findAgent('DS-02')!;
+const brandCeos = directReports('DS-02').filter((a) => a.role === 'brand_ceo');
+const hods = directReports('DS-02').filter((a) => a.role !== 'brand_ceo');
+
+const CATEGORY_LABEL: Record<string, string> = {
+  critical_incident: 'Critical',
+  decision_required: 'Decision needed',
+  blocked_work: 'Blocked',
+  overdue_work: 'Overdue',
+  unresolved_approval: 'Unassigned',
+  cost_anomaly: 'Cost anomaly',
+  brand_risk: 'Brand risk',
+  opportunity: 'Opportunity',
+  proof_result: 'Proof result',
+};
+
+const STAGE_LABEL: Record<string, string> = {
+  detect: 'Detect',
+  classify: 'Classify',
+  prioritise: 'Prioritise',
+  assign: 'Assign',
+  escalate: 'Escalate',
+  track: 'Track',
+  verify: 'Verify',
+  learn: 'Learn',
+};
+
+const BRAND_LABEL: Record<string, string> = {
+  caps: 'Travaholic Caps',
+  moonglasses: 'Moon Glasses',
+  ceremony: 'Ceremony Kitchen',
+  freshforpaws: 'Fresh For Paws',
+  korbi: 'Korbi',
+};
+
+const BRAND_STATUS: Record<string, string> = {
+  caps: 'Retail OS Live',
+  moonglasses: 'Retail OS Live',
+  ceremony: 'Implementation Active',
+  freshforpaws: 'Staged — not deployed',
+  korbi: 'Retail OS Live',
+};
+
+const tab = ['board', 'pipeline', 'agents', 'brands'].includes(Astro.url.searchParams.get('tab') ?? '') ? Astro.url.searchParams.get('tab')! : 'board';
+---
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Founder Control Tower — DevShop Retail OS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --paper: #FBF8F2;
+      --ink: #1A1A1A;
+      --ink-muted: #6B6B6B;
+      --gold: #C5A572;
+      --terracotta: #C17A56;
+      --border: #E8E2D8;
+      --card: #FFFFFF;
+      --tag-p0: #D94B4B;
+      --tag-p1: #E67A33;
+      --tag-p2: #C5A572;
+      --tag-p3: #8B9D77;
+      --tag-p4: #A3A3A3;
+      --sans: 'DM Sans', system-ui, sans-serif;
+      --display: 'DM Serif Display', serif;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--sans); background: var(--paper); color: var(--ink); line-height: 1.5; }
+    .shell { max-width: 960px; margin: 0 auto; padding: 24px 16px 64px; }
+    h1 { font-family: var(--display); font-size: 1.5rem; font-weight: 400; margin-bottom: 4px; }
+    .subtitle { font-size: 0.85rem; color: var(--ink-muted); margin-bottom: 24px; }
+    .tabs { display: flex; gap: 4px; margin-bottom: 24px; flex-wrap: wrap; }
+    .tab { padding: 6px 14px; border-radius: 6px; font-size: 0.82rem; text-decoration: none; color: var(--ink-muted); border: 1px solid var(--border); background: none; }
+    .tab.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+    .card h2 { font-family: var(--display); font-size: 1.1rem; font-weight: 400; margin-bottom: 12px; }
+    .card h3 { font-size: 0.85rem; font-weight: 600; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+    .empty { color: var(--ink-muted); font-size: 0.85rem; font-style: italic; }
+    .kpi-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+    .kpi { flex: 1; min-width: 100px; text-align: center; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); }
+    .kpi-val { font-family: var(--display); font-size: 1.6rem; }
+    .kpi-label { font-size: 0.72rem; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .item-row { display: flex; gap: 8px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+    .item-row:last-child { border-bottom: none; }
+    .tag { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 0.72rem; font-weight: 600; color: #fff; }
+    .tag-p0 { background: var(--tag-p0); }
+    .tag-p1 { background: var(--tag-p1); }
+    .tag-p2 { background: var(--tag-p2); }
+    .tag-p3 { background: var(--tag-p3); }
+    .tag-p4 { background: var(--tag-p4); }
+    .tag-cat { background: var(--terracotta); }
+    .pipeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; margin-bottom: 16px; }
+    .stage { text-align: center; padding: 12px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); }
+    .stage-count { font-family: var(--display); font-size: 1.4rem; }
+    .stage-label { font-size: 0.72rem; color: var(--ink-muted); text-transform: uppercase; }
+    .agent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+    .agent-card { padding: 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); }
+    .agent-id { font-size: 0.72rem; color: var(--gold); font-weight: 600; }
+    .agent-name { font-weight: 600; }
+    .agent-role { font-size: 0.78rem; color: var(--ink-muted); }
+    .brand-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+    .brand-card { padding: 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); }
+    .brand-name { font-weight: 600; margin-bottom: 4px; }
+    .brand-status { font-size: 0.78rem; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px; }
+    .brand-live { background: #E8F5E9; color: #2E7D32; }
+    .brand-staged { background: #FFF3E0; color: #E65100; }
+    .brand-impl { background: #E3F2FD; color: #1565C0; }
+    .brand-work { font-size: 0.82rem; color: var(--ink-muted); }
+    .notice { padding: 12px 16px; border-radius: 8px; background: #FFF8E1; border: 1px solid #FFE082; font-size: 0.82rem; color: #6D5B00; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <h1>Founder Control Tower</h1>
+    <p class="subtitle">DevShop Retail OS — {now.toISOString().slice(0, 10)} — Read-only operating view</p>
+
+    <div class="tabs">
+      <a class={`tab ${tab === 'board' ? 'active' : ''}`} href="?tab=board">Morning Board</a>
+      <a class={`tab ${tab === 'pipeline' ? 'active' : ''}`} href="?tab=pipeline">Work Pipeline</a>
+      <a class={`tab ${tab === 'agents' ? 'active' : ''}`} href="?tab=agents">Agents</a>
+      <a class={`tab ${tab === 'brands' ? 'active' : ''}`} href="?tab=brands">Brands</a>
+    </div>
+
+    <div class="notice">
+      Work Registry is not yet connected to a live data source. This view consumes the existing contracts (<code>buildMorningBoard</code>, <code>buildControlTowerView</code>) and will show live data once the registry is wired to Supabase.
+    </div>
+
+    {tab === 'board' && (
+      <div>
+        <div class="kpi-row">
+          <div class="kpi">
+            <div class="kpi-val">{board.total_open_work}</div>
+            <div class="kpi-label">Open work</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-val" style={board.critical_count > 0 ? 'color:var(--tag-p0)' : ''}>{board.critical_count}</div>
+            <div class="kpi-label">Critical</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-val" style={board.blocked_count > 0 ? 'color:var(--tag-p1)' : ''}>{board.blocked_count}</div>
+            <div class="kpi-label">Blocked</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-val" style={board.pending_approval_count > 0 ? 'color:var(--terracotta)' : ''}>{board.pending_approval_count}</div>
+            <div class="kpi-label">Pending approval</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Material Exceptions</h2>
+          {board.items.length === 0 ? (
+            <p class="empty">No material exceptions. All clear.</p>
+          ) : (
+            board.items.map((item: MorningBoardItem) => (
+              <div class="item-row">
+                <span class={`tag tag-${(item.priority ?? 'p4').toLowerCase()}`}>{item.priority ?? '—'}</span>
+                <span class="tag tag-cat">{CATEGORY_LABEL[item.category] ?? item.category}</span>
+                <span style="flex:1">{item.title}</span>
+                {item.brand && <span style="font-size:0.78rem;color:var(--ink-muted)">{BRAND_LABEL[item.brand] ?? item.brand}</span>}
+              </div>
+            ))
+          )}
+        </div>
+
+        {board.brands_with_issues.length > 0 && (
+          <div class="card">
+            <h3>Brands with issues</h3>
+            <p style="font-size:0.85rem">{board.brands_with_issues.map((b: string) => BRAND_LABEL[b] ?? b).join(', ')}</p>
+          </div>
+        )}
+      </div>
+    )}
+
+    {tab === 'pipeline' && (
+      <div>
+        <div class="card">
+          <h2>Work Pipeline — {view.total} open items</h2>
+          <div class="pipeline">
+            {CONTROL_TOWER_STAGES.map((stage: ControlTowerStage) => (
+              <div class="stage">
+                <div class="stage-count">{view.byStage[stage].length}</div>
+                <div class="stage-label">{STAGE_LABEL[stage] ?? stage}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Critical items</h3>
+          {view.critical.length === 0 ? (
+            <p class="empty">No P0/P1 items.</p>
+          ) : (
+            view.critical.map((w: WorkSummary) => (
+              <div class="item-row">
+                <span class={`tag tag-${(w.priority ?? 'p4').toLowerCase()}`}>{w.priority}</span>
+                <span style="flex:1">{w.title}</span>
+                <span style="font-size:0.78rem;color:var(--ink-muted)">{w.state}</span>
+              </div>
+            ))
+          )}
+        </div>
+
+        <div class="card">
+          <h3>Blocked</h3>
+          {view.blocked.length === 0 ? (
+            <p class="empty">Nothing blocked.</p>
+          ) : (
+            view.blocked.map((w: WorkSummary) => (
+              <div class="item-row">
+                <span style="flex:1">{w.title}</span>
+                <span style="font-size:0.78rem;color:var(--ink-muted)">{BRAND_LABEL[w.brand ?? ''] ?? w.brand ?? 'DevShop'}</span>
+              </div>
+            ))
+          )}
+        </div>
+
+        <div class="card">
+          <h3>Pending approval</h3>
+          {view.pendingApproval.length === 0 ? (
+            <p class="empty">No pending approvals.</p>
+          ) : (
+            view.pendingApproval.map((w: WorkSummary) => (
+              <div class="item-row">
+                <span style="flex:1">{w.title}</span>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    )}
+
+    {tab === 'agents' && (
+      <div>
+        <div class="card">
+          <h2>Agent Organisation</h2>
+          <p style="font-size:0.85rem;color:var(--ink-muted);margin-bottom:16px">DS-00 Virat (founder) → DS-01 Myoho (guardian) → DS-02 Dev (CEO)</p>
+
+          <h3>Brand CEOs (report to Dev)</h3>
+          <div class="agent-grid" style="margin-bottom:20px">
+            {brandCeos.map((a) => (
+              <div class="agent-card">
+                <div class="agent-id">{a.id}</div>
+                <div class="agent-name">{a.name}</div>
+                <div class="agent-role">{a.scope?.brand ? (BRAND_LABEL[a.scope.brand] ?? a.scope.brand) : 'Brand CEO'}</div>
+                <div style="font-size:0.72rem;color:var(--ink-muted);margin-top:4px">{BRAND_STATUS[a.scope?.brand ?? ''] ?? '—'}</div>
+              </div>
+            ))}
+          </div>
+
+          <h3>Function heads (report to Dev)</h3>
+          <div class="agent-grid">
+            {hods.map((a) => (
+              <div class="agent-card">
+                <div class="agent-id">{a.id}</div>
+                <div class="agent-name">{a.name}</div>
+                <div class="agent-role">{a.capabilities.join(', ')}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>CEO Autonomy Grants</h2>
+          <div style="font-size:0.82rem">
+            {CEO_AUTONOMY.map((g) => (
+              <div class="item-row">
+                <span style="font-weight:600;min-width:60px">{g.level}</span>
+                <span style="flex:1">{g.capability}</span>
+                <span style="font-size:0.78rem;color:var(--ink-muted)">{g.holder}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )}
+
+    {tab === 'brands' && (
+      <div>
+        <div class="card">
+          <h2>Brand Portfolio</h2>
+          <div class="brand-grid">
+            {Object.entries(BRAND_LABEL).map(([key, name]) => (
+              <div class="brand-card">
+                <div class="brand-name">{name}</div>
+                <div class={`brand-status ${BRAND_STATUS[key]?.includes('Live') ? 'brand-live' : BRAND_STATUS[key]?.includes('Staged') ? 'brand-staged' : 'brand-impl'}`}>
+                  {BRAND_STATUS[key]}
+                </div>
+                <div class="brand-work">{view.byBrand[key]?.length ?? 0} open work items</div>
+                {brandCeos.find((a) => a.scope?.brand === key) && (
+                  <div style="font-size:0.78rem;color:var(--gold);margin-top:4px">
+                    {brandCeos.find((a) => a.scope?.brand === key)!.id} {brandCeos.find((a) => a.scope?.brand === key)!.name}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )}
+
+    <p style="margin-top:32px;font-size:0.72rem;color:var(--ink-muted);text-align:center">
+      Founder Control Tower · DevShop Retail OS · Read-only · Contracts: Work Registry + CEO Operating Layer + Control Tower
+    </p>
+  </div>
+</body>
+</html>
