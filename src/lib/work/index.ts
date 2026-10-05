@@ -13,3 +13,4 @@ export * from './escalation';
 export * from './repo-lock';
 export * from './dedupe';
 export * from './registry';
+export * from './health-ingest';

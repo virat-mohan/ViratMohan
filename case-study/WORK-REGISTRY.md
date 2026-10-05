@@ -6,7 +6,7 @@
 
 Work reaches DevShop through the Command Centre, brandsupport@, WhatsApp, founder requests, agent detections and system alerts. Without one place that resolves them, the same issue is tracked three times, nobody is clearly accountable, and Virat coordinates by hand. The Work Registry makes one issue one work item, with one accountable owner, a legal lifecycle, evidence, and an audit trail that cannot be rewritten.
 
-Status: foundation built and tested. **Nothing is connected to it**: no brand dashboard, WhatsApp, email, Control Tower routing or agent reads or writes it, and no live store changed. See "Production safety".
+Status: foundation built and tested, plus one read-only ingestion adapter (health-check failures → source events). The database schema is designed, tested against a real Postgres engine, and **its apply to the control-plane Supabase is pending** — the Supabase MCP write path is timing out at 60s on all DDL (see "Database"). **Nothing operational is connected to it**: no brand dashboard, WhatsApp, email, Control Tower routing or agent reads or writes it, and no live store or brand database changed. See "Database" and "Production safety".
 
 ## Where it lives (decision)
 
@@ -199,9 +199,26 @@ None was changed, migrated or extended. These are the proposed mappings for the 
 | `lead_messages` awaiting approval | approvals with authority `outbound_comms` | |
 | `review_actions` (diagnosis review log) | stays: a domain review log, not work | |
 
-## Persistence
+## Database
 
-`migrations/0055_work_registry.sql`: `work_items`, `work_events`, `work_source_events`, `work_links`, `repo_locks`, all with row level security on and no policies (service role only, like the rest of the control plane). It enforces what must hold even if a caller forgets: one accountable owner from assigned onward (a merged duplicate is the only ownerless closed item), closure needs a verified closure with evidence, append-only chained events, no deletes, exclusive locks per item, branch, worktree and deployment target. The vocabulary in the schema is asserted equal to the contract's, so the two cannot drift. To use it later: apply by hand, then build the database-backed registry.
+- **Location:** the DevShop control-plane Supabase project, `vszjwgxvqoqyixpfthwl` ("ViratMohan.com"). This is the canonical Work Registry database. The live brand databases (Travaholic `mdornfpcskvjnuawqpqf`, moon-glasses `fewnyteoprmuyzfvopnb`, ceremony-os `jnfapkxpkdizwjzrccjm`, korbi `dajglwnvrhrxryzjkjka`) are separate projects and were not touched. Brand systems may later emit source events to the central registry through controlled adapters; brand databases are not migrated.
+- **Migration:** `migrations/0055_work_registry.sql` — `work_items`, `work_events`, `work_source_events`, `work_links`, `repo_locks`, all with row level security on and no policies (service role only, like the rest of the control plane). It enforces what must hold even if a caller forgets: one accountable owner from assigned onward (a merged duplicate is the only ownerless closed item), closure needs a verified closure with evidence, append-only chained events, no deletes, exclusive locks per item, branch, worktree and deployment target. The schema vocabulary is asserted equal to the contract's (`tests/unit/work/sql.test.ts`, run against an embedded Postgres), so the two cannot drift.
+- **Apply status: pending, blocked by tooling.** Applying `0055` to `vszjwgxvqoqyixpfthwl` was attempted via the Supabase MCP (`apply_migration`, then chunked `execute_sql`). Every DDL write times out at 60s, while reads return instantly; a trivial `create table _probe(id int); drop table _probe;` probe also timed out. The database was checked after every attempt: **no table, function, trigger or migration row was created, the public table count is unchanged (74), and no locks or transactions were left behind** — each attempt rolled back cleanly. The schema is proven correct against a real Postgres engine in the tests; only the hosted apply is blocked. Open decision below: retry when the MCP write path recovers, or Virat applies the file by hand. Nothing in the registry works until it is applied; the contract, adapter and tests do not depend on the hosted apply.
+- **To finish later:** apply the file to `vszjwgxvqoqyixpfthwl` (it is additive and idempotent — `create table if not exists` throughout), then build the database-backed registry that implements the `src/lib/work` operations over these tables.
+
+## Source-event ingestion (one adapter, read-only)
+
+`src/lib/work/health-ingest.ts`: the one source adapter. It takes a health-check report that `scripts/health/check.mjs` already produced and turns each **failing** check into a Work Registry source event. It is pure and read-only toward everything it monitors — it does not run the check, fetch anything, touch a brand, assign an owner, change work state beyond ingestion, remediate, deploy or send anything.
+
+- `HEALTH CHECK FAILURE → source event → Work Registry`, via the registry's own deduplication.
+- **Idempotent:** `external_ref` is `health:<run-at>:<brand>:<check>`, so re-ingesting the same run creates nothing. `fingerprint` is `health:<brand>:<check>`, so the same check still failing on a later run attaches to the one open item. A recovered check produces no event and the open item is left for a person (the adapter never auto-closes). A check failing again after its item was closed is flagged as a possible regression, never silently reopened.
+- **No invented owners:** a failure becomes a `NEW` item (type `incident`) awaiting triage. The control-plane site itself is DevShop-scoped, not a guessed brand; an unknown resolved brand is refused.
+- Not wired to a live runner: nothing reads `health_runs` or calls the health check and feeds this adapter yet. That live wiring is out of scope for this block. 12 tests in `tests/unit/work/health-ingest.test.ts`.
+
+## What consumes the registry
+
+- **Today:** nothing operational. The pure contract (`src/lib/work`), the one ingestion adapter, and the tests. No page, API route, cron, dashboard, WhatsApp, email, Control Tower, or agent reads or writes it (a boundary test enforces this, and the database is empty of these tables until the migration is applied).
+- **Next, when authorised:** a database-backed registry over the applied schema, then a thin runner that feeds real health-check runs into the adapter. Neither writes back to any monitored system.
 
 ## Production safety
 
@@ -212,11 +229,12 @@ None was changed, migrated or extended. These are the proposed mappings for the 
 
 ## Not built, and open decisions
 
-- A database-backed registry, any ingestion from live channels, the Control Tower loop, any UI, the Agent Passport.
-- **Proposed defaults awaiting Virat:** independent verifier for P0/P1; one lesson per incident; lock lifetime 24 hours; duplicate similarity 0.6 within 7 days.
+- **Applying `0055` to the control-plane Supabase** — blocked by the MCP write-path timeout (see "Database"). Retry when it recovers, or Virat applies the additive, idempotent file by hand. The database-backed registry that implements `src/lib/work` over the tables follows the apply.
+- A live runner feeding real health-check runs into the adapter, any other ingestion from live channels, the Control Tower loop, any UI, the Agent Passport.
+- **Proposed defaults awaiting Virat (still proposed, not company policy):** independent verifier for P0/P1; one lesson per incident; lock lifetime 24 hours; duplicate similarity 0.6 within 7 days.
 - Whether brand-scoped work lives centrally (as built, because one canonical item across channels and brands is the point) or in each brand's own database with the control plane indexing it.
 - Where Virat's coordination view lives (the Command Centre is the natural home).
 
 ## Evidence
 
-316 unit tests in 11 files under `tests/unit/work/`, plus strict typechecking of the library and tests: every ordered pair of lifecycle states, guards, ownership and the Prince rule, priority rules, deduplication and merging, repository locks and the five-point preflight, escalation, approvals, incidents, the audit chain and its tamper detection, the boundary rules, the schema's invariants against an embedded Postgres engine (including a check that the schema vocabulary equals the contract's and that every fixture story inserts and its audit chain still verifies after reading it back), and seven synthetic stories: a brand founder request, a critical incident, a finance clarification, an agent-generated improvement, a duplicate request from two channels, work needing Virat's approval, and work blocked by another item (`tests/unit/work/fixtures.ts`).
+328 unit tests in 12 files under `tests/unit/work/`, plus strict typechecking of the library and tests: every ordered pair of lifecycle states, guards, ownership and the Prince rule, priority rules, deduplication and merging, repository locks and the five-point preflight, escalation, approvals, incidents, the audit chain and its tamper detection, the boundary rules, the health-check ingestion adapter (12 tests: idempotency, attach-on-recurrence, regression flagging, no invented owner, malformed input, read-only, multi-brand routing), the schema's invariants against an embedded Postgres engine (including a check that the schema vocabulary equals the contract's and that every fixture story inserts and its audit chain still verifies after reading it back), and seven synthetic stories: a brand founder request, a critical incident, a finance clarification, an agent-generated improvement, a duplicate request from two channels, work needing Virat's approval, and work blocked by another item (`tests/unit/work/fixtures.ts`). Full control-plane suite: 705 tests pass; brand tokens in sync; build succeeds. The hosted migration apply is the one step blocked (by tooling, not by the code).
