@@ -131,6 +131,20 @@ All dashboards are genuinely usable on mobile as a first-class operating use cas
 
 Breadcrumbs and responsive patterns are built into the shared shell (`DashboardShell.tsx`, `globals.css`) so new brands inherit them from the starter.
 
+### Implementation status by application
+
+| Application | Framework | Breadcrumbs | Mobile nav | Canonical shell | Notes |
+|---|---|---|---|---|---|
+| **Founder Control Tower** | Astro | Implemented (route-derived) | Implemented (responsive grids, stacked items) | N/A (Astro, control-plane) | `control-tower.astro` |
+| **Brand Dashboard starter** | Next.js | Implemented (`Breadcrumbs.tsx` in `DashboardShell`) | Implemented (bottom nav, responsive tables) | Yes (source) | `starters/next-brand-plane/` |
+| **Travaholic Caps** | Next.js | Inline in AdminShell topbar | Bottom tab bar + slide-up sheet | On `canonical-dashboard-shell` branch (not merged to main) | Has own evolved shell; canonical branch uses `@retail-os/brand-config` |
+| **Moon Glasses** | Next.js | Full breadcrumb nav with path depth | Bottom tab bar + slide-up sheet | On `canonical-dashboard-shell` branch (not merged to main) | Most mature mobile UX of all brands |
+| **Ceremony Kitchen** | Next.js | Minimal (group label only) | Bottom tabs + command palette | Not on canonical shell | Client-specific architecture with role-based nav filtering |
+| **Korbi** | Astro | None | Flex-wrap only (no bottom nav) | Not on canonical shell | Minimal admin, uses hosted `tokens.css` |
+| **Fresh For Paws** | N/A | N/A | N/A | N/A | No deployed dashboard (staged, not deployed) |
+
+Travaholic and Moon have `canonical-dashboard-shell` branches that consume `@retail-os/brand-config`, but these are not merged to main. Their main branches have their own breadcrumbs and mobile navigation already. Ceremony and Korbi are architecturally independent and should migrate to the canonical shell when their dashboard work is next scheduled — not as part of a UX-only block. Korbi (Astro) needs its own migration path.
+
 ## Architectural rule
 
 Do not create separate dashboard architectures for individual brands. Use: common Retail OS dashboard structure + brand configuration + enabled modules + brand-specific extensions. Whenever the Retail OS dashboard / Command Centre / admin surface is implemented or migrated, use this common structure as the authoritative standard. A new brand does not invent an unrelated dashboard architecture without explicit architectural justification.

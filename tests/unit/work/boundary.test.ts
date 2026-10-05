@@ -61,7 +61,7 @@ describe('the Work library depends on nothing outside itself', () => {
   });
 });
 
-describe('nothing live reaches the Work Registry', () => {
+describe('only authorized surfaces reach the Work Registry', () => {
   const live = () => [
     ...walk(join(root, 'src'), /\.(ts|tsx|astro|mjs|js|json)$/, (p) => rel(p).startsWith('src/lib/work')),
     ...walk(join(root, 'scripts'), /\.(ts|mjs|js|json)$/, () => false),
@@ -69,15 +69,39 @@ describe('nothing live reaches the Work Registry', () => {
     ...['vercel.json', 'package.json', 'astro.config.mjs'].map((f) => join(root, f)).filter(existsSync),
   ];
 
-  it('no page, API route, cron, script or other library imports it', () => {
+  // Authorized consumers of the Work Registry (read or write through controlled paths):
+  // - Founder Control Tower reads the registry to build the operating view
+  // - Health report endpoint writes failures into the registry via health-runner
+  // - CEO layer (coordinator, morning-board, types) builds views from registry types
+  // - Control tower view layer builds the pipeline/stage projection
+  // - retail-os-dashboard/command-centre declares capability names (string only, not DB access)
+  const AUTHORIZED_IMPORT_PATHS = new Set([
+    'src/pages/retail-os/admin/control-tower.astro',
+    'src/pages/retail-os/api/health/report.ts',
+    'src/lib/ceo/coordinator.ts',
+    'src/lib/ceo/morning-board.ts',
+    'src/lib/ceo/types.ts',
+    'src/lib/ceo/ceo.test.ts',
+    'src/lib/control-tower/types.ts',
+    'src/lib/control-tower/view.ts',
+  ]);
+
+  it('only authorized surfaces import Work Registry code', () => {
     const hits = live().filter((f) => /['"][^'"]*lib\/work(\/[^'"]*)?['"]|from\s+['"]\.\/work(\/[^'"]*)?['"]|from\s+['"]\.\.\/work(\/[^'"]*)?['"]/.test(readFileSync(f, 'utf8')));
-    expect(hits.map(rel)).toEqual([]);
+    const unauthorized = hits.map(rel).filter((r) => !AUTHORIZED_IMPORT_PATHS.has(r));
+    expect(unauthorized).toEqual([]);
   });
 
-  it('no live surface names the registry tables or the migration (so no code path reads or writes them)', () => {
+  // `work_items` also appears as a Command Centre capability name (not a table reference).
+  const AUTHORIZED_TABLE_NAME_PATHS = new Set([
+    'src/lib/retail-os-dashboard/command-centre.ts',
+  ]);
+
+  it('no unauthorized surface names the registry tables or the migration', () => {
     const names = /work_items|work_events|work_source_events|work_links|repo_locks|0055_work_registry/;
     const hits = live().filter((f) => names.test(readFileSync(f, 'utf8')));
-    expect(hits.map(rel)).toEqual([]);
+    const unauthorized = hits.map(rel).filter((r) => !AUTHORIZED_TABLE_NAME_PATHS.has(r));
+    expect(unauthorized).toEqual([]);
   });
 
   it('the migration is a plain file in migrations/, applied by hand like every other: nothing runs the migrations folder', () => {
