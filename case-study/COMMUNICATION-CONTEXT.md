@@ -41,4 +41,15 @@ Work → CTO or technical owner assigns → Prince executes (internal tech only)
 
 - Not a chatbot framework. Communication enters; classification happens; routing resolves. AI is used only when the communication type requires generation (e.g. drafting a reply for Virat's approval).
 - Not a duplicate of the Work Registry. Communications attach to Work Items; they do not create a parallel tracking system.
-- Not built yet. This document records the architecture boundary so implementations stay within it.
+- Not fully built. The type contracts and question routing are implemented in `src/lib/ceo/types.ts` and `src/lib/ceo/coordinator.ts`. Live email/WABA/WhatsApp routing is not connected.
+
+## Implementation status
+
+The communication context types are coded in `src/lib/ceo/types.ts`:
+- `CommType`: 9 types (context, question, instruction, approval, decision, work_request, incident_evidence, relationship, other)
+- `CommChannel`: email, whatsapp, command_centre, slack, internal
+- `CommMessage`: full message shape with channel, actor, type, brand, work_id, thread_id
+- `QuestionRouting`: technical→DS-02, brand→DS-02, financial→DS-13, strategic/prince/legal→DS-00
+- `WorkQuestion`: question lifecycle (open→answered→superseded) within existing Work Items
+
+Question creation and answering: `createQuestion()` and `answerQuestion()` in `src/lib/ceo/coordinator.ts`. Tested in Scenario C (ceo.test.ts).

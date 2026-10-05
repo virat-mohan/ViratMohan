@@ -53,6 +53,49 @@ Every operation uses technology responsibly:
 5. **Attributable usage.** Every API call is tagged to a brand, a task and an agent so cost is traceable.
 6. **Prevent runaway automation.** No agent can spend money, send customer messages, or modify production data without guardrails. L4 actions always require human approval.
 
+## Implementation status
+
+The CEO operating layer contract is implemented in `src/lib/ceo/` (4 source files, 1 test file, 31 tests). Pure deterministic logic — no AI invocations, no framework, no network.
+
+### What exists (`src/lib/ceo/`)
+
+| File | What it does |
+|---|---|
+| `types.ts` | Agent registry (14 agents), autonomy model (15 grants), communication context types, question model, morning board types, audit categories, tech cost guardrails |
+| `coordinator.ts` | Request classifier, owner determination, duplicate detection, audit loop (blocked/overdue/recurring/security), question routing and lifecycle |
+| `morning-board.ts` | Material-exceptions-only view: critical incidents (P0/P1), pending approvals, blocked work (≥1 day), overdue, unassigned past triage |
+| `index.ts` | Re-exports |
+| `ceo.test.ts` | 31 tests across 10 scenarios (simple task, technical issue, question routing, blocked work, approval, duplicates, cross-brand patterns, recurring problems, cost guardrails, morning board) |
+
+### CEO autonomy grants (as coded)
+
+| Capability | Level | Holder |
+|---|---|---|
+| create-work | L2 | DS-02 |
+| assign-work | L2 | DS-02 |
+| triage-work | L2 | DS-02 |
+| prioritise-work | L1 | DS-02 |
+| escalate-work | L2 | DS-02 |
+| monitor-work | L3 | DS-02 |
+| detect-exceptions | L3 | DS-02 |
+| coordinate-agents | L2 | DS-02 |
+| report-to-founder | L2 | DS-02 |
+| approve-spend | L4 | DS-00 (Virat) |
+| approve-pricing | L4 | DS-00 |
+| approve-outbound-comms | L4 | DS-00 |
+| approve-prince-work | L4 | DS-00 |
+| approve-terms-legal | L4 | DS-00 |
+| approve-irreversible | L4 | DS-00 |
+
+### What does NOT exist yet
+
+- Live wiring to email/WABA/WhatsApp routing
+- Agent runtime (agents don't execute autonomously)
+- Agent passport / credentials
+- CRM, Economics/P&L, Growth Engine modules
+- Full CHRO performance engine
+- AI concierge or autonomous remediation
+
 ## Brand data isolation
 
 Each brand retains its own Supabase project and database. No multi-tenancy decision has been made. The Control Tower reads brand data through controlled APIs, never by direct database access.
