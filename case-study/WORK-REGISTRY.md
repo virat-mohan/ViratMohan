@@ -6,14 +6,14 @@
 
 Work reaches DevShop through the Command Centre, brandsupport@, WhatsApp, founder requests, agent detections and system alerts. Without one place that resolves them, the same issue is tracked three times, nobody is clearly accountable, and Virat coordinates by hand. The Work Registry makes one issue one work item, with one accountable owner, a legal lifecycle, evidence, and an audit trail that cannot be rewritten.
 
-Status: foundation built and tested, plus one read-only ingestion adapter (health-check failures → source events). The database schema is designed, tested against a real Postgres engine, and **its apply to the control-plane Supabase is pending** — the Supabase MCP write path is timing out at 60s on all DDL (see "Database"). **Nothing operational is connected to it**: no brand dashboard, WhatsApp, email, Control Tower routing or agent reads or writes it, and no live store or brand database changed. See "Database" and "Production safety".
+Status: foundation built and tested, with the database-backed registry, the health-check ingestion adapter, and the **live health runner** that bridges `scripts/health/check.mjs` failures through the adapter into the DB-backed Work Registry. Migration `0055_work_registry` is **applied and tracked** in the Supabase migration ledger (`supabase_migrations`). **Nothing operational is connected yet**: no brand dashboard, WhatsApp, email, Control Tower routing or agent reads or writes it, and no live store or brand database changed. See "Database" and "Production safety".
 
 ## Where it lives (decision)
 
 Checked against `ESTATE.md` and the anti-duplication rule. No new repository and no new package.
 
 - **The contract and the rules** are `src/lib/work/` in `ViratMohan`, the control plane. They are pure: no Astro, no Supabase, no network, no import from outside the folder (a test enforces it). Lifting the folder into a shared package later is a file move.
-- **The data model** is `migrations/0055_work_registry.sql` in the same repo. It is **applied** to the control-plane database `vszjwgxvqoqyixpfthwl` (5 tables, RLS on all, the append-only/chain/no-delete triggers, the generated `ref`). It was applied by hand through the SQL editor, so it carries no `supabase_migrations` ledger row (the last tracked migration is `0054`); the schema objects are all present and verified against the live database. No live system reads or writes these tables yet.
+- **The data model** is `migrations/0055_work_registry.sql` in the same repo. It is **applied** to the control-plane database `vszjwgxvqoqyixpfthwl` (5 tables, RLS on all, the append-only/chain/no-delete triggers, the generated `ref`). It was applied by hand through the SQL editor, and its ledger row was reconciled via `apply_migration` with a no-op `SELECT 1` (version `20261005135509`, name `0055_work_registry`). The schema objects are all present and verified against the live database. No live system reads or writes these tables yet.
 - **The implementation** is `InMemoryWorkRegistry`, the reference, holding all the rules. The **database-backed registry** (`src/lib/work/db-store.ts`, `db-registry.ts`) is implemented over the applied tables: it maps rows to/from the contract losslessly and delegates every rule to the in-memory registry (load → operate → persist, events appended). The rules live in the contract, once, not in each store.
 
 Why the control plane: the registry's job is to be the one place across all brands and channels, and the estate puts central orchestration there. Why not a package yet: no second repository needs to import it today. The trigger to extract is the first brand plane or agent runtime that must create or read work directly.
@@ -213,7 +213,7 @@ None was changed, migrated or extended. These are the proposed mappings for the 
 - `HEALTH CHECK FAILURE → source event → Work Registry`, via the registry's own deduplication.
 - **Idempotent:** `external_ref` is `health:<run-at>:<brand>:<check>`, so re-ingesting the same run creates nothing. `fingerprint` is `health:<brand>:<check>`, so the same check still failing on a later run attaches to the one open item. A recovered check produces no event and the open item is left for a person (the adapter never auto-closes). A check failing again after its item was closed is flagged as a possible regression, never silently reopened.
 - **No invented owners:** a failure becomes a `NEW` item (type `incident`) awaiting triage. The control-plane site itself is DevShop-scoped, not a guessed brand; an unknown resolved brand is refused.
-- **Not wired to a live runner (NOT YET CONNECTED):** nothing reads `health_runs` or calls the health check and feeds this adapter yet. The adapter writes to the registry but never back to the health source. That live wiring is out of scope for this block. 12 tests in `tests/unit/work/health-ingest.test.ts`.
+- **Health runner IMPLEMENTED (`src/lib/work/health-runner.ts`):** bridges `scripts/health/check.mjs` output through the adapter into the DB-backed Work Registry via `withRegistry` (load → ingest → persist). Single-writer, idempotent, fail-safe. Validates brand resolution before touching the DB — unknown brands with failures are rejected, not misattributed. Does not: run the health check, remediate, assign, notify, deploy, or auto-close. 13 tests in `tests/unit/work/health-runner.test.ts`; 12 tests for the underlying adapter in `tests/unit/work/health-ingest.test.ts`.
 
 ## What consumes the registry
 
@@ -230,7 +230,8 @@ None was changed, migrated or extended. These are the proposed mappings for the 
 ## Not built, and open decisions
 
 - A live runner feeding real health-check runs into the adapter, any other ingestion from live channels, the Control Tower loop, any UI, the Agent Passport.
-- Per-operation transactions and row-locking for the database-backed registry (today it loads and persists the whole state — a working foundation, not concurrency-safe under parallel writers); and recording `0055` in the `supabase_migrations` ledger if that matters later (the schema itself is applied and verified).
+- Per-operation transactions and row-locking for the database-backed registry (today it loads and persists the whole state — a working foundation, not concurrency-safe under parallel writers).
+- Wiring the health runner to a live schedule (cron or routine that runs `check.mjs` and calls `runHealthIngestion` with the result).
 - **Proposed defaults awaiting Virat (still proposed, not company policy):** independent verifier for P0/P1; one lesson per incident; lock lifetime 24 hours; duplicate similarity 0.6 within 7 days.
 - Whether brand-scoped work lives centrally (as built, because one canonical item across channels and brands is the point) or in each brand's own database with the control plane indexing it.
 - Where Virat's coordination view lives (the Command Centre is the natural home).

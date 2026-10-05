@@ -247,7 +247,7 @@ Applies to **new** repos/packages. Existing production repos keep their names un
 
 Execution-only items (not permanent products): `DevShop video reel`, `URGENT: fix unauthenticated /api/admin…` (security incident — a false positive confirmed this session; `proxy.ts` already gates admin on both stores), `Update /devshop project grid to real statuses`, `Email drafts for Vishal Malhotra`, `FlowerBasket vendor outreach`, individual Employee Support Agent onboardings. These should ultimately be governed by the Work Registry, not retained as standalone products.
 
-The Work Registry foundation now exists (control plane): one canonical work object, lifecycle, ownership, deduplication, repository locks, escalation, approvals, incidents and an append-only audit trail. Contract `src/lib/work/`, schema `migrations/0055_work_registry.sql` (applied and verified on the control-plane DB), a database-backed registry over those tables, docs `case-study/WORK-REGISTRY.md`. Not wired to any live system; existing work-like tables are unchanged.
+The Work Registry foundation now exists (control plane): one canonical work object, lifecycle, ownership, deduplication, repository locks, escalation, approvals, incidents and an append-only audit trail. Contract `src/lib/work/`, schema `migrations/0055_work_registry.sql` (applied and verified on the control-plane DB, tracked in the migration ledger as `0055_work_registry`), a database-backed registry over those tables, a health-check runner that bridges `scripts/health/check.mjs` failures into Work Registry items, docs `case-study/WORK-REGISTRY.md`. Not wired to any live schedule; existing work-like tables are unchanged.
 
 ---
 

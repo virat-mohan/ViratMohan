@@ -16,3 +16,4 @@ export * from './registry';
 export * from './health-ingest';
 export * from './db-store';
 export * from './db-registry';
+export * from './health-runner';
