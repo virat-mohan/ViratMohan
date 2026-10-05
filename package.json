@@ -13,6 +13,8 @@
     "test": "vitest run tests/unit",
     "test:watch": "vitest tests/unit",
     "test:ceo": "esbuild src/lib/ceo/*.test.ts --bundle --platform=node --format=esm --outdir=.tmp-test/ceo --out-extension:.js=.mjs --log-level=warning && node --test \".tmp-test/ceo/*.test.mjs\"",
+    "test:integration": "vitest run tests/integration --testTimeout=120000 --hookTimeout=180000",
+    "verify:ceo-live": "esbuild scripts/verify/ceo-live.ts --bundle --platform=node --format=esm --outfile=.tmp-test/ceo-live.mjs --log-level=warning && node .tmp-test/ceo-live.mjs",
     "test:live": "vitest run tests/benchmarks"
   },
   "dependencies": {

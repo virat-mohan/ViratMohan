@@ -3,7 +3,8 @@
 // when the orchestrator mutated something, and returns a structured response. No LLM, no outbound calls.
 
 import type { WorkStore } from '../work/db-store';
-import { loadRegistry } from '../work/db-registry';
+import { mutateRegistry } from '../work/db-registry';
+import { WorkConflictError } from '../work/db-store';
 import type { WorkItem } from '../work/types';
 import { VIRAT } from '../work/actors';
 import { checkAdminAuth } from '../admin-auth';
@@ -25,7 +26,7 @@ export interface FounderResponse {
   understood: { inputId: string; kind: string; urgency: string; brand: string | null };
   context: { relatedWork: WorkRef[]; pendingApprovals: number; brandSummary: { openCount: number; criticalCount: number; blockedCount: number } | null };
   authority: { capability: string; level: string; allowed: boolean; holder: string | null; reason: string | null };
-  outcome: { kind: string; summary: string; mutationApplied: boolean; reusedExistingWork: boolean };
+  outcome: { kind: string; operation: string; summary: string; mutationApplied: boolean; reusedExistingWork: boolean };
   work: WorkRef | null;
   routing: RoutingDecision | null;
   question: { id: string; routing: string; routedTo: string | null; text: string } | null;
@@ -38,7 +39,7 @@ export interface FounderRequestBody { text?: unknown; brand?: unknown; work_id?:
 
 export type FounderResult =
   | { status: 200; body: FounderResponse }
-  | { status: 400 | 401 | 503; body: { error: string } };
+  | { status: 400 | 401 | 409 | 503; body: { error: string } };
 
 const workRef = (i: WorkItem): WorkRef => ({
   id: i.id, ref: i.ref, title: i.title, state: i.state, priority: i.priority, owner: i.owner?.id ?? null,
@@ -66,7 +67,7 @@ export function toFounderResponse(o: OrchestratorOutcome): FounderResponse {
       holder: o.authority.allowed ? null : o.authority.holder,
       reason: o.authority.allowed ? null : o.authority.reason,
     },
-    outcome: { kind: o.kind, summary: o.summary, mutationApplied: o.mutationApplied, reusedExistingWork: o.reusedExistingWork },
+    outcome: { kind: o.kind, operation: o.operation, summary: o.summary, mutationApplied: o.mutationApplied, reusedExistingWork: o.reusedExistingWork },
     work: o.workItem ? workRef(o.workItem) : null,
     routing: o.routing,
     question: o.question
@@ -105,11 +106,17 @@ export async function handleFounderInput(
   const workId = typeof body.work_id === 'string' && body.work_id.trim() ? body.work_id.trim() : null;
 
   const now = deps.now ?? new Date();
-  const registry = await loadRegistry(deps.store);
-  if (workId && !registry.get(workId)) return { status: 400, body: { error: 'Unknown Work reference' } };
-
-  const input = classifyFounderInput(body.text, VIRAT, { channel: 'command_centre', brand, work_id: workId, now });
-  const outcome = processFounderInput(input, registry, { now, bindings: deps.bindings });
-  if (outcome.mutationApplied) await deps.store.persist(registry.snapshot());
-  return { status: 200, body: toFounderResponse(outcome) };
+  const store = deps.store;
+  try {
+    const result = await mutateRegistry(store, (registry): { value: FounderResult; changed: boolean } => {
+      if (workId && !registry.get(workId)) return { value: { status: 400, body: { error: 'Unknown Work reference' } }, changed: false };
+      const input = classifyFounderInput(body.text as string, VIRAT, { channel: 'command_centre', brand, work_id: workId, now });
+      const outcome = processFounderInput(input, registry, { now, bindings: deps.bindings });
+      return { value: { status: 200, body: toFounderResponse(outcome) }, changed: outcome.mutationApplied };
+    });
+    return result;
+  } catch (e) {
+    if (e instanceof WorkConflictError) return { status: 409, body: { error: 'Another change to this Work landed first. Nothing was written; send it again.' } };
+    throw e;
+  }
 }

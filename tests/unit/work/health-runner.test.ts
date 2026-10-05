@@ -17,15 +17,16 @@ function fakeSupabase() {
     from(t: string) {
       return {
         async select() { return { data: [...get(t).values()], error: null }; },
-        async upsert(rows: Record<string, unknown>[]) {
-          for (const r0 of rows) {
+        async upsert(input: unknown[]) {
+          for (const r0 of input as Record<string, unknown>[]) {
             const r = { ...r0 };
             if (t === 'work_items' && !('ref' in r)) r.ref = `W-${String(++refCounter).padStart(4, '0')}`;
             get(t).set(keyOf(t, r), r);
           }
           return { error: null };
         },
-        async insert(rows: Record<string, unknown>[]) {
+        async insert(input: unknown[]) {
+          const rows = input as Record<string, unknown>[];
           for (const r of rows) {
             if (t === 'work_events') {
               const last = seqByItem.get(String(r.work_id)) ?? 0;

@@ -12,7 +12,7 @@
 // and row-level locking are the documented next step, before any live writer is connected.
 
 import { InMemoryWorkRegistry, type RegistryOptions } from './registry';
-import type { WorkStore } from './db-store';
+import { WorkConflictError, type WorkStore } from './db-store';
 import type { Result } from './types';
 
 export interface DbRegistryOptions extends Omit<RegistryOptions, 'seed'> {}
@@ -23,12 +23,37 @@ export async function loadRegistry(store: WorkStore, opts: DbRegistryOptions = {
   return new InMemoryWorkRegistry({ ...opts, seed });
 }
 
+export const MAX_WRITE_ATTEMPTS = 3;
+
+const baseOf = (reg: InMemoryWorkRegistry): Map<string, number> => new Map(reg.snapshot().items.map((i) => [i.id, i.events.length]));
+
+/**
+ * Load, run one operation, persist only what changed. If another writer got there first the store refuses the
+ * stale write (nothing of it lands), and the whole operation is re-run on fresh state, at most MAX_WRITE_ATTEMPTS
+ * times; then the conflict is thrown. The operation must be a pure function of the registry it is given.
+ */
+export async function mutateRegistry<T>(
+  store: WorkStore,
+  op: (reg: InMemoryWorkRegistry) => { value: T; changed: boolean },
+  opts: DbRegistryOptions = {},
+): Promise<T> {
+  for (let attempt = 1; ; attempt++) {
+    const reg = await loadRegistry(store, opts);
+    const base = baseOf(reg);
+    const out = op(reg);
+    if (!out.changed) return out.value;
+    try {
+      await store.persist(reg.snapshot(), { base });
+      return out.value;
+    } catch (e) {
+      if (!(e instanceof WorkConflictError) || attempt >= MAX_WRITE_ATTEMPTS) throw e;
+    }
+  }
+}
+
 /** Load, run one operation with the pure contract, persist the result. Returns the operation's own Result. */
 export async function withRegistry<T>(store: WorkStore, op: (reg: InMemoryWorkRegistry) => Result<T>, opts: DbRegistryOptions = {}): Promise<Result<T>> {
-  const reg = await loadRegistry(store, opts);
-  const result = op(reg);
-  if (result.ok) await store.persist(reg.snapshot());
-  return result;
+  return mutateRegistry(store, (reg) => { const r = op(reg); return { value: r, changed: r.ok }; }, opts);
 }
 
 /**

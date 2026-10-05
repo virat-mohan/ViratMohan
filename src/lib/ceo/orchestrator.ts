@@ -29,6 +29,11 @@ export type OrchestratorOutcomeKind =
   | 'escalated'
   | 'denied';
 
+/** What the runtime did to the registry. 'read' and 'none' never write. */
+export type RegistryOperation =
+  | 'none' | 'read' | 'attach_evidence' | 'create_work' | 'update_work'
+  | 'create_question' | 'record_approval' | 'record_decision' | 'escalate';
+
 export interface RoutingDecision {
   function: WorkFunction;
   role: string;
@@ -40,6 +45,7 @@ export interface RoutingDecision {
 
 export interface OrchestratorOutcome {
   kind: OrchestratorOutcomeKind;
+  operation: RegistryOperation;
   input: FounderInput;
   context: ContextPack | null;
   response: CeoResponse | null;
@@ -126,7 +132,7 @@ function base(
 ): OrchestratorOutcome {
   return {
     input, context, response, authority,
-    workItem: null, reusedExistingWork: false, routing: null, question: null,
+    operation: 'none', workItem: null, reusedExistingWork: false, routing: null, question: null,
     mutationApplied: false, escalationRequired: false, trace: [],
     ...p,
   };
@@ -172,11 +178,11 @@ function evidenceFlow(c: Ctx): OrchestratorOutcome {
   }
   const added = c.registry.addEvidence(item.id, { kind: 'note', ref: `founder-input:${c.input.id}`, summary: c.input.text }, c.input.from);
   if (!added.ok) {
-    return done(c, { kind: 'escalated', workItem: item, summary: `Could not attach evidence to ${item.ref}: ${added.error.message}`, escalationRequired: true, nextStep: 'Review the item state' });
+    return done(c, { kind: 'escalated', operation: 'escalate', workItem: item, summary: `Could not attach evidence to ${item.ref}: ${added.error.message}`, escalationRequired: true, nextStep: 'Review the item state' });
   }
   const trace = logTrace(c, item.id, item, `evidence ${added.value.id} attached`);
   return done(c, {
-    kind: 'evidence_attached', workItem: c.registry.get(item.id)!, reusedExistingWork: true,
+    kind: 'evidence_attached', operation: 'attach_evidence', workItem: c.registry.get(item.id)!, reusedExistingWork: true,
     summary: `Evidence attached to ${item.ref}`, mutationApplied: true, nextStep: `Evidence recorded on ${item.ref}`, trace: [trace],
   });
 }
@@ -186,7 +192,7 @@ function evidenceFlow(c: Ctx): OrchestratorOutcome {
 function questionFlow(c: Ctx): OrchestratorOutcome {
   if (!c.routing) {
     return done(c, {
-      kind: 'question_answered', workItem: c.context.matchedWork,
+      kind: 'question_answered', operation: 'read', workItem: c.context.matchedWork,
       summary: c.response.summary, nextStep: c.response.nextStep,
     });
   }
@@ -199,7 +205,7 @@ function questionFlow(c: Ctx): OrchestratorOutcome {
     mutationApplied = true;
   }
   return done(c, {
-    kind: 'question_raised', workItem: matched, reusedExistingWork: !!matched, question,
+    kind: 'question_raised', operation: mutationApplied ? 'create_question' : 'none', workItem: matched, reusedExistingWork: !!matched, question,
     summary: `Question for the ${c.routing.roleLabel} (${c.routing.currentHolders.join(', ')})${matched ? `, attached to ${matched.ref}` : ', no Work to attach to yet'}`,
     mutationApplied,
     nextStep: matched ? 'Virat decides whether to pass the question on' : 'Open Work for this, or say which Work it belongs to',
@@ -218,7 +224,7 @@ function approvalFlow(c: Ctx): OrchestratorOutcome {
   if (!match) {
     const refs = pending.map((p) => `${p.ref} "${p.title}"`).join('; ');
     return done(c, {
-      kind: 'escalated', summary: `${pending.length} approvals are pending: ${refs}. Not guessing which one you mean`,
+      kind: 'escalated', operation: 'escalate', summary: `${pending.length} approvals are pending: ${refs}. Not guessing which one you mean`,
       escalationRequired: true, nextStep: 'Reply with the Work reference to approve',
     });
   }
@@ -226,7 +232,7 @@ function approvalFlow(c: Ctx): OrchestratorOutcome {
   const approval = match.approval!;
   const decided = c.registry.decideApproval(match.id, 'approved', c.input.from, `Founder approval: ${c.input.text}`);
   if (!decided.ok) {
-    return done(c, { kind: 'escalated', workItem: match, summary: `Approval not recorded on ${match.ref}: ${decided.error.message}`, escalationRequired: true, nextStep: 'Review the approval request' });
+    return done(c, { kind: 'escalated', operation: 'escalate', workItem: match, summary: `Approval not recorded on ${match.ref}: ${decided.error.message}`, escalationRequired: true, nextStep: 'Review the approval request' });
   }
 
   const trace: string[] = [];
@@ -241,7 +247,7 @@ function approvalFlow(c: Ctx): OrchestratorOutcome {
   }
   trace.push(logTrace(c, match.id, match, result));
   return done(c, {
-    kind: 'approval_recorded', workItem: c.registry.get(match.id)!, reusedExistingWork: true,
+    kind: 'approval_recorded', operation: 'record_approval', workItem: c.registry.get(match.id)!, reusedExistingWork: true,
     summary: `Approved on ${match.ref}: ${result}`, mutationApplied: true, nextStep: 'Work resumes with its owner', trace,
   });
 }
@@ -258,7 +264,7 @@ function decisionFlow(c: Ctx): OrchestratorOutcome {
   }
   const trace = logTrace(c, matched.id, matched, `founder decision recorded: "${c.input.text}"`);
   return done(c, {
-    kind: 'acknowledged', workItem: c.registry.get(matched.id)!, reusedExistingWork: true,
+    kind: 'acknowledged', operation: 'record_decision', workItem: c.registry.get(matched.id)!, reusedExistingWork: true,
     summary: `Decision recorded on ${matched.ref}`, mutationApplied: true, nextStep: 'Propagate to the Work owner', trace: [trace],
   });
 }
@@ -267,14 +273,14 @@ function decisionFlow(c: Ctx): OrchestratorOutcome {
 
 function workFlow(c: Ctx): OrchestratorOutcome {
   if (!c.authority.allowed) {
-    return done(c, { kind: 'escalated', summary: c.response.summary, escalationRequired: true, nextStep: c.response.nextStep });
+    return done(c, { kind: 'escalated', operation: 'escalate', summary: c.response.summary, escalationRequired: true, nextStep: c.response.nextStep });
   }
 
   const matched = c.context.matchedWork;
   if (matched) {
     const trace = logTrace(c, matched.id, matched, 'existing work reused, no new work created');
     return done(c, {
-      kind: 'work_updated', workItem: c.registry.get(matched.id)!, reusedExistingWork: true,
+      kind: 'work_updated', operation: 'update_work', workItem: c.registry.get(matched.id)!, reusedExistingWork: true,
       summary: `Existing work: ${matched.ref} "${matched.title}" (${matched.state})`,
       mutationApplied: true, nextStep: `Update ${matched.ref}`, trace: [trace],
     });
@@ -286,7 +292,7 @@ function workFlow(c: Ctx): OrchestratorOutcome {
     : brandOwner(c.input) ?? CEO;
   const assign = canCeoAssign(owner, c.bindings);
   if (!assign.allowed) {
-    return done(c, { kind: 'escalated', summary: `Cannot assign to ${owner.id}: ${assign.reason}`, escalationRequired: true, nextStep: `Approval from ${assign.holder} needed first` });
+    return done(c, { kind: 'escalated', operation: 'escalate', summary: `Cannot assign to ${owner.id}: ${assign.reason}`, escalationRequired: true, nextStep: `Approval from ${assign.holder} needed first` });
   }
 
   const created = c.registry.createItem({
@@ -298,7 +304,7 @@ function workFlow(c: Ctx): OrchestratorOutcome {
     source: { channel: 'founder_request', requester: c.input.from },
   }, CEO);
   if (!created.ok) {
-    return done(c, { kind: 'escalated', summary: `Work not created: ${created.error.message}`, escalationRequired: true, nextStep: 'Investigate' });
+    return done(c, { kind: 'escalated', operation: 'escalate', summary: `Work not created: ${created.error.message}`, escalationRequired: true, nextStep: 'Investigate' });
   }
   const id = created.value.id;
   const steps: string[] = [];
@@ -329,7 +335,7 @@ function workFlow(c: Ctx): OrchestratorOutcome {
 
   const trace = logTrace(c, id, null, `new work created; ${steps.join('; ')}`);
   return done(c, {
-    kind: 'work_created', workItem: c.registry.get(id)!,
+    kind: 'work_created', operation: 'create_work', workItem: c.registry.get(id)!,
     summary: `Created ${created.value.ref} "${c.input.text}"`, mutationApplied: true, escalationRequired, nextStep, trace: [trace],
   });
 }

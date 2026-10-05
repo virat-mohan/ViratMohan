@@ -55,7 +55,7 @@ Every operation uses technology responsibly:
 
 ## Implementation status
 
-The CEO operating layer is implemented in `src/lib/ceo/` (11 source files, 4 test files, 112 `node:test` tests; run with `npm run test:ceo`). Pure deterministic logic — no AI invocations, no framework, no network.
+The CEO operating layer is implemented in `src/lib/ceo/` (11 source files, 4 test files, 112 `node:test` tests via `npm run test:ceo`; plus Vitest concurrency tests in `tests/unit/work` and HTTP tests in `tests/integration`). Pure deterministic logic — no AI invocations, no framework, no network.
 
 ### What exists (`src/lib/ceo/`)
 
@@ -163,6 +163,24 @@ The response shows what the CEO understood, authority, matched Work, routing, re
 - Input from anyone other than the Founder principal is refused with no change.
 
 Not wired to any live channel and no external execution. Founder Input does not send, deploy, spend or contact anyone.
+
+### Verification status (read this before relying on any of it)
+
+**Implemented and verified end to end (local, real code paths).** `npm run test:integration` starts the real Astro server and sends real HTTP to `/retail-os/api/admin/ceo-input`. The real route, middleware, handler, CEO runtime, Work Registry store and `supabase-js` client run unchanged. Only the network endpoint is swapped for a local PostgREST-compatible shim over embedded Postgres executing the real migration 0055 (constraints, hash-chain trigger, no-delete trigger included). 11 tests: authentication (no credentials, wrong user, wrong password), validation (malformed, empty, oversized, unknown brand, unknown Work reference), Work creation persisted and read back, no write on a status question, no attachment to unrelated Work and attachment on an explicit reference, reuse on repeat, the technical deployment approval gate and assignment to the role holder, the real Control Tower page showing the Work and the pending approval, and two concurrent requests. Phone (390px, mobile emulation) and desktop (1280px) checks of the Morning Board and Work Pipeline on that data: no sideways scroll, 44px tap targets, breadcrumbs intact.
+
+**NOT verified against the real Supabase project.** This session had no Supabase credentials. A read-only check of the live control plane confirmed the five Work tables exist with row-level security on and 0 rows (migration 0055 is applied; the Control Tower there is genuinely empty). No Founder request has been run against it. `npm run verify:ceo-live` does it, only when `CEO_LIVE_VERIFY=yes` and credentials are set, and writes one `[IT-LIVE]` item. The schema forbids deleting Work, so that item cannot be cleaned up; Virat would close or resolve it. Run it deliberately.
+
+**Implemented but unit-tested only.** The role and holder model, authority limits, question routing, and the 112 `node:test` CEO tests (in-memory registry).
+
+**Concurrency: hardened, not solved.** Before: persist upserted every item and silently dropped any event at or below the database's highest sequence number, so a stale second writer overwrote the first writer's item row and lost its own event (reproduced on real schema). Now `mutateRegistry` records each item's event count at load; persist writes only changed items, refuses a stale item before writing it (`WorkConflictError`, checked against the database and again by the event key and chain trigger), inserts events in one statement, and re-runs the operation on fresh state up to 3 times. The endpoint answers 409 if it still loses. Tested on real schema: stale writer refused with nothing of its change written, unrelated items no longer overwritten, retry lands both changes, bounded give-up, concurrent creation. Remaining limits: (1) no cross-item transaction; a multi-item change that conflicts on a later item can leave an earlier new item row without its events (the CEO runtime only ever touches one item per request); (2) the item row is updated after its events, so a failure between the two leaves the row behind the event log; (3) source events, links and repo locks are still whole-snapshot upserts, so concurrent lock writers are not safe (the CEO runtime does not write them); (4) each write reads every event's sequence number (cost grows with total events); (5) a database function doing the whole write in one transaction would remove (1) and (2) and needs a migration applied by hand.
+
+**Behaviours to know.**
+- Approval from the Founder interface is approve-only. The registry's `decideApproval` supports rejection with a note, but there is no safe way to tell a rejection from other text yet, so it is not wired.
+- A policy decision with no Work is acknowledged, not persisted. The registry has no decision ledger and none was invented.
+- Existing-Work matching uses the explicit Work reference, else a title match of at least two shared words of four or more characters. It is a heuristic: a brand name plus one generic word can match unrelated Work. It never falls back to "any open Work for the brand".
+- Technical deployment routing is a keyword match (deploy, DNS, webhook, integration, API key, domain, SSL, hosting and similar). Any request containing "integration" goes to the approval flow.
+- The CEO's `create-work` grant caps priority at P2, so a request such as "checkout is down" lands as P2 and does not appear as Critical on the Morning Board. Raising the cap is Virat's decision.
+- The `ref` in a response is provisional until the Work is reloaded; the database generates the canonical one.
 
 ### What does NOT exist yet
 

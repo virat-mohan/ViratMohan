@@ -90,6 +90,7 @@ describe('only authorized surfaces reach the Work Registry', () => {
     'src/lib/ceo/orchestrator.ts',
     'src/lib/ceo/orchestrator.test.ts',
     'src/lib/ceo/roles.ts',
+    'scripts/verify/ceo-live.ts',
     'src/lib/ceo/founder-service.ts',
     'src/lib/ceo/founder-service.test.ts',
     'src/pages/retail-os/api/admin/ceo-input.ts',
