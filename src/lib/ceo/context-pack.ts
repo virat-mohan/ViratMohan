@@ -10,11 +10,14 @@ import type { AuditFinding } from './coordinator';
 import { runAuditLoop, findExistingWork } from './coordinator';
 import { buildMorningBoard } from './morning-board';
 import type { FounderInput } from './founder-input';
+import { Scopes } from '../work/scope';
 
 export interface ContextPack {
   input: FounderInput;
   morningBoard: MorningBoard | null;
   relatedWork: WorkItem[];
+  /** The one open item this input is genuinely about: the referenced work_id, else a title match. Never a brand-wide fallback. */
+  matchedWork: WorkItem | null;
   brandOwner: AgentEntry | null;
   auditFindings: AuditFinding[];
   pendingApprovals: WorkItem[];
@@ -46,6 +49,7 @@ export function buildContextPack(
   const morningBoard = needsMorningBoard ? buildMorningBoard(registry, now) : null;
 
   const relatedWork = findRelatedWork(input, registry);
+  const matchedWork = findMatchedWork(input, registry);
 
   const brandOwner = input.brand ? (brandCeoFor(input.brand) ?? null) : null;
 
@@ -75,6 +79,7 @@ export function buildContextPack(
     input,
     morningBoard,
     relatedWork,
+    matchedWork,
     brandOwner,
     auditFindings,
     pendingApprovals,
@@ -82,6 +87,11 @@ export function buildContextPack(
     activeLocks,
     brandSummary,
   };
+}
+
+function findMatchedWork(input: FounderInput, registry: InMemoryWorkRegistry): WorkItem | null {
+  if (input.work_id) return registry.get(input.work_id) ?? null;
+  return findExistingWork(registry, input.text, input.scope ?? Scopes.devshop());
 }
 
 function findRelatedWork(input: FounderInput, registry: InMemoryWorkRegistry): WorkItem[] {

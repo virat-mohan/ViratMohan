@@ -201,7 +201,7 @@ describe('Context pack', () => {
     const reg = freshRegistry();
     const r = reg.createItem({ title: 'Budget request', description: '', type: 'request', level: 'work_item', scope: Scopes.brand('caps'), source: { channel: 'founder_request', requester: CEO } }, CEO);
     if (r.ok) {
-      reg.transition(r.value.id, 'triaged', CEO, { payload: { triage: { type: 'request', priority: 'P2', reason: 'budget', scope: r.value.scope } } });
+      reg.transition(r.value.id, 'triaged', CEO, { payload: { triage: { type: 'request', priority: 'P2', priority_reason: 'budget', scope: r.value.scope } } });
       reg.transition(r.value.id, 'assigned', CEO, { payload: { owner: CEO } });
       reg.transition(r.value.id, 'in_progress', CEO);
       const ev = reg.addEvidence(r.value.id, { kind: 'metric', ref: 'roas', summary: 'ROAS OK' }, CEO);

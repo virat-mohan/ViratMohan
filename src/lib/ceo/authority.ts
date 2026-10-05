@@ -4,7 +4,8 @@
 // Pure deterministic logic. No AI invocations.
 
 import type { Actor, Authority } from '../work/types';
-import { AUTHORITY_HOLDERS, actorCoversCoverage } from '../work/actors';
+import { AUTHORITY_HOLDERS } from '../work/actors';
+import { ROLE_BINDINGS, rolesHeldBy, type RoleBindings, type RoleId } from './roles';
 import {
   CEO_ID, CEO, AGENT_REGISTRY, autonomyFor, canActAutonomously, brandCeoFor,
   type AutonomyLevel, type AutonomyGrant, type AgentEntry,
@@ -63,29 +64,24 @@ function resolveApprovalCapability(text: string): string {
 }
 
 /**
- * Check whether the CEO can assign work to this target actor.
- * Uses the autonomy model's `restrictedAssignment` limit, which names an Authority type.
- * AUTHORITY_HOLDERS maps that Authority to current human role holders.
- * If the target matches any restricted role holder, assignment requires approval.
+ * Can the CEO assign work to this actor? The assign-work grant lists `restrictedRoles`. If the target holds
+ * one of those roles (resolved from the role bindings), the assignment needs the role's assignment authority.
+ * Nothing here names a person: who holds a role is configuration in roles.ts.
  */
-export function canCeoAssign(target: Actor): AuthorityVerdict {
+export function canCeoAssign(target: Actor, bindings: RoleBindings = ROLE_BINDINGS): AuthorityVerdict {
   const grant = autonomyFor('assign-work');
   if (!grant) {
     return { allowed: false, level: 'L4', capability: 'assign-work', holder: 'DS-00', reason: 'No assign-work grant' };
   }
-  const restrictedRoles = grant.limits?.restrictedRoles as string[] | undefined;
-  if (restrictedRoles && restrictedRoles.length > 0) {
-    const scope = { kind: 'devshop' as const, brand: null, founder: null, system: null, extension: null };
-    const matchedRole = restrictedRoles.find((role) =>
-      actorCoversCoverage(target, role as any, scope)
-    );
-    if (matchedRole) {
-      return {
-        allowed: false, level: 'L4', capability: 'assign-work',
-        holder: 'DS-00',
-        reason: `Assignment to this role requires approval (restricted role: ${matchedRole})`,
-      };
-    }
+  const restricted = (grant.limits?.restrictedRoles as RoleId[] | undefined) ?? [];
+  const held = rolesHeldBy(target, bindings).find((r) => restricted.includes(r));
+  if (held) {
+    const authority = bindings[held].assignmentAuthority;
+    return {
+      allowed: false, level: 'L4', capability: 'assign-work',
+      holder: resolveApproverForAuthority(authority),
+      reason: `Assignment to ${held} requires approval (authority: ${authority})`,
+    };
   }
   return checkAuthority('assign-work');
 }

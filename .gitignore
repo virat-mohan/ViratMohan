@@ -29,3 +29,4 @@ pnpm-debug.log*
 
 # Codebase audit reports: contain bank details, personal emails and phone numbers
 docs/retail-os/inventories/
+.tmp-test/

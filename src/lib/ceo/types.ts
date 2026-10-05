@@ -4,6 +4,7 @@
 
 import type { Actor, Authority, HumanCoverage, Priority, WorkItem, WorkState, WorkType, Scope, SourceChannel } from '../work/types';
 import type { ControlTowerView } from '../control-tower/types';
+import { ROLE_BINDINGS, holdersOf, type RoleBindings } from './roles';
 
 // ── Agent registry ────────────────────────────────────────────────────────
 
@@ -71,7 +72,7 @@ export const AUTONOMY_LABELS: Record<AutonomyLevel, string> = {
 
 export const CEO_AUTONOMY: AutonomyGrant[] = [
   { capability: 'create-work', level: 'L2', holder: CEO_ID, limits: { maxPriority: 'P2' } },
-  { capability: 'assign-work', level: 'L2', holder: CEO_ID, limits: { restrictedRoles: ['prince'] } },
+  { capability: 'assign-work', level: 'L2', holder: CEO_ID, limits: { restrictedRoles: ['technical_deployment_officer'] } },
   { capability: 'triage-work', level: 'L2', holder: CEO_ID },
   { capability: 'prioritise-work', level: 'L1', holder: CEO_ID },
   { capability: 'escalate-work', level: 'L2', holder: CEO_ID },
@@ -129,7 +130,7 @@ export interface CommMessage {
 
 export type QuestionStatus = 'open' | 'answered' | 'superseded';
 
-export type QuestionRouting = 'technical' | 'brand' | 'financial' | 'strategic' | 'ops' | 'legal';
+export type QuestionRouting = 'technical' | 'brand' | 'financial' | 'strategic' | 'technical_deployment' | 'legal';
 
 export interface WorkQuestion {
   id: string;
@@ -145,13 +146,13 @@ export interface WorkQuestion {
   answered_at: string | null;
 }
 
-export function routeQuestion(routing: QuestionRouting): string {
+export function routeQuestion(routing: QuestionRouting, bindings: RoleBindings = ROLE_BINDINGS): string {
   switch (routing) {
     case 'technical': return 'DS-02';
     case 'brand': return 'DS-02';
     case 'financial': return 'DS-13';
     case 'strategic': return 'DS-00';
-    case 'ops': return 'DS-00';
+    case 'technical_deployment': return holdersOf('technical_deployment_officer', bindings)[0]?.actor.id ?? 'DS-00';
     case 'legal': return 'DS-00';
   }
 }

@@ -1,309 +1,353 @@
 // CEO Runtime → Work Registry orchestrator.
-// Deterministic pipeline: Founder Input → classify → context → authority → response → proposed action.
-// No AI invocations. No external execution. No network. No side effects beyond Work Registry mutations.
+// Founder Input → classify → bounded context → authority → existing Work → response → registry mutation.
+// Deterministic. No AI invocations, no network, no external execution. Every mutation is a Work Registry
+// operation, so it lands in the append-only audit trail. Routing is by role; roles.ts names the holders.
 
 import type { InMemoryWorkRegistry } from '../work/registry';
-import type { Actor, WorkItem, Scope } from '../work/types';
+import type { Actor, Priority, WorkItem, Scope } from '../work/types';
+import { isVirat } from '../work/actors';
 import { Scopes } from '../work/scope';
-import { CEO, CEO_ID, brandCeoFor } from './types';
+import { CEO, autonomyFor, brandCeoFor, type WorkQuestion } from './types';
 import type { FounderInput } from './founder-input';
-import { classifyFounderInput } from './founder-input';
 import { buildContextPack, type ContextPack } from './context-pack';
 import { checkAuthority, requiredCapabilityForInput, canCeoAssign, type AuthorityVerdict } from './authority';
 import { buildCeoResponse, type CeoResponse } from './response';
-import { findExistingWork, suggestOwner } from './coordinator';
+import { createQuestion } from './coordinator';
+import {
+  ROLE_BINDINGS, functionForText, roleForFunction, holdersOf,
+  type RoleBindings, type RoleDefinition, type WorkFunction,
+} from './roles';
 
 export type OrchestratorOutcomeKind =
   | 'work_created'
   | 'work_updated'
-  | 'work_found'
   | 'approval_recorded'
-  | 'decision_recorded'
   | 'evidence_attached'
   | 'question_answered'
-  | 'delegated'
+  | 'question_raised'
   | 'acknowledged'
-  | 'escalated';
+  | 'escalated'
+  | 'denied';
+
+export interface RoutingDecision {
+  function: WorkFunction;
+  role: string;
+  roleLabel: string;
+  currentHolders: string[];
+  governance: string;
+  approval: { authority: string; from: string };
+}
 
 export interface OrchestratorOutcome {
   kind: OrchestratorOutcomeKind;
   input: FounderInput;
-  context: ContextPack;
-  response: CeoResponse;
+  context: ContextPack | null;
+  response: CeoResponse | null;
   authority: AuthorityVerdict;
   workItem: WorkItem | null;
+  reusedExistingWork: boolean;
+  routing: RoutingDecision | null;
+  question: WorkQuestion | null;
   summary: string;
   mutationApplied: boolean;
   escalationRequired: boolean;
   nextStep: string;
+  trace: string[];
 }
 
-export interface OrchestratorContext {
+export interface OrchestratorOptions {
   now?: Date;
+  bindings?: RoleBindings;
 }
+
+const PRIORITY_RANK: Record<Priority, number> = { P0: 0, P1: 1, P2: 2, P3: 3, P4: 4 };
 
 export function processFounderInput(
   input: FounderInput,
   registry: InMemoryWorkRegistry,
-  opts: OrchestratorContext = {},
+  opts: OrchestratorOptions = {},
 ): OrchestratorOutcome {
   const now = opts.now ?? new Date();
+  const bindings = opts.bindings ?? ROLE_BINDINGS;
+
+  if (!isVirat(input.from)) {
+    const authority = checkAuthority('unknown-founder-principal');
+    return base(input, null, null, authority, {
+      kind: 'denied',
+      summary: 'Founder input is accepted only from the Founder principal',
+      escalationRequired: false,
+      nextStep: 'No action taken',
+    });
+  }
 
   const context = buildContextPack(input, registry, now);
   const response = buildCeoResponse(context);
   const capability = requiredCapabilityForInput(input);
   const authority = checkAuthority(capability);
+  const fn = input.kind === 'work_request' || input.kind === 'instruction' || input.kind === 'question'
+    ? functionForText(input.text)
+    : null;
+  const routing = fn ? routingFor(roleForFunction(fn, bindings)) : null;
+  const ctx: Ctx = { input, context, response, authority, registry, now, bindings, routing };
 
-  switch (response.kind) {
-    case 'acknowledge':
-      return acknowledgeOutcome(input, context, response, authority);
-
-    case 'answer':
-      return answerOutcome(input, context, response, authority);
-
-    case 'attach_to_work':
-      return attachOutcome(input, context, response, authority, registry, now);
-
-    case 'act':
-      return actOutcome(input, context, response, authority, registry, now);
-
-    case 'recommend':
-      return recommendOutcome(input, context, response, authority);
-
-    case 'escalate':
-      return escalateOutcome(input, context, response, authority, registry, now);
-
-    case 'delegate':
-      return delegateOutcome(input, context, response, authority, registry, now);
+  switch (input.kind) {
+    case 'relationship':
+    case 'context':
+      return done(ctx, { kind: 'acknowledged', summary: response.summary, nextStep: response.nextStep });
+    case 'evidence':
+      return evidenceFlow(ctx);
+    case 'question':
+      return questionFlow(ctx);
+    case 'approval':
+      return approvalFlow(ctx);
+    case 'decision':
+      return decisionFlow(ctx);
+    case 'work_request':
+    case 'instruction':
+      return workFlow(ctx);
   }
 }
 
-function acknowledgeOutcome(
-  input: FounderInput, context: ContextPack, response: CeoResponse, authority: AuthorityVerdict,
+interface Ctx {
+  input: FounderInput;
+  context: ContextPack;
+  response: CeoResponse;
+  authority: AuthorityVerdict;
+  registry: InMemoryWorkRegistry;
+  now: Date;
+  bindings: RoleBindings;
+  routing: RoutingDecision | null;
+}
+
+type Partial_ = Partial<OrchestratorOutcome> & Pick<OrchestratorOutcome, 'kind' | 'summary' | 'nextStep'>;
+
+function base(
+  input: FounderInput, context: ContextPack | null, response: CeoResponse | null, authority: AuthorityVerdict, p: Partial_,
 ): OrchestratorOutcome {
-  const kind: OrchestratorOutcomeKind = input.kind === 'decision' ? 'decision_recorded' : 'acknowledged';
   return {
-    kind,
     input, context, response, authority,
-    workItem: null,
-    summary: response.summary,
-    mutationApplied: false,
-    escalationRequired: false,
-    nextStep: response.nextStep,
+    workItem: null, reusedExistingWork: false, routing: null, question: null,
+    mutationApplied: false, escalationRequired: false, trace: [],
+    ...p,
   };
 }
 
-function answerOutcome(
-  input: FounderInput, context: ContextPack, response: CeoResponse, authority: AuthorityVerdict,
-): OrchestratorOutcome {
+function done(c: Ctx, p: Partial_): OrchestratorOutcome {
+  return base(c.input, c.context, c.response, c.authority, { routing: c.routing, ...p });
+}
+
+function routingFor(role: RoleDefinition): RoutingDecision {
   return {
-    kind: 'question_answered',
-    input, context, response, authority,
-    workItem: context.relatedWork[0] ?? null,
-    summary: response.summary,
-    mutationApplied: false,
-    escalationRequired: false,
-    nextStep: response.nextStep,
+    function: role.function,
+    role: role.id,
+    roleLabel: role.label,
+    currentHolders: role.holders.map((h) => h.name),
+    governance: role.governance,
+    approval: { authority: role.assignmentAuthority, from: 'virat' },
   };
 }
 
-function attachOutcome(
-  input: FounderInput, context: ContextPack, response: CeoResponse, authority: AuthorityVerdict,
-  registry: InMemoryWorkRegistry, now: Date,
-): OrchestratorOutcome {
-  const workId = input.work_id ?? context.relatedWork[0]?.id ?? null;
-  let workItem: WorkItem | null = null;
+function traceLine(c: Ctx, matched: WorkItem | null, result: string): string {
+  const auth = c.authority.allowed
+    ? `${c.authority.capability} ${c.authority.level} allowed`
+    : `${c.authority.capability} ${c.authority.level} needs ${c.authority.holder}`;
+  const route = c.routing ? `; routing ${c.routing.function} -> ${c.routing.role} (holder: ${c.routing.currentHolders.join(', ') || 'none'})` : '';
+  const approval = c.routing ? `; approval ${c.routing.approval.authority} from ${c.routing.approval.from}` : '';
+  return `Founder input ${c.input.id} [${c.input.kind}, ${c.input.urgency}]: authority ${auth}; matched work ${matched?.ref ?? 'none'}${route}${approval}; ${result}`;
+}
+
+function logTrace(c: Ctx, workId: string, matched: WorkItem | null, result: string): string {
+  const line = traceLine(c, matched, result);
+  c.registry.logAction(workId, { summary: line }, CEO);
+  return line;
+}
+
+// ── evidence ───────────────────────────────────────────────────────────────
+
+function evidenceFlow(c: Ctx): OrchestratorOutcome {
+  const workId = c.input.work_id ?? c.context.matchedWork?.id ?? null;
+  const item = workId ? c.registry.get(workId) ?? null : null;
+  if (!item) {
+    return done(c, { kind: 'acknowledged', summary: 'Evidence received, but no matching Work was found', nextStep: 'Say which Work this belongs to' });
+  }
+  const added = c.registry.addEvidence(item.id, { kind: 'note', ref: `founder-input:${c.input.id}`, summary: c.input.text }, c.input.from);
+  if (!added.ok) {
+    return done(c, { kind: 'escalated', workItem: item, summary: `Could not attach evidence to ${item.ref}: ${added.error.message}`, escalationRequired: true, nextStep: 'Review the item state' });
+  }
+  const trace = logTrace(c, item.id, item, `evidence ${added.value.id} attached`);
+  return done(c, {
+    kind: 'evidence_attached', workItem: c.registry.get(item.id)!, reusedExistingWork: true,
+    summary: `Evidence attached to ${item.ref}`, mutationApplied: true, nextStep: `Evidence recorded on ${item.ref}`, trace: [trace],
+  });
+}
+
+// ── questions ──────────────────────────────────────────────────────────────
+
+function questionFlow(c: Ctx): OrchestratorOutcome {
+  if (!c.routing) {
+    return done(c, {
+      kind: 'question_answered', workItem: c.context.matchedWork,
+      summary: c.response.summary, nextStep: c.response.nextStep,
+    });
+  }
+  const matched = c.context.matchedWork;
+  const question = createQuestion(matched?.id ?? '', c.input.from, c.input.text, 'technical_deployment', c.now, c.bindings);
+  let trace: string[] = [];
   let mutationApplied = false;
-
-  if (workId) {
-    const result = registry.addEvidence(workId, {
-      kind: 'note',
-      ref: `founder-input:${input.id}`,
-      summary: input.text,
-    }, input.from);
-    if (result.ok) {
-      mutationApplied = true;
-    }
-    workItem = registry.list().find((i) => i.id === workId) ?? null;
+  if (matched) {
+    trace = [logTrace(c, matched.id, matched, `question ${question.id} routed to ${c.routing.role}`)];
+    mutationApplied = true;
   }
-
-  return {
-    kind: 'evidence_attached',
-    input, context, response, authority,
-    workItem,
-    summary: workItem ? `Evidence attached to ${workItem.ref}` : 'No matching work found for evidence',
+  return done(c, {
+    kind: 'question_raised', workItem: matched, reusedExistingWork: !!matched, question,
+    summary: `Question for the ${c.routing.roleLabel} (${c.routing.currentHolders.join(', ')})${matched ? `, attached to ${matched.ref}` : ', no Work to attach to yet'}`,
     mutationApplied,
-    escalationRequired: false,
-    nextStep: workItem ? `Evidence recorded on ${workItem.ref}` : 'Clarify which work this relates to',
-  };
+    nextStep: matched ? 'Virat decides whether to pass the question on' : 'Open Work for this, or say which Work it belongs to',
+    trace,
+  });
 }
 
-function actOutcome(
-  input: FounderInput, context: ContextPack, response: CeoResponse, authority: AuthorityVerdict,
-  registry: InMemoryWorkRegistry, now: Date,
-): OrchestratorOutcome {
-  if (!authority.allowed) {
-    return recommendOutcome(input, context, response, authority);
+// ── approvals ──────────────────────────────────────────────────────────────
+
+function approvalFlow(c: Ctx): OrchestratorOutcome {
+  const pending = c.context.pendingApprovals;
+  if (pending.length === 0) {
+    return done(c, { kind: 'acknowledged', summary: 'No pending approvals found', nextStep: 'Clarify which approval this refers to' });
+  }
+  const match = c.input.work_id ? pending.find((p) => p.id === c.input.work_id) : pending.length === 1 ? pending[0] : undefined;
+  if (!match) {
+    const refs = pending.map((p) => `${p.ref} "${p.title}"`).join('; ');
+    return done(c, {
+      kind: 'escalated', summary: `${pending.length} approvals are pending: ${refs}. Not guessing which one you mean`,
+      escalationRequired: true, nextStep: 'Reply with the Work reference to approve',
+    });
   }
 
-  if (context.relatedWork.length > 0) {
-    const existing = context.relatedWork[0];
-    return {
-      kind: 'work_found',
-      input, context, response, authority,
-      workItem: existing,
-      summary: `Existing work: ${existing.ref} "${existing.title}" (${existing.state})`,
-      mutationApplied: false,
-      escalationRequired: false,
-      nextStep: `Update ${existing.ref}`,
-    };
+  const approval = match.approval!;
+  const decided = c.registry.decideApproval(match.id, 'approved', c.input.from, `Founder approval: ${c.input.text}`);
+  if (!decided.ok) {
+    return done(c, { kind: 'escalated', workItem: match, summary: `Approval not recorded on ${match.ref}: ${decided.error.message}`, escalationRequired: true, nextStep: 'Review the approval request' });
   }
 
-  const scope = input.scope ?? Scopes.devshop();
-  const owner = resolveWorkOwner(input, scope);
-
-  if (owner) {
-    const assignCheck = canCeoAssign(owner);
-    if (!assignCheck.allowed) {
-      return {
-        kind: 'escalated',
-        input, context, response, authority,
-        workItem: null,
-        summary: `Cannot assign to ${owner.id}: ${(assignCheck as any).reason}`,
-        mutationApplied: false,
-        escalationRequired: true,
-        nextStep: `Approval required before assigning to ${owner.id}`,
-      };
+  const trace: string[] = [];
+  let result = `approval ${approval.id} (${approval.authority}) approved by ${c.input.from.id}`;
+  const role = Object.values(c.bindings).find((r) => r.assignmentAuthority === approval.authority);
+  if (role) {
+    const holder = holdersOf(role.id, c.bindings)[0];
+    if (holder) {
+      const re = c.registry.reassign(match.id, holder.actor, c.input.from, `Approved by Virat (${approval.id}): assign to ${role.label}`, { keepPreviousAsSupporting: true });
+      result += re.ok ? `; assigned to ${role.id} (${holder.name})` : `; assignment to ${role.id} failed: ${re.error.message}`;
     }
   }
+  trace.push(logTrace(c, match.id, match, result));
+  return done(c, {
+    kind: 'approval_recorded', workItem: c.registry.get(match.id)!, reusedExistingWork: true,
+    summary: `Approved on ${match.ref}: ${result}`, mutationApplied: true, nextStep: 'Work resumes with its owner', trace,
+  });
+}
 
-  const result = registry.createItem({
-    title: input.text,
-    description: `Founder input: ${input.text}`,
-    type: input.kind === 'instruction' ? 'task' : 'request',
+// ── decisions ──────────────────────────────────────────────────────────────
+
+function decisionFlow(c: Ctx): OrchestratorOutcome {
+  const matched = c.context.matchedWork;
+  if (!matched) {
+    return done(c, {
+      kind: 'acknowledged', summary: 'Decision noted but not recorded: there is no Work for it to attach to',
+      nextStep: 'Say which Work it applies to, or ask me to open Work for it',
+    });
+  }
+  const trace = logTrace(c, matched.id, matched, `founder decision recorded: "${c.input.text}"`);
+  return done(c, {
+    kind: 'acknowledged', workItem: c.registry.get(matched.id)!, reusedExistingWork: true,
+    summary: `Decision recorded on ${matched.ref}`, mutationApplied: true, nextStep: 'Propagate to the Work owner', trace: [trace],
+  });
+}
+
+// ── work ───────────────────────────────────────────────────────────────────
+
+function workFlow(c: Ctx): OrchestratorOutcome {
+  if (!c.authority.allowed) {
+    return done(c, { kind: 'escalated', summary: c.response.summary, escalationRequired: true, nextStep: c.response.nextStep });
+  }
+
+  const matched = c.context.matchedWork;
+  if (matched) {
+    const trace = logTrace(c, matched.id, matched, 'existing work reused, no new work created');
+    return done(c, {
+      kind: 'work_updated', workItem: c.registry.get(matched.id)!, reusedExistingWork: true,
+      summary: `Existing work: ${matched.ref} "${matched.title}" (${matched.state})`,
+      mutationApplied: true, nextStep: `Update ${matched.ref}`, trace: [trace],
+    });
+  }
+
+  const scope: Scope = c.input.scope ?? Scopes.devshop();
+  const owner = c.routing
+    ? ({ kind: 'agent', id: c.routing.governance } as Actor)
+    : brandOwner(c.input) ?? CEO;
+  const assign = canCeoAssign(owner, c.bindings);
+  if (!assign.allowed) {
+    return done(c, { kind: 'escalated', summary: `Cannot assign to ${owner.id}: ${assign.reason}`, escalationRequired: true, nextStep: `Approval from ${assign.holder} needed first` });
+  }
+
+  const created = c.registry.createItem({
+    title: c.input.text,
+    description: `Founder input ${c.input.id}: ${c.input.text}`,
+    type: c.input.kind === 'instruction' ? 'task' : 'request',
     level: 'work_item',
     scope,
-    source: { channel: 'founder_request', requester: input.from },
+    source: { channel: 'founder_request', requester: c.input.from },
   }, CEO);
+  if (!created.ok) {
+    return done(c, { kind: 'escalated', summary: `Work not created: ${created.error.message}`, escalationRequired: true, nextStep: 'Investigate' });
+  }
+  const id = created.value.id;
+  const steps: string[] = [];
 
-  if (!result.ok) {
-    return {
-      kind: 'escalated',
-      input, context, response, authority,
-      workItem: null,
-      summary: `Failed to create work: ${result.error}`,
-      mutationApplied: false,
-      escalationRequired: true,
-      nextStep: 'Investigate work creation failure',
-    };
+  const { priority, reason } = priorityFor(c.input);
+  const triaged = c.registry.transition(id, 'triaged', CEO, { payload: { triage: { type: created.value.type, priority, priority_reason: reason, scope } } });
+  steps.push(triaged.ok ? `triaged ${priority}` : `triage failed: ${triaged.error.message}`);
+  const assigned = triaged.ok ? c.registry.transition(id, 'assigned', CEO, { payload: { owner } }) : null;
+  if (assigned) steps.push(assigned.ok ? `owner ${owner.id}` : `assignment failed: ${assigned.error.message}`);
+
+  let escalationRequired = false;
+  let nextStep = `Work with ${owner.id}`;
+  if (c.routing && assigned?.ok) {
+    const ev = c.registry.addEvidence(id, { kind: 'note', ref: `founder-input:${c.input.id}`, summary: c.input.text }, CEO);
+    const req = ev.ok
+      ? c.registry.requestApproval(id, {
+          requested_from: 'virat',
+          authority: roleForFunction(c.routing.function, c.bindings).assignmentAuthority,
+          reason: `Technical deployment work needs the ${c.routing.roleLabel}`,
+          evidence_ids: [ev.value.id],
+          recommendation: `Assign to ${c.routing.role} (current holder: ${c.routing.currentHolders.join(', ')}) once approved`,
+        }, CEO)
+      : null;
+    steps.push(req?.ok ? `approval requested from ${c.routing.approval.from}` : `approval request failed: ${req ? req.error.message : 'evidence not added'}`);
+    escalationRequired = true;
+    nextStep = `Awaiting Virat's approval before assigning to ${c.routing.roleLabel}`;
   }
 
-  return {
-    kind: 'work_created',
-    input, context, response, authority,
-    workItem: result.value,
-    summary: `Created: ${result.value.ref} "${input.text}"`,
-    mutationApplied: true,
-    escalationRequired: false,
-    nextStep: owner ? `Assign to ${owner.id}` : 'Triage and assign',
-  };
+  const trace = logTrace(c, id, null, `new work created; ${steps.join('; ')}`);
+  return done(c, {
+    kind: 'work_created', workItem: c.registry.get(id)!,
+    summary: `Created ${created.value.ref} "${c.input.text}"`, mutationApplied: true, escalationRequired, nextStep, trace: [trace],
+  });
 }
 
-function recommendOutcome(
-  input: FounderInput, context: ContextPack, response: CeoResponse, authority: AuthorityVerdict,
-): OrchestratorOutcome {
-  return {
-    kind: 'escalated',
-    input, context, response, authority,
-    workItem: null,
-    summary: response.summary,
-    mutationApplied: false,
-    escalationRequired: true,
-    nextStep: response.nextStep,
-  };
+function brandOwner(input: FounderInput): Actor | null {
+  const b = input.brand ? brandCeoFor(input.brand) : undefined;
+  return b ? { kind: 'agent', id: b.id } : null;
 }
 
-function escalateOutcome(
-  input: FounderInput, context: ContextPack, response: CeoResponse, authority: AuthorityVerdict,
-  registry: InMemoryWorkRegistry, now: Date,
-): OrchestratorOutcome {
-  if (input.kind === 'approval' && context.pendingApprovals.length > 0) {
-    const match = input.work_id
-      ? context.pendingApprovals.find((p) => p.id === input.work_id)
-      : context.pendingApprovals[0];
-
-    if (match) {
-      return {
-        kind: 'approval_recorded',
-        input, context, response, authority,
-        workItem: match,
-        summary: `Approval for: ${match.title}`,
-        mutationApplied: false,
-        escalationRequired: true,
-        nextStep: 'Record the founder decision on this approval',
-      };
-    }
-  }
-
+/** Founder urgency to priority, capped by the create-work grant (the CEO does not set anything above its cap). */
+function priorityFor(input: FounderInput): { priority: Priority; reason: string } {
+  const wanted: Priority = input.urgency === 'critical' ? 'P1' : input.urgency === 'urgent' ? 'P2' : 'P3';
+  const cap = (autonomyFor('create-work')?.limits?.maxPriority as Priority | undefined) ?? 'P2';
+  const capped = PRIORITY_RANK[wanted] < PRIORITY_RANK[cap];
   return {
-    kind: 'escalated',
-    input, context, response, authority,
-    workItem: null,
-    summary: response.summary,
-    mutationApplied: false,
-    escalationRequired: true,
-    nextStep: response.nextStep,
+    priority: capped ? cap : wanted,
+    reason: capped
+      ? `Founder wording is ${input.urgency}; capped at ${cap} by the CEO create-work grant, Virat may raise it`
+      : `Set from founder wording (${input.urgency})`,
   };
-}
-
-function delegateOutcome(
-  input: FounderInput, context: ContextPack, response: CeoResponse, authority: AuthorityVerdict,
-  registry: InMemoryWorkRegistry, now: Date,
-): OrchestratorOutcome {
-  const delegateTo = response.delegateTo;
-  const existing = context.relatedWork[0] ?? null;
-
-  if (!existing && authority.allowed && input.kind === 'instruction') {
-    const scope = input.scope ?? Scopes.devshop();
-    const result = registry.createItem({
-      title: input.text,
-      description: `Founder instruction: ${input.text}`,
-      type: 'task',
-      level: 'work_item',
-      scope,
-      source: { channel: 'founder_request', requester: input.from },
-    }, CEO);
-
-    if (result.ok) {
-      return {
-        kind: 'work_created',
-        input, context, response, authority,
-        workItem: result.value,
-        summary: `Created and delegated: ${result.value.ref}`,
-        mutationApplied: true,
-        escalationRequired: false,
-        nextStep: delegateTo ? `Delegate to ${delegateTo.id}` : 'Assign owner',
-      };
-    }
-  }
-
-  return {
-    kind: 'delegated',
-    input, context, response, authority,
-    workItem: existing,
-    summary: delegateTo
-      ? `Delegated to ${delegateTo.id}${existing ? ` (${existing.ref})` : ''}`
-      : response.summary,
-    mutationApplied: false,
-    escalationRequired: false,
-    nextStep: response.nextStep,
-  };
-}
-
-function resolveWorkOwner(input: FounderInput, scope: Scope): Actor | null {
-  if (input.brand) {
-    const brandCeo = brandCeoFor(input.brand);
-    if (brandCeo) return { kind: 'agent', id: brandCeo.id };
-  }
-  return null;
 }

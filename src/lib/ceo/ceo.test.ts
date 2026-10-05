@@ -133,8 +133,8 @@ describe('Scenario C: Question on work', () => {
     assert.equal(routeQuestion('strategic'), 'DS-00');
   });
 
-  it('ops questions route to Virat', () => {
-    assert.equal(routeQuestion('ops'), 'DS-00');
+  it('technical deployment questions route to the role holder', () => {
+    assert.equal(routeQuestion('technical_deployment'), 'P-01');
   });
 
   it('questions can be answered', () => {
@@ -163,7 +163,7 @@ describe('Scenario D: Blocked work detection', () => {
     const item = r.ok ? r.value : null;
     assert.ok(item);
 
-    reg.transition(item!.id, 'triaged', CEO, { payload: { triage: { type: 'incident', priority: 'P1', reason: 'broken', scope: item!.scope } } });
+    reg.transition(item!.id, 'triaged', CEO, { payload: { triage: { type: 'incident', priority: 'P1', priority_reason: 'broken', scope: item!.scope } } });
     reg.transition(item!.id, 'assigned', CEO, { payload: { owner: { kind: 'agent', id: 'TC-01' } } });
     reg.transition(item!.id, 'in_progress', { kind: 'agent', id: 'TC-01' });
     reg.transition(item!.id, 'blocked', { kind: 'agent', id: 'TC-01' }, { payload: { blocked: { reason: 'Waiting on DNS' } } });
@@ -190,7 +190,7 @@ describe('Scenario E: Approval required', () => {
     }, CEO);
     assert.ok(r.ok);
     const item = r.ok ? r.value : null!;
-    reg.transition(item.id, 'triaged', CEO, { payload: { triage: { type: 'request', priority: 'P2', reason: 'budget', scope: item.scope } } });
+    reg.transition(item.id, 'triaged', CEO, { payload: { triage: { type: 'request', priority: 'P2', priority_reason: 'budget', scope: item.scope } } });
     reg.transition(item.id, 'assigned', CEO, { payload: { owner: CEO } });
     reg.transition(item.id, 'in_progress', CEO);
     const ev = reg.addEvidence(item.id, { kind: 'metric', ref: 'roas-report', summary: 'ROAS above floor for 7 days' }, CEO);
@@ -315,7 +315,7 @@ describe('Scenario J: Morning board — material exceptions only', () => {
     // P0 incident — SHOULD appear
     const r = reg.createItem({ title: 'Payment gateway down', description: '', type: 'incident', level: 'work_item', scope: Scopes.brand('caps'), source: { channel: 'system_alert', requester: CEO } }, CEO);
     if (r.ok) {
-      reg.transition(r.value.id, 'triaged', CEO, { payload: { triage: { type: 'incident', priority: 'P0', reason: 'gateway', scope: r.value.scope } } });
+      reg.transition(r.value.id, 'triaged', CEO, { payload: { triage: { type: 'incident', priority: 'P0', priority_reason: 'gateway', scope: r.value.scope } } });
     }
 
     const board = buildMorningBoard(reg, now);

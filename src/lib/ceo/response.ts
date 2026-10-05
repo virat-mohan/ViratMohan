@@ -84,7 +84,7 @@ function acknowledge(input: FounderInput, authority: AuthorityVerdict, summary: 
 }
 
 function attachToWork(input: FounderInput, authority: AuthorityVerdict, context: ContextPack): CeoResponse {
-  const workId = input.work_id ?? (context.relatedWork[0]?.id ?? null);
+  const workId = input.work_id ?? (context.matchedWork?.id ?? null);
   return {
     kind: 'attach_to_work',
     input,
@@ -175,8 +175,8 @@ function handleDecision(input: FounderInput, authority: AuthorityVerdict, contex
 }
 
 function handleWorkRequest(input: FounderInput, authority: AuthorityVerdict, context: ContextPack): CeoResponse {
-  if (context.relatedWork.length > 0) {
-    const existing = context.relatedWork[0];
+  if (context.matchedWork) {
+    const existing = context.matchedWork;
     return {
       kind: 'act',
       input,
@@ -228,8 +228,8 @@ function handleWorkRequest(input: FounderInput, authority: AuthorityVerdict, con
 }
 
 function handleInstruction(input: FounderInput, authority: AuthorityVerdict, context: ContextPack): CeoResponse {
-  if (context.relatedWork.length > 0) {
-    const existing = context.relatedWork[0];
+  if (context.matchedWork) {
+    const existing = context.matchedWork;
     const owner = existing.owner;
     return {
       kind: owner ? 'delegate' : 'act',

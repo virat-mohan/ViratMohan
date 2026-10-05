@@ -12,6 +12,7 @@
     "check:brand": "node scripts/check-brand-tokens.mjs",
     "test": "vitest run tests/unit",
     "test:watch": "vitest tests/unit",
+    "test:ceo": "esbuild src/lib/ceo/*.test.ts --bundle --platform=node --format=esm --outdir=.tmp-test/ceo --out-extension:.js=.mjs --log-level=warning && node --test \".tmp-test/ceo/*.test.mjs\"",
     "test:live": "vitest run tests/benchmarks"
   },
   "dependencies": {

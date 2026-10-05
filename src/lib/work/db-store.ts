@@ -78,12 +78,12 @@ export interface WorkStore {
   persist(snapshot: { items: WorkItem[]; sourceEvents: SourceEvent[]; links: WorkLink[]; locks: RepoLock[] }): Promise<void>;
 }
 
-type DbResult<T> = Promise<{ data: T[] | null; error: { message: string } | null }>;
+type DbResult<T> = PromiseLike<{ data: T[] | null; error: { message: string } | null }>;
 type Sb = {
   from(table: string): {
     select: (cols?: string) => DbResult<Record<string, unknown>>;
-    upsert: (rows: unknown[], opts?: { onConflict: string; ignoreDuplicates?: boolean }) => Promise<{ error: { message: string } | null }>;
-    insert: (rows: unknown[]) => Promise<{ error: { message: string } | null }>;
+    upsert: (rows: unknown[], opts?: { onConflict: string; ignoreDuplicates?: boolean }) => PromiseLike<{ error: { message: string } | null }>;
+    insert: (rows: unknown[]) => PromiseLike<{ error: { message: string } | null }>;
   };
 };
 

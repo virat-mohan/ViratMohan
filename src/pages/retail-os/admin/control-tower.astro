@@ -80,8 +80,8 @@ const BRAND_STATUS: Record<string, string> = {
   korbi: 'Retail OS Live',
 };
 
-const TAB_NAMES = ['board', 'pipeline', 'agents', 'brands'] as const;
-const TAB_LABEL: Record<string, string> = { board: 'Morning Board', pipeline: 'Work Pipeline', agents: 'Agents', brands: 'Brands' };
+const TAB_NAMES = ['board', 'pipeline', 'agents', 'brands', 'ceo'] as const;
+const TAB_LABEL: Record<string, string> = { board: 'Morning Board', pipeline: 'Work Pipeline', agents: 'Agents', brands: 'Brands', ceo: 'Ask the CEO' };
 const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_NAMES[number]) ? Astro.url.searchParams.get('tab')! : 'board';
 ---
 <html lang="en">
@@ -162,6 +162,19 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
     .brand-work { font-size: 0.82rem; color: var(--ink-muted); }
     .notice { padding: 12px 16px; border-radius: 8px; background: #FFF8E1; border: 1px solid #FFE082; font-size: 0.82rem; color: #6D5B00; margin-bottom: 16px; }
 
+    /* — Ask the CEO — */
+    .ask label { display: block; font-size: 0.8rem; color: var(--ink-muted); margin-bottom: 4px; }
+    .ask textarea, .ask select, .ask input { min-height: 44px; width: 100%; font: inherit; font-size: 1rem; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--paper); color: var(--ink); }
+    .ask textarea { min-height: 96px; resize: vertical; }
+    .ask .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+    .ask button { min-height: 44px; padding: 0 20px; border-radius: 8px; border: 1px solid var(--ink); background: var(--ink); color: var(--paper); font: inherit; font-size: 1rem; cursor: pointer; }
+    .ask button[disabled] { opacity: 0.55; cursor: default; }
+    .resp dl { display: grid; grid-template-columns: 9rem 1fr; gap: 8px 12px; font-size: 0.88rem; }
+    .resp dt { color: var(--ink-muted); }
+    .resp dd { overflow-wrap: anywhere; }
+    .resp ul { margin: 0; padding-left: 18px; }
+    @media (max-width: 600px) { .ask .row { grid-template-columns: 1fr; } .resp dl { grid-template-columns: 1fr; gap: 2px; } .resp dd { margin-bottom: 8px; } }
+
     /* — Mobile-first responsive — */
     @media (max-width: 600px) {
       .shell { padding: 16px 16px 48px; }
@@ -206,18 +219,19 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
     </nav>
 
     <h1>Founder Control Tower</h1>
-    <p class="subtitle">DevShop Retail OS — {now.toISOString().slice(0, 10)} — Read-only operating view</p>
+    <p class="subtitle">DevShop Retail OS — {now.toISOString().slice(0, 10)} — Operating view. Only the Ask the CEO tab writes, through the CEO runtime</p>
 
     <div class="tabs" role="tablist">
       <a class={`tab ${tab === 'board' ? 'active' : ''}`} href="?tab=board" role="tab" aria-selected={tab === 'board'}>Morning Board</a>
       <a class={`tab ${tab === 'pipeline' ? 'active' : ''}`} href="?tab=pipeline" role="tab" aria-selected={tab === 'pipeline'}>Work Pipeline</a>
       <a class={`tab ${tab === 'agents' ? 'active' : ''}`} href="?tab=agents" role="tab" aria-selected={tab === 'agents'}>Agents</a>
       <a class={`tab ${tab === 'brands' ? 'active' : ''}`} href="?tab=brands" role="tab" aria-selected={tab === 'brands'}>Brands</a>
+      <a class={`tab ${tab === 'ceo' ? 'active' : ''}`} href="?tab=ceo" role="tab" aria-selected={tab === 'ceo'}>Ask the CEO</a>
     </div>
 
     {dataSource === 'supabase' ? (
       <div class="notice" style="background:#E8F5E9;border-color:#A5D6A7;color:#1B5E20">
-        Data source: control-plane Work Registry (Supabase). Read-only. {registry.list().length} work items loaded.
+        Data source: control-plane Work Registry (Supabase). {registry.list().length} work items loaded.
       </div>
     ) : (
       <div class="notice">
@@ -400,9 +414,72 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
       </div>
     )}
 
+    {tab === 'ceo' && (
+      <div class="ask">
+        <div class="card">
+          <h2>Ask the CEO</h2>
+          <p class="subtitle" style="margin-bottom:12px">Dev (DS-02) checks existing Work first, then your authority rules. Nothing is sent, deployed or spent from here.</p>
+          <form id="ceo-form">
+            <label for="ceo-text">Request, question, approval or decision</label>
+            <textarea id="ceo-text" maxlength="2000" required></textarea>
+            <div class="row">
+              <div>
+                <label for="ceo-brand">Brand (optional)</label>
+                <select id="ceo-brand">
+                  <option value="">No brand</option>
+                  {Object.entries(BRAND_LABEL).map(([key, name]) => <option value={key}>{name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label for="ceo-work">Work reference (optional)</label>
+                <input id="ceo-work" type="text" autocomplete="off" />
+              </div>
+            </div>
+            <button type="submit" id="ceo-send">Send to the CEO</button>
+          </form>
+        </div>
+        <div class="card resp" id="ceo-result" hidden aria-live="polite"></div>
+      </div>
+    )}
+
     <p style="margin-top:32px;font-size:0.72rem;color:var(--ink-muted);text-align:center">
-      Founder Control Tower · DevShop Retail OS · Read-only · Source: {dataSource === 'supabase' ? 'Control-plane Work Registry' : 'Empty (not connected)'}
+      Founder Control Tower · DevShop Retail OS · Source: {dataSource === 'supabase' ? 'Control-plane Work Registry' : 'Empty (not connected)'}
     </p>
   </div>
+
+  <script>
+    const form = document.getElementById('ceo-form');
+    if (form) {
+      const out = document.getElementById('ceo-result');
+      const btn = document.getElementById('ceo-send');
+      const row = (dl, k, v) => { if (v === null || v === undefined || v === '') return; const dt = document.createElement('dt'); dt.textContent = k; const dd = document.createElement('dd'); dd.textContent = v; dl.append(dt, dd); };
+      const ref = (w) => w ? `${w.ref} "${w.title}" (${w.state}${w.priority ? ', ' + w.priority : ''}${w.owner ? ', owner ' + w.owner : ''})` : null;
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        btn.disabled = true; btn.textContent = 'Working…';
+        out.hidden = false; out.replaceChildren();
+        try {
+          const res = await fetch('/retail-os/api/admin/ceo-input', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text: document.getElementById('ceo-text').value, brand: document.getElementById('ceo-brand').value || null, work_id: document.getElementById('ceo-work').value || null }) });
+          const d = await res.json();
+          if (!res.ok) { out.textContent = d.error || 'Something went wrong'; return; }
+          const dl = document.createElement('dl');
+          row(dl, 'Understood', `${d.understood.kind}, ${d.understood.urgency}${d.understood.brand ? ', ' + d.understood.brand : ''}`);
+          row(dl, 'Result', d.outcome.summary);
+          row(dl, 'Work', ref(d.work));
+          row(dl, 'Existing Work reused', d.outcome.reusedExistingWork ? 'Yes' : 'No');
+          row(dl, 'Authority', `${d.authority.capability} ${d.authority.level}${d.authority.allowed ? ', CEO may act' : ', needs ' + d.authority.holder}`);
+          if (d.routing) row(dl, 'Routing', `${d.routing.function} to ${d.routing.roleLabel} (current holder: ${d.routing.currentHolders.join(', ')}); approval ${d.routing.approval.authority} from ${d.routing.approval.from}`);
+          if (d.question) row(dl, 'Question', `${d.question.text} (routed to ${d.question.routedTo})`);
+          row(dl, 'Escalation', d.escalation.required ? 'Needs your decision' : 'None');
+          row(dl, 'Next step', d.nextStep);
+          if (d.context.relatedWork.length) row(dl, 'Related Work', d.context.relatedWork.map(ref).join(' | '));
+          out.append(dl);
+          if (d.audit.length) { const h = document.createElement('h3'); h.textContent = 'Audit'; h.style.marginTop = '12px'; const ul = document.createElement('ul'); for (const a of d.audit) { const li = document.createElement('li'); li.textContent = a; ul.append(li); } out.append(h, ul); }
+          if (d.outcome.mutationApplied) { const p = document.createElement('p'); p.style.marginTop = '12px'; const a = document.createElement('a'); a.href = '?tab=pipeline'; a.textContent = 'See it in the Work Pipeline'; p.append(a); out.append(p); }
+        } catch { out.textContent = 'Could not reach the CEO runtime. Try again.'; }
+        finally { btn.disabled = false; btn.textContent = 'Send to the CEO'; }
+      });
+    }
+  </script>
 </body>
 </html>

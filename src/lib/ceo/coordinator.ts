@@ -6,7 +6,7 @@ import type { InMemoryWorkRegistry, NewWorkInput } from '../work/registry';
 import type { Actor, Priority, Scope, WorkItem, WorkType } from '../work/types';
 import { suggestPriority, NO_FACTORS } from '../work/priority';
 import { Scopes } from '../work/scope';
-import { AUTHORITY_HOLDERS } from '../work/actors';
+import { ROLE_BINDINGS, holdersOf, type RoleBindings } from './roles';
 import { buildControlTowerView } from '../control-tower/view';
 import { CEO, CEO_ID, brandCeoFor, findAgent, canActAutonomously, type AutonomyLevel, type AuditCategory } from './types';
 import type { WorkQuestion, QuestionRouting } from './types';
@@ -206,8 +206,9 @@ export function createQuestion(
   question: string,
   routing: QuestionRouting,
   now: Date = new Date(),
+  bindings: RoleBindings = ROLE_BINDINGS,
 ): WorkQuestion {
-  const routedTo = routeQuestionToActor(routing);
+  const routedTo = routeQuestionToActor(routing, bindings);
   return {
     id: `q-${now.getTime()}`,
     work_id: workId,
@@ -223,13 +224,13 @@ export function createQuestion(
   };
 }
 
-function routeQuestionToActor(routing: QuestionRouting): Actor {
+function routeQuestionToActor(routing: QuestionRouting, bindings: RoleBindings): Actor {
   switch (routing) {
     case 'technical': return CEO;
     case 'brand': return CEO;
     case 'financial': return { kind: 'agent', id: 'DS-13' };
     case 'strategic': return { kind: 'human', id: 'DS-00' };
-    case 'ops': return { kind: 'human', id: 'DS-00' };
+    case 'technical_deployment': return holdersOf('technical_deployment_officer', bindings)[0]?.actor ?? { kind: 'human', id: 'DS-00' };
     case 'legal': return { kind: 'human', id: 'DS-00' };
   }
 }

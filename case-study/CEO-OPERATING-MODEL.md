@@ -9,7 +9,7 @@ Virat (founder: money, people, promises)
   → DevShop CEO agent (DS-02 Dev: runs the organisation)
     → HOD / Specialist agents (Growth DS-11, Finance DS-13, etc.)
       → Brand CEO agents (TC-01 Trav, MG-01 Moon, CK-01 Cera, etc.)
-        → Execution (autonomous within guardrails, or human via Prince)
+        → Execution (autonomous within guardrails, or human via the Technical Deployment Officer, currently Prince Keshri)
           → Verification (evidence in Work Registry)
             → Result (reported to founder@)
               → Learning (LEARNINGS.md, agent memory, process update)
@@ -55,7 +55,7 @@ Every operation uses technology responsibly:
 
 ## Implementation status
 
-The CEO operating layer is implemented in `src/lib/ceo/` (8 source files, 2 test files, 70 tests). Pure deterministic logic — no AI invocations, no framework, no network.
+The CEO operating layer is implemented in `src/lib/ceo/` (11 source files, 4 test files, 112 `node:test` tests; run with `npm run test:ceo`). Pure deterministic logic — no AI invocations, no framework, no network.
 
 ### What exists (`src/lib/ceo/`)
 
@@ -66,8 +66,10 @@ The CEO operating layer is implemented in `src/lib/ceo/` (8 source files, 2 test
 | `morning-board.ts` | Material-exceptions-only view: critical incidents (P0/P1), pending approvals, blocked work (≥1 day), overdue, unassigned past triage |
 | `founder-input.ts` | Canonical founder → CEO input representation. Classifies text into 8 kinds (context, question, instruction, approval, decision, work_request, evidence, relationship) with urgency detection |
 | `context-pack.ts` | Deterministic, bounded context assembly. Relevance-driven: morning board only for status queries, related work by brand/text, brand summary, pending approvals for approval inputs. Bounded to 10 related items, 5 recent decisions, 20 audit findings |
-| `authority.ts` | Authority check against the autonomy model. Maps input kind → required capability → autonomy grant → allowed/denied with holder. Assignment guard is role-based: the `assign-work` grant lists `restrictedRoles`, matched through `actorCoversCoverage`, so changing who holds a role is configuration, not code. Approval authority resolution |
+| `authority.ts` | Authority check against the autonomy model. Maps input kind → required capability → autonomy grant → allowed/denied with holder. Assignment guard is role-based: the `assign-work` grant lists `restrictedRoles`, matched against the role holders in `roles.ts`, so changing who holds a role is configuration, not code. Approval authority resolution |
 | `response.ts` | Structured CEO response model. Produces operating decisions (act, recommend, escalate, answer, acknowledge, delegate, attach_to_work) with selected owner, required approval, related work, delegation target and next step |
+| `roles.ts` | Role → current holder configuration (`ROLE_BINDINGS`). Today one role: `technical_deployment_officer`, sole human holder Prince Keshri, governed by Dev (DS-02); assignment needs Virat (`prince_assignment`). Also the deterministic function classifier |
+| `founder-service.ts` | Server-side handler for the Founder Command Centre: admin auth, input validation, load registry, run orchestrator, persist only if something changed, return a structured response |
 | `orchestrator.ts` | `processFounderInput(input, registry)`: classify, bounded context, authority, response, then a Work Registry mutation only where authorised. Reuses existing Work before creating; attaches evidence; escalates anything L4 or unassignable. Nothing external is executed |
 | `index.ts` | Re-exports |
 | `ceo.test.ts` | 31 tests across 10 scenarios (simple task, technical issue, question routing, blocked work, approval, duplicates, cross-brand patterns, recurring problems, cost guardrails, morning board) |
@@ -89,7 +91,7 @@ The CEO operating layer is implemented in `src/lib/ceo/` (8 source files, 2 test
 | approve-spend | L4 | DS-00 (Virat) |
 | approve-pricing | L4 | DS-00 |
 | approve-outbound-comms | L4 | DS-00 |
-| approve-prince-work | L4 | DS-00 |
+| approve-restricted-assignment | L4 | DS-00 (approval to assign a restricted role) |
 | approve-terms-legal | L4 | DS-00 |
 | approve-irreversible | L4 | DS-00 |
 
@@ -111,9 +113,9 @@ Deterministic, idempotent, no LLM. Same check failing again attaches to the open
 
 ### Founder Control Tower
 
-The Founder Control Tower page (`/retail-os/admin/control-tower`) reads the real Work Registry from the control-plane Supabase database. It is read-only: it does not create, modify or close work, does not route agents, does not send communications, does not remediate, does not approve spend. Its data source is the control-plane Work Registry via `loadRegistry()` → `createSupabaseWorkStore()` → Supabase. Server-side only (no service-role key in the browser). Protected by admin auth middleware.
+The Founder Control Tower page (`/retail-os/admin/control-tower`) reads the real Work Registry from the control-plane Supabase database. Its four views are read-only; the one writing path is the Ask the CEO tab, which goes through the CEO runtime. The views do not create, modify or close work, does not route agents, does not send communications, does not remediate, does not approve spend. Its data source is the control-plane Work Registry via `loadRegistry()` → `createSupabaseWorkStore()` → Supabase. Server-side only (no service-role key in the browser). Protected by admin auth middleware.
 
-Four tabs: Morning Board (material exceptions from `buildMorningBoard()`), Work Pipeline (eight-stage view from `buildControlTowerView()`), Agents (registry, autonomy grants), Brands (portfolio with honest status).
+Five tabs: Morning Board (material exceptions from `buildMorningBoard()`), Work Pipeline (eight-stage view from `buildControlTowerView()`), Agents (registry, autonomy grants), Brands (portfolio with honest status), Ask the CEO.
 
 ### CEO runtime foundation (implemented, not wired to live systems)
 
@@ -130,8 +132,44 @@ The runtime foundation provides the context and decision structure for CEO opera
 
 `processFounderInput` is the only path from a founder input to a registry mutation. Order: build context, check authority, look for existing Work, then act. Mutations it can make: create a Work item (L2 `create-work`), attach evidence. Approvals, spend, pricing, outbound comms, terms and restricted-role assignment are returned as escalations to the holder named in the grant; the orchestrator never records them itself. Created Work shows in the Control Tower through the normal registry. 9 tests in `orchestrator.test.ts`. Not wired to any live channel; nothing is sent or deployed.
 
+### Technical Deployment: role and holder (implemented now)
+
+```
+CTO governance (Dev, DS-02, until a CTO agent exists in the registry)
+  → Technical Deployment Officer (role: technical_deployment_officer)
+    → Prince Keshri (current and sole human holder)
+```
+
+Prince Keshri is the sole current human Technical Deployment Officer. The role is the routing abstraction; the holder is organisational configuration (`ROLE_BINDINGS` in `roles.ts`). Generic CEO code (authority, orchestrator, coordinator, response, context pack, founder service) names no person and has no `isPrince()` exception; a test scans for it. Replacing the holder is an edit to `ROLE_BINDINGS`, and a test proves routing, assignment approval and question routing follow it.
+
+Authority is unchanged: the `assign-work` grant restricts assignment to `restrictedRoles: ['technical_deployment_officer']`, and assigning that role needs Virat's approval (`prince_assignment`). The CEO opens the Work, owns it as governance, and requests Virat's approval. Only when Virat approves does the orchestrator assign the role holder, acting on his approval. The Work Registry core also keeps its own rule that Prince is only ever assigned by Virat (`validateOwner`). Questions for the function route to the current holder as records only; nothing is delivered to anyone.
+
+### Founder Command Centre → CEO runtime → Work Registry → Control Tower (implemented now)
+
+```
+Control Tower page, "Ask the CEO" tab (/retail-os/admin/control-tower?tab=ceo)
+  → POST /retail-os/api/admin/ceo-input   (admin password; service-role access stays server-side)
+  → founder-service.ts → orchestrator.ts → Work Registry (load, mutate, persist only on change)
+  → structured response; resulting Work shows in the Work Pipeline tab
+```
+
+The response shows what the CEO understood, authority, matched Work, routing, required approval, escalation, next step and an audit trail. What the runtime does:
+
+- Status and context questions read only. Greetings and FYIs change nothing.
+- Work requests and instructions look for existing Work first (the referenced Work, or a genuine title match, never a brand-wide guess). A match is reused and the founder input is logged on it; otherwise Work is created, triaged (priority capped by the `create-work` grant) and assigned to the brand CEO or Dev.
+- Evidence is attached to the referenced Work. A founder decision is logged on matched Work through the registry's audit trail. There is no second decision ledger; a decision with no Work to attach to is not recorded and says so.
+- Approval records Virat's decision through `decideApproval` when exactly one approval is pending or a Work reference is given; with several pending it asks rather than guesses.
+- Every material step is a registry event (append-only, hash-chained), including one `action` event carrying the founder input, authority rule, matched Work, routing and result.
+- Input from anyone other than the Founder principal is refused with no change.
+
+Not wired to any live channel and no external execution. Founder Input does not send, deploy, spend or contact anyone.
+
 ### What does NOT exist yet
 
+- WhatsApp → CEO and Email → CEO (the only entry today is the Control Tower tab)
+- External execution adapters and autonomous material execution
+- Rejecting an approval from the Founder interface (approve only)
+- A standalone place for policy decisions with no Work
 - Live wiring to email/WABA/WhatsApp routing
 - Agent runtime (agents don't execute autonomously)
 - Agent passport / credentials

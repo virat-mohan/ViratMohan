@@ -2,7 +2,7 @@
 // Reads from Work Registry; never creates its own ticket records.
 // Pure contract — no framework, no network.
 
-import type { Priority, WorkItem, WorkState, WorkType } from '../work/types';
+import type { Actor, Priority, WorkItem, WorkState, WorkType } from '../work/types';
 
 export const CONTROL_TOWER_STAGES = [
   'detect',
@@ -22,9 +22,9 @@ export interface WorkSummary {
   title: string;
   type: WorkType;
   state: WorkState;
-  priority: Priority;
+  priority: Priority | null;
   brand: string | null;
-  owner: { kind: 'agent' | 'human'; id: string } | null;
+  owner: Actor | null;
   created_at: string;
   updated_at: string;
   stage: ControlTowerStage;
