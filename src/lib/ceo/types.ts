@@ -71,7 +71,7 @@ export const AUTONOMY_LABELS: Record<AutonomyLevel, string> = {
 
 export const CEO_AUTONOMY: AutonomyGrant[] = [
   { capability: 'create-work', level: 'L2', holder: CEO_ID, limits: { maxPriority: 'P2' } },
-  { capability: 'assign-work', level: 'L2', holder: CEO_ID, limits: { notPrince: true } },
+  { capability: 'assign-work', level: 'L2', holder: CEO_ID, limits: { restrictedRoles: ['prince'] } },
   { capability: 'triage-work', level: 'L2', holder: CEO_ID },
   { capability: 'prioritise-work', level: 'L1', holder: CEO_ID },
   { capability: 'escalate-work', level: 'L2', holder: CEO_ID },
@@ -82,7 +82,7 @@ export const CEO_AUTONOMY: AutonomyGrant[] = [
   { capability: 'approve-spend', level: 'L4', holder: 'DS-00' },
   { capability: 'approve-pricing', level: 'L4', holder: 'DS-00' },
   { capability: 'approve-outbound-comms', level: 'L4', holder: 'DS-00' },
-  { capability: 'approve-prince-work', level: 'L4', holder: 'DS-00' },
+  { capability: 'approve-restricted-assignment', level: 'L4', holder: 'DS-00' },
   { capability: 'approve-terms-legal', level: 'L4', holder: 'DS-00' },
   { capability: 'approve-irreversible', level: 'L4', holder: 'DS-00' },
 ];
@@ -129,7 +129,7 @@ export interface CommMessage {
 
 export type QuestionStatus = 'open' | 'answered' | 'superseded';
 
-export type QuestionRouting = 'technical' | 'brand' | 'financial' | 'strategic' | 'prince' | 'legal';
+export type QuestionRouting = 'technical' | 'brand' | 'financial' | 'strategic' | 'ops' | 'legal';
 
 export interface WorkQuestion {
   id: string;
@@ -151,7 +151,7 @@ export function routeQuestion(routing: QuestionRouting): string {
     case 'brand': return 'DS-02';
     case 'financial': return 'DS-13';
     case 'strategic': return 'DS-00';
-    case 'prince': return 'DS-00';
+    case 'ops': return 'DS-00';
     case 'legal': return 'DS-00';
   }
 }

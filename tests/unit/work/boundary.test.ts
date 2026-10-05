@@ -87,6 +87,8 @@ describe('only authorized surfaces reach the Work Registry', () => {
     'src/lib/ceo/context-pack.ts',
     'src/lib/ceo/authority.ts',
     'src/lib/ceo/response.ts',
+    'src/lib/ceo/orchestrator.ts',
+    'src/lib/ceo/orchestrator.test.ts',
     'src/lib/control-tower/types.ts',
     'src/lib/control-tower/view.ts',
   ]);

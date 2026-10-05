@@ -72,8 +72,8 @@ describe('Autonomy model', () => {
     assert.equal(autonomyFor('approve-spend')?.holder, 'DS-00');
   });
 
-  it('prince work is L4', () => {
-    assert.equal(autonomyFor('approve-prince-work')?.level, 'L4');
+  it('restricted assignment approval is L4', () => {
+    assert.equal(autonomyFor('approve-restricted-assignment')?.level, 'L4');
   });
 
   it('all 5 levels have labels', () => {
@@ -133,8 +133,8 @@ describe('Scenario C: Question on work', () => {
     assert.equal(routeQuestion('strategic'), 'DS-00');
   });
 
-  it('prince questions route to Virat', () => {
-    assert.equal(routeQuestion('prince'), 'DS-00');
+  it('ops questions route to Virat', () => {
+    assert.equal(routeQuestion('ops'), 'DS-00');
   });
 
   it('questions can be answered', () => {

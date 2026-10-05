@@ -66,8 +66,9 @@ The CEO operating layer is implemented in `src/lib/ceo/` (8 source files, 2 test
 | `morning-board.ts` | Material-exceptions-only view: critical incidents (P0/P1), pending approvals, blocked work (≥1 day), overdue, unassigned past triage |
 | `founder-input.ts` | Canonical founder → CEO input representation. Classifies text into 8 kinds (context, question, instruction, approval, decision, work_request, evidence, relationship) with urgency detection |
 | `context-pack.ts` | Deterministic, bounded context assembly. Relevance-driven: morning board only for status queries, related work by brand/text, brand summary, pending approvals for approval inputs. Bounded to 10 related items, 5 recent decisions, 20 audit findings |
-| `authority.ts` | Authority check against the autonomy model. Maps input kind → required capability → autonomy grant → allowed/denied with holder. Prince assignment guard. Approval authority resolution |
+| `authority.ts` | Authority check against the autonomy model. Maps input kind → required capability → autonomy grant → allowed/denied with holder. Assignment guard is role-based: the `assign-work` grant lists `restrictedRoles`, matched through `actorCoversCoverage`, so changing who holds a role is configuration, not code. Approval authority resolution |
 | `response.ts` | Structured CEO response model. Produces operating decisions (act, recommend, escalate, answer, acknowledge, delegate, attach_to_work) with selected owner, required approval, related work, delegation target and next step |
+| `orchestrator.ts` | `processFounderInput(input, registry)`: classify, bounded context, authority, response, then a Work Registry mutation only where authorised. Reuses existing Work before creating; attaches evidence; escalates anything L4 or unassignable. Nothing external is executed |
 | `index.ts` | Re-exports |
 | `ceo.test.ts` | 31 tests across 10 scenarios (simple task, technical issue, question routing, blocked work, approval, duplicates, cross-brand patterns, recurring problems, cost guardrails, morning board) |
 | `runtime.test.ts` | 39 tests across 4 suites (founder input classification, authority checks, context pack, CEO response) |
@@ -120,10 +121,14 @@ The runtime foundation provides the context and decision structure for CEO opera
 
 1. **Founder input classification** (`founder-input.ts`): text → 8 canonical kinds with urgency, brand scope, work association. Not every message creates work.
 2. **Context pack** (`context-pack.ts`): assembles bounded, relevance-driven context (morning board, related work, brand summary, audit findings, pending approvals, active locks). Does NOT load everything.
-3. **Authority check** (`authority.ts`): maps any action to the autonomy model and determines CEO authority (L0–L4). Prince assignment blocked. Unknown capabilities default to L4 (human decision).
+3. **Authority check** (`authority.ts`): maps any action to the autonomy model and determines CEO authority (L0–L4). Assignment to a restricted role needs approval. Unknown capabilities default to L4 (human decision).
 4. **Structured response** (`response.ts`): produces operating decisions (act/recommend/escalate/delegate/acknowledge) with owner, approval requirements, related work and next step. No execution — context and decision only.
 
 **Not connected**: email sending, WhatsApp sending, production deployment, financial approvals, spend, legal commitments, external communications, irreversible actions. The runtime foundation is the context/decision layer; execution is future work.
+
+### Runtime to Work Registry (orchestrator)
+
+`processFounderInput` is the only path from a founder input to a registry mutation. Order: build context, check authority, look for existing Work, then act. Mutations it can make: create a Work item (L2 `create-work`), attach evidence. Approvals, spend, pricing, outbound comms, terms and restricted-role assignment are returned as escalations to the holder named in the grant; the orchestrator never records them itself. Created Work shows in the Control Tower through the normal registry. 9 tests in `orchestrator.test.ts`. Not wired to any live channel; nothing is sent or deployed.
 
 ### What does NOT exist yet
 

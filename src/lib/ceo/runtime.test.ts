@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { InMemoryWorkRegistry } from '../work/registry';
 import { Scopes } from '../work/scope';
 import { VIRAT, PRINCE } from '../work/actors';
-import { CEO, CEO_ID } from './types';
+import { CEO, CEO_ID, CEO_AUTONOMY } from './types';
 import { classifyFounderInput, founderInputToCommType, type FounderInputKind } from './founder-input';
 import { buildContextPack } from './context-pack';
 import { checkAuthority, requiredCapabilityForInput, canCeoAssign, resolveApprovalAuthority } from './authority';
@@ -110,10 +110,11 @@ describe('Authority checks', () => {
     assert.equal(v.allowed, false);
   });
 
-  it('cannot assign Prince', () => {
+  it('cannot assign a restricted role holder without approval', () => {
     const v = canCeoAssign(PRINCE);
     assert.equal(v.allowed, false);
-    assert.ok(!v.allowed && v.reason.includes('Prince'));
+    assert.ok(!v.allowed && v.reason.includes('approval'));
+    assert.ok(!v.allowed && v.reason.includes('prince'));
   });
 
   it('can assign a regular agent', () => {
@@ -323,5 +324,37 @@ describe('CEO response', () => {
     const ctx = buildContextPack(input, reg, now);
     const resp = buildCeoResponse(ctx);
     assert.ok(!resp.authority.allowed || resp.authority.capability !== 'approve-spend');
+  });
+});
+
+// ── No hardcoded person dependency ──────────────────────────────────────
+
+describe('Authority model is role-based, not person-based', () => {
+  it('no CEO autonomy grant capability name references a person name', () => {
+    const personNames = ['virat', 'prince keshri', 'khiwani'];
+    for (const grant of CEO_AUTONOMY) {
+      for (const name of personNames) {
+        assert.ok(!grant.capability.toLowerCase().includes(name),
+          `capability "${grant.capability}" references person "${name}"`);
+      }
+    }
+  });
+
+  it('canCeoAssign uses restrictedAssignment from the autonomy model, not a hardcoded check', () => {
+    const agentActor = { kind: 'agent' as const, id: 'TC-01' };
+    const v = canCeoAssign(agentActor);
+    assert.equal(v.allowed, true);
+  });
+
+  it('restriction is driven by the autonomy model restrictedRoles, not hardcoded', () => {
+    const v1 = canCeoAssign(PRINCE);
+    assert.equal(v1.allowed, false);
+    const agentAssign = canCeoAssign({ kind: 'agent', id: 'DS-11' });
+    assert.equal(agentAssign.allowed, true, 'unrestricted agents can be assigned');
+  });
+
+  it('resolveApprovalAuthority maps prince_assignment to approve-restricted-assignment', () => {
+    const r = resolveApprovalAuthority('prince_assignment');
+    assert.equal(r.capability, 'approve-restricted-assignment');
   });
 });

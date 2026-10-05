@@ -6,7 +6,7 @@ import type { InMemoryWorkRegistry, NewWorkInput } from '../work/registry';
 import type { Actor, Priority, Scope, WorkItem, WorkType } from '../work/types';
 import { suggestPriority, NO_FACTORS } from '../work/priority';
 import { Scopes } from '../work/scope';
-import { isPrince } from '../work/actors';
+import { AUTHORITY_HOLDERS } from '../work/actors';
 import { buildControlTowerView } from '../control-tower/view';
 import { CEO, CEO_ID, brandCeoFor, findAgent, canActAutonomously, type AutonomyLevel, type AuditCategory } from './types';
 import type { WorkQuestion, QuestionRouting } from './types';
@@ -229,7 +229,7 @@ function routeQuestionToActor(routing: QuestionRouting): Actor {
     case 'brand': return CEO;
     case 'financial': return { kind: 'agent', id: 'DS-13' };
     case 'strategic': return { kind: 'human', id: 'DS-00' };
-    case 'prince': return { kind: 'human', id: 'DS-00' };
+    case 'ops': return { kind: 'human', id: 'DS-00' };
     case 'legal': return { kind: 'human', id: 'DS-00' };
   }
 }

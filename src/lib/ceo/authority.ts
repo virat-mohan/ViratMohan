@@ -1,12 +1,13 @@
 // Authority check: maps an action to the autonomy model and determines
 // whether the CEO can act, or needs escalation/approval.
+// Routing is by role/function/capability, not by hardcoded person name.
 // Pure deterministic logic. No AI invocations.
 
 import type { Actor, Authority } from '../work/types';
-import { AUTHORITY_HOLDERS, isPrince, isVirat } from '../work/actors';
+import { AUTHORITY_HOLDERS, actorCoversCoverage } from '../work/actors';
 import {
-  CEO_ID, CEO, autonomyFor, canActAutonomously,
-  type AutonomyLevel, type AutonomyGrant,
+  CEO_ID, CEO, AGENT_REGISTRY, autonomyFor, canActAutonomously, brandCeoFor,
+  type AutonomyLevel, type AutonomyGrant, type AgentEntry,
 } from './types';
 import type { FounderInput, FounderInputKind } from './founder-input';
 
@@ -57,19 +58,42 @@ function resolveApprovalCapability(text: string): string {
   if (/\b(spend|budget|money|cost|pay|₹|\$)\b/.test(lower)) return 'approve-spend';
   if (/\b(price|pricing|offer|discount)\b/.test(lower)) return 'approve-pricing';
   if (/\b(send|email|whatsapp|message|post|publish)\b/.test(lower)) return 'approve-outbound-comms';
-  if (/\b(prince|p-01)\b/i.test(lower)) return 'approve-prince-work';
   if (/\b(terms|nda|legal|contract|agreement)\b/.test(lower)) return 'approve-terms-legal';
   return 'approve-irreversible';
 }
 
+/**
+ * Check whether the CEO can assign work to this target actor.
+ * Uses the autonomy model's `restrictedAssignment` limit, which names an Authority type.
+ * AUTHORITY_HOLDERS maps that Authority to current human role holders.
+ * If the target matches any restricted role holder, assignment requires approval.
+ */
 export function canCeoAssign(target: Actor): AuthorityVerdict {
-  if (isPrince(target)) {
-    return {
-      allowed: false, level: 'L4', capability: 'assign-work',
-      holder: 'DS-00', reason: 'Prince gets work only through Virat',
-    };
+  const grant = autonomyFor('assign-work');
+  if (!grant) {
+    return { allowed: false, level: 'L4', capability: 'assign-work', holder: 'DS-00', reason: 'No assign-work grant' };
+  }
+  const restrictedRoles = grant.limits?.restrictedRoles as string[] | undefined;
+  if (restrictedRoles && restrictedRoles.length > 0) {
+    const scope = { kind: 'devshop' as const, brand: null, founder: null, system: null, extension: null };
+    const matchedRole = restrictedRoles.find((role) =>
+      actorCoversCoverage(target, role as any, scope)
+    );
+    if (matchedRole) {
+      return {
+        allowed: false, level: 'L4', capability: 'assign-work',
+        holder: 'DS-00',
+        reason: `Assignment to this role requires approval (restricted role: ${matchedRole})`,
+      };
+    }
   }
   return checkAuthority('assign-work');
+}
+
+function resolveApproverForAuthority(authority: Authority): string {
+  const holders = AUTHORITY_HOLDERS[authority];
+  if (!holders || holders.length === 0) return 'DS-00';
+  return holders.includes('virat') ? 'DS-00' : 'DS-00';
 }
 
 export function resolveApprovalAuthority(authority: Authority): { holders: readonly string[]; capability: string } {
@@ -79,7 +103,7 @@ export function resolveApprovalAuthority(authority: Authority): { holders: reado
     pricing: 'approve-pricing',
     outbound_comms: 'approve-outbound-comms',
     social_post: 'approve-outbound-comms',
-    prince_assignment: 'approve-prince-work',
+    prince_assignment: 'approve-restricted-assignment',
     terms_legal: 'approve-terms-legal',
     irreversible: 'approve-irreversible',
     strategic: 'approve-irreversible',
@@ -89,4 +113,25 @@ export function resolveApprovalAuthority(authority: Authority): { holders: reado
     holders: holders.map(h => h),
     capability: capabilityMap[authority] ?? 'approve-irreversible',
   };
+}
+
+/**
+ * Resolve the appropriate function/role owner for a given work type and scope.
+ * Routes by capability, not by person name.
+ */
+export function resolveOwnerByFunction(workType: string, brand: string | null): { role: string; agentId: string | null } {
+  if (brand) {
+    const brandCeo = brandCeoFor(brand);
+    if (brandCeo) return { role: 'brand_ceo', agentId: brandCeo.id };
+  }
+  switch (workType) {
+    case 'technical': return { role: 'ceo', agentId: CEO_ID };
+    case 'growth': return { role: 'hod', agentId: 'DS-11' };
+    case 'finance': return { role: 'hod', agentId: 'DS-13' };
+    case 'quality': return { role: 'hod', agentId: 'DS-10' };
+    case 'sales': return { role: 'hod', agentId: 'DS-12' };
+    case 'customer': return { role: 'hod', agentId: 'DS-14' };
+    case 'team': return { role: 'hod', agentId: 'DS-15' };
+    default: return { role: 'ceo', agentId: CEO_ID };
+  }
 }
