@@ -247,7 +247,7 @@ Applies to **new** repos/packages. Existing production repos keep their names un
 
 Execution-only items (not permanent products): `DevShop video reel`, `URGENT: fix unauthenticated /api/admin…` (security incident — a false positive confirmed this session; `proxy.ts` already gates admin on both stores), `Update /devshop project grid to real statuses`, `Email drafts for Vishal Malhotra`, `FlowerBasket vendor outreach`, individual Employee Support Agent onboardings. These should ultimately be governed by the Work Registry, not retained as standalone products.
 
-The Work Registry foundation now exists (control plane): one canonical work object, lifecycle, ownership, deduplication, repository locks, escalation, approvals, incidents and an append-only audit trail. Contract `src/lib/work/`, schema `migrations/0055_work_registry.sql` (written, not applied), docs `case-study/WORK-REGISTRY.md`. Not wired to any live system; existing work-like tables are unchanged.
+The Work Registry foundation now exists (control plane): one canonical work object, lifecycle, ownership, deduplication, repository locks, escalation, approvals, incidents and an append-only audit trail. Contract `src/lib/work/`, schema `migrations/0055_work_registry.sql` (applied and verified on the control-plane DB), a database-backed registry over those tables, docs `case-study/WORK-REGISTRY.md`. Not wired to any live system; existing work-like tables are unchanged.
 
 ---
 
@@ -276,7 +276,7 @@ Before creating a new Claude Project, repository, package or major subsystem:
 
 ## 14. Work Registry (control plane)
 
-`case-study/WORK-REGISTRY.md` is authoritative. One canonical work object for DevShop, Retail OS, every brand, founders, agents, incidents, support, alerts, improvements and opportunities, so one issue is one work item with one accountable owner. Control plane: `src/lib/work/` (pure, framework-neutral) and `migrations/0055_work_registry.sql` (written, not applied). No new repository or package; extract to a shared package when a brand plane or agent runtime must read it directly. The Control Tower will use it; it is not built, and nothing live reads or writes the registry yet.
+`case-study/WORK-REGISTRY.md` is authoritative. One canonical work object for DevShop, Retail OS, every brand, founders, agents, incidents, support, alerts, improvements and opportunities, so one issue is one work item with one accountable owner. Control plane: `src/lib/work/` (pure, framework-neutral), `migrations/0055_work_registry.sql` (applied and verified on `vszjwgxvqoqyixpfthwl`), and the database-backed registry over those tables (`db-store.ts`, `db-registry.ts`). No new repository or package; extract to a shared package when a brand plane or agent runtime must read it directly. The Control Tower will use it; nothing live reads or writes the registry yet.
 
 Rule: do not create a new ticket, task, request or incident system. Use the Work Registry; if it does not cover a need, extend it.
 

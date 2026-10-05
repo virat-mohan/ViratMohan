@@ -14,3 +14,5 @@ export * from './repo-lock';
 export * from './dedupe';
 export * from './registry';
 export * from './health-ingest';
+export * from './db-store';
+export * from './db-registry';

@@ -25,6 +25,8 @@ import { DEFAULT_LOCK_POLICY, findConflicts, isLockActive, preflight, type LockP
 import { DEFAULT_DEDUPE_POLICY, matchSourceEvent, rootOf, type DedupePolicy } from './dedupe';
 import { moreUrgent } from './priority';
 
+export interface RegistrySnapshot { items: WorkItem[]; sourceEvents: SourceEvent[]; links: WorkLink[]; locks: RepoLock[] }
+
 export interface RegistryOptions {
   now?: () => string;
   newId?: () => string;
@@ -34,6 +36,8 @@ export interface RegistryOptions {
   knownBrands?: ReadonlySet<string>;
   lockPolicy?: Partial<LockPolicy>;
   dedupePolicy?: Partial<DedupePolicy>;
+  /** Pre-load existing state (used by the database-backed registry). */
+  seed?: Partial<RegistrySnapshot> & { items: WorkItem[] };
 }
 
 export interface NewWorkInput {
@@ -110,6 +114,19 @@ export class InMemoryWorkRegistry {
     this.knownBrands = opts.knownBrands;
     this.lockPolicy = { ...DEFAULT_LOCK_POLICY, ...(opts.lockPolicy ?? {}) };
     this.dedupePolicy = { ...DEFAULT_DEDUPE_POLICY, ...(opts.dedupePolicy ?? {}) };
+    if (opts.seed) {
+      for (const i of opts.seed.items) this.items.set(i.id, i);
+      this.sourceEvents = [...(opts.seed.sourceEvents ?? [])];
+      this.links = [...(opts.seed.links ?? [])];
+      this.locks = [...(opts.seed.locks ?? [])];
+      // Continue the W-#### counter past the highest loaded ref so new provisional refs do not collide.
+      for (const i of opts.seed.items) { const n = Number(/^W-(\d+)$/.exec(i.ref)?.[1] ?? 0); if (n > this.counter) this.counter = n; }
+    }
+  }
+
+  /** The full current state, for a database-backed store to persist. */
+  snapshot(): RegistrySnapshot {
+    return { items: [...this.items.values()], sourceEvents: [...this.sourceEvents], links: [...this.links], locks: [...this.locks] };
   }
 
   // ── reads ────────────────────────────────────────────────────────────────
@@ -531,6 +548,8 @@ export class InMemoryWorkRegistry {
     const evidence: Evidence = { id: this.newId(), at, by, kind: 'link', ref: canon.ref, summary: `merged into ${canon.ref}: ${reason.trim()}` };
     let dupNext: WorkItem = {
       ...dup, evidence: [...dup.evidence, evidence], state: 'closed', held_from: null, waiting: null, blocked: null, merged_into: canon.id, closed_at: at,
+      // the source events moved to the canonical item above; the duplicate no longer owns any
+      source_event_ids: [],
       resolution: { kind: 'duplicate', summary: reason.trim(), by, at, merged_into: canon.id },
       closure: { verified_by: by, verified_at: at, method: 'merged into the canonical item', evidence_ids: [evidence.id] },
     };
