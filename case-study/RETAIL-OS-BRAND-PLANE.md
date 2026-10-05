@@ -1,112 +1,134 @@
-# Retail OS brand plane: the canonical Next.js architecture
+# Retail OS Brand Plane
 
-Why this exists: a new brand should be configured, not forked. Travaholic Caps and Moonglasses were built separately and now share most of their shape. This records what is actually shared, from the code on `main` of both repos (5 Oct 2026), and how the next brand starts without a fork.
+The authoritative description of how a Retail OS brand is built. Verified against the code on `main` of `travaholic_caps` and `moon-glasses` on 5 Oct 2026, and against the package and starter built from it.
 
-Status: proposal, built outside production. Nothing in Travaholic or Moon has been changed by this document. Virat approves before anything migrates.
+Status: the package (`@retail-os/brand-config` v0.3.0) and the starter are built and tested on branch `claude/brand-plane-contract` of `virat-mohan/retail-os-brand-config`, not yet merged. No production brand has been changed or migrated.
 
-## 1. Layers
+## What is the Brand Plane?
 
-| Layer | Where | Owns |
+Retail OS has two planes.
+
+- **Control plane**: `ViratMohan` (Astro). Estate, org, leads, invoices, health checks, standards.
+- **Brand plane**: one Next.js app per brand. Storefront, admin, checkout, and the brand's own Supabase project.
+
+A new brand goes: **registration → identity → committed Foundation → module manifest → brand data connection → deployment.** It provides configuration. It does not edit platform internals and does not fork another brand.
+
+## Why Next.js?
+
+Both live stores already run Next.js 16 with the same shape (App Router, `proxy.ts`, server-side service-role Supabase, `app_settings`). Standardising on what is proven avoids a migration. The shared contracts stay framework-neutral so the Astro control plane can read them too.
+
+## What is shared, and what is brand-specific?
+
+| Layer | Shared | Brand-specific |
 |---|---|---|
-| Control plane | `ViratMohan` (Astro) | Estate, org, leads, invoices, health checks, standards. |
-| Shared packages | `@retail-os/brand-config` (v0.3.0, branch `claude/brand-plane-contract`) | Identity, Foundation, Memory, module contract. Types and pure functions only. No values, no secrets. |
-| Brand plane | One Next.js app per live brand | Storefront, admin, checkout, the brand's own Supabase project. |
-| Brand data | The brand's Supabase project | Orders, customers, `app_settings`. Never shared across brands. |
-| Brand extensions | Inside the brand repo | Client-only code (e.g. Ceremony Finance/Ops). Declared in the manifest, never pulled into core. |
+| Package `@retail-os/brand-config` | identity contract, Foundation lifecycle and gate, Brand Memory, `BrandConfig`, module registry and status, admin access policy, voice mechanics, nav groups, render models | nothing. No brand values, no secrets |
+| Starter (`starters/next-brand-plane`) | admin shell, `proxy.ts` boundary, Supabase boundary, settings reader, error and loading conventions, env contract, reference session | `brand/config.ts`, `brand/foundation.ts`, `brand/voice.ts`, `.env` |
+| Brand repo | the platform code it inherited, unchanged | storefront, product pages, brand fonts and CSS, extensions, data |
 
-Unchanged: each live brand is its own Supabase project and app. No multi-tenancy decision has been made.
+Classification of every capability follows `CLAUDE.md`: core, optional module, brand configuration, client-specific extension, custom build.
 
-## 2. What the code shows
+## What is `@retail-os/brand-config`?
 
-Compared on `main` of `travaholic_caps` and `moon-glasses`:
+A private, framework-neutral package of types and pure functions, pinned by commit SHA. No runtime dependencies, no network, no values. v0.3.0 adds to the earlier identity, Foundation and Memory modules: `brand-config`, `modules`, `module-status`, `admin-gate`, `voice-contract`, `foundation-gate`, `navigation`, `render-contract`, `reference-brand`. Apps import by subpath. The compiled `dist` loads in plain Node and in bundlers.
 
-| File | Result |
-|---|---|
-| `lib/supabase.ts` (14 lines) | Byte-identical. |
-| `lib/settings.ts` | Same pattern, differs (134 vs 129 lines): about 90 keys each, one `app_settings` table. |
-| `components/admin/shell/` (AdminShell, nav, CommandPalette) | Same structure, differs (165/74/103 vs 193/114/132 lines). |
-| `app/admin/layout.tsx`, `next.config.ts`, `lib/retail-os-brand.ts` | Same role, brand-specific values. |
-| `app/admin/*` page folders | Most pages overlap. Trav only: email-campaigns, performance, ux-insights, login. Moon only: creators, master-inventory, models, payment-confirmations, preorders, product-images, social, tagged-posts, team. |
-| Env surface | Two real env vars in both: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`. Everything else lives in `app_settings`. |
+## The identity contract (one)
 
-Not checked in depth: the in-repo `retail-os/brand-config/` beyond `modules.ts` and `types.ts` (`config.ts`, `defaults.ts`, `navigation.ts`, `render-contract.ts`), Ceremony OS (different shape), Korbi, The Feeling Co, and the open PRs on both repos.
+Canonical: **`RetailOsBrand`** in `brand-identity.ts`.
 
-## 3. Classification
+- It is what both live stores already render from. Compile-time check: Travaholic's and Moon's `brand` objects on `main` are each assignable to it with no adapter.
+- The control-plane incubator also had a `BrandIdentity` type (`retail-os/brand-config/types.ts`). It has no consumers in any repo, so it is retired, not aliased. Its three unique ideas moved: `legalName` and `assets.faviconPath` are now optional fields on `RetailOsBrand`; design tokens became `BrandConfig.design`, because tokens are design, not identity.
+- `BrandConfig.identity` is a `RetailOsBrand`. Currency symbol and product noun come from `identity.profile` and are not repeated in commerce.
+- Changes to `RetailOsBrand` are additive (optional fields), so stores pinned to an earlier version are unaffected, including open PRs travaholic_caps#5 and moon-glasses#3.
+- Adapters needed today: none. Add one only when a consumer genuinely differs.
 
-| Class | Items |
-|---|---|
-| Shared package (exists) | `RetailOsBrand` identity contract, Brand Foundation lifecycle and gate, Brand Memory. Module status resolver (v0.3.0, unmerged). |
-| Already in this repo, not yet in the package | `retail-os/brand-config/`: the canonical module registry `MODULES` (36 modules, five-way classification, `requires`, nav groups), brand config types, navigation, render contract. Its `brand-identity.ts` is the same file the package ships. |
-| Shared package (next, not built) | `getSupabaseServerClient()` (identical today), `app_settings` reader and key registry pattern, admin session signing (section 4). |
-| Scaffold (copy once per brand, then configure) | `proxy.ts`, admin layout, AdminShell, CommandPalette, `error.tsx`/`loading.tsx`, `next.config.ts` skeleton. These are React and Next code; they are shaped by the brand's look, so they are templated, not packaged, until two brands have converged. |
-| Brand configuration | Identity values, module switches, fonts, colours, nav labels, `app_settings` rows, redirects. |
-| Optional module | Marketing, Finance, Creator, Experimentation (see the catalogue in `brand-plane.ts`). |
-| Brand-specific | Product pages, journal, 360 viewer, Moon try-on and audio, Trav globe and explorer gallery. |
-| Not mature enough | Admin shell as a package (two diverging copies), checkout (money path), customer auth (OTP in Trav, not compared in Moon), Moon's `team` pages. |
+## How Brand Foundation works
 
-## 4. Admin and auth: the standard
+Human brand book → committed Foundation → runtime consumers. The lifecycle is draft, review, approved, committed, superseded, and `isDownstreamAllowed()` is true only for committed. Approving and committing need a named person.
 
-The boundary is `proxy.ts` (Next 16), matcher `/admin/:path*` and `/api/admin/:path*`, fail closed. The admin layout has no guard of its own, so nothing is protected if the proxy is missing. Do not copy `proxy.ts` without its session module.
+Runtime code (`brand-voice`, prompts, send paths) reads values from the committed Foundation and refuses to run from anything else. Shared: `requireCommitted`, the drift check, the voice finding types, the checker interface, and `createVoiceGate`. Not shared, ever: the voice itself, positioning, claims, vocabulary, visual rules, commercial facts. Those stay in the brand.
 
-Canonical pattern, taken from Moon (`lib/admin-auth.ts`):
-- scrypt password hash in `app_settings`, kept out of the settings key list so the settings API cannot read it;
-- HMAC-signed session cookie with expiry and role, `timingSafeEqual` on verify;
-- session secret rotates on password change, which revokes every session;
-- login and setup routes outside the matcher (`/admin-login`, `/api/admin-auth/*`).
+Difference to note: Travaholic's gate allows a send if its checker itself crashes; Moon's has no guard. The shared gate fails closed by default (`onCheckerError: "block"`), with `"allow"` as an explicit opt-in.
 
-Travaholic differs and is weaker: the cookie is the unsalted `SHA-256(ADMIN_PASSWORD)`, compared with `===`. Anyone who obtains the cookie value holds a permanent credential that is also a crackable hash of the password. It fails closed and is acceptable for a single operator, but a new brand must not copy it. Migrate-later item, quiet hour, with a live check after.
+## How admin auth works
 
-## 5. Module contract
+Policy, identical for every brand and implemented once in `admin-gate`:
 
-Two parts, and only one is new.
+- `/admin/*` and `/api/admin/*` protected, path matching by segment (so `/admin-login` and `/administrator` are not admin);
+- unauthenticated API: 401; unauthenticated page: redirect to login with `?next=` (same-site paths only);
+- fail closed: a verifier that throws, anything but a literal `true`, or missing configuration never allows access (API 503, page to login with `error=unconfigured`);
+- login and its API sit outside the protected paths, or are listed as explicit exceptions.
 
-- Registry (exists): `MODULES` in `retail-os/brand-config/modules.ts`. 12 core, 17 optional, 7 client-specific modules, each with `defaultEnabled`, `requires` and a nav group. This is the canonical list. The package must not hold a second one, so the first draft of this work that did was removed.
-- Status (new, package v0.3.0, `brand-plane.ts`): `resolveModules(manifest, hasSetting, catalogue)` turns "switched on" plus "configured" into one honest status per module:
-  - `live`: switched on, required settings present, dependencies live;
-  - `setup_required`: a setting is missing (names the key, never the value);
-  - `blocked`: a dependency is not live, or the dependency chain is a cycle;
-  - `available`: exists, not switched on.
+Boundary: `proxy.ts` only. Neither store's admin layout has a guard. The mechanism is injected.
 
-`validateManifest` rejects unknown ids and client-specific modules owned by another brand. `validateCatalogue` checks unique ids, known dependencies and no cycles. 26 of 26 package tests pass, using a small test-local catalogue.
+Mechanism: Moon's signed, expiring, role-bearing cookie with `timingSafeEqual` and secret rotation is the preferred reference (the starter ships a small version). Travaholic's cookie is the unsalted `SHA-256(ADMIN_PASSWORD)` compared with `===`. It fails closed, but the cookie is a permanent credential and a crackable hash of the password. **Migrate later**, in a quiet hour, with a live check. It was not changed in this work.
 
-Gap to close before this is useful: the registry has `requires` but no `requiredSettings`, so `setup_required` cannot fire for real modules yet. Adding that field per module needs Virat's review of which setting each module needs. The registry also needs to move into the package (or be adapted to `ModuleDefinition`) so brand apps can import it. The nav should then render from the resolver.
+## How module status works
 
-## 6. Reusable form
+The registry `MODULES` (36 modules: 12 core, 17 optional, 7 client-specific) now lives in the package. It was moved from the control-plane incubator; there is no second list. Each module can declare:
 
-Recommendation: packages for contracts and pure logic, plus a starter template for the app scaffold. Not a template alone (it forks on day one) and not packages alone (admin UI is not stable enough to package).
+- `requires`: other modules that must be live;
+- `setup.settings`: setting keys that must be present (keys only, never values);
+- `setup.integrations`: integration slots the brand must declare;
+- `ownerBrand`: for client extensions, the one brand that may use it.
 
-I have not created a template repository. Under the estate guard that needs Virat's approval; until then the scaffold is the `moon-glasses` and `travaholic_caps` files listed in section 3.
+Only requirements evidenced in the code of both reference stores are recorded (for example `ANTHROPIC_API_KEY` for ad briefs, the business plan and growth recommendations, `OPENAI_API_KEY` for image generation, the Meta pair for ad performance). Ux Insights (Clarity) is evidenced in Travaholic only and says so. Permissions are not modelled: no module needs one beyond admin access.
 
-## 7. Synthetic reference brand
+`resolveModuleStatus(config, probe)` returns `live`, `setup_required`, `blocked` or `available` for every module the brand may see. Blocked takes precedence over setup required. Client extensions owned by another brand are omitted. A brand cannot switch on another brand's extension (`validateBrandConfig` errors).
 
-`reference-brand.ts` in the package: "Sample Goods", `.example` domain, invented values, labelled as sample. It passes identity validation and manifest validation, and resolves every module without touching real data.
+## How Supabase is isolated
 
-## 8. Fresh For Paws: could it be provisioned without a fork?
+Shared code is not shared brand data. Each brand has its own Supabase project, environment and records. The starter's `lib/supabase.ts` has no default project, no fallback and no cache between calls; it requires `RETAIL_OS_BRAND_KEY` to equal the app's configured brand before it will connect. A test fails if any source file hardcodes a project URL or key. There is no central operational Supabase.
 
-Yes for identity, modules and data, on these conditions. Per the estate, it has no dedicated repository and I have not created one. Commit `6018b23` shows a staged Retail OS backend (schema, weekly statement, WooCommerce connector), so its commerce source is WooCommerce, not a Next.js storefront. Steps, in order:
+## How to create a new brand
 
-1. Virat approves a brand plane for it (a new repo is his call).
-2. Write its manifest: identity, modules (Commerce, Customers, Marketing, Finance), no extensions.
-3. New Supabase project, `app_settings` seeded, two env vars set.
-4. Start from the scaffold, add `proxy.ts` with the Moon session module.
-5. Foundation committed from its brand book before any copy goes out.
-6. Shipping from `recommendShipping()`, COD off, then health check and launch playbook.
+Eight steps, in `starters/next-brand-plane/README.md`: register in the estate; create the repo from the starter and pin the package by SHA; fill `brand/config.ts`; have a person commit the Foundation; create the brand's own Supabase project and run `app_settings.sql`; set the environment; switch modules on and clear every "Setup required"; test, preview, deploy, health check.
 
-Open question for Virat: it may not need a Next.js storefront at all if its site stays on WooCommerce. Then only the admin plane is built.
+The starter lives inside the package repo for now. No new repository was created. Extracting it into a template repo is mechanical and is a decision for Virat.
 
-## 9. Migrate later, remain local
+## What must not be forked
 
-- Migrate later (each its own change, quiet hour, preview checked): Trav admin auth to the signed-session pattern; both `retail-os-brand.ts` files to the package contract (Moon and Trav already conform to its shape); nav rendered from the resolver.
-- Remain local: product and storefront components, brand fonts and CSS tokens, redirects, brand-specific admin pages, Ceremony Finance and Ops.
-- Do not touch: checkout, payments, orders, inventory, finance, cron, integrations.
+The admin protection boundary and its policy, the identity contract, the module registry, the Foundation gate and voice mechanics, the Supabase boundary. If a brand needs these to behave differently, that is an exception, not an edit.
 
-## 10. Anti-fork rule
+## What requires an exception
 
-A new brand starts from a manifest and the scaffold. A capability a second brand needs is classified (core, optional, configuration, client-specific, custom build) before code is written, and goes into the package or the scaffold, not into a copy. Anything client-specific stays in that brand's repo and is declared in its manifest.
+Anything that changes the core for one brand: a different admin policy, a second module list, a second identity type, a shared database, a brand value in platform code. It is classified first (client-specific extension or custom build) and approved by Virat. Client-specific code stays in that brand's repo and is declared in its config.
 
-## 11. What is not proven
+## Fresh For Paws
 
-- Whether the scaffold boots as a fresh app: I have not generated one. The contract is proven by tests, not by a running second brand.
-- Whether Moon and Trav build against package v0.3.0: not tried, and pinned at v0.2.0 today.
-- Overlap with the in-repo brand-config layer: `types.ts` (BrandIdentity, BrandCommerce, integrations) and the package's `RetailOsBrand` describe overlapping things in two shapes. I have not reconciled them; that is a decision for the architecture owner before either is migrated into a brand app.
-- Admin shell convergence: the two copies differ by 28 to 40 lines per file and I have not diffed them semantically.
+Commercial: paid active client. Technical: active paid client, no dedicated repository (`ESTATE.md` §7). Known signal: a WooCommerce front stays and Retail OS runs behind it.
+
+The brand plane accommodates that without changing the core. Commerce is a module that declares the settings and integration it needs; the Command Centre reports it as Setup required until they exist, and the shell, identity, Foundation and admin boundary do not care where orders come from. Whether Fresh For Paws needs a full storefront, an admin-only plane, a WooCommerce adapter or a hybrid is a separate decision. No adapter is built and no repository was created.
+
+## Compatibility matrix: Travaholic and Moon
+
+Read from `main` of both repos. "Extracted" means the shared mechanics now exist in the package or starter; neither store consumes them yet.
+
+| Capability | Travaholic | Moon | Canonical pattern | Extracted? |
+|---|---|---|---|---|
+| Identity | local `lib/retail-os-brand.ts`, `brand: RetailOsBrand` | same file shape | `RetailOsBrand` in the package | Yes. Both assignable, no adapter. Stores migrate in PR #5 / #3 (open) |
+| Foundation | `lib/brand-foundation.ts` on `main` (PR #21 merged); values-from-Foundation in open PR #22 | not on `main`; open PR #19 | committed Foundation, `requireCommitted`, drift check | Gate and drift check: yes. Content: stays in brand |
+| Voice | `brand-voice.ts`: `checkVoice`, `voiceGate` (fails open if checker crashes, transactional never blocked, campaign option) | same names; `voiceGate` has no crash guard, no transactional | `VoiceChecker` + `createVoiceGate` | Mechanics: yes (fail closed by default). Rules and words: no, by design |
+| Admin shell | `AdminShell`, `nav.ts`, `CommandPalette` (165/74/103 lines) | same three (193/114/132 lines) | starter shell fed by `buildNavModel` | Minimal shell: yes. The two full shells have not been converged |
+| Auth policy | `/admin/*`, `/api/admin/*`; API 401, page redirect; login inside matcher with two exceptions; 503 if unconfigured | same matcher; login at `/admin-login` outside it | `admin-gate` | Yes |
+| Session mechanism | env password, `SHA-256` cookie, `===` | signed expiring role cookie, scrypt, team invites | injected; signed cookie preferred | Reference in starter. Travaholic: **migrate later** |
+| `proxy.ts` | Next 16, fail closed | Next 16, fail closed | adapts `admin-gate`, supplies verifier | Yes (starter) |
+| Supabase | `lib/supabase.ts`, service role, server only | byte-identical | no default project, brand-key guard | Yes (starter), stricter |
+| Settings | `app_settings`, 92 keys in `SETTINGS_KEYS` | same table, 87 keys | key/value table; module `setup.settings` declares what matters | Reader and presence probe: yes. Key lists: stay local |
+| Navigation | static `NAV_SECTIONS` (8 sections) | same 8 sections | canonical `NAV_GROUPS` (17), brand label overrides | Groups: yes. Mapping the stores' sections onto them: not done |
+| Module model | a route plus a nav entry; no registry | same | `MODULES` registry plus `resolveModuleStatus` | Yes |
+| Environment | 2 env vars, plus `ADMIN_PASSWORD`; rest in `app_settings` | same; no example file | `.env.example` contract: brand key, 2 Supabase vars, 2 admin vars | Yes (starter) |
+
+## Not built or not proven
+
+- The starter has not been provisioned into a real second brand repo. Its proof is tests, a typecheck, a production build, and a run of the built server (below).
+- Neither store was built against v0.3.0.
+- Login rate limiting is not in the starter. It is listed in its README as required before a real brand goes live.
+- The registry's setup requirements cover 7 modules. The rest declare none, which means "no known requirement", not "none needed".
+- The control-plane incubator (`retail-os/brand-config/`) still holds an older copy of the registry and the real-brand registrations (`brands/*.ts`). The package is authoritative; the incubator is marked superseded. Deleting it, and deciding where real-brand registrations live, is an open decision.
+
+## Evidence
+
+- Package: 49 of 49 tests pass (18 pre-existing, 31 new). `tsc` clean.
+- Starter: 21 of 21 tests pass; `tsc --noEmit` clean; `next build` succeeds on Next 16.3.0.
+- Built server, over HTTP: unauthenticated page 307 to login; unauthenticated API 401; wrong password rejected; right password sets an HttpOnly cookie and `/admin` returns 200; an external `next=` URL falls back to `/admin`; with admin unconfigured the API returns 503 and pages redirect to login with `error=unconfigured`; a forged cookie is refused.
+- Travaholic and Moon: untouched.

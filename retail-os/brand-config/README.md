@@ -1,3 +1,5 @@
+> **Superseded.** The canonical `@retail-os/brand-config` is the package repo (`virat-mohan/retail-os-brand-config`, v0.3.0). Its module registry, `BrandConfig`, module status, admin gate and voice mechanics replace the files in this folder, and the single identity contract is `RetailOsBrand` (the `BrandIdentity` type here had no consumers and is retired). Do not edit the registry here: change it in the package. This folder is kept only until Virat decides where real-brand registrations (`brands/*.ts`) live. See `case-study/RETAIL-OS-BRAND-PLANE.md`.
+
 # Retail OS — Brand Configuration Layer (`@retail-os/brand-config`)
 
 The canonical, framework-agnostic layer that lets a Retail OS brand be **configured,

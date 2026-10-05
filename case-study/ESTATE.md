@@ -165,7 +165,7 @@ All 12 repositories under `virat-mohan`. The previous scan's list was complete �
 | Repository | Business / brand | Claude Project | Group | Framework | Database | Deployment | Status | Target name | Rename? |
 |---|---|---|---|---|---|---|---|---|---|
 | ViratMohan | DevShop control plane / viratmohan.com | DevShop Master Control; Virat Mohan website | 03 (+10) | Astro | Supabase `vszjwgxvqoqyixpfthwl` | viratmohan.com (public) | Active production | `devshop-control-plane` | Later — many links point here; defer |
-| retail-os-brand-config | Retail OS (`@retail-os/brand-config`) | Retail OS platform | 03 (shared pkg) | TS package (ships `dist`) | — | consumed via git SHA pin (private); v0.3.0 (module contract) on branch claude/brand-plane-contract, unmerged | Active | — (canonical) | No |
+| retail-os-brand-config | Retail OS (`@retail-os/brand-config`) | Retail OS platform | 03 (shared pkg) | TS package (ships `dist`) | — | consumed via git SHA pin (private); v0.3.0 on branch claude/brand-plane-contract, unmerged: canonical module registry with setup requirements, one identity contract, admin gate, voice mechanics. Also holds the Next.js starter `starters/next-brand-plane/` | Active | — (canonical) | No |
 | moon-glasses | Moon (owned brand) | Moon-glasses | 04 | Next.js 16 | Supabase | Vercel (public) | Active production — **Retail OS Live** | `retail-os-moon` | Later — live store; planned window only |
 | Travaholic_caps | Travaholic (active client) | Travaholic Caps | 05 | Next.js 16 | Supabase | Vercel (public) | Active production — **Retail OS Live** | `retail-os-travaholic` | Later — live store; planned window only |
 | korbi | KORBI / Ankay Holdings (active client) | Korbi | 05 | Astro | — | private | Active production — **Retail OS Live** (Astro stays) | `retail-os-korbi` | Later — live; Astro valid, no migration |
@@ -274,7 +274,12 @@ Before creating a new Claude Project, repository, package or major subsystem:
 
 ## 14. Brand-plane architecture
 
-The canonical Next.js brand plane (layers, classification, admin/auth standard, module contract, Fresh For Paws provisioning path) is in `case-study/RETAIL-OS-BRAND-PLANE.md`. A new brand is configured from a manifest, not forked. No template repository has been created; that needs Virat's approval.
+The canonical Retail OS Brand Plane (layers, identity contract, Foundation, admin auth policy, module status, Supabase isolation, new-brand steps, compatibility matrix with Travaholic and Moon) is `case-study/RETAIL-OS-BRAND-PLANE.md`. A new brand is configured, not forked.
+
+- **Shared packages:** `@retail-os/brand-config` v0.3.0 (framework-neutral). It now holds the canonical module registry; the copy under `retail-os/brand-config/` in this repo is the superseded incubator.
+- **Starter:** `starters/next-brand-plane/` inside the package repo. No new repository was created.
+- **Brand data:** one Supabase project per brand. Unchanged. No multi-tenancy decision.
+- **Open:** where real-brand registrations live, and when the incubator copy is deleted.
 
 ## 15. Sources
 
