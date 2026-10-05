@@ -73,7 +73,12 @@ Client-specific today: **Ceremony Finance** and **Ceremony Ops** belong to Cerem
 Current environment model: each live brand is its own Supabase project + app (RETAIL_OS_LIVE_BRANDS). This is unchanged; no multi-tenancy decision has been made.
 
 ### Anti-fork rule for brand planes
-A new brand starts from a manifest and the scaffold in `case-study/RETAIL-OS-BRAND-PLANE.md`, never from a copy of another brand's repo. Classify any new capability (core, optional module, configuration, client-specific, custom build) before writing it. Do not copy `proxy.ts` without its session module; the admin auth standard is the signed-session pattern described there.
+A new brand starts from the starter (`starters/next-brand-plane` in `virat-mohan/retail-os-brand-config`) and its own configuration, never from a copy of another brand's repo. Details: `case-study/RETAIL-OS-BRAND-PLANE.md`.
+- **Three places, one job each.** The package holds contracts only (no brand values). The control plane's `brands` table is the central registry: it says a brand exists and on what terms. A brand's configuration (identity, Foundation, module manifest, environment) lives in that brand's own repo. Never add a fourth location, and never keep brand configuration in the control plane or the package.
+- **Client-specific features** are declared by the owning brand in its own config, never added to the shared module registry.
+- **Pin the package by full commit SHA** and commit the lockfile; `npm run check:pin:strict` must pass before a brand deploys. Never depend on a tag, branch or range.
+- **Each brand has its own Supabase project**, bound to its brand key. Never share one between brands.
+- Classify any new capability (core, optional module, configuration, client-specific, custom build) before writing it. Do not copy `proxy.ts` without its session module and the login throttle; the admin standard is the signed-session pattern described in the doc.
 
 ### Payments (standard)
 Cash on delivery is off across Retail OS. In India COD drives high RTO (return-to-origin) and the courier/logistics economics don't work, so storefront checkout is prepaid/UPI only. Each store gates COD behind a single `COD_DISABLED` flag (default on) — hide the tile via the checkout config and reject `cod_advance` server-side; leave admin/manual orders unaffected. Only turn COD back on for a brand if Virat says so.

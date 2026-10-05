@@ -165,7 +165,7 @@ All 12 repositories under `virat-mohan`. The previous scan's list was complete �
 | Repository | Business / brand | Claude Project | Group | Framework | Database | Deployment | Status | Target name | Rename? |
 |---|---|---|---|---|---|---|---|---|---|
 | ViratMohan | DevShop control plane / viratmohan.com | DevShop Master Control; Virat Mohan website | 03 (+10) | Astro | Supabase `vszjwgxvqoqyixpfthwl` | viratmohan.com (public) | Active production | `devshop-control-plane` | Later — many links point here; defer |
-| retail-os-brand-config | Retail OS (`@retail-os/brand-config`) | Retail OS platform | 03 (shared pkg) | TS package (ships `dist`) | — | consumed via git SHA pin (private); v0.3.0 on branch claude/brand-plane-contract, unmerged: canonical module registry with setup requirements, one identity contract, admin gate, voice mechanics. Also holds the Next.js starter `starters/next-brand-plane/` | Active | — (canonical) | No |
+| retail-os-brand-config | Retail OS (`@retail-os/brand-config`) | Retail OS platform | 03 (shared pkg) | TS package (ships `dist`) | — | consumed via git SHA pin (private); v0.3.0 on branch claude/brand-plane-contract (PR #2, draft, unmerged, untagged): 29-module shared registry with setup requirements, one identity contract, admin gate, login throttle, voice mechanics. Also holds the Next.js starter `starters/next-brand-plane/` 0.2.0, outside the published package | Active | — (canonical) | No |
 | moon-glasses | Moon (owned brand) | Moon-glasses | 04 | Next.js 16 | Supabase | Vercel (public) | Active production — **Retail OS Live** | `retail-os-moon` | Later — live store; planned window only |
 | Travaholic_caps | Travaholic (active client) | Travaholic Caps | 05 | Next.js 16 | Supabase | Vercel (public) | Active production — **Retail OS Live** | `retail-os-travaholic` | Later — live store; planned window only |
 | korbi | KORBI / Ankay Holdings (active client) | Korbi | 05 | Astro | — | private | Active production — **Retail OS Live** (Astro stays) | `retail-os-korbi` | Later — live; Astro valid, no migration |
@@ -200,7 +200,7 @@ Do not create a separate product category for Vishal/Wiiz. `Email drafts for Vis
 | **Travaholic Caps** | Paid Active | **Retail OS Live** | `Travaholic_caps` | Reference implementation for the admin standard + Brand Foundation consumer pattern |
 | **Ceremony Kitchen** | Paid Active | Implementation Active (Retail OS + client-specific extensions) | `ceremony-os` | Ceremony Finance & Ceremony Ops are client-specific extensions, not core modules |
 | **Korbi** | Paid Active | **Retail OS Live** (Astro) | `korbi` | KORBI / Ankay Holdings |
-| **Fresh For Paws** (`freshforpaws.com`) | **Paid Active** | **ACTIVE PAID CLIENT — NO DEDICATED REPOSITORY IDENTIFIED** | — | NCNDA 27 Sep 2026, deposit 30 Sep, build clock started 30 Sep, target 7 Oct 2026. Founder Srishti Bhatia. WooCommerce front stays; Retail OS runs behind it. Supabase control-plane `brands` row `freshforpaws` + `retail_os_applications` 8ad86490. **No repo created.** Source: `case-study/brands/freshforpaws.md`. |
+| **Fresh For Paws** (`freshforpaws.com`) | **Paid Active** | **ACTIVE PAID CLIENT — NO DEDICATED REPOSITORY IDENTIFIED** | — | NCNDA 27 Sep 2026, deposit 30 Sep, build clock started 30 Sep, target 7 Oct 2026. Founder Srishti Bhatia. WooCommerce front stays; Retail OS runs behind it. Supabase control-plane `brands` row `freshforpaws` + `retail_os_applications` 8ad86490. **No repo created.** Brand Plane: **READY FOR FUTURE PROVISIONING — IMPLEMENTATION NOT STARTED.** Source: `case-study/brands/freshforpaws.md`. |
 | **The Feeling Co / FlowerBasket** | Active (client work) | To confirm — repo `thefeelingco` is static HTML + React | `thefeelingco` | Surfaced via FlowerBasket vendor outreach work item; confirm current technical state with Virat |
 
 > A domain alone is not proof of a technical implementation. Fresh For Paws appears here regardless of repository existence.
@@ -274,12 +274,14 @@ Before creating a new Claude Project, repository, package or major subsystem:
 
 ## 14. Brand-plane architecture
 
-The canonical Retail OS Brand Plane (layers, identity contract, Foundation, admin auth policy, module status, Supabase isolation, new-brand steps, compatibility matrix with Travaholic and Moon) is `case-study/RETAIL-OS-BRAND-PLANE.md`. A new brand is configured, not forked.
+The canonical Retail OS Brand Plane (registration authority, layers, identity contract, Foundation, admin auth and login throttle, module status, Supabase isolation and binding, versioning, provisioning, upgrade and retirement, security review, compatibility matrix with Travaholic and Moon) is `case-study/RETAIL-OS-BRAND-PLANE.md`. A new brand is configured, not forked.
 
-- **Shared packages:** `@retail-os/brand-config` v0.3.0 (framework-neutral). It now holds the canonical module registry; the copy under `retail-os/brand-config/` in this repo is the superseded incubator.
-- **Starter:** `starters/next-brand-plane/` inside the package repo. No new repository was created.
-- **Brand data:** one Supabase project per brand. Unchanged. No multi-tenancy decision.
-- **Open:** where real-brand registrations live, and when the incubator copy is deleted.
+- **Registration authority (one per kind of fact):** the **central registry** is the control plane's `brands` table (`migrations/0042_brands.sql`) plus `RETAIL_OS_LIVE_BRANDS` and this document. **Brand configuration** (identity, Foundation, module manifest, environment) lives in each brand's own repo. The **package** holds contracts only. They are not the same thing.
+- **Shared package:** `@retail-os/brand-config` v0.3.0 (framework-neutral), holding the canonical 29-module registry. Brands pin it by commit SHA.
+- **Starter:** `starters/next-brand-plane/` inside the package repo, outside the published package. No new repository was created; extraction to a template repo is a later decision.
+- **Superseded:** the control-plane incubator is archived at `case-study/archive/retail-os-brand-config-incubator/` (history preserved, out of every active path). Its `brands/*.ts` registrations were not carried over; each brand's configuration belongs in its own repo.
+- **Brand data:** one Supabase project per brand, and the database is bound to its brand key. No multi-tenancy decision.
+- **Open:** whether the central registry should also record the package and starter version a brand runs (the source of truth today is the brand repo); when the starter becomes its own template repo.
 
 ## 15. Sources
 
