@@ -7,9 +7,33 @@ import { AGENT_REGISTRY, CEO_AUTONOMY, findAgent, directReports } from '../../..
 import { CONTROL_TOWER_STAGES } from '../../../lib/control-tower/types';
 import type { MorningBoardItem } from '../../../lib/ceo/types';
 import type { ControlTowerStage, WorkSummary } from '../../../lib/control-tower/types';
+import { getEnv } from '../../../lib/env';
+import { serviceDb } from '../../../lib/ledger';
+import { createSupabaseWorkStore } from '../../../lib/work/db-store';
+import { loadRegistry } from '../../../lib/work/db-registry';
 
 const now = new Date();
-const registry = new InMemoryWorkRegistry();
+let registry: InMemoryWorkRegistry;
+let dataSource: 'supabase' | 'empty';
+let loadError: string | null = null;
+
+const env = getEnv();
+if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
+  try {
+    const sb = serviceDb(env);
+    const store = createSupabaseWorkStore(sb);
+    registry = await loadRegistry(store);
+    dataSource = 'supabase';
+  } catch (err: unknown) {
+    loadError = err instanceof Error ? err.message : String(err);
+    registry = new InMemoryWorkRegistry();
+    dataSource = 'empty';
+  }
+} else {
+  registry = new InMemoryWorkRegistry();
+  dataSource = 'empty';
+  loadError = 'Supabase not configured';
+}
 
 const view = buildControlTowerView(registry);
 const board = buildMorningBoard(registry, now);
@@ -140,9 +164,17 @@ const tab = ['board', 'pipeline', 'agents', 'brands'].includes(Astro.url.searchP
       <a class={`tab ${tab === 'brands' ? 'active' : ''}`} href="?tab=brands">Brands</a>
     </div>
 
-    <div class="notice">
-      Work Registry is not yet connected to a live data source. This view consumes the existing contracts (<code>buildMorningBoard</code>, <code>buildControlTowerView</code>) and will show live data once the registry is wired to Supabase.
-    </div>
+    {dataSource === 'supabase' ? (
+      <div class="notice" style="background:#E8F5E9;border-color:#A5D6A7;color:#1B5E20">
+        Data source: control-plane Work Registry (Supabase). Read-only. {registry.list().length} work items loaded.
+      </div>
+    ) : (
+      <div class="notice">
+        {loadError === 'Supabase not configured'
+          ? 'Work Registry database not configured. Showing empty state. Configure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to connect.'
+          : `Work Registry unavailable: ${loadError}. Showing empty state.`}
+      </div>
+    )}
 
     {tab === 'board' && (
       <div>
@@ -318,7 +350,7 @@ const tab = ['board', 'pipeline', 'agents', 'brands'].includes(Astro.url.searchP
     )}
 
     <p style="margin-top:32px;font-size:0.72rem;color:var(--ink-muted);text-align:center">
-      Founder Control Tower · DevShop Retail OS · Read-only · Contracts: Work Registry + CEO Operating Layer + Control Tower
+      Founder Control Tower · DevShop Retail OS · Read-only · Source: {dataSource === 'supabase' ? 'Control-plane Work Registry' : 'Empty (not connected)'}
     </p>
   </div>
 </body>

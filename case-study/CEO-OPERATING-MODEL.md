@@ -87,6 +87,12 @@ The CEO operating layer contract is implemented in `src/lib/ceo/` (4 source file
 | approve-terms-legal | L4 | DS-00 |
 | approve-irreversible | L4 | DS-00 |
 
+### Founder Control Tower
+
+The Founder Control Tower page (`/retail-os/admin/control-tower`) reads the real Work Registry from the control-plane Supabase database. It is read-only: it does not create, modify or close work, does not route agents, does not send communications, does not remediate, does not approve spend. Its data source is the control-plane Work Registry via `loadRegistry()` → `createSupabaseWorkStore()` → Supabase. Server-side only (no service-role key in the browser). Protected by admin auth middleware.
+
+Four tabs: Morning Board (material exceptions from `buildMorningBoard()`), Work Pipeline (eight-stage view from `buildControlTowerView()`), Agents (registry, autonomy grants), Brands (portfolio with honest status).
+
 ### What does NOT exist yet
 
 - Live wiring to email/WABA/WhatsApp routing
@@ -95,6 +101,7 @@ The CEO operating layer contract is implemented in `src/lib/ceo/` (4 source file
 - CRM, Economics/P&L, Growth Engine modules
 - Full CHRO performance engine
 - AI concierge or autonomous remediation
+- Health runner → Work Registry ingestion (health runner exists but does not write to Work Registry)
 
 ## Brand data isolation
 
