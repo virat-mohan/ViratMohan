@@ -78,7 +78,9 @@ The shell, navigation hierarchy, terminology and major interaction patterns are 
 5. Client-specific extensions are declared in the brand's own config, not in the shared registry.
 6. Brand-specific route links are declared in `lib/dashboard-nav.ts`, mapped to canonical sections.
 
-## Reference implementation: Travaholic Caps
+## Reference implementations
+
+### Travaholic Caps (first)
 
 Travaholic is the first live brand consuming the canonical dashboard contract:
 - **Package pin**: `@retail-os/brand-config` at commit `955bacb` (main)
@@ -87,6 +89,16 @@ Travaholic is the first live brand consuming the canonical dashboard contract:
 - **Local nav authority removed**: `components/admin/shell/nav.ts` is a thin re-export from the adapter
 - **Capability preservation**: 34 admin pages, 70+ API endpoints, 12 cron jobs, 5 webhooks — all preserved (see `case-study/TRAVAHOLIC-CAPABILITY-MATRIX.md`)
 - **Branch**: `canonical-dashboard-shell` on `virat-mohan/Travaholic_caps`
+
+### Moon (second)
+
+Moon is the second live brand consuming the canonical dashboard contract:
+- **Package pin**: `@retail-os/brand-config` at commit `955bacb` (main)
+- **BrandConfig**: `lib/brand-config.ts` — 17 optional modules enabled, 8 client extensions (models, product-images, tagged-posts, payment-confirmations, social-instagram, master-inventory, team-access, explorer-submissions)
+- **Nav adapter**: `lib/dashboard-nav.ts` — derives sections from `buildDashboardSections()`, maps 38 brand-specific route links
+- **Local nav authority removed**: `components/admin/shell/nav.ts` is a thin re-export with backward-compatible type aliases (AdminNavLink→NavLink, AdminTone→Accent, AdminNavSection→NavSection, findNav preserved alongside findCurrent)
+- **Capability preservation**: 38 admin pages, 80+ API endpoints, 12 cron jobs, 6 webhooks — all preserved
+- **Branch**: `canonical-dashboard-shell` on `virat-mohan/moon-glasses`
 
 ## Brand Dashboard vs Founder Control Tower
 
