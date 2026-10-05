@@ -1,0 +1,15 @@
+// Work Registry: public surface. Pure; nothing here touches a live system.
+export * from './types';
+export * from './actors';
+export * from './sha256';
+export * from './audit';
+export * from './priority';
+export * from './scope';
+export * from './ownership';
+export * from './lifecycle';
+export * from './incident';
+export * from './approval';
+export * from './escalation';
+export * from './repo-lock';
+export * from './dedupe';
+export * from './registry';
