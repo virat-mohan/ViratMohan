@@ -41,9 +41,10 @@ button.o{background:transparent;color:var(--ink);border:1px solid var(--line)}
 {ready.length === 0 && <p class="sub">Nothing waiting.</p>}
 {ready.map((r) => (
   <div class="card" data-id={r.id}>
-    <img src={r.image_url} alt="" loading="lazy">
+    <img src={r.kind === 'reel' ? (r.cover_url || '') : r.image_url} alt={r.kind === 'reel' ? 'Reel cover' : ''} loading="lazy">
     <div>
-      <p class="k">@{r.handle} · {r.kind}{r.after_id ? ' · after the post above' : ''}</p>
+      <p class="k">@{r.handle} · {r.kind}{r.kind === 'reel' && (r.collaborators ?? []).length ? ` · collab with @${r.collaborators.join(', @')}` : ''}{r.after_id ? ' · after the post above' : ''}</p>
+      {r.kind === 'reel' && <p class="note"><a href={r.image_url}>Watch the video</a> before you publish. Takes up to 2-3 minutes to process.</p>}
       {r.caption && <p class="cap">{r.caption}</p>}
       {r.note && <p class="note">{r.note}</p>}
       {r.error && <p class="err">Last try: {r.error}</p>}

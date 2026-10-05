@@ -6,3 +6,6 @@
 # Hashed, immutable build assets (fonts, CSS, JS)
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
+
+/social/reels/*
+  Cache-Control: public, max-age=3600
