@@ -29,13 +29,14 @@ Compared on `main` of `travaholic_caps` and `moon-glasses`:
 | `app/admin/*` page folders | Most pages overlap. Trav only: email-campaigns, performance, ux-insights, login. Moon only: creators, master-inventory, models, payment-confirmations, preorders, product-images, social, tagged-posts, team. |
 | Env surface | Two real env vars in both: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`. Everything else lives in `app_settings`. |
 
-Not checked: Ceremony OS (different shape), Korbi, The Feeling Co, and the open PRs on both repos.
+Not checked in depth: the in-repo `retail-os/brand-config/` beyond `modules.ts` and `types.ts` (`config.ts`, `defaults.ts`, `navigation.ts`, `render-contract.ts`), Ceremony OS (different shape), Korbi, The Feeling Co, and the open PRs on both repos.
 
 ## 3. Classification
 
 | Class | Items |
 |---|---|
-| Shared package (exists) | `RetailOsBrand` identity contract, Brand Foundation lifecycle and gate, Brand Memory, module contract and resolver. |
+| Shared package (exists) | `RetailOsBrand` identity contract, Brand Foundation lifecycle and gate, Brand Memory. Module status resolver (v0.3.0, unmerged). |
+| Already in this repo, not yet in the package | `retail-os/brand-config/`: the canonical module registry `MODULES` (36 modules, five-way classification, `requires`, nav groups), brand config types, navigation, render contract. Its `brand-identity.ts` is the same file the package ships. |
 | Shared package (next, not built) | `getSupabaseServerClient()` (identical today), `app_settings` reader and key registry pattern, admin session signing (section 4). |
 | Scaffold (copy once per brand, then configure) | `proxy.ts`, admin layout, AdminShell, CommandPalette, `error.tsx`/`loading.tsx`, `next.config.ts` skeleton. These are React and Next code; they are shaped by the brand's look, so they are templated, not packaged, until two brands have converged. |
 | Brand configuration | Identity values, module switches, fonts, colours, nav labels, `app_settings` rows, redirects. |
@@ -57,14 +58,18 @@ Travaholic differs and is weaker: the cookie is the unsalted `SHA-256(ADMIN_PASS
 
 ## 5. Module contract
 
-`brand-plane.ts` in the package. A brand supplies a manifest (identity, module ids, declared extensions). `resolveModules(manifest, hasSetting)` returns one status per module:
+Two parts, and only one is new.
 
-- `live`: switched on, required settings present, dependencies live;
-- `setup_required`: switched on, a setting is missing (names the key, never the value);
-- `blocked`: a dependency is not live;
-- `available`: exists, not switched on.
+- Registry (exists): `MODULES` in `retail-os/brand-config/modules.ts`. 12 core, 17 optional, 7 client-specific modules, each with `defaultEnabled`, `requires` and a nav group. This is the canonical list. The package must not hold a second one, so the first draft of this work that did was removed.
+- Status (new, package v0.3.0, `brand-plane.ts`): `resolveModules(manifest, hasSetting, catalogue)` turns "switched on" plus "configured" into one honest status per module:
+  - `live`: switched on, required settings present, dependencies live;
+  - `setup_required`: a setting is missing (names the key, never the value);
+  - `blocked`: a dependency is not live, or the dependency chain is a cycle;
+  - `available`: exists, not switched on.
 
-Core modules are on by default. Client-specific modules are invisible to every other brand and rejected by `validateManifest`. The nav should render from this result, so a module never shows as working when it is not. 25 of 25 package tests pass, including a catalogue check (unique ids, no cycles).
+`validateManifest` rejects unknown ids and client-specific modules owned by another brand. `validateCatalogue` checks unique ids, known dependencies and no cycles. 26 of 26 package tests pass, using a small test-local catalogue.
+
+Gap to close before this is useful: the registry has `requires` but no `requiredSettings`, so `setup_required` cannot fire for real modules yet. Adding that field per module needs Virat's review of which setting each module needs. The registry also needs to move into the package (or be adapted to `ModuleDefinition`) so brand apps can import it. The nav should then render from the resolver.
 
 ## 6. Reusable form
 
@@ -103,4 +108,5 @@ A new brand starts from a manifest and the scaffold. A capability a second brand
 
 - Whether the scaffold boots as a fresh app: I have not generated one. The contract is proven by tests, not by a running second brand.
 - Whether Moon and Trav build against package v0.3.0: not tried, and pinned at v0.2.0 today.
+- Overlap with the in-repo brand-config layer: `types.ts` (BrandIdentity, BrandCommerce, integrations) and the package's `RetailOsBrand` describe overlapping things in two shapes. I have not reconciled them; that is a decision for the architecture owner before either is migrated into a brand app.
 - Admin shell convergence: the two copies differ by 28 to 40 lines per file and I have not diffed them semantically.
