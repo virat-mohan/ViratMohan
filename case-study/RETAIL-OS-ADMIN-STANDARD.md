@@ -107,6 +107,16 @@ Moon is the second live brand consuming the canonical dashboard contract:
 
 These are distinct. Do not merge them into one giant interface.
 
+## Dashboard UX requirements (canonical, not yet built)
+
+### Breadcrumbs
+
+Every Retail OS dashboard (Founder Control Tower and every Brand Dashboard) must have a consistent breadcrumb system showing the user's location in the application hierarchy. Breadcrumbs must be reusable across the canonical dashboard shell. Examples: `Command Centre → Control Tower → Morning Board`; `Moon Glasses → Growth → Campaigns → Campaign Detail`.
+
+### Mobile-first usability
+
+All dashboards must be genuinely usable on mobile as a first-class operating use case. The mobile experience must prioritise: critical exceptions, approvals, KPIs, work status, drill-downs, quick actions (where authority permits), fast navigation. Do not merely shrink desktop layouts. Use responsive/reflowed views, appropriate mobile navigation, readable typography, usable touch targets and sensible information hierarchy. The canonical dashboard shell should be designed so breadcrumbs and responsive behaviour are reusable across Founder and Brand dashboards rather than re-implemented per application.
+
 ## Architectural rule
 
 Do not create separate dashboard architectures for individual brands. Use: common Retail OS dashboard structure + brand configuration + enabled modules + brand-specific extensions. Whenever the Retail OS dashboard / Command Centre / admin surface is implemented or migrated, use this common structure as the authoritative standard. A new brand does not invent an unrelated dashboard architecture without explicit architectural justification.

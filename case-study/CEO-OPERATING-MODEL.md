@@ -87,6 +87,22 @@ The CEO operating layer contract is implemented in `src/lib/ceo/` (4 source file
 | approve-terms-legal | L4 | DS-00 |
 | approve-irreversible | L4 | DS-00 |
 
+### Health → Work Registry → Founder Control Tower
+
+The operational health visibility path:
+
+```
+scripts/health/check.mjs (runs every 2h)
+→ POST /retail-os/api/health/report (Bearer CRON_SECRET)
+→ stores in health_runs table
+→ if failures: runHealthIngestion() → withRegistry() → ingestHealthRun()
+→ Work Items created in Work Registry (type: incident, state: new, no owner)
+→ Founder Control Tower reads via loadRegistry() → buildMorningBoard()
+→ P0/P1 failures appear on Morning Board
+```
+
+Deterministic, idempotent, no LLM. Same check failing again attaches to the open item (fingerprint dedup). Recovery stops producing events but never auto-closes (a person resolves). Re-failure after close is flagged as a possible regression. The adapter never assigns, remediates, deploys or sends anything. 12 tests in `tests/unit/work/health-ingest.test.ts`.
+
 ### Founder Control Tower
 
 The Founder Control Tower page (`/retail-os/admin/control-tower`) reads the real Work Registry from the control-plane Supabase database. It is read-only: it does not create, modify or close work, does not route agents, does not send communications, does not remediate, does not approve spend. Its data source is the control-plane Work Registry via `loadRegistry()` → `createSupabaseWorkStore()` → Supabase. Server-side only (no service-role key in the browser). Protected by admin auth middleware.
@@ -101,7 +117,8 @@ Four tabs: Morning Board (material exceptions from `buildMorningBoard()`), Work 
 - CRM, Economics/P&L, Growth Engine modules
 - Full CHRO performance engine
 - AI concierge or autonomous remediation
-- Health runner → Work Registry ingestion (health runner exists but does not write to Work Registry)
+- Breadcrumbs and mobile-first responsive shell for Founder and Brand dashboards (canonical requirement, not yet built)
+- Autonomous agent execution runtime
 
 ## Brand data isolation
 
