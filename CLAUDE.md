@@ -69,6 +69,9 @@ Client-specific today: **Ceremony Finance** and **Ceremony Ops** belong to Cerem
 
 Current environment model: each live brand is its own Supabase project + app (RETAIL_OS_LIVE_BRANDS). This is unchanged; no multi-tenancy decision has been made.
 
+### Anti-fork rule for brand planes
+A new brand starts from a manifest and the scaffold in `case-study/RETAIL-OS-BRAND-PLANE.md`, never from a copy of another brand's repo. Classify any new capability (core, optional module, configuration, client-specific, custom build) before writing it. Do not copy `proxy.ts` without its session module; the admin auth standard is the signed-session pattern described there.
+
 ### Payments (standard)
 Cash on delivery is off across Retail OS. In India COD drives high RTO (return-to-origin) and the courier/logistics economics don't work, so storefront checkout is prepaid/UPI only. Each store gates COD behind a single `COD_DISABLED` flag (default on) — hide the tile via the checkout config and reject `cod_advance` server-side; leave admin/manual orders unaffected. Only turn COD back on for a brand if Virat says so.
 

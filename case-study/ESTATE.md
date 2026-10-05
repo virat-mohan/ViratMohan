@@ -165,7 +165,7 @@ All 12 repositories under `virat-mohan`. The previous scan's list was complete �
 | Repository | Business / brand | Claude Project | Group | Framework | Database | Deployment | Status | Target name | Rename? |
 |---|---|---|---|---|---|---|---|---|---|
 | ViratMohan | DevShop control plane / viratmohan.com | DevShop Master Control; Virat Mohan website | 03 (+10) | Astro | Supabase `vszjwgxvqoqyixpfthwl` | viratmohan.com (public) | Active production | `devshop-control-plane` | Later — many links point here; defer |
-| retail-os-brand-config | Retail OS (`@retail-os/brand-config`) | Retail OS platform | 03 (shared pkg) | TS package (ships `dist`) | — | consumed via git SHA pin (private) | Active | — (canonical) | No |
+| retail-os-brand-config | Retail OS (`@retail-os/brand-config`) | Retail OS platform | 03 (shared pkg) | TS package (ships `dist`) | — | consumed via git SHA pin (private); v0.3.0 (module contract) on branch claude/brand-plane-contract, unmerged | Active | — (canonical) | No |
 | moon-glasses | Moon (owned brand) | Moon-glasses | 04 | Next.js 16 | Supabase | Vercel (public) | Active production — **Retail OS Live** | `retail-os-moon` | Later — live store; planned window only |
 | Travaholic_caps | Travaholic (active client) | Travaholic Caps | 05 | Next.js 16 | Supabase | Vercel (public) | Active production — **Retail OS Live** | `retail-os-travaholic` | Later — live store; planned window only |
 | korbi | KORBI / Ankay Holdings (active client) | Korbi | 05 | Astro | — | private | Active production — **Retail OS Live** (Astro stays) | `retail-os-korbi` | Later — live; Astro valid, no migration |
@@ -272,7 +272,11 @@ Before creating a new Claude Project, repository, package or major subsystem:
 
 ---
 
-## 14. Sources
+## 14. Brand-plane architecture
+
+The canonical Next.js brand plane (layers, classification, admin/auth standard, module contract, Fresh For Paws provisioning path) is in `case-study/RETAIL-OS-BRAND-PLANE.md`. A new brand is configured from a manifest, not forked. No template repository has been created; that needs Virat's approval.
+
+## 15. Sources
 
 - GitHub `list_repos` for `virat-mohan` (2026-10-05) — the 12 repos in §5.
 - Virat (2026-10-05) — confirmed classification of Claude Projects (§2–§9), Fresh For Paws paid-active, Vishal/Wiiz tri-classification, Travaholic Stays legacy + Real Estate IP.
