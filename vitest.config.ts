@@ -6,6 +6,6 @@ export default defineConfig({
     // directory tree (see the DevShop vertical-builder agents) — without this
     // exclude, vitest's default file discovery picks up each worktree's own
     // copy of tests/unit too, silently multiplying the reported test count.
-    exclude: ['**/node_modules/**', '**/.claude/worktrees/**', '**/dist/**'],
+    exclude: ['**/node_modules/**', '**/.claude/worktrees/**', '**/dist/**', '**/starters/**'],
   },
 });

@@ -61,9 +61,21 @@ The Command Centre is the brand's operating overview. It surfaces the most impor
 
 The shell, navigation hierarchy, terminology and major interaction patterns are consistent across Retail OS brands. A founder moving from Travaholic → Moon → Ceremony → Korbi → Fresh For Paws should not have to learn an entirely different operating system each time.
 
-## Relationship to existing brand-plane work
+## Implementation authority
 
-The current Brand Plane scaffold has established the reusable shell and module machinery. Do not immediately rewrite Travaholic or Moon. The next dashboard work should identify: (1) what is already genuinely common, (2) what should become canonical, (3) what is still brand-specific, (4) what should migrate later. Do not abstract unstable differences merely to make the code look uniform.
+- **Canonical dashboard/navigation contract**: `@retail-os/brand-config` (`dashboard-sections.ts`). The 11 sections, 6 module states, nav-group-to-section mapping, and `buildDashboardSections()` live in the shared package. One authority, one source.
+- **Brand-plane implementation**: Next.js. The starter is `starters/next-brand-plane/` in virat-mohan/ViratMohan. A new brand clones the starter, supplies its `BrandConfig`, and gets the canonical dashboard shell.
+- **Control-plane implementation**: Astro. The Founder Control Tower at `/retail-os/admin/console.astro` is the cross-brand operating view. It is separate from the brand dashboard.
+- **Control-plane dashboard types** (`src/lib/retail-os-dashboard/`): control-plane-specific view models for the Astro Founder Console. Not the brand-plane authority.
+- **Work Registry boundary**: the brand dashboard may display Work Registry information through a controlled read adapter/API. Brand applications do not access the central Work Registry database directly.
+
+## How a new brand consumes the dashboard
+
+1. Clone `starters/next-brand-plane/`.
+2. Supply `BrandConfig` in `lib/brand.ts` (identity, tokens, commerce, integrations, module overrides, extensions).
+3. The dashboard shell resolves the 11-section navigation from the config via `@retail-os/brand-config`.
+4. Sections with no enabled modules are hidden. Module states are derived from `resolveModuleStatus()`.
+5. Client-specific extensions are declared in the brand's own config, not in the shared registry.
 
 ## Brand Dashboard vs Founder Control Tower
 
