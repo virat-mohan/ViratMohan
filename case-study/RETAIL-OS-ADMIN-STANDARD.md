@@ -72,10 +72,21 @@ The shell, navigation hierarchy, terminology and major interaction patterns are 
 ## How a new brand consumes the dashboard
 
 1. Clone `starters/next-brand-plane/`.
-2. Supply `BrandConfig` in `lib/brand.ts` (identity, tokens, commerce, integrations, module overrides, extensions).
+2. Supply `BrandConfig` in `lib/brand-config.ts` (identity, tokens, commerce, integrations, module overrides, extensions).
 3. The dashboard shell resolves the 11-section navigation from the config via `@retail-os/brand-config`.
-4. Sections with no enabled modules are hidden. Module states are derived from `resolveModuleStatus()`.
+4. Sections with no enabled modules are hidden unless they have brand-specific links. Module states are derived from `resolveModuleStatus()`.
 5. Client-specific extensions are declared in the brand's own config, not in the shared registry.
+6. Brand-specific route links are declared in `lib/dashboard-nav.ts`, mapped to canonical sections.
+
+## Reference implementation: Travaholic Caps
+
+Travaholic is the first live brand consuming the canonical dashboard contract:
+- **Package pin**: `@retail-os/brand-config` at commit `955bacb` (main)
+- **BrandConfig**: `lib/brand-config.ts` — 14 optional modules enabled, 1 client extension (explorer-submissions)
+- **Nav adapter**: `lib/dashboard-nav.ts` — derives sections from `buildDashboardSections()`, maps 31 brand-specific route links
+- **Local nav authority removed**: `components/admin/shell/nav.ts` is a thin re-export from the adapter
+- **Capability preservation**: 34 admin pages, 70+ API endpoints, 12 cron jobs, 5 webhooks — all preserved (see `case-study/TRAVAHOLIC-CAPABILITY-MATRIX.md`)
+- **Branch**: `canonical-dashboard-shell` on `virat-mohan/Travaholic_caps`
 
 ## Brand Dashboard vs Founder Control Tower
 
