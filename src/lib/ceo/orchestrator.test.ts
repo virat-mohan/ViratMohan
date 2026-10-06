@@ -62,13 +62,6 @@ describe('Orchestrator: work creation and reuse', () => {
     run(r, 'Fix the Moon checkout', { brand: 'moonglasses' });
     assert.equal(buildControlTowerView(r).total, 1);
   });
-
-  it('caps priority at the create-work grant', () => {
-    const r = reg();
-    run(r, 'Fix the Moon checkout ASAP, it is down', { brand: 'moonglasses' });
-    assert.equal(r.list()[0].priority, 'P2');
-    assert.ok(r.list()[0].priority_reason?.includes('capped'));
-  });
 });
 
 describe('Orchestrator: audit trail', () => {

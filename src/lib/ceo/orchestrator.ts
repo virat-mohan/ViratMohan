@@ -4,15 +4,17 @@
 // operation, so it lands in the append-only audit trail. Routing is by role; roles.ts names the holders.
 
 import type { InMemoryWorkRegistry } from '../work/registry';
-import type { Actor, Priority, WorkItem, Scope } from '../work/types';
+import type { Actor, WorkItem, Scope } from '../work/types';
 import { isVirat } from '../work/actors';
 import { Scopes } from '../work/scope';
-import { CEO, autonomyFor, brandCeoFor, type WorkQuestion } from './types';
+import { CEO, brandCeoFor, type WorkQuestion } from './types';
 import type { FounderInput } from './founder-input';
 import { buildContextPack, type ContextPack } from './context-pack';
 import { checkAuthority, requiredCapabilityForInput, canCeoAssign, type AuthorityVerdict } from './authority';
 import { buildCeoResponse, type CeoResponse } from './response';
 import { createQuestion } from './coordinator';
+import { decidePriority, type PriorityDecision } from './priority-policy';
+import { deploymentIntent, describeIntent } from './deployment-intent';
 import {
   ROLE_BINDINGS, functionForText, roleForFunction, holdersOf,
   type RoleBindings, type RoleDefinition, type WorkFunction,
@@ -27,6 +29,7 @@ export type OrchestratorOutcomeKind =
   | 'question_raised'
   | 'acknowledged'
   | 'escalated'
+  | 'clarification_needed'
   | 'denied';
 
 /** What the runtime did to the registry. 'read' and 'none' never write. */
@@ -41,6 +44,8 @@ export interface RoutingDecision {
   currentHolders: string[];
   governance: string;
   approval: { authority: string; from: string };
+  /** The structured signals that established this routing (action, target, production). */
+  basis: string;
 }
 
 export interface OrchestratorOutcome {
@@ -53,6 +58,8 @@ export interface OrchestratorOutcome {
   workItem: WorkItem | null;
   reusedExistingWork: boolean;
   routing: RoutingDecision | null;
+  priority: PriorityDecision | null;
+  similarWork: string[];
   question: WorkQuestion | null;
   summary: string;
   mutationApplied: boolean;
@@ -65,8 +72,6 @@ export interface OrchestratorOptions {
   now?: Date;
   bindings?: RoleBindings;
 }
-
-const PRIORITY_RANK: Record<Priority, number> = { P0: 0, P1: 1, P2: 2, P3: 3, P4: 4 };
 
 export function processFounderInput(
   input: FounderInput,
@@ -91,9 +96,10 @@ export function processFounderInput(
   const capability = requiredCapabilityForInput(input);
   const authority = checkAuthority(capability);
   const fn = input.kind === 'work_request' || input.kind === 'instruction' || input.kind === 'question'
-    ? functionForText(input.text)
+    ? functionForText(input.text, input.kind === 'question' ? 'question' : 'action')
     : null;
-  const routing = fn ? routingFor(roleForFunction(fn, bindings)) : null;
+  const intent = fn && input.kind !== 'question' ? deploymentIntent(input.text) : null;
+  const routing = fn ? routingFor(roleForFunction(fn, bindings), intent ? describeIntent(intent) : 'question about a deployment target') : null;
   const ctx: Ctx = { input, context, response, authority, registry, now, bindings, routing };
 
   switch (input.kind) {
@@ -132,7 +138,7 @@ function base(
 ): OrchestratorOutcome {
   return {
     input, context, response, authority,
-    operation: 'none', workItem: null, reusedExistingWork: false, routing: null, question: null,
+    operation: 'none', workItem: null, reusedExistingWork: false, routing: null, priority: null, similarWork: [], question: null,
     mutationApplied: false, escalationRequired: false, trace: [],
     ...p,
   };
@@ -142,7 +148,7 @@ function done(c: Ctx, p: Partial_): OrchestratorOutcome {
   return base(c.input, c.context, c.response, c.authority, { routing: c.routing, ...p });
 }
 
-function routingFor(role: RoleDefinition): RoutingDecision {
+function routingFor(role: RoleDefinition, basis: string): RoutingDecision {
   return {
     function: role.function,
     role: role.id,
@@ -150,6 +156,7 @@ function routingFor(role: RoleDefinition): RoutingDecision {
     currentHolders: role.holders.map((h) => h.name),
     governance: role.governance,
     approval: { authority: role.assignmentAuthority, from: 'virat' },
+    basis,
   };
 }
 
@@ -157,9 +164,9 @@ function traceLine(c: Ctx, matched: WorkItem | null, result: string): string {
   const auth = c.authority.allowed
     ? `${c.authority.capability} ${c.authority.level} allowed`
     : `${c.authority.capability} ${c.authority.level} needs ${c.authority.holder}`;
-  const route = c.routing ? `; routing ${c.routing.function} -> ${c.routing.role} (holder: ${c.routing.currentHolders.join(', ') || 'none'})` : '';
+  const route = c.routing ? `; routing ${c.routing.function} -> ${c.routing.role} (holder: ${c.routing.currentHolders.join(', ') || 'none'}; ${c.routing.basis})` : '';
   const approval = c.routing ? `; approval ${c.routing.approval.authority} from ${c.routing.approval.from}` : '';
-  return `Founder input ${c.input.id} [${c.input.kind}, ${c.input.urgency}]: authority ${auth}; matched work ${matched?.ref ?? 'none'}${route}${approval}; ${result}`;
+  return `Founder input ${c.input.id} via ${c.input.channel} [${c.input.kind}, ${c.input.urgency}]: authority ${auth}; matched work ${matched?.ref ?? 'none'}${route}${approval}; ${result}`;
 }
 
 function logTrace(c: Ctx, workId: string, matched: WorkItem | null, result: string): string {
@@ -254,7 +261,20 @@ function approvalFlow(c: Ctx): OrchestratorOutcome {
 
 // ── decisions ──────────────────────────────────────────────────────────────
 
+function ambiguous(c: Ctx): OrchestratorOutcome | null {
+  const m = c.context.match;
+  if (!m || m.status !== 'ambiguous') return null;
+  const list = m.candidates.map((x) => `${x.item.ref} "${x.item.title}"`).join('; ');
+  return done(c, {
+    kind: 'clarification_needed', operation: 'none',
+    summary: `${m.candidates.length} open Work items match this equally well: ${list}. Not guessing which one you mean`,
+    similarWork: m.candidates.map((x) => x.item.ref), nextStep: 'Reply with the Work reference',
+  });
+}
+
 function decisionFlow(c: Ctx): OrchestratorOutcome {
+  const unclear = ambiguous(c);
+  if (unclear) return unclear;
   const matched = c.context.matchedWork;
   if (!matched) {
     return done(c, {
@@ -276,6 +296,9 @@ function workFlow(c: Ctx): OrchestratorOutcome {
     return done(c, { kind: 'escalated', operation: 'escalate', summary: c.response.summary, escalationRequired: true, nextStep: c.response.nextStep });
   }
 
+  const unclear = ambiguous(c);
+  if (unclear) return unclear;
+
   const matched = c.context.matchedWork;
   if (matched) {
     const trace = logTrace(c, matched.id, matched, 'existing work reused, no new work created');
@@ -295,10 +318,17 @@ function workFlow(c: Ctx): OrchestratorOutcome {
     return done(c, { kind: 'escalated', operation: 'escalate', summary: `Cannot assign to ${owner.id}: ${assign.reason}`, escalationRequired: true, nextStep: `Approval from ${assign.holder} needed first` });
   }
 
+  const decision = decidePriority(c.input.text, c.input.urgency);
+  const rules = checkAuthority('apply-priority-rules');
+  if (!rules.allowed && decision.basis !== 'founder_instruction') {
+    return done(c, { kind: 'escalated', operation: 'escalate', priority: decision, summary: `Priority rules cannot be applied: ${rules.reason}`, escalationRequired: true, nextStep: `Decision needed from ${rules.holder}` });
+  }
+  const similarRefs = (c.context.match?.similar ?? []).map((w) => w.ref);
+
   const created = c.registry.createItem({
     title: c.input.text,
     description: `Founder input ${c.input.id}: ${c.input.text}`,
-    type: c.input.kind === 'instruction' ? 'task' : 'request',
+    type: decision.type === 'improvement' ? 'improvement' : c.input.kind === 'instruction' ? 'task' : 'request',
     level: 'work_item',
     scope,
     source: { channel: 'founder_request', requester: c.input.from },
@@ -309,9 +339,10 @@ function workFlow(c: Ctx): OrchestratorOutcome {
   const id = created.value.id;
   const steps: string[] = [];
 
-  const { priority, reason } = priorityFor(c.input);
-  const triaged = c.registry.transition(id, 'triaged', CEO, { payload: { triage: { type: created.value.type, priority, priority_reason: reason, scope } } });
-  steps.push(triaged.ok ? `triaged ${priority}` : `triage failed: ${triaged.error.message}`);
+  const triaged = c.registry.transition(id, 'triaged', CEO, { payload: { triage: { type: created.value.type, priority: decision.priority, factors: decision.factors, priority_reason: decision.reason, scope } } });
+  steps.push(triaged.ok ? `triaged ${decision.priority} (${decision.basis}: ${decision.reason})` : `triage failed: ${triaged.error.message}`);
+  if (decision.advisory) steps.push(`advisory: ${decision.advisory.why}`);
+  if (similarRefs.length) steps.push(`similar open work not attached: ${similarRefs.join(', ')}`);
   const assigned = triaged.ok ? c.registry.transition(id, 'assigned', CEO, { payload: { owner } }) : null;
   if (assigned) steps.push(assigned.ok ? `owner ${owner.id}` : `assignment failed: ${assigned.error.message}`);
 
@@ -335,25 +366,13 @@ function workFlow(c: Ctx): OrchestratorOutcome {
 
   const trace = logTrace(c, id, null, `new work created; ${steps.join('; ')}`);
   return done(c, {
-    kind: 'work_created', operation: 'create_work', workItem: c.registry.get(id)!,
-    summary: `Created ${created.value.ref} "${c.input.text}"`, mutationApplied: true, escalationRequired, nextStep, trace: [trace],
+    kind: 'work_created', operation: 'create_work', workItem: c.registry.get(id)!, priority: decision, similarWork: similarRefs,
+    summary: `Created ${created.value.ref} "${c.input.text}" at ${decision.priority}${decision.advisory ? '. ' + decision.advisory.why : ''}`,
+    mutationApplied: true, escalationRequired, nextStep, trace: [trace],
   });
 }
 
 function brandOwner(input: FounderInput): Actor | null {
   const b = input.brand ? brandCeoFor(input.brand) : undefined;
   return b ? { kind: 'agent', id: b.id } : null;
-}
-
-/** Founder urgency to priority, capped by the create-work grant (the CEO does not set anything above its cap). */
-function priorityFor(input: FounderInput): { priority: Priority; reason: string } {
-  const wanted: Priority = input.urgency === 'critical' ? 'P1' : input.urgency === 'urgent' ? 'P2' : 'P3';
-  const cap = (autonomyFor('create-work')?.limits?.maxPriority as Priority | undefined) ?? 'P2';
-  const capped = PRIORITY_RANK[wanted] < PRIORITY_RANK[cap];
-  return {
-    priority: capped ? cap : wanted,
-    reason: capped
-      ? `Founder wording is ${input.urgency}; capped at ${cap} by the CEO create-work grant, Virat may raise it`
-      : `Set from founder wording (${input.urgency})`,
-  };
 }

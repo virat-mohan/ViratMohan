@@ -7,6 +7,7 @@ import type { Actor, Priority, Scope, WorkItem, WorkType } from '../work/types';
 import { suggestPriority, NO_FACTORS } from '../work/priority';
 import { Scopes } from '../work/scope';
 import { ROLE_BINDINGS, holdersOf, type RoleBindings } from './roles';
+import { matchExistingWork } from './work-matcher';
 import { buildControlTowerView } from '../control-tower/view';
 import { CEO, CEO_ID, brandCeoFor, findAgent, canActAutonomously, type AutonomyLevel, type AuditCategory } from './types';
 import type { WorkQuestion, QuestionRouting } from './types';
@@ -81,20 +82,7 @@ export function findExistingWork(
   title: string,
   scope: Scope,
 ): WorkItem | null {
-  const open = registry.list().filter((i) => i.state !== 'closed' && i.merged_into === null);
-  const titleLower = title.toLowerCase();
-  const tokens = new Set(titleLower.split(/\s+/).filter((t) => t.length > 3));
-
-  for (const item of open) {
-    if (item.scope.brand === scope.brand) {
-      const itemTokens = new Set(item.title.toLowerCase().split(/\s+/).filter((t) => t.length > 3));
-      const overlap = [...tokens].filter((t) => itemTokens.has(t)).length;
-      if (overlap >= 2 || item.title.toLowerCase() === titleLower) {
-        return item;
-      }
-    }
-  }
-  return null;
+  return matchExistingWork(registry, title, scope).match;
 }
 
 // ── Audit loop ────────────────────────────────────────────────────────────

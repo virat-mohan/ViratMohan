@@ -5,6 +5,7 @@
 
 import type { Actor, Scope } from '../work/types';
 import type { CommType, CommChannel } from './types';
+import { isIncidentReport } from './priority-policy';
 
 export type FounderInputKind =
   | 'context'        // FYI, background, no action needed
@@ -32,7 +33,7 @@ export interface FounderInput {
 
 const APPROVAL_PATTERNS = /\b(approved?|yes\s+go\s+ahead|go\s+ahead|yes\b.*\bdo\s+it|green\s+light|ok\s+proceed)\b/i;
 const QUESTION_PATTERNS = /^(what|where|when|who|why|how|is\s+there|can\s+you|could\s+you|do\s+we|are\s+we|have\s+we|did\s+we|any\s+update)\b|\?\s*$/i;
-const WORK_PATTERNS = /\b(handle|fix|resolve|set\s+up|build|create|deploy|launch|migrate|ship|implement|add|remove|change|update|send|post|schedule)\b/i;
+const WORK_PATTERNS = /\b(handle|fix|resolve|improve|enhance|polish|tidy|refactor|redesign|set\s+up|build|create|deploy|launch|migrate|ship|implement|add|remove|change|update|send|post|schedule)\b/i;
 const EVIDENCE_PATTERNS = /\b(here\s+is|attached|screenshot|proof|result|numbers|data|report|metric|outcome)\b/i;
 const INVESTIGATION_PATTERNS = /\b(check\s+why|investigate|look\s+into|find\s+out|debug|diagnose|what\s+happened|why\s+is)\b/i;
 const CONTEXT_PATTERNS = /\b(fyi|for\s+your\s+info|just\s+so\s+you\s+know|heads\s+up|noting\s+that|btw|by\s+the\s+way)\b/i;
@@ -76,6 +77,7 @@ function inferKind(text: string, workId: string | null): FounderInputKind {
   if (APPROVAL_PATTERNS.test(text)) return 'approval';
   if (DECISION_PATTERNS.test(text)) return 'decision';
   if (workId && EVIDENCE_PATTERNS.test(text)) return 'evidence';
+  if (isIncidentReport(text) && !QUESTION_PATTERNS.test(text) && !INVESTIGATION_PATTERNS.test(text)) return 'work_request';
   if (CONTEXT_PATTERNS.test(text)) return 'context';
   if (QUESTION_PATTERNS.test(text)) return 'question';
   if (INVESTIGATION_PATTERNS.test(text)) return 'instruction';

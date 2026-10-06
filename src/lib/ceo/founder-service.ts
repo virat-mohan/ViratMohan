@@ -29,6 +29,10 @@ export interface FounderResponse {
   outcome: { kind: string; operation: string; summary: string; mutationApplied: boolean; reusedExistingWork: boolean };
   work: WorkRef | null;
   routing: RoutingDecision | null;
+  priority: { value: string; basis: string; reason: string; advisory: string | null } | null;
+  similarWork: string[];
+  /** Present only when the registry was written. Reads and clarifications carry none. */
+  write: { operation: string; actor: string; source: string; authority: string; work: { ref: string; state: string } | null; auditEvents: string[] } | null;
   question: { id: string; routing: string; routedTo: string | null; text: string } | null;
   escalation: { required: boolean; to: string | null };
   nextStep: string;
@@ -70,6 +74,18 @@ export function toFounderResponse(o: OrchestratorOutcome): FounderResponse {
     outcome: { kind: o.kind, operation: o.operation, summary: o.summary, mutationApplied: o.mutationApplied, reusedExistingWork: o.reusedExistingWork },
     work: o.workItem ? workRef(o.workItem) : null,
     routing: o.routing,
+    priority: o.priority ? { value: o.priority.priority, basis: o.priority.basis, reason: o.priority.reason, advisory: o.priority.advisory?.why ?? null } : null,
+    similarWork: o.similarWork,
+    write: o.mutationApplied
+      ? {
+          operation: o.operation,
+          actor: o.operation === 'record_approval' ? o.input.from.id : 'DS-02',
+          source: o.input.channel,
+          authority: `${o.authority.capability} ${o.authority.level}${o.authority.allowed ? '' : ' (decided by ' + o.input.from.id + ')'}`,
+          work: o.workItem ? { ref: o.workItem.ref, state: o.workItem.state } : null,
+          auditEvents: o.workItem ? o.workItem.events.slice(-MAX_AUDIT_EVENTS).map((e) => e.kind) : [],
+        }
+      : null,
     question: o.question
       ? { id: o.question.id, routing: o.question.routing, routedTo: o.question.routed_to?.id ?? null, text: o.question.question }
       : null,

@@ -6,7 +6,8 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { spawn, type ChildProcess } from 'node:child_process';
 import type { PGlite } from '@electric-sql/pglite';
 import { createSupabaseWorkStore } from '../../src/lib/work/db-store';
-import { loadRegistry } from '../../src/lib/work/db-registry';
+import { loadRegistry, mutateRegistry } from '../../src/lib/work/db-registry';
+import { Scopes } from '../../src/lib/work/scope';
 import { freshDb, pgClient } from '../unit/work/pg-client';
 import { startShim } from './postgrest-shim';
 
@@ -170,5 +171,76 @@ describe('two real concurrent requests', () => {
     const reg = await registry();
     expect(reg.get(w.body.work.id)!.evidence.length).toBe(2);
     expect(reg.verifyAudit(w.body.work.id).ok).toBe(true);
+  }, 90_000);
+});
+
+const plain = (html: string) => html.replace(/<style[\s\S]*?<\/style>/g, '').replace(/<script[\s\S]*?<\/script>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+const seedWork = (titles: string[]) =>
+  mutateRegistry(createSupabaseWorkStore(pgClient(db) as never), (reg) => {
+    for (const t of titles) reg.createItem({ title: t, type: 'task', scope: Scopes.brand('moonglasses') }, { kind: 'agent', id: 'DS-02' });
+    return { value: null, changed: true };
+  });
+
+describe('priority, matching and routing over real HTTP', () => {
+  it('a checkout outage lands at P0 and appears as Critical in the Control Tower', async () => {
+    const r = await ceo(`${TEST_TAG}The checkout is down`, { brand: 'moonglasses' });
+    expect(r.body.work.priority).toBe('P0');
+    expect(r.body.priority).toMatchObject({ value: 'P0', basis: 'rule_floor' });
+    expect(r.body.escalation.required).toBe(false);
+    const board = plain(await (await fetch(`${BASE}/retail-os/admin/control-tower?tab=board`, { headers: { authorization: AUTH } })).text());
+    expect(board).toContain('1 Open work 1 Critical');
+    const pipeline = plain(await (await fetch(`${BASE}/retail-os/admin/control-tower?tab=pipeline`, { headers: { authorization: AUTH } })).text());
+    expect(pipeline).toMatch(/Critical items[^]*The checkout is down/);
+  }, 90_000);
+
+  it('urgent wording without a recognised condition is held at P3 with an advisory that needs Virat', async () => {
+    const r = await ceo(`${TEST_TAG}Fix the homepage banner ASAP`, { brand: 'caps' });
+    expect(r.body.work.priority).toBe('P3');
+    expect(r.body.priority.advisory).toContain('make it P1');
+  }, 60_000);
+
+  it('records a write only when it wrote, with operation, actor, source, authority and resulting state', async () => {
+    const w = await ceo(`${TEST_TAG}Fix the Moon checkout`, { brand: 'moonglasses' });
+    expect(w.body.write).toMatchObject({ operation: 'create_work', actor: 'DS-02', source: 'command_centre', authority: 'create-work L2', work: { state: 'assigned' } });
+    expect(w.body.write.auditEvents).toContain('action');
+    const q = await ceo('What is the status of the Moon checkout?', { brand: 'moonglasses' });
+    expect(q.body.write).toBeNull();
+    expect((await registry()).list().length).toBe(1);
+  }, 60_000);
+
+  it('a question with no match creates nothing', async () => {
+    const q = await ceo('What is happening with the Caps campaign?', { brand: 'caps' });
+    expect(q.body.outcome).toMatchObject({ kind: 'question_answered', mutationApplied: false });
+    expect((await registry()).list().length).toBe(0);
+  }, 60_000);
+
+  it('two plausible matches: asks which, writes nothing; a Work reference then decides', async () => {
+    await seedWork(['Checkout payment gateway timeout', 'Checkout payment gateway timeout retries']);
+    const before = await eventCount();
+    const a = await ceo('Fix the checkout payment gateway timeout', { brand: 'moonglasses' });
+    expect(a.body.outcome).toMatchObject({ kind: 'clarification_needed', mutationApplied: false });
+    expect(a.body.write).toBeNull();
+    expect(await eventCount()).toBe(before);
+    const target = (await registry()).list().find((i) => i.title.endsWith('retries'))!;
+    const b = await ceo('Fix the checkout payment gateway timeout', { brand: 'moonglasses', work_id: target.id });
+    expect(b.body.outcome.kind).toBe('work_updated');
+    expect(b.body.work.id).toBe(target.id);
+  }, 90_000);
+
+  it('a weak match is not attached; the similar Work is listed for confirmation', async () => {
+    await seedWork(['Redesign the homepage banner']);
+    const r = await ceo('Add a banner to the checkout', { brand: 'moonglasses' });
+    expect(r.body.outcome.kind).toBe('work_created');
+    expect(r.body.similarWork.length).toBe(1);
+    expect((await registry()).list().length).toBe(2);
+  }, 60_000);
+
+  it('the word "integration" alone is ordinary Work, not a deployment approval', async () => {
+    const r = await ceo(`${TEST_TAG}Fix the integration campaign tracking`, { brand: 'moonglasses' });
+    expect(r.body.routing).toBeNull();
+    expect(r.body.work.state).toBe('assigned');
+    const real = await ceo(`${TEST_TAG}Integrate the new payment gateway and deploy it to production`, { brand: 'caps' });
+    expect(real.body.routing).toMatchObject({ role: 'technical_deployment_officer', currentHolders: ['Prince Keshri'] });
+    expect(real.body.work.state).toBe('pending_approval');
   }, 90_000);
 });

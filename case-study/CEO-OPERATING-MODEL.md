@@ -55,7 +55,7 @@ Every operation uses technology responsibly:
 
 ## Implementation status
 
-The CEO operating layer is implemented in `src/lib/ceo/` (11 source files, 4 test files, 112 `node:test` tests via `npm run test:ceo`; plus Vitest concurrency tests in `tests/unit/work` and HTTP tests in `tests/integration`). Pure deterministic logic — no AI invocations, no framework, no network.
+The CEO operating layer is implemented in `src/lib/ceo/` (11 source files, 4 test files, 141 `node:test` tests via `npm run test:ceo`; plus Vitest concurrency tests in `tests/unit/work` and 18 HTTP tests in `tests/integration`). Pure deterministic logic — no AI invocations, no framework, no network.
 
 ### What exists (`src/lib/ceo/`)
 
@@ -79,10 +79,11 @@ The CEO operating layer is implemented in `src/lib/ceo/` (11 source files, 4 tes
 
 | Capability | Level | Holder |
 |---|---|---|
-| create-work | L2 | DS-02 |
+| create-work | L2 | DS-02 (no priority limit) |
 | assign-work | L2 | DS-02 |
 | triage-work | L2 | DS-02 |
-| prioritise-work | L1 | DS-02 |
+| prioritise-work | L1 | DS-02 (judgement above the rules is a recommendation) |
+| apply-priority-rules | L3 | DS-02 (the deterministic priority rules, P0 included) |
 | escalate-work | L2 | DS-02 |
 | monitor-work | L3 | DS-02 |
 | detect-exceptions | L3 | DS-02 |
@@ -156,7 +157,7 @@ Control Tower page, "Ask the CEO" tab (/retail-os/admin/control-tower?tab=ceo)
 The response shows what the CEO understood, authority, matched Work, routing, required approval, escalation, next step and an audit trail. What the runtime does:
 
 - Status and context questions read only. Greetings and FYIs change nothing.
-- Work requests and instructions look for existing Work first (the referenced Work, or a genuine title match, never a brand-wide guess). A match is reused and the founder input is logged on it; otherwise Work is created, triaged (priority capped by the `create-work` grant) and assigned to the brand CEO or Dev.
+- Work requests and instructions look for existing Work first (see Work matching below: the referenced Work, else a strong match, else ask when ambiguous, never a brand-wide guess). A match is reused and the founder input is logged on it; otherwise Work is created, triaged by the priority rules and assigned to the brand CEO or Dev.
 - Evidence is attached to the referenced Work. A founder decision is logged on matched Work through the registry's audit trail. There is no second decision ledger; a decision with no Work to attach to is not recorded and says so.
 - Approval records Virat's decision through `decideApproval` when exactly one approval is pending or a Work reference is given; with several pending it asks rather than guesses.
 - Every material step is a registry event (append-only, hash-chained), including one `action` event carrying the founder input, authority rule, matched Work, routing and result.
@@ -172,15 +173,32 @@ Not wired to any live channel and no external execution. Founder Input does not 
 
 **Implemented but unit-tested only.** The role and holder model, authority limits, question routing, and the 112 `node:test` CEO tests (in-memory registry).
 
-**Concurrency: hardened, not solved.** Before: persist upserted every item and silently dropped any event at or below the database's highest sequence number, so a stale second writer overwrote the first writer's item row and lost its own event (reproduced on real schema). Now `mutateRegistry` records each item's event count at load; persist writes only changed items, refuses a stale item before writing it (`WorkConflictError`, checked against the database and again by the event key and chain trigger), inserts events in one statement, and re-runs the operation on fresh state up to 3 times. The endpoint answers 409 if it still loses. Tested on real schema: stale writer refused with nothing of its change written, unrelated items no longer overwritten, retry lands both changes, bounded give-up, concurrent creation. Remaining limits: (1) no cross-item transaction; a multi-item change that conflicts on a later item can leave an earlier new item row without its events (the CEO runtime only ever touches one item per request); (2) the item row is updated after its events, so a failure between the two leaves the row behind the event log; (3) source events, links and repo locks are still whole-snapshot upserts, so concurrent lock writers are not safe (the CEO runtime does not write them); (4) each write reads every event's sequence number (cost grows with total events); (5) a database function doing the whole write in one transaction would remove (1) and (2) and needs a migration applied by hand.
+**Concurrency: hardened, not fully solved.** The reproduced bugs (on the real schema): a stale writer's event was silently dropped and its item row overwrote the first writer's; a writer that only touched one item rewrote stale copies of every other item, and of every lock, link and source event, so it could put a released lock back to active. Now `mutateRegistry` records each item's event count and each lock, link and source-event row as loaded (`persistBaseline`). `persist` then (1) refuses an item whose event log moved (`WorkConflictError`, nothing of the stale change written), (2) writes only items, locks and source events that changed and only inserts new links, (3) inserts rows the database can refuse by a unique key (new items, new locks, new source events) before the events that describe them, (4) pre-checks `(channel, external_ref)` so the same report from two writers is refused before any new item row is written, (5) inserts all new events in one statement, and (6) re-runs the operation on fresh state, at most 3 times. The endpoint answers 409 if it still loses. Every lock, link, merge and expiry also logs an event on its item, so the per-item check serialises them. Tested on the real schema: stale item update, unrelated item not overwritten, concurrent source-event ingestion and duplicate reports, two writers taking the same branch (one lock row, the loser writes no events), renew against release, the same dependency added twice, no resurrected lock, audit chains valid after every case.
+
+Remaining races, exactly: (a) no cross-item transaction. If a change that creates a new item also trips a unique key on a lock or source event in the same instant another writer wins it, the new item row (with no events) can remain, because Work cannot be deleted; the CEO runtime touches one item per request and the pre-checks make this a very narrow window. (b) The item row is updated after its events; a failure between the two leaves the row behind its event log. (c) The check and the write are separate statements, so a writer can pass the check just before another commits; the database keys and the chain trigger still refuse the second, but later than ideal. (d) Each write reads every event's sequence number and, when a new source event is present, every `(channel, external_ref)`: the cost grows with the registry. The fix for (a), (b) and (c) is one database function that does the whole write in a single transaction with a row lock per item (`work_persist(jsonb)`), applied by hand like every migration; it has not been written.
+
+**Priority.** `apply-priority-rules` (L3) turns the request into the registry's own risk factors by explicit rules and `suggestPriority` gives the level. Creating Work never limits severity. Rule floors: a money path (checkout, payments, gateway, cart, orders, store, site) failing is P0; a production outage is P0; a security compromise is P0 and an exposure P1; customers directly affected (charged twice, unable to pay or order, wrong item, not received) is P1. A request about a rate, report, metric, cost, budget or audit is not an incident. Improvement words (improve, enhance, polish, tidy, refactor, redesign) make an improvement at P4; everything else is P3. An explicit Founder priority ("make it P1") is applied in either direction and recorded as his instruction with what the rules would have given. Urgent wording that matches no rule is held at the rule priority and returned as an advisory that needs Virat ("reply make it P1"); nothing is silently raised or lowered. The factors, basis and reason go on the item and into its audit trail. Rules are in `priority-policy.ts`.
+
+**Work matching.** Order: explicit Work reference (always wins); otherwise the same subject words after brand names, generic words and tags are removed (exact); at least two shared subject words and 60% of all subject words in common (strong); or the same deployment target in the same brand (context). Anything weaker is not attached and is listed as similar Work. Two or more strong candidates are ambiguous: the CEO asks for the Work reference and writes nothing. A missed match costs a duplicate to merge; a wrong match is an operational mistake, so it errs towards missing. Closed and merged Work and other brands' Work never match; at most 300 recent open items are scanned. In `work-matcher.ts`.
+
+**Technical deployment routing.** Decided from the requested action, the target system and the production context together (`deployment-intent.ts`): a setup verb with a target (DNS, domain, SSL, webhook, API key, SMTP, gateway, Razorpay, Shiprocket, Shopify, Vercel, Supabase, hosting, server, CDN, database), or a deploy or release verb with a target or production or staging. A request led by an analysis verb (review, analyse, compare, audit, explain, why) or about costs, reports, campaigns or performance does not qualify. "Integration" alone never qualifies. A question qualifies only if it asks about a deployment target. Qualifying work: Work opened, owned by Dev as governance, Virat's approval requested (`prince_assignment`), the Technical Deployment Officer (currently Prince Keshri, the sole holder) assigned only after he approves. The structured basis is on the response and the audit line.
 
 **Behaviours to know.**
 - Approval from the Founder interface is approve-only. The registry's `decideApproval` supports rejection with a note, but there is no safe way to tell a rejection from other text yet, so it is not wired.
 - A policy decision with no Work is acknowledged, not persisted. The registry has no decision ledger and none was invented.
-- Existing-Work matching uses the explicit Work reference, else a title match of at least two shared words of four or more characters. It is a heuristic: a brand name plus one generic word can match unrelated Work. It never falls back to "any open Work for the brand".
-- Technical deployment routing is a keyword match (deploy, DNS, webhook, integration, API key, domain, SSL, hosting and similar). Any request containing "integration" goes to the approval flow.
-- The CEO's `create-work` grant caps priority at P2, so a request such as "checkout is down" lands as P2 and does not appear as Critical on the Morning Board. Raising the cap is Virat's decision.
+- A report of a recognised critical condition ("the checkout is down") is classified as a work request even without an action verb; "Check why the checkout is broken" stays an investigation instruction; a question stays a question and never creates Work.
+- Every response that wrote carries a `write` record (operation, actor, source channel, authority basis, resulting state, audit events). Reads and clarifications carry none.
 - The `ref` in a response is provisional until the Work is reloaded; the database generates the canonical one.
+
+**Live Supabase verification procedure (not yet run).** `CEO_LIVE_VERIFY=yes SUPABASE_URL=https://vszjwgxvqoqyixpfthwl.supabase.co SUPABASE_SERVICE_ROLE_KEY=... npm run verify:ceo-live`. It exits 2 and writes nothing unless `CEO_LIVE_VERIFY=yes`, both variables are set, and the URL is the control-plane project (a brand database is refused). It sends one Founder request titled `[IT-LIVE] Verify the CEO runtime write path <date>` through the same handler, reads it back, checks the Control Tower view and the audit chain, and exits 0 only if all hold. Until that has run against the real project, live Supabase is not verified.
+
+**Closing the [IT-LIVE] item.** Work cannot be deleted and the Control Tower has no close action. The item is left open: owner DS-02, state assigned, priority P3, brand none. To close it, use the registry lifecycle (`src/lib/work`): `transition(id,'in_progress')`, then `'resolved'` with a resolution of kind `completed` and a summary ("live verification record"), then verification by an actor other than the resolver (`'verification'` with method and evidence), then `'closed'`. A close action in the Control Tower does not exist yet.
+
+**Verification tiers.**
+- LIVE VERIFIED: none. The live control plane was only inspected read-only (five Work tables, row-level security on, zero rows).
+- INTEGRATION VERIFIED (real Astro server, real route, real supabase-js, real migration 0055 in embedded Postgres): authentication, validation, creation and read-back, no write on reads, matching and ambiguity, P0 appearing as Critical on the Morning Board and pipeline, the deployment gate and assignment, concurrent requests, phone and desktop layout. 18 tests.
+- UNIT TESTED: priority rules, matcher, deployment intent, role and holder model, authority, concurrency on the real schema (13 tests in `tests/unit/work/concurrency.test.ts`), and the 141 `node:test` CEO tests.
+- NOT IMPLEMENTED: approval rejection; workless policy decisions; a Control Tower close action; the single-transaction write function; WhatsApp or email into the CEO; external execution.
 
 ### What does NOT exist yet
 

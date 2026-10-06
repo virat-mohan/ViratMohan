@@ -72,7 +72,16 @@ export function itemFromRow(r: WorkItemRow, events: WorkEventRow[], sourceEventI
 // ── Store interface + Supabase implementation ────────────────────────────────
 
 /** Event count of every item as it was loaded. Lets persist write only what changed and detect a concurrent writer. */
-export interface PersistOptions { base?: ReadonlyMap<string, number> }
+export interface PersistOptions {
+  base?: ReadonlyMap<string, number>;
+  /** The other shared collections as loaded (row id to its JSON). With it, only new or changed rows are written. */
+  known?: KnownRows;
+}
+export interface KnownRows {
+  sourceEvents: ReadonlyMap<string, string>;
+  links: ReadonlySet<string>;
+  locks: ReadonlyMap<string, string>;
+}
 
 /** Another writer changed an item after this one loaded it. Nothing of the stale change was written for that item. */
 export class WorkConflictError extends Error {
@@ -127,56 +136,75 @@ export function createSupabaseWorkStore(client: Sb): WorkStore {
     },
     async persist(s, opts = {}) {
       const base = opts.base;
+      const known = base ? opts.known : undefined;
       // With a base (the event count of every item as loaded) only changed items are written, and each is
-      // checked against the database first. Without one this is the legacy blind mode (single writer only).
+      // checked against the database first. With `known` too, links, source events and locks are written only
+      // if new or changed. Without them this is the legacy blind mode (single writer only).
       const items = base ? s.items.filter((i) => i.events.length !== (base.get(i.id) ?? 0)) : s.items;
-      if (items.length && !base) {
-        const err1 = (await client.from('work_items').upsert(items.map(rowFromItem), { onConflict: 'id' })).error;
-        if (err1) throw new Error(`persist items: ${err1.message}`);
-      }
+      const ins = async (table: string, rowsToWrite: unknown[], what: string) => {
+        if (!rowsToWrite.length) return;
+        const e = (await client.from(table).insert(rowsToWrite)).error;
+        if (e) throw conflictOr(e.message, what);
+      };
+      const ups = async (table: string, rowsToWrite: unknown[], onConflict: string, what: string) => {
+        if (!rowsToWrite.length) return;
+        const e = (await client.from(table).upsert(rowsToWrite, { onConflict })).error;
+        if (e) throw new Error(`${what}: ${e.message}`);
+      };
+      const lockRow = (l: RepoLock) => ({ ...l });
+      const linkRow = (l: WorkLink) => ({ id: l.id, kind: l.kind, from_id: l.from, to_id: l.to, at: l.at, by: l.by, note: l.note, score: l.score });
+
+      if (items.length && !base) await ups('work_items', items.map(rowFromItem), 'id', 'persist items');
+
+      const newSe = known ? s.sourceEvents.filter((e) => !known.sourceEvents.has(e.id)) : [];
+      const newLocks = known ? s.locks.filter((l) => !known.locks.has(l.id)) : [];
+      const changedLocks = known ? s.locks.filter((l) => known.locks.has(l.id) && known.locks.get(l.id) !== JSON.stringify(l)) : [];
+      const changedSe = known ? s.sourceEvents.filter((e) => known.sourceEvents.has(e.id) && known.sourceEvents.get(e.id) !== JSON.stringify(e)) : [];
+      const newLinks = known ? s.links.filter((l) => !known.links.has(l.id)) : [];
+
+      let maxSeq = new Map<string, number>();
       if (items.length) {
         // work_events is append-only and chained: the (work_id, seq) key and the chain trigger are the arbiter.
         const existing = await rows<{ work_id: string; seq: number }>('work_events', 'work_id, seq');
-        const maxSeq = new Map<string, number>();
         for (const e of existing) maxSeq.set(e.work_id, Math.max(maxSeq.get(e.work_id) ?? 0, e.seq));
         if (base) {
           for (const i of items) {
             if ((maxSeq.get(i.id) ?? 0) !== (base.get(i.id) ?? 0)) throw new WorkConflictError(`${i.ref} changed since it was loaded`);
           }
-          const fresh = items.filter((i) => !base.has(i.id));
-          if (fresh.length) {
-            const errN = (await client.from('work_items').insert(fresh.map(rowFromItem))).error;
-            if (errN) throw conflictOr(errN.message, 'persist new items');
-          }
         }
+      }
+      if (newSe.length) {
+        // The same report from another writer: refuse before any new item row is written.
+        const have = await rows<{ channel: string; external_ref: string }>('work_source_events', 'channel, external_ref');
+        const keys = new Set(have.map((r) => `${r.channel}\u0000${r.external_ref}`));
+        const dup = newSe.find((e) => keys.has(`${e.channel}\u0000${e.external_ref}`));
+        if (dup) throw new WorkConflictError(`source event ${dup.channel}/${dup.external_ref} was already ingested`);
+      }
+
+      if (base) {
+        // Order matters. Rows the database can refuse by a unique key go before the events that describe them.
+        await ins('work_items', items.filter((i) => !base.has(i.id)).map(rowFromItem), 'persist new items');
+        await ins('repo_locks', newLocks.map(lockRow), 'persist new locks');
+        await ins('work_source_events', newSe.map((e) => ({ ...e })), 'persist new source events');
+      }
+      if (items.length) {
         const from = (id: string) => (base ? base.get(id) ?? 0 : maxSeq.get(id) ?? 0);
         const newEvents = items
           .flatMap((i) => i.events.filter((e) => e.seq > from(i.id)).map((e) => rowFromEvent(i.id, e)))
           .sort((x, y) => (x.work_id === y.work_id ? x.seq - y.seq : x.work_id < y.work_id ? -1 : 1));
         // One statement: either every new event lands or none does, and the existing item rows are still untouched.
-        if (newEvents.length) {
-          const err2 = (await client.from('work_events').insert(newEvents)).error;
-          if (err2) throw conflictOr(err2.message, 'persist events');
-        }
-        if (base) {
-          const changed = items.filter((i) => base.has(i.id));
-          if (changed.length) {
-            const err3 = (await client.from('work_items').upsert(changed.map(rowFromItem), { onConflict: 'id' })).error;
-            if (err3) throw new Error(`persist items: ${err3.message}`);
-          }
-        }
+        await ins('work_events', newEvents, 'persist events');
+        if (base) await ups('work_items', items.filter((i) => base.has(i.id)).map(rowFromItem), 'id', 'persist items');
       }
-      if (s.sourceEvents.length) {
-        const err = (await client.from('work_source_events').upsert(s.sourceEvents.map((e) => ({ ...e })), { onConflict: 'id' })).error;
-        if (err) throw new Error(`persist source events: ${err.message}`);
-      }
-      if (s.links.length) {
-        const err = (await client.from('work_links').upsert(s.links.map((l) => ({ id: l.id, kind: l.kind, from_id: l.from, to_id: l.to, at: l.at, by: l.by, note: l.note, score: l.score })), { onConflict: 'id' })).error;
-        if (err) throw new Error(`persist links: ${err.message}`);
-      }
-      if (s.locks.length) {
-        const err = (await client.from('repo_locks').upsert(s.locks.map((l) => ({ ...l })), { onConflict: 'id' })).error;
-        if (err) throw new Error(`persist locks: ${err.message}`);
+
+      if (known) {
+        await ins('work_links', newLinks.map(linkRow), 'persist new links');
+        await ups('work_source_events', changedSe.map((e) => ({ ...e })), 'id', 'persist source events');
+        await ups('repo_locks', changedLocks.map(lockRow), 'id', 'persist locks');
+      } else {
+        await ups('work_source_events', s.sourceEvents.map((e) => ({ ...e })), 'id', 'persist source events');
+        await ups('work_links', s.links.map(linkRow), 'id', 'persist links');
+        await ups('repo_locks', s.locks.map(lockRow), 'id', 'persist locks');
       }
     },
   };

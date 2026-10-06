@@ -4,6 +4,7 @@
 
 import type { Actor, Authority } from '../work/types';
 import { PRINCE, sameActor } from '../work/actors';
+import { deploymentIntent, isDeploymentQuestion } from './deployment-intent';
 
 export const TECHNICAL_DEPLOYMENT_OFFICER = 'technical_deployment_officer' as const;
 export type RoleId = typeof TECHNICAL_DEPLOYMENT_OFFICER;
@@ -49,10 +50,8 @@ export function rolesHeldBy(actor: Actor, bindings: RoleBindings = ROLE_BINDINGS
   return (Object.keys(bindings) as RoleId[]).filter((id) => bindings[id].holders.some((h) => sameActor(h.actor, actor)));
 }
 
-// Scope: accounts, integrations, keys, webhooks, templates, DNS, deploys, setup records (CLAUDE.md, Team section).
-const TECHNICAL_DEPLOYMENT = /\b(deploy(?:ment|ing)?|dns|webhooks?|integrations?|api\s+keys?|domain|ssl|hosting|vercel|smtp|set\s*up\s+(?:the\s+)?(?:account|integration|webhook)|connect\s+(?:the\s+)?(?:shopify|shiprocket|razorpay|whatsapp))\b/i;
-
-/** Deterministic: which function does this work belong to, if it is one that has a bound human role. */
-export function functionForText(text: string): WorkFunction | null {
-  return TECHNICAL_DEPLOYMENT.test(text) ? 'technical_deployment' : null;
+/** Deterministic: which function does this belong to, if it is one that has a bound human role. See deployment-intent.ts. */
+export function functionForText(text: string, kind: 'action' | 'question' = 'action'): WorkFunction | null {
+  if (kind === 'question') return isDeploymentQuestion(text) ? 'technical_deployment' : null;
+  return deploymentIntent(text) ? 'technical_deployment' : null;
 }

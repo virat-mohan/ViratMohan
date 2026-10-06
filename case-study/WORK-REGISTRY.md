@@ -218,7 +218,7 @@ None was changed, migrated or extended. These are the proposed mappings for the 
 ## What consumes the registry
 
 - **Today:** nothing operational. The pure contract (`src/lib/work`), the database-backed registry over the applied tables, the one ingestion adapter, and the tests. No page, API route, cron, dashboard, WhatsApp, email, Control Tower, or agent reads or writes it (a boundary test enforces this; the hosted tables exist and are empty). The database-backed registry and the ingestion adapter are IMPLEMENTED; neither is wired to any live consumer (NOT YET CONNECTED).
-- **Next, when authorised:** a thin runner that feeds real health-check runs into the adapter, then per-operation transactions / row-locking on the DB-backed registry (today it loads and persists the whole state, a working foundation, not yet concurrency-safe under parallel writers). Neither writes back to any monitored system.
+- **Next, when authorised:** a thin runner that feeds real health-check runs into the adapter, then a single-transaction write function with a row lock per item. Today persist writes only changed rows, refuses a stale item, retries up to 3 times on fresh state, and is arbitrated by the database's unique keys and chain trigger, which hardens parallel writers but is not fully concurrency-safe; the remaining races are listed in case-study/CEO-OPERATING-MODEL.md (Verification status). Neither writes back to any monitored system.
 
 ## Production safety
 
@@ -230,7 +230,7 @@ None was changed, migrated or extended. These are the proposed mappings for the 
 ## Not built, and open decisions
 
 - A live runner feeding real health-check runs into the adapter, any other ingestion from live channels, the Control Tower loop, any UI, the Agent Passport.
-- Per-operation transactions and row-locking for the database-backed registry (today it loads and persists the whole state — a working foundation, not concurrency-safe under parallel writers).
+- A single-transaction write function (`work_persist(jsonb)`) with a row lock per item for the database-backed registry. Today: changed-rows-only persist, stale-item refusal (`WorkConflictError`), bounded retry (`mutateRegistry`), and unique-key arbitration for locks, links and source events. Cross-item atomicity is not provided; see case-study/CEO-OPERATING-MODEL.md for the exact remaining races.
 - Wiring the health runner to a live schedule (cron or routine that runs `check.mjs` and calls `runHealthIngestion` with the result).
 - **Proposed defaults awaiting Virat (still proposed, not company policy):** independent verifier for P0/P1; one lesson per incident; lock lifetime 24 hours; duplicate similarity 0.6 within 7 days.
 - Whether brand-scoped work lives centrally (as built, because one canonical item across channels and brands is the point) or in each brand's own database with the control plane indexing it.

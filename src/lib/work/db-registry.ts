@@ -12,7 +12,7 @@
 // and row-level locking are the documented next step, before any live writer is connected.
 
 import { InMemoryWorkRegistry, type RegistryOptions } from './registry';
-import { WorkConflictError, type WorkStore } from './db-store';
+import { WorkConflictError, type PersistOptions, type WorkStore } from './db-store';
 import type { Result } from './types';
 
 export interface DbRegistryOptions extends Omit<RegistryOptions, 'seed'> {}
@@ -25,7 +25,18 @@ export async function loadRegistry(store: WorkStore, opts: DbRegistryOptions = {
 
 export const MAX_WRITE_ATTEMPTS = 3;
 
-const baseOf = (reg: InMemoryWorkRegistry): Map<string, number> => new Map(reg.snapshot().items.map((i) => [i.id, i.events.length]));
+/** What persist needs to write only what changed and to detect a stale writer. Take it right after loading. */
+export function persistBaseline(reg: InMemoryWorkRegistry): PersistOptions {
+  const s = reg.snapshot();
+  return {
+    base: new Map(s.items.map((i) => [i.id, i.events.length])),
+    known: {
+      sourceEvents: new Map(s.sourceEvents.map((e) => [e.id, JSON.stringify(e)])),
+      links: new Set(s.links.map((l) => l.id)),
+      locks: new Map(s.locks.map((l) => [l.id, JSON.stringify(l)])),
+    },
+  };
+}
 
 /**
  * Load, run one operation, persist only what changed. If another writer got there first the store refuses the
@@ -39,11 +50,11 @@ export async function mutateRegistry<T>(
 ): Promise<T> {
   for (let attempt = 1; ; attempt++) {
     const reg = await loadRegistry(store, opts);
-    const base = baseOf(reg);
+    const baseline = persistBaseline(reg);
     const out = op(reg);
     if (!out.changed) return out.value;
     try {
-      await store.persist(reg.snapshot(), { base });
+      await store.persist(reg.snapshot(), baseline);
       return out.value;
     } catch (e) {
       if (!(e instanceof WorkConflictError) || attempt >= MAX_WRITE_ATTEMPTS) throw e;

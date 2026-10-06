@@ -11,6 +11,7 @@ import { runAuditLoop, findExistingWork } from './coordinator';
 import { buildMorningBoard } from './morning-board';
 import type { FounderInput } from './founder-input';
 import { Scopes } from '../work/scope';
+import { matchExistingWork, type MatchResult } from './work-matcher';
 
 export interface ContextPack {
   input: FounderInput;
@@ -18,6 +19,8 @@ export interface ContextPack {
   relatedWork: WorkItem[];
   /** The one open item this input is genuinely about: the referenced work_id, else a title match. Never a brand-wide fallback. */
   matchedWork: WorkItem | null;
+  /** The matcher's full answer (none, match or ambiguous, with candidates and similar Work). Null when a Work reference decided it. */
+  match: MatchResult | null;
   brandOwner: AgentEntry | null;
   auditFindings: AuditFinding[];
   pendingApprovals: WorkItem[];
@@ -49,7 +52,9 @@ export function buildContextPack(
   const morningBoard = needsMorningBoard ? buildMorningBoard(registry, now) : null;
 
   const relatedWork = findRelatedWork(input, registry);
-  const matchedWork = findMatchedWork(input, registry);
+  const explicit = input.work_id ? registry.get(input.work_id) ?? null : null;
+  const match = explicit ? null : matchExistingWork(registry, input.text, input.scope ?? Scopes.devshop());
+  const matchedWork = explicit ?? match?.match ?? null;
 
   const brandOwner = input.brand ? (brandCeoFor(input.brand) ?? null) : null;
 
@@ -80,6 +85,7 @@ export function buildContextPack(
     morningBoard,
     relatedWork,
     matchedWork,
+    match,
     brandOwner,
     auditFindings,
     pendingApprovals,
@@ -87,11 +93,6 @@ export function buildContextPack(
     activeLocks,
     brandSummary,
   };
-}
-
-function findMatchedWork(input: FounderInput, registry: InMemoryWorkRegistry): WorkItem | null {
-  if (input.work_id) return registry.get(input.work_id) ?? null;
-  return findExistingWork(registry, input.text, input.scope ?? Scopes.devshop());
 }
 
 function findRelatedWork(input: FounderInput, registry: InMemoryWorkRegistry): WorkItem[] {

@@ -71,10 +71,11 @@ export const AUTONOMY_LABELS: Record<AutonomyLevel, string> = {
 };
 
 export const CEO_AUTONOMY: AutonomyGrant[] = [
-  { capability: 'create-work', level: 'L2', holder: CEO_ID, limits: { maxPriority: 'P2' } },
+  { capability: 'create-work', level: 'L2', holder: CEO_ID },
   { capability: 'assign-work', level: 'L2', holder: CEO_ID, limits: { restrictedRoles: ['technical_deployment_officer'] } },
   { capability: 'triage-work', level: 'L2', holder: CEO_ID },
   { capability: 'prioritise-work', level: 'L1', holder: CEO_ID },
+  { capability: 'apply-priority-rules', level: 'L3', holder: CEO_ID },
   { capability: 'escalate-work', level: 'L2', holder: CEO_ID },
   { capability: 'monitor-work', level: 'L3', holder: CEO_ID },
   { capability: 'detect-exceptions', level: 'L3', holder: CEO_ID },
