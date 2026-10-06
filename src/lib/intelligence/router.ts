@@ -57,6 +57,7 @@ export const AGENT_MODEL_DEFAULTS: AgentModelPolicy[] = [
   { agentId: 'DS-14', defaultModelId: 'claude-sonnet-5-5', escalationModelIds: ['claude-opus-4-7'] },                           // Care
   { agentId: 'DS-15', defaultModelId: 'claude-sonnet-5-5', escalationModelIds: ['claude-opus-4-7'] },                           // Crew (CHRO)
   { agentId: 'DS-16', defaultModelId: 'claude-sonnet-5-5', escalationModelIds: ['claude-opus-4-7', 'claude-opus-4-8', 'claude-opus-5-5'] }, // Visual (Brand Guardian)
+  { agentId: 'DS-17', defaultModelId: 'claude-sonnet-5-5', escalationModelIds: ['claude-opus-4-7', 'claude-opus-5-5'] }, // Improve (Process Efficiency)
 ];
 
 /** Brand CEOs share one policy. */

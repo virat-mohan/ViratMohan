@@ -41,6 +41,7 @@ Every agent has a configurable default model (all currently Sonnet 5.5) and an e
 | DS-11 Grow (CMO) | Sonnet 5.5 | Opus 4.7 / Opus 5.5 |
 | DS-13 Books (CFO) | Sonnet 5.5 | Opus 4.8 / Opus 5.5 |
 | DS-16 Guard (Visual) | Sonnet 5.5 | Opus 4.7 / 4.8 / 5.5 |
+| DS-17 Improve (Process Efficiency) | Sonnet 5.5 | Opus 4.7 / Opus 5.5 |
 | Brand CEOs | Sonnet 5.5 | Opus 4.7 / Opus 5.5 |
 | Routine HOD ops | Sonnet 5.5 | Opus 4.7 |
 
