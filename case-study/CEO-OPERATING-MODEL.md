@@ -197,7 +197,7 @@ Not wired to any live channel and no external execution. Founder Input does not 
 - INTEGRATION VERIFIED (real Astro server, real routes, real supabase-js, real migrations 0055 and 0056 in embedded Postgres): authentication, validation, creation and read-back, no write on reads, matching and ambiguity, P0 appearing as Critical on the Morning Board and pipeline, the deployment gate and assignment, concurrent requests, the lifecycle endpoint (start, resolve, verify, close, close of a test record, illegal moves) with each state in the Control Tower, phone and desktop layout. 24 tests (adds the lifecycle controls: state wording, only the valid action, none on approval holds).
 - SCHEMA VERIFIED (real 0055 and 0056, embedded Postgres): `work_persist` atomicity, rollback and least privilege (14 tests), concurrency (13), lifecycle service and approvals (15).
 - UNIT TESTED: priority rules, matcher, deployment intent, role and holder model, authority, and the 141 `node:test` CEO tests.
-- NOT IMPLEMENTED: approval rejection from the Founder interface (the registry supports it; the live check uses it directly); workless policy decisions (no decision ledger); WhatsApp or email into the CEO; external execution; autonomous material execution.
+- NOT IMPLEMENTED: approval rejection from the Founder interface (the registry supports it; the live check uses it directly); workless policy decisions (no decision ledger); WhatsApp or email into the CEO; external execution; autonomous material execution; automatic model switching (see `case-study/INTELLIGENCE-GOVERNANCE.md`).
 
 ### What does NOT exist yet
 
@@ -213,6 +213,8 @@ Not wired to any live channel and no external execution. Founder Input does not 
 - AI concierge or autonomous remediation
 - Breadcrumbs and mobile-first responsive shell for Founder and Brand dashboards (implemented: `control-tower.astro`, `starters/next-brand-plane/components/Breadcrumbs.tsx`, `globals.css`)
 - Autonomous agent execution runtime
+- Automatic model routing/switching (contract defined in `src/lib/intelligence/`, not wired to any provider)
+- Visual Design & Brand Guardian live review engine (DS-16 Guard: agent defined, review contract built, no runtime)
 
 ## Brand data isolation
 

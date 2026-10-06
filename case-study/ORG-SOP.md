@@ -18,6 +18,7 @@
 | DS-13 | **Books** | Finance: invoices, statements, P&L, EBITDA | Dev |
 | DS-14 | **Care** | Customer care: WhatsApp inboxes, FAQ, customer issues | Dev |
 | DS-15 | **Crew** | Team: Prince's work, the ops checklist | Dev |
+| DS-16 | **Guard** | Visual Design & Brand Guardian: world-class visual QA, brand/platform compliance | Grow (DS-11) |
 | P-01 | **Prince Keshri** (person) | Tech ops: internal tech-stack connecting only | Virat (tasks only via Virat) |
 | BD-01..03 | **Board** (seats open) | Advise on major strategic decisions | Virat |
 

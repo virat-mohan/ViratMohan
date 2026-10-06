@@ -37,6 +37,7 @@ export const AGENT_REGISTRY: AgentEntry[] = [
   { id: 'DS-13', name: 'Books', role: 'hod', reports_to: 'DS-02', scope: null, capabilities: ['finance', 'invoices', 'statements', 'P&L'] },
   { id: 'DS-14', name: 'Care', role: 'hod', reports_to: 'DS-02', scope: null, capabilities: ['customer-care', 'whatsapp-inbox', 'FAQ'] },
   { id: 'DS-15', name: 'Crew', role: 'hod', reports_to: 'DS-02', scope: null, capabilities: ['team', 'ops-checklist'] },
+  { id: 'DS-16', name: 'Guard', role: 'specialist', reports_to: 'DS-11', scope: null, capabilities: ['visual-qa', 'brand-guardian', 'design-review', 'platform-compliance'] },
 ];
 
 export function findAgent(id: string): AgentEntry | undefined {
