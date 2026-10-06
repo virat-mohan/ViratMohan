@@ -1,4 +1,5 @@
 ---
+import AdminBreadcrumbs from '../../../components/AdminBreadcrumbs.astro';
 export const prerender = false;
 import { InMemoryWorkRegistry } from '../../../lib/work/registry';
 import { buildControlTowerView } from '../../../lib/control-tower/view';
@@ -146,12 +147,6 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
     body { font-family: var(--sans); background: var(--paper); color: var(--ink); line-height: 1.5; -webkit-text-size-adjust: 100%; }
     .shell { max-width: 960px; margin: 0 auto; padding: 24px 16px 64px; }
 
-    /* — Breadcrumbs — */
-    .breadcrumbs { display: flex; align-items: center; gap: 6px; font-size: 0.875rem; color: var(--ink-muted); margin-bottom: 12px; flex-wrap: wrap; }
-    .breadcrumbs a { color: var(--gold); text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; }
-    .breadcrumbs a:hover { text-decoration: underline; }
-    .breadcrumbs .sep { color: var(--border); }
-    .breadcrumbs .current { color: var(--ink); font-weight: 500; }
 
     h1 { font-family: var(--display); font-size: 1.5rem; font-weight: 400; margin-bottom: 4px; }
     .subtitle { font-size: 0.85rem; color: var(--ink-muted); margin-bottom: 24px; }
@@ -258,21 +253,7 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
 <body>
 <div class="vm-band"></div>
   <div class="shell">
-    <nav class="breadcrumbs" aria-label="Breadcrumb">
-      <a href="/retail-os/admin/console">Command Centre</a>
-      <span class="sep" aria-hidden="true">›</span>
-      {tab === 'board' ? (
-        <span class="current">Control Tower</span>
-      ) : (
-        <a href="?tab=board">Control Tower</a>
-      )}
-      {tab !== 'board' && (
-        <>
-          <span class="sep" aria-hidden="true">›</span>
-          <span class="current">{TAB_LABEL[tab]}</span>
-        </>
-      )}
-    </nav>
+    <AdminBreadcrumbs tab={tab} />
 
     <h1>Founder Control Tower</h1>
     <p class="subtitle">DevShop Retail OS — {now.toISOString().slice(0, 10)} — Operating view. Only the Ask the CEO tab writes, through the CEO runtime</p>

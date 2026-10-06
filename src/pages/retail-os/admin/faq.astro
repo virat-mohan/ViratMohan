@@ -1,4 +1,5 @@
 ---
+import AdminBreadcrumbs from '../../../components/AdminBreadcrumbs.astro';
 export const prerender = false;
 import { getEnv } from '../../../lib/env';
 import { getFaqDb, FAQ_TOPICS, type FaqQuestion } from '../../../lib/retail-os-faq';
@@ -53,6 +54,7 @@ a{color:inherit;}
   <link rel="stylesheet" href="/retail-os/admin-touch.css">
 </head>
 <body><div class="vm-band"></div><div class="wrap">
+  <AdminBreadcrumbs />
 <p class="meta"><a href="/retail-os/admin/">← Retail OS admin</a> · <a href="/retail-os/faq/" target="_blank">View FAQ</a></p>
 <h1>FAQ Inbox</h1>
 <p class="sub">Questions from the FAQ page, the site chat and email that had no answer yet. Publish once and every channel learns it. {open.length} open · {published.length} published.</p>

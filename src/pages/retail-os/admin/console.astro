@@ -1,4 +1,5 @@
 ---
+import AdminBreadcrumbs from '../../../components/AdminBreadcrumbs.astro';
 export const prerender = false;
 import { getRetailOsDb, journeyStep, BUILD_WINDOW_DAYS } from '../../../lib/retail-os-db';
 import type { RetailOsApplication, JourneyStep } from '../../../lib/retail-os-db';
@@ -217,6 +218,7 @@ const href = (t: string, extra = '') => `/retail-os/admin/console?tab=${t}${extr
 <body>
 <div class="vm-band"></div>
 <div class="wrap">
+  <AdminBreadcrumbs tab={tab} />
   <div class="top">
     <div><a class="logo" href="/founder" aria-label="DevShop Retail OS"><img src="/retail-os/email/devshop-logo.png" alt="DevShop" width="140" height="54" /><i>Retail OS™</i></a><h1>Founder console</h1></div>
     <nav><a href="/retail-os/admin/org">Org</a><a href="/retail-os/admin/org?tab=visual">Org map</a><a href="/retail-os/admin/leads">Leads</a><a href="/retail-os/admin">Applications</a><a href="/retail-os/admin/brands">Brands</a><a href="/retail-os/admin/invoices">Invoices</a><a href="/retail-os/admin/inbox">WhatsApp inbox</a><a href="/retail-os/admin/faq">FAQ inbox</a><a href="/retail-os/admin/publish">Publish</a><a href="/launches">Launches</a><a href="/retail-os/admin/reports">Reports</a></nav>

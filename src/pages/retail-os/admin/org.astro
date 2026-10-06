@@ -1,4 +1,5 @@
 ---
+import AdminBreadcrumbs from '../../../components/AdminBreadcrumbs.astro';
 export const prerender = false;
 import { getEnv } from '../../../lib/env';
 import { serviceDb } from '../../../lib/ledger';
@@ -135,6 +136,7 @@ const cell = (c: Cell) => c.value === null ? null : inr(c.value);
 <body>
 <div class="vm-band"></div>
 <div class="wrap">
+  <AdminBreadcrumbs tab={tab} />
   <div class="top">
     <div><p class="eyebrow">DevShop Retail OS</p><h1>Org board</h1></div>
     <nav><a href="/retail-os/admin/console">Command Centre</a><a href="/retail-os/admin/console?tab=team">Team</a><a href="/retail-os/admin/inbox">WhatsApp inbox</a></nav>

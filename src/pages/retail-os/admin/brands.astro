@@ -1,4 +1,5 @@
 ---
+import AdminBreadcrumbs from '../../../components/AdminBreadcrumbs.astro';
 export const prerender = false;
 import { getEnv } from '../../../lib/env';
 import { brandsDb, termsLine, STATUS_LABEL, MODEL_LABEL, type Brand } from '../../../lib/brands';
@@ -47,6 +48,7 @@ textarea{min-height:70px;}
 <body>
 <div class="vm-band"></div>
 <main class="wrap">
+  <AdminBreadcrumbs />
   <a class="logo" href="/founder" aria-label="DevShop Retail OS"><img src="/retail-os/email/devshop-logo.png" alt="DevShop" width="140" height="54" /><i>Retail OS™</i></a>
   <h1>Brands</h1>
   <p class="sub">{brands.length} brands: who DevShop works with, on what terms, and who to call. Changes here show on the <a href="/founder">founder console</a> at once.</p>
