@@ -11,6 +11,7 @@ import {
 import { RESOURCE_CATEGORIES, type AmcSolutionProfile, type AmcResourceEstimate } from './amc';
 import { IMPLEMENTATION_ROLES, type ImplementationEstimate } from './implementation';
 import type { PastFrameworkUsage } from './industry';
+import { governedMessages, ModelGateError } from './intelligence/provider';
 
 export type FrameworkLibraryEntry = {
   name: string;
@@ -213,10 +214,7 @@ export type ClassifyAndBuildResult = {
   generationMeta: GenerationMeta;
 };
 
-const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
-const ANTHROPIC_VERSION = '2023-06-01';
-// Model id per current Claude lineup — update here if the account's default changes.
-const MODEL = 'claude-sonnet-5';
+// The model for every call here is chosen by the invocation gate (src/lib/intelligence/provider.ts), never in this file.
 const MAX_TOKENS = 16000;
 // Bump this string whenever buildMethodology's prompt or CLASSIFY_TOOL's
 // schema changes meaningfully — it's stamped on every generation row so a
@@ -718,25 +716,21 @@ type ToolOutput = {
 
 // One attempt at the actual HTTP call, with a hard timeout so a hung
 // request fails cleanly rather than riding out the platform's own limit.
-async function attemptClaudeCall(system: string, userMessage: string, apiKey: string): Promise<ToolOutput> {
+async function attemptClaudeCall(system: string, userMessage: string, apiKey: string, retryCount: number): Promise<{ output: ToolOutput; modelId: string }> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS);
   try {
-    const res = await fetch(ANTHROPIC_API_URL, {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': ANTHROPIC_VERSION,
-      },
-      body: JSON.stringify({
-        model: MODEL,
+    const { res, modelId } = await governedMessages({
+      operation: 'llm.classify_and_build',
+      apiKey,
+      retryCount,
+      body: {
         max_tokens: MAX_TOKENS,
         system,
         messages: [{ role: 'user', content: userMessage }],
         tools: [CLASSIFY_TOOL],
         tool_choice: { type: 'tool', name: CLASSIFY_TOOL.name },
-      }),
+      },
       signal: controller.signal,
     });
 
@@ -748,7 +742,7 @@ async function attemptClaudeCall(system: string, userMessage: string, apiKey: st
     const data = (await res.json()) as { content: Array<{ type: string; input?: Record<string, unknown> }> };
     const toolUse = data.content.find((b) => b.type === 'tool_use');
     if (!toolUse?.input) throw new Error('Anthropic response did not include a tool_use block');
-    return toolUse.input as ToolOutput;
+    return { output: toolUse.input as ToolOutput, modelId };
   } finally {
     clearTimeout(timeout);
   }
@@ -771,12 +765,12 @@ async function callClaudeTool(
 
   for (attempts = 1; attempts <= 2; attempts++) {
     try {
-      const output = await attemptClaudeCall(system, userMessage, apiKey);
+      const { output, modelId } = await attemptClaudeCall(system, userMessage, apiKey, attempts - 1);
       return {
         output,
         meta: {
           generationId,
-          model: MODEL,
+          model: modelId,
           promptVersion: PROMPT_VERSION,
           status: 'success',
           attempts,
@@ -788,7 +782,7 @@ async function callClaudeTool(
       lastError = err;
       const isAbort = err instanceof Error && err.name === 'AbortError';
       const is4xx = err instanceof Error && /Anthropic API error 4\d\d/.test(err.message);
-      if (is4xx || attempts === 2) break;
+      if (is4xx || err instanceof ModelGateError || attempts === 2) break;
       // Transient — brief pause before the one retry.
       await new Promise((r) => setTimeout(r, 1000));
     }
@@ -797,7 +791,7 @@ async function callClaudeTool(
   const isAbort = lastError instanceof Error && lastError.name === 'AbortError';
   const meta: GenerationMeta = {
     generationId,
-    model: MODEL,
+    model: 'none',
     promptVersion: PROMPT_VERSION,
     status: isAbort ? 'timeout' : 'error',
     attempts,
@@ -1029,17 +1023,16 @@ Rules:
     },
   } as const;
 
-  const res = await fetch(ANTHROPIC_API_URL, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': ANTHROPIC_VERSION },
-    body: JSON.stringify({
-      model: MODEL,
+  const { res } = await governedMessages({
+    operation: 'llm.suggest_framework',
+    apiKey,
+    body: {
       max_tokens: 1024,
       system,
       messages: [{ role: 'user', content: userMessage }],
       tools: [tool],
       tool_choice: { type: 'tool', name: tool.name },
-    }),
+    },
   });
 
   if (!res.ok) {
@@ -1085,19 +1078,20 @@ async function callNamedTool<T>(
 ): Promise<{ output: T; meta: GenerationMeta }> {
   const generationId = crypto.randomUUID();
   const startedAt = Date.now();
+  let usedModel = 'none';
   try {
-    const res = await fetch(ANTHROPIC_API_URL, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': ANTHROPIC_VERSION },
-      body: JSON.stringify({
-        model: MODEL,
+    const { res, modelId } = await governedMessages({
+      operation: 'llm.estimate_hours',
+      apiKey,
+      body: {
         max_tokens: maxTokens,
         system,
         messages: [{ role: 'user', content: userMessage }],
         tools: [tool],
         tool_choice: { type: 'tool', name: tool.name },
-      }),
+      },
     });
+    usedModel = modelId;
 
     if (!res.ok) {
       const body = await res.text().catch(() => '');
@@ -1112,7 +1106,7 @@ async function callNamedTool<T>(
       output: toolUse.input as T,
       meta: {
         generationId,
-        model: MODEL,
+        model: usedModel,
         promptVersion: PROMPT_VERSION,
         status: 'success',
         attempts: 1,
@@ -1123,7 +1117,7 @@ async function callNamedTool<T>(
   } catch (err) {
     const meta: GenerationMeta = {
       generationId,
-      model: MODEL,
+      model: usedModel,
       promptVersion: PROMPT_VERSION,
       status: 'error',
       attempts: 1,

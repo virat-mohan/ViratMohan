@@ -17,10 +17,13 @@ checks.push({ id: 'typecheck-production-path', area: 'typecheck', blocking: true
 const build = run('npx astro build');
 checks.push({ id: 'astro-build', area: 'build', blocking: true, status: build.ok ? 'pass' : 'fail', evidence: tail(build.out) });
 
+const boundary = run('npx vitest run tests/unit/intelligence/provider-boundary.test.ts tests/unit/work/boundary.test.ts');
+checks.push({ id: 'model-invocation-boundary', area: 'security', blocking: true, status: boundary.ok ? 'pass' : 'fail', evidence: boundary.ok ? 'only the governed provider calls the Anthropic API; no call site picks a model; Work Registry boundary holds' : tail(boundary.out) });
+
 const suites: [string, string][] = [
-  ['vitest-work-registry', 'npx vitest run tests/unit/work tests/unit/intelligence/provider-boundary.test.ts tests/unit/release'],
+  ['vitest-unit', 'npm test'],
   ['node-test-ceo', 'npm run test:ceo'],
-  ['node-test-intelligence-improvement', 'npx tsx --test tests/unit/intelligence/invocation-gate.test.ts tests/unit/intelligence/model-router.test.ts tests/unit/intelligence/visual-guardian.test.ts tests/unit/intelligence/responsible-tech.test.ts tests/unit/improvement/improvement-system.test.ts tests/unit/improvement/improvement-learning.test.ts'],
+  ['node-test-intelligence-improvement', 'npm run test:node'],
 ];
 for (const [id, cmd] of suites) {
   const r = run(cmd);
@@ -31,11 +34,16 @@ const hasCreds = !!process.env.SUPABASE_URL && !!process.env.SUPABASE_SERVICE_RO
 if (hasCreds) {
   const live = run('npm run verify:ceo-live');
   checks.push({ id: 'live-ceo-verification', area: 'live', blocking: true, status: live.ok ? 'pass' : 'fail', evidence: tail(live.out) });
+  const conc = run('npm run verify:live-concurrency');
+  const lines = conc.out.split('\n').filter((l) => /^(PASS|FAIL) /.test(l));
+  const rb = lines.filter((l) => /^(PASS|FAIL)\s+rollback:/.test(l));
+  const rest = lines.filter((l) => !rb.includes(l));
+  checks.push({ id: 'live-concurrency', area: 'live', blocking: true, status: conc.ok && rest.length > 0 && rest.every((l) => l.startsWith('PASS')) ? 'pass' : 'fail', evidence: `${rest.filter((l) => l.startsWith('PASS')).length}/${rest.length} concurrency and cleanup checks passed` });
+  checks.push({ id: 'live-rollback', area: 'live', blocking: true, status: conc.ok && rb.length > 0 && rb.every((l) => l.startsWith('PASS')) ? 'pass' : 'fail', evidence: `${rb.filter((l) => l.startsWith('PASS')).length}/${rb.length} rollback checks passed` });
 } else {
-  checks.push({ id: 'live-ceo-verification', area: 'live', blocking: true, status: 'pending', evidence: 'LIVE VERIFICATION PENDING: needs SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY and CEO_LIVE_VERIFY=yes. Re-run: CEO_LIVE_VERIFY=yes npm run verify:release' });
-}
-for (const id of ['live-concurrency', 'live-rollback']) {
-  checks.push({ id, area: 'live', blocking: true, status: 'pending', evidence: 'No live procedure has been run; in-memory/embedded-Postgres tests only' });
+  const how = 'Re-run: CEO_LIVE_VERIFY=yes SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... npm run verify:release';
+  checks.push({ id: 'live-ceo-verification', area: 'live', blocking: true, status: 'pending', evidence: `LIVE VERIFICATION PENDING: needs SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY and CEO_LIVE_VERIFY=yes. ${how}` });
+  for (const id of ['live-concurrency', 'live-rollback']) checks.push({ id, area: 'live', blocking: true, status: 'pending', evidence: `Not run: needs live credentials (npm run verify:live-concurrency). ${how}` });
 }
 
 const report = evaluateGate(checks);

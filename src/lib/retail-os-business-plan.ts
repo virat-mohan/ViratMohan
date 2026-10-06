@@ -25,12 +25,11 @@
 // current as of this file's prompt_version — if the first real call 4xxs
 // on the tool definition, check the current Anthropic API docs for the
 // tool's current type string and whether an `anthropic-beta` header is
-// still required, and update ANTHROPIC_VERSION / WEB_SEARCH_TOOL_TYPE here.
+// still required, and update the API version in src/lib/intelligence/provider.ts and WEB_SEARCH_TOOL_TYPE here.
 
-const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
-const ANTHROPIC_VERSION = '2023-06-01';
+import { governedMessages } from './intelligence/provider';
+
 const WEB_SEARCH_TOOL_TYPE = 'web_search_20250305';
-const MODEL = 'claude-sonnet-5';
 const MAX_TOKENS = 8000;
 export const BUSINESS_PLAN_PROMPT_VERSION = '2026-09-23.2-native-search-drivers';
 const CLAUDE_TIMEOUT_MS = 170_000; // native search takes longer than a plain call
@@ -218,21 +217,16 @@ export async function generateBusinessPlan(app: BrandContext, apiKey: string): P
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS);
   try {
-    const res = await fetch(ANTHROPIC_API_URL, {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': ANTHROPIC_VERSION,
-      },
-      body: JSON.stringify({
-        model: MODEL,
+    const { res } = await governedMessages({
+      operation: 'plan.business_plan',
+      apiKey,
+      body: {
         max_tokens: MAX_TOKENS,
         system: SYSTEM_PROMPT,
         messages: [{ role: 'user', content: buildUserMessage(app, catalogSummary) }],
         tools: [{ type: WEB_SEARCH_TOOL_TYPE, name: 'web_search' }, PLAN_TOOL],
         tool_choice: { type: 'auto' },
-      }),
+      },
       signal: controller.signal,
     });
 

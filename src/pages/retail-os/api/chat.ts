@@ -6,6 +6,7 @@ import { sendEmail } from '../../../lib/email';
 import { serverBrain } from '../../../lib/brain';
 import { mailConfigured } from '../../../lib/mail/send';
 import { knowledgeLoop, questionIn } from '../../../lib/knowledge-loop';
+import { governedMessages, ModelGateError } from '../../../lib/intelligence/provider';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { 'content-type': 'application/json' } });
@@ -42,11 +43,16 @@ export const POST: APIRoute = async ({ request }) => {
   let convo: unknown[] = messages;
   let escalated = false;
   for (let round = 0; round < 3; round++) {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: 'claude-sonnet-5', max_tokens: 500, system, tools: [LEAD_TOOL, VIRAT_TOOL], messages: convo }),
-    });
+    let res: Response;
+    try {
+      ({ res } = await governedMessages({
+        operation: 'chat.public_lead', round, apiKey: env.ANTHROPIC_API_KEY,
+        body: { max_tokens: 500, system, tools: [LEAD_TOOL, VIRAT_TOOL], messages: convo },
+      }));
+    } catch (e) {
+      if (e instanceof ModelGateError) { console.error('chat model gate', e.message); return json({ error: 'upstream' }, 502); }
+      throw e;
+    }
     if (!res.ok) { console.error('chat claude', res.status, (await res.text()).slice(0, 300)); return json({ error: 'upstream' }, 502); }
     const data = await res.json();
     const uses = (data.content || []).filter((b: { type: string }) => b.type === 'tool_use');

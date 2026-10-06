@@ -1,8 +1,11 @@
 // Minimal Claude client (the repo has no Anthropic SDK; this uses fetch).
 // The stable knowledge prefix goes first in `system` with cache_control so repeat calls hit the prompt cache.
 
-export const MODEL_ROUTINE = 'claude-sonnet-5';
-export const MODEL_HIGH_STAKES = 'claude-opus-5-5';
+import { governedMessages, resolveOperationModel } from '../intelligence/provider';
+
+// Resolved from the operation registry; the invocation gate makes the final choice on every call.
+export const MODEL_ROUTINE = resolveOperationModel('brain.routine');
+export const MODEL_HIGH_STAKES = resolveOperationModel('brain.high_stakes');
 
 export type ClaudeRequest = {
   stakes: 'routine' | 'high';
@@ -27,15 +30,14 @@ export function buildBody(req: ClaudeRequest) {
 export function fetchClaude(apiKey: string, fetchImpl: typeof fetch = fetch): ClaudeClient {
   return {
     async complete(req) {
-      const body = buildBody(req);
-      const res = await fetchImpl('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-        body: JSON.stringify(body),
+      const { model: _requested, ...body } = buildBody(req);
+      const { res, modelId } = await governedMessages({
+        operation: req.stakes === 'high' ? 'brain.high_stakes' : 'brain.routine',
+        apiKey, body, fetchImpl,
       });
       if (!res.ok) throw new Error(`claude ${res.status}: ${(await res.text()).slice(0, 200)}`);
       const data = (await res.json()) as { content?: { type: string; text?: string }[] };
-      return { text: (data.content ?? []).filter((b) => b.type === 'text').map((b) => b.text).join('\n').trim(), model: body.model };
+      return { text: (data.content ?? []).filter((b) => b.type === 'text').map((b) => b.text).join('\n').trim(), model: modelId };
     },
   };
 }
