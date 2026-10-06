@@ -8,16 +8,18 @@ import { getOrigin } from '../../../lib/http';
 import { renderRetailOsEmail } from '../../../lib/retail-os-email';
 import { mailConfigured } from '../../../lib/mail/send';
 import { syncLeadFromApplication } from '../../../lib/lead-sync';
-import { createRateLimiter, limitedResponse } from '../../../lib/rate-limit';
-import { clientIp } from '../../../lib/retail-os-http';
+import { endpointLimit } from '../../../lib/rate-limit';
 
 // Each accepted application emails the founder and the admin, so this endpoint is also a mail relay. A person applies
 // once, maybe retries: 3 a minute and 10 an hour per client leaves room for a shared office address.
-const limiter = createRateLimiter({ rules: [{ limit: 3, windowMs: 60_000 }, { limit: 10, windowMs: 3_600_000 }] });
+const limit = endpointLimit({
+  rules: [{ limit: 3, windowMs: 60_000 }, { limit: 10, windowMs: 3_600_000 }],
+  body: { error: 'Too many attempts. Wait a minute and try again, or email the application.' },
+});
 
 export const POST: APIRoute = async ({ request }) => {
   // Counted before the body is read, so a malformed request still uses up the client's allowance.
-  const limited = limitedResponse(limiter, clientIp(request), { error: 'Too many attempts. Wait a minute and try again, or email the application.' });
+  const limited = limit(request);
   if (limited) return limited;
   const env = getEnv();
   const origin = getOrigin(request);

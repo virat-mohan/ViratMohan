@@ -11,6 +11,10 @@ import { getOrigin } from '../../../lib/http';
 import { sendEmail } from '../../../lib/email';
 import { runRevision } from '../../../lib/revision';
 import { shouldProcessFeedback } from '../../../lib/feedback-parsing';
+import { endpointLimit } from '../../../lib/rate-limit';
+
+// Public and unauthenticated. Each accepted submission runs a demo revision (a large model call).
+const limit = endpointLimit({ rules: [{ limit: 2, windowMs: 60_000 }, { limit: 6, windowMs: 3_600_000 }], body: { error: 'Too many requests. Please wait a minute and try again.' } });
 
 type Body = {
   id: string;
@@ -19,6 +23,8 @@ type Body = {
 };
 
 export const POST: APIRoute = async ({ request }) => {
+  const limited = limit(request);
+  if (limited) return limited;
   const env = getEnv();
   const body = (await request.json().catch(() => null)) as Body | null;
   if (!body?.id) return json({ error: 'id is required' }, 400);

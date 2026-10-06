@@ -5,6 +5,10 @@ import { getEnv } from '../../../lib/env';
 import { sendEmail } from '../../../lib/email';
 import { mailConfigured } from '../../../lib/mail/send';
 import { renderRetailOsEmail } from '../../../lib/retail-os-email';
+import { endpointLimit } from '../../../lib/rate-limit';
+
+// Public and unauthenticated. Writes a change request and emails the admin.
+const limit = endpointLimit({ rules: [{ limit: 3, windowMs: 60_000 }, { limit: 10, windowMs: 3_600_000 }], body: { error: 'Too many attempts. Please wait a minute, or WhatsApp me instead.' } });
 
 const clip = (v: unknown, n = 300) => (typeof v === 'string' ? v.trim().slice(0, n) : '');
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { 'content-type': 'application/json' } });
@@ -12,6 +16,8 @@ const PRODUCTS = ['retail-os', 'devshop', 'partner'];
 const CATEGORIES = ['question', 'change', 'bug'];
 
 export const POST: APIRoute = async ({ request }) => {
+  const limited = limit(request);
+  if (limited) return limited;
   const b = (await request.json().catch(() => null)) as Record<string, unknown> | null;
   const product = clip(b?.product, 40);
   const category = clip(b?.category, 20);

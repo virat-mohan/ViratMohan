@@ -1,3 +1,5 @@
+import { clientIp } from './retail-os-http';
+
 // Small in-memory sliding-window limiter for the public endpoints. No dependency, no database writes.
 // It is per server instance: it stops one client hammering a warm instance, not a distributed attack.
 export interface RateRule { limit: number; windowMs: number }
@@ -45,4 +47,13 @@ export function limitedResponse(limiter: RateLimiter, key: string | null, body: 
     console.error('rate limiter failed open', e);
     return null;
   }
+}
+
+/**
+ * One limiter per public endpoint: `const limit = endpointLimit({ rules, body })`, then at the top of the handler
+ * `const limited = limit(request); if (limited) return limited;`. It runs before the request body is read.
+ */
+export function endpointLimit(opts: { rules: RateRule[]; body: unknown }): (request: Request) => Response | null {
+  const limiter = createRateLimiter({ rules: opts.rules });
+  return (request) => limitedResponse(limiter, clientIp(request), opts.body);
 }
