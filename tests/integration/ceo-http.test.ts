@@ -244,3 +244,74 @@ describe('priority, matching and routing over real HTTP', () => {
     expect(real.body.work.state).toBe('pending_approval');
   }, 90_000);
 });
+
+const lifecycle = async (body: unknown, auth: string | null = AUTH) => {
+  const res = await fetch(`${BASE}/retail-os/api/admin/work-lifecycle`, { method: 'POST', headers: { 'content-type': 'application/json', ...(auth ? { authorization: auth } : {}) }, body: JSON.stringify(body) });
+  const raw = await res.text();
+  let parsed: any = raw;
+  try { parsed = JSON.parse(raw); } catch { /* the middleware answers 401 in plain text */ }
+  return { status: res.status, body: parsed };
+};
+const tower = async (tab: string) => plain(await (await fetch(`${BASE}/retail-os/admin/control-tower?tab=${tab}`, { headers: { authorization: AUTH } })).text());
+
+describe('Work lifecycle over real HTTP', () => {
+  it('is gated and validates input', async () => {
+    expect((await lifecycle({ work: 'W-0001', action: 'start' }, null)).status).toBe(401);
+    expect((await lifecycle({ work: 'W-0001', action: 'start' }, 'Basic ' + Buffer.from('other:' + PASSWORD).toString('base64'))).status).toBe(401);
+    expect((await lifecycle({ action: 'start' })).status).toBe(400);
+    expect((await lifecycle({ work: 'W-0001', action: 'delete' })).status).toBe(400);
+    expect((await lifecycle({ work: 'W-9999', action: 'start' })).status).toBe(404);
+  }, 60_000);
+
+  it('resolve, verify, close: each state shows in the Control Tower, and nothing is deleted', async () => {
+    const w = await ceo(`${TEST_TAG}Fix the Moon checkout`, { brand: 'moonglasses' });
+    const ref = w.body.work.ref as string;
+    const step = async (action: string, extra: Record<string, unknown> = {}) => {
+      const r = await lifecycle({ work: ref, action, ...extra });
+      expect(r.status, `${action}: ${JSON.stringify(r.body)}`).toBe(200);
+      return r.body;
+    };
+    expect((await step('start')).work.state).toBe('in_progress');
+    expect((await tower('pipeline'))).toContain('1 open items');
+    expect((await step('resolve', { summary: 'Fixed and checked' })).work.state).toBe('resolved');
+    expect((await step('verify')).work.state).toBe('verification');
+    const pipeline = await tower('pipeline');
+    expect(pipeline).toMatch(/1\s*Verify/);
+
+    const illegal = await lifecycle({ work: ref, action: 'close' });
+    expect(illegal.status).toBe(400);
+    expect(illegal.body.error).toContain('verification_required');
+
+    const closed = await step('close', { method: 'Reviewed the fix', evidence: [{ kind: 'note', ref: 'review-1', summary: 'Founder reviewed' }] });
+    expect(closed.work.state).toBe('closed');
+    const after = await tower('pipeline');
+    expect(after).toContain('0 open items');
+    expect(after).toMatch(/1\s*Learn/);
+    expect((await registry()).list().length).toBe(1);
+  }, 120_000);
+
+  it('closes an [IT-TEST] record in one step, keeping it and its history; refuses real Work', async () => {
+    const t = await ceo(`${TEST_TAG}Fix the Moon checkout`, { brand: 'moonglasses' });
+    const real = await ceo('Update the product photos', { brand: 'moonglasses' });
+    const before = await eventCount();
+    const refused = await lifecycle({ work: real.body.work.ref, action: 'close_test_record' });
+    expect(refused.status).toBe(400);
+    expect(await eventCount()).toBe(before);
+
+    const r = await lifecycle({ work: t.body.work.ref, action: 'close_test_record' });
+    expect(r.status).toBe(200);
+    expect(r.body.work.state).toBe('closed');
+    const reg = await registry();
+    const item = reg.get(t.body.work.id)!;
+    expect(item.title.startsWith(TEST_TAG.trim())).toBe(true);
+    expect(item.closure?.verified_by.id).toBe('DS-00');
+    expect(reg.verifyAudit(item.id).ok).toBe(true);
+    expect(reg.get(real.body.work.id)!.state).toBe('assigned');
+  }, 120_000);
+
+  it('Blocked and Pending approval states appear on the board', async () => {
+    await ceo(`${TEST_TAG}Set up the DNS`, { brand: 'moonglasses' });
+    const b = await tower('board');
+    expect(b).toContain('1 Pending approval');
+  }, 90_000);
+});

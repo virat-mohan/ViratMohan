@@ -36,6 +36,7 @@ if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
 }
 
 const view = buildControlTowerView(registry);
+const closedCount = registry.list().filter((i) => i.state === 'closed').length;
 const board = buildMorningBoard(registry, now);
 const dev = findAgent('DS-02')!;
 const brandCeos = directReports('DS-02').filter((a) => a.role === 'brand_ceo');
@@ -294,7 +295,7 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
           <div class="pipeline">
             {CONTROL_TOWER_STAGES.map((stage: ControlTowerStage) => (
               <div class="stage">
-                <div class="stage-count">{view.byStage[stage].length}</div>
+                <div class="stage-count">{stage === 'learn' ? closedCount : view.byStage[stage].length}</div>
                 <div class="stage-label">{STAGE_LABEL[stage] ?? stage}</div>
               </div>
             ))}

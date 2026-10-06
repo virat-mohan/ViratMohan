@@ -65,7 +65,7 @@ const failingRun: HealthRun = {
 
 function makeStore() {
   const { client } = fakeSupabase();
-  return createSupabaseWorkStore(client);
+  return createSupabaseWorkStore(client, { transactional: false });
 }
 
 describe('health runner', () => {

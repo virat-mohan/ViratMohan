@@ -87,9 +87,9 @@ export interface KnownRows {
 export class WorkConflictError extends Error {
   constructor(message: string) { super(`work conflict: ${message}`); this.name = 'WorkConflictError'; }
 }
-const CHAIN_OR_KEY = /does not continue the chain|duplicate key|work_events_pkey|work_items_pkey|violates unique/i;
-const conflictOr = (message: string, what: string): Error =>
-  CHAIN_OR_KEY.test(message) ? new WorkConflictError(`${what}: ${message}`) : new Error(`${what}: ${message}`);
+const CHAIN_OR_KEY = /work conflict|does not continue the chain|duplicate key|work_events_pkey|work_items_pkey|violates unique/i;
+const conflictOr = (message: string, what: string, code?: string): Error =>
+  code === 'WR409' || code === '23505' || CHAIN_OR_KEY.test(message) ? new WorkConflictError(`${what}: ${message}`) : new Error(`${what}: ${message}`);
 
 /** Everything the DB-backed registry reads/writes. Writes are append-or-upsert; work is never deleted. */
 export interface WorkStore {
@@ -99,7 +99,10 @@ export interface WorkStore {
 }
 
 type DbResult<T> = PromiseLike<{ data: T[] | null; error: { message: string } | null }>;
+type RpcResult = PromiseLike<{ data: unknown; error: { message: string; code?: string } | null }>;
 type Sb = {
+  /** Calls a Postgres function. Required for the transactional write path (work_persist, migration 0056). */
+  rpc?: (fn: string, args: Record<string, unknown>) => RpcResult;
   from(table: string): {
     select: (cols?: string) => DbResult<Record<string, unknown>>;
     upsert: (rows: unknown[], opts?: { onConflict: string; ignoreDuplicates?: boolean }) => PromiseLike<{ error: { message: string } | null }>;
@@ -118,7 +121,16 @@ const must = async <T>(p: Promise<{ data: T | null; error: { message: string } |
  * reflects the database. Idempotent persist: `upsert` items by id, insert only events/children not
  * already present (events are append-only; the chain trigger rejects anything out of order).
  */
-export function createSupabaseWorkStore(client: Sb): WorkStore {
+export interface WorkStoreOptions {
+  /**
+   * Default true: a write with a baseline is ONE call to work_persist (atomic). False exists only so tests can
+   * drive a hand-written fake client that has no database function; production code never sets it.
+   */
+  transactional?: boolean;
+}
+
+export function createSupabaseWorkStore(client: Sb, options: WorkStoreOptions = {}): WorkStore {
+  const transactional = options.transactional ?? true;
   const rows = <T>(t: string, cols = '*') => must<T[]>(client.from(t).select(cols) as unknown as Promise<{ data: T[] | null; error: { message: string } | null }>, `read ${t}`);
   return {
     async loadAll() {
@@ -135,6 +147,36 @@ export function createSupabaseWorkStore(client: Sb): WorkStore {
       return { items, sourceEvents: seRows.map(({ work_id, ...s }) => ({ ...s, work_id })) as SourceEvent[], links, locks: lockRows };
     },
     async persist(s, opts = {}) {
+      if (transactional && opts.base) {
+        if (!opts.known) throw new Error('persist with a base also needs the known rows; take both from persistBaseline()');
+        if (!client.rpc) throw new Error('the transactional store needs a client with rpc(); work_persist (migration 0056) is the only safe write path');
+        const base = opts.base; const known = opts.known;
+        const changedItems = s.items.filter((i) => i.events.length !== (base.get(i.id) ?? 0));
+        const events = changedItems
+          .flatMap((i) => i.events.filter((e) => e.seq > (base.get(i.id) ?? 0)).map((e) => rowFromEvent(i.id, e)))
+          .sort((x, y) => (x.work_id === y.work_id ? x.seq - y.seq : x.work_id < y.work_id ? -1 : 1));
+        const payload = {
+          expect: Object.fromEntries(changedItems.filter((i) => base.has(i.id)).map((i) => [i.id, base.get(i.id)!])),
+          items_new: changedItems.filter((i) => !base.has(i.id)).map(rowFromItem),
+          items_upd: changedItems.filter((i) => base.has(i.id)).map(rowFromItem),
+          events,
+          source_events_new: s.sourceEvents.filter((e) => !known.sourceEvents.has(e.id)),
+          source_events_upd: s.sourceEvents.filter((e) => known.sourceEvents.has(e.id) && known.sourceEvents.get(e.id) !== JSON.stringify(e)),
+          locks_new: s.locks.filter((l) => !known.locks.has(l.id)),
+          locks_upd: s.locks.filter((l) => known.locks.has(l.id) && known.locks.get(l.id) !== JSON.stringify(l)),
+          links_new: s.links.filter((l) => !known.links.has(l.id)).map((l) => ({ id: l.id, kind: l.kind, from_id: l.from, to_id: l.to, at: l.at, by: l.by, note: l.note, score: l.score })),
+        };
+        const empty = Object.entries(payload).every(([k, v]) => (k === 'expect' ? Object.keys(v as object).length === 0 : (v as unknown[]).length === 0));
+        if (empty) return;
+        const { error } = await client.rpc('work_persist', { p: payload });
+        if (error) {
+          if (error.code === 'PGRST202' || /could not find the function|function .*work_persist.* does not exist/i.test(error.message)) {
+            throw new Error('work_persist is not installed in this database: apply migrations/0056_work_persist.sql by hand before deploying this code (see case-study/WORK-REGISTRY.md)');
+          }
+          throw conflictOr(error.message, 'persist', error.code);
+        }
+        return;
+      }
       const base = opts.base;
       const known = base ? opts.known : undefined;
       // With a base (the event count of every item as loaded) only changed items are written, and each is

@@ -5,11 +5,12 @@ import { PGlite } from '@electric-sql/pglite';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-const MIGRATION = readFileSync(fileURLToPath(new URL('../../../migrations/0055_work_registry.sql', import.meta.url)), 'utf8');
+const migration = (f: string) => readFileSync(fileURLToPath(new URL(`../../../migrations/${f}`, import.meta.url)), 'utf8');
+export const MIGRATIONS = [migration('0055_work_registry.sql'), migration('0056_work_persist.sql')];
 
 export async function freshDb(): Promise<PGlite> {
   const db = new PGlite();
-  await db.exec(MIGRATION);
+  for (const m of MIGRATIONS) await db.exec(m);
   return db;
 }
 
@@ -47,6 +48,16 @@ export function pgClient(db: PGlite) {
     }
   }
   return {
+    async rpc(fn: string, args: { p: unknown }): Promise<{ data: unknown; error: { message: string; code?: string } | null }> {
+      if (fn !== 'work_persist') return { data: null, error: { message: `unknown function ${fn}` } };
+      try {
+        const r = await db.query<{ r: unknown }>('select work_persist($1::jsonb) as r', [JSON.stringify(args.p)]);
+        return { data: r.rows[0].r, error: null };
+      } catch (e) {
+        const err = e as { message?: string; code?: string };
+        return { data: null, error: { message: err.message ?? String(e), code: err.code } };
+      }
+    },
     from(table: string) {
       return {
         select: async (cols = '*'): Promise<Res> => {

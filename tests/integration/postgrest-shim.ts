@@ -12,11 +12,18 @@ export function startShim(port: number, initial: PGlite): { server: Server; setD
   let client = pgClient(initial);
   const server = createServer(async (req, res) => {
     const url = new URL(req.url ?? '/', 'http://shim');
+    const rpc = /^\/rest\/v1\/rpc\/([a-z_]+)$/.exec(url.pathname);
     const m = /^\/rest\/v1\/([a-z_]+)$/.exec(url.pathname);
     const send = (status: number, body?: unknown) => {
       res.writeHead(status, { 'content-type': 'application/json' });
       res.end(body === undefined ? '' : JSON.stringify(body, (_k, v) => (typeof v === 'bigint' ? Number(v) : v)));
     };
+    if (rpc && req.method === 'POST') {
+      let raw = '';
+      for await (const chunk of req) raw += chunk;
+      const r = await client.rpc(rpc[1], JSON.parse(raw || '{}'));
+      return r.error ? send(400, { message: r.error.message, code: r.error.code }) : send(200, r.data);
+    }
     if (!m || !SAFE_NAME.test(m[1])) return send(404, { message: 'not found' });
     const table = m[1];
     if (req.method === 'GET') {

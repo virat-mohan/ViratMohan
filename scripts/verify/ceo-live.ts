@@ -7,6 +7,8 @@ import { createClient } from '@supabase/supabase-js';
 import { createSupabaseWorkStore } from '../../src/lib/work/db-store';
 import { loadRegistry } from '../../src/lib/work/db-registry';
 import { handleFounderInput } from '../../src/lib/ceo/founder-service';
+import { advanceWork } from '../../src/lib/work/lifecycle-service';
+import { VIRAT } from '../../src/lib/work/actors';
 import { buildControlTowerView } from '../../src/lib/control-tower/view';
 
 const { CEO_LIVE_VERIFY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = process.env;
@@ -22,13 +24,37 @@ const pw = 'live-verify-local-only';
 const auth = 'Basic ' + Buffer.from(`admin:${pw}`).toString('base64');
 const text = `[IT-LIVE] Verify the CEO runtime write path ${new Date().toISOString().slice(0, 10)}`;
 
-const r = await handleFounderInput(auth, { text }, { store, adminPassword: pw });
-if (r.status !== 200) { console.error('FAILED', r.status, r.body); process.exit(1); }
-const reg = await loadRegistry(store);
-const item = reg.get(r.body.work!.id);
-const visible = buildControlTowerView(reg).byStage;
-const inView = Object.values(visible).flat().some((w) => w.id === item?.id);
-const chain = item ? reg.verifyAudit(item.id).ok : false;
-console.log(JSON.stringify({ created: r.body.work?.ref, state: item?.state, owner: item?.owner?.id, readBack: !!item, controlTowerVisible: inView, auditChainValid: chain, kind: r.body.outcome.kind }));
-console.log('Left in the registry: one open Work item titled "' + text + '" (owner DS-02, state assigned). It cannot be deleted. Close it through the registry lifecycle: see case-study/CEO-OPERATING-MODEL.md, "Closing the [IT-LIVE] item".');
-process.exit(item && inView && chain ? 0 : 1);
+const fail = (why: string, extra?: unknown): never => { console.error('FAILED:', why, extra ?? ''); process.exit(1); };
+let r;
+try { r = await handleFounderInput(auth, { text }, { store, adminPassword: pw }); }
+catch (e) { fail(e instanceof Error ? e.message : String(e)); }
+if (r!.status !== 200) fail(`the CEO input returned ${r!.status}`, r!.body);
+const created = (r as Extract<typeof r, { status: 200 }>).body;
+
+// 1. real creation, read back, audit chain, Control Tower visibility (before closing)
+let reg = await loadRegistry(store);
+const item = reg.get(created.work!.id);
+if (!item) fail('the created Work could not be read back');
+const visibleOpen = Object.values(buildControlTowerView(reg).byStage).flat().some((w) => w.id === item!.id);
+const chainOk = reg.verifyAudit(item!.id).ok;
+const eventsBefore = item!.events.length;
+if (!visibleOpen || !chainOk) fail('read-back checks failed', { visibleOpen, chainOk });
+
+// 2. real lifecycle closure (resolve, verify, close): no deletion, history retained
+const keepOpen = process.env.CEO_LIVE_KEEP_OPEN === 'yes';
+let closed = false;
+if (!keepOpen) {
+  const c = await advanceWork(store, { work: item!.id, action: 'close_test_record', by: VIRAT, method: 'verify:ceo-live read back the item, its audit chain and its Control Tower visibility' });
+  if (!c.ok) fail(`closing the test record failed: ${c.error.code}: ${c.error.message}`);
+  reg = await loadRegistry(store);
+  const after = reg.get(item!.id)!;
+  const history = after.events.length >= eventsBefore + 4 && after.events.slice(0, eventsBefore).every((e, i) => e.hash === item!.events[i].hash);
+  const stillThere = Object.values(buildControlTowerView(reg, { includeAll: true }).byStage).flat().some((w) => w.id === item!.id);
+  closed = after.state === 'closed' && after.title === item!.title && history && stillThere && reg.verifyAudit(item!.id).ok;
+  if (!closed) fail('the closure checks failed', { state: after.state, history, stillThere });
+}
+console.log(JSON.stringify({ created: created.work?.ref, readBack: true, controlTowerVisible: visibleOpen, auditChainValid: chainOk, lifecycleClosed: closed, kept: keepOpen ? 'open (CEO_LIVE_KEEP_OPEN=yes)' : 'closed, not deleted' }));
+console.log(keepOpen
+  ? `Left open: "${text}". Close it with: POST /retail-os/api/admin/work-lifecycle {"work":"${created.work?.ref}","action":"close_test_record"}`
+  : `Closed, not deleted: "${text}" (${created.work?.ref}). Its full history is retained; it appears under Learn in the Control Tower.`);
+process.exit(0);

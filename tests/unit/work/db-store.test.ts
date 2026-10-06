@@ -72,7 +72,7 @@ describe('createSupabaseWorkStore: persist and load the whole registry', () => {
   it('a full snapshot survives a persist → load round trip, and every audit chain still verifies', async () => {
     const source = seeded();
     const { client } = fakeSupabase();
-    const store = createSupabaseWorkStore(client as never);
+    const store = createSupabaseWorkStore(client as never, { transactional: false });
     await store.persist(source.snapshot());
     const loaded = await loadRegistry(store);
 
@@ -92,7 +92,7 @@ describe('createSupabaseWorkStore: persist and load the whole registry', () => {
   it('persist is append-only for events and idempotent: persisting the same snapshot twice is a no-op', async () => {
     const source = seeded();
     const { client, tables } = fakeSupabase();
-    const store = createSupabaseWorkStore(client as never);
+    const store = createSupabaseWorkStore(client as never, { transactional: false });
     await store.persist(source.snapshot());
     const events1 = tables.get('work_events')!.size;
     await store.persist(source.snapshot()); // again
@@ -101,7 +101,7 @@ describe('createSupabaseWorkStore: persist and load the whole registry', () => {
 
   it('DbWorkRegistry: a create, then a later load, sees the item; a transition persists across loads', async () => {
     const { client } = fakeSupabase();
-    const db = new DbWorkRegistry(createSupabaseWorkStore(client as never), { directory: { kindOf: (id) => (id === 'DS-02' || id === 'SG-01' || id === 'DS-10' ? 'agent' : id === 'DS-00' ? 'human' : null) }, knownBrands: new Set(['sample']) });
+    const db = new DbWorkRegistry(createSupabaseWorkStore(client as never, { transactional: false }), { directory: { kindOf: (id) => (id === 'DS-02' || id === 'SG-01' || id === 'DS-10' ? 'agent' : id === 'DS-00' ? 'human' : null) }, knownBrands: new Set(['sample']) });
     const created = await db.mutate((reg) => reg.createItem({ type: 'incident', title: 'Checkout 500s', scope: Scopes.brand('sample') }, DEV));
     expect(created.ok).toBe(true);
     const id = created.ok ? created.value.id : '';
@@ -118,7 +118,7 @@ describe('createSupabaseWorkStore: persist and load the whole registry', () => {
   it('the full lifecycle works through the database-backed registry', async () => {
     const { client } = fakeSupabase();
     const dir = { kindOf: (id: string) => (['DS-02', 'SG-01', 'DS-10'].includes(id) ? 'agent' as const : id === 'DS-00' ? 'human' as const : null) };
-    const db = new DbWorkRegistry(createSupabaseWorkStore(client as never), { directory: dir, knownBrands: new Set(['sample']) });
+    const db = new DbWorkRegistry(createSupabaseWorkStore(client as never, { transactional: false }), { directory: dir, knownBrands: new Set(['sample']) });
     const id = (await db.mutate((r) => r.createItem({ type: 'task', title: 'Add a size chart', scope: Scopes.brand('sample') }, DEV))).ok
       ? (await db.read((r) => r.list()[0].id)) : '';
     await db.mutate((r) => r.transition(id, 'triaged', DEV, { payload: { triage: { priority: 'P3' } } }));

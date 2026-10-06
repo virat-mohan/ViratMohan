@@ -7,7 +7,6 @@ import { Scopes } from '../../../src/lib/work/scope';
 import { DEV } from './helpers';
 import { freshDb, pgClient } from './pg-client';
 
-const baseOf = (reg: { snapshot(): { items: { id: string; events: unknown[] }[] } }) => new Map(reg.snapshot().items.map((i) => [i.id, i.events.length]));
 
 async function setup() {
   const db = await freshDb();
@@ -23,12 +22,12 @@ async function setup() {
 describe('two writers, real schema', () => {
   it('a stale writer is refused instead of silently losing its event and overwriting the item', async () => {
     const { store, x } = await setup();
-    const A = await loadRegistry(store); const baseA = baseOf(A);
-    const B = await loadRegistry(store); const baseB = baseOf(B);
+    const A = await loadRegistry(store); const baseA = persistBaseline(A);
+    const B = await loadRegistry(store); const baseB = persistBaseline(B);
     expect(A.addEvidence(x, { kind: 'note', ref: 'a', summary: 'from A' }, DEV).ok).toBe(true);
     expect(B.addEvidence(x, { kind: 'note', ref: 'b', summary: 'from B' }, DEV).ok).toBe(true);
-    await store.persist(A.snapshot(), { base: baseA });
-    await expect(store.persist(B.snapshot(), { base: baseB })).rejects.toThrow(/conflict/i);
+    await store.persist(A.snapshot(), baseA);
+    await expect(store.persist(B.snapshot(), baseB)).rejects.toThrow(/conflict/i);
 
     const after = await loadRegistry(store);
     const item = after.get(x)!;
@@ -38,12 +37,12 @@ describe('two writers, real schema', () => {
 
   it('a writer does not overwrite items it did not change', async () => {
     const { store, x, y } = await setup();
-    const A = await loadRegistry(store); const baseA = baseOf(A);
-    const B = await loadRegistry(store); const baseB = baseOf(B);
+    const A = await loadRegistry(store); const baseA = persistBaseline(A);
+    const B = await loadRegistry(store); const baseB = persistBaseline(B);
     A.addEvidence(x, { kind: 'note', ref: 'a', summary: 'A changes X' }, DEV);
     B.addEvidence(y, { kind: 'note', ref: 'b', summary: 'B changes Y' }, DEV);
-    await store.persist(A.snapshot(), { base: baseA });
-    await store.persist(B.snapshot(), { base: baseB });
+    await store.persist(A.snapshot(), baseA);
+    await store.persist(B.snapshot(), baseB);
 
     const after = await loadRegistry(store);
     expect(after.get(x)!.evidence.map((e) => e.ref)).toEqual(['a']);
@@ -60,9 +59,9 @@ describe('mutateRegistry: bounded retry on conflict', () => {
       loadAll: () => store.loadAll(),
       async persist(snap, opts) {
         if (left-- > 0) {
-          const other = await loadRegistry(store); const b = baseOf(other);
+          const other = await loadRegistry(store); const b = persistBaseline(other);
           other.addEvidence(x, { kind: 'note', ref: `other-${left}`, summary: 'interfering writer' }, DEV);
-          await store.persist(other.snapshot(), { base: b });
+          await store.persist(other.snapshot(), b);
         }
         return store.persist(snap, opts);
       },
@@ -106,12 +105,12 @@ describe('mutateRegistry: bounded retry on conflict', () => {
 
   it('two writers creating different items both land', async () => {
     const { store } = await setup();
-    const A = await loadRegistry(store); const baseA = baseOf(A);
-    const B = await loadRegistry(store); const baseB = baseOf(B);
+    const A = await loadRegistry(store); const baseA = persistBaseline(A);
+    const B = await loadRegistry(store); const baseB = persistBaseline(B);
     A.createItem({ title: 'From A', type: 'task', scope: Scopes.devshop() }, DEV);
     B.createItem({ title: 'From B', type: 'task', scope: Scopes.devshop() }, DEV);
-    await store.persist(A.snapshot(), { base: baseA });
-    await store.persist(B.snapshot(), { base: baseB });
+    await store.persist(A.snapshot(), baseA);
+    await store.persist(B.snapshot(), baseB);
     const after = await loadRegistry(store);
     expect(after.list().map((i) => i.title).sort()).toEqual(['From A', 'From B', 'Item X', 'Item Y']);
   });
