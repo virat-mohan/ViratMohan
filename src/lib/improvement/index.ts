@@ -22,3 +22,9 @@ export {
   requiresCeoReview, requiresMyohoReview, requiresFounderApproval,
   resolveGovernance, validateChangeProposal, canTransition, requiresApprovalForTransition,
 } from './governance';
+
+export type { ImprovementLearning, LearningState, ProtectedDomain } from './learning';
+export {
+  LEARNING_STATES, isProtectedDomain, canPromoteToRule,
+  requiresApprovalForRule, toLearning, canTransitionLearning,
+} from './learning';

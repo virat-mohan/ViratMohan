@@ -121,6 +121,24 @@ Approval required before: `approved` and `implementing`.
 | integration | APIs, webhooks, third-party connections |
 | security | Auth, permissions, vulnerabilities |
 
+## Improvement Learning
+
+Source: `src/lib/improvement/learning.ts`.
+
+Learning states: OBSERVATION → HYPOTHESIS → VALIDATED LEARNING → RULE.
+
+Only validated learnings with evidence can become rules. Only approved rules are authoritative.
+
+### Protected domains (cannot be silently modified by learning)
+
+brand_foundation, brand_book, company_policy, authority, model_policy, compensation, financial_controls, production_architecture.
+
+Changes to protected domains require Founder (DS-00) approval. Routine rules need only CEO (DS-02) approval.
+
+### Integration with Work Registry
+
+`toLearning()` converts a rule-state `ImprovementLearning` into the Work Registry's `Learning` interface (lesson, reference, rule_added), so improvements feed back into the existing learning system on every Work item.
+
 ## What is NOT implemented
 
 - Live automation of detect → improve → verify loop

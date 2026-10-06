@@ -102,6 +102,9 @@ describe('only authorized surfaces reach the Work Registry', () => {
     'src/pages/retail-os/api/admin/ceo-input.ts',
     'src/lib/control-tower/types.ts',
     'src/lib/control-tower/view.ts',
+    'src/lib/improvement/types.ts',
+    'src/lib/improvement/detection.ts',
+    'src/lib/improvement/learning.ts',
   ]);
 
   it('only authorized surfaces import Work Registry code', () => {

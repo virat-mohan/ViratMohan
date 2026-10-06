@@ -92,6 +92,20 @@ Fable 5 / Fable 5.1 must NOT become normal models. Require: unusually complex, l
 
 Every model invocation carries: agent, task, model, brand. Hierarchy: company → product → brand → function → process → task → agent → model → operation. Clean hooks exist; the full economics system is NOT built.
 
+## Responsible Technology Policy
+
+Source: `src/lib/intelligence/responsible-technology.ts`.
+
+13 canonical rules (RT-01 through RT-13) enforced via an `InvocationGuard` that gates every AI call. The guard checks: AI necessity, cached result availability, retry limits, escalation limits, runtime limits. Applies to all agents.
+
+**Policy implemented. Runtime enforcement is via the guard contract — no live provider integration yet.**
+
+## Model Learning
+
+Source: `src/lib/intelligence/model-learning.ts`.
+
+Observation structure: task type → model → quality result → cost → human correction → business outcome. Summarisation produces recommendations (sufficient / consider_downgrade / consider_upgrade / insufficient_data) after 10+ observations. **Does NOT silently change model policy.** A model-policy change requires governance approval.
+
 ## What is NOT implemented
 
 - Actual provider API calls or model switching
@@ -101,7 +115,7 @@ Every model invocation carries: agent, task, model, brand. Hierarchy: company �
 - Human review cost measurement
 - Workforce-cost engine
 - Full economic attribution system
-- Learning/feedback loop
+- Live model learning pipeline (observation structure exists; collection does not)
 
 These are documented requirements, not claims of implementation.
 

@@ -26,6 +26,7 @@ const REASON: Record<string, string> = {
 <title>FAQ Inbox — Retail OS admin</title>
 <meta name="robots" content="noindex">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/brand/tokens.css">
 <style>
 :root{--cream:#F4EAD4;--ink:#1A1410;--ink-soft:#4A4038;--gold:#D4AF37;--terracotta:#D9714B;--teal:#2B8C86;--line:rgba(26,20,16,.14);}
 *{box-sizing:border-box;} body{margin:0;background:var(--cream);color:var(--ink);font:15px/1.55 'Inter',system-ui,sans-serif;}
@@ -50,7 +51,7 @@ button:disabled{opacity:.5;cursor:wait;}
 a{color:inherit;}
 </style>
 </head>
-<body><div class="wrap">
+<body><div class="vm-band"></div><div class="wrap">
 <p class="meta"><a href="/retail-os/admin/">← Retail OS admin</a> · <a href="/retail-os/faq/" target="_blank">View FAQ</a></p>
 <h1>FAQ Inbox</h1>
 <p class="sub">Questions from the FAQ page, the site chat and email that had no answer yet. Publish once and every channel learns it. {open.length} open · {published.length} published.</p>

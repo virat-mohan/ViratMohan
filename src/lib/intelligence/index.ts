@@ -7,3 +7,7 @@ export type { TaskProfile, TaskComplexity, TaskRisk, RoutingDecision, Escalation
 export { requiresFableGovernance, validateFableJustification, requiresCeoConsultation, requiresMyohoConsultation, isRoutineRouting, isRoutineForMyoho, isRunaway, RUNAWAY_LIMITS, QUALITY_FLOORS, qualityFloorFor } from './governance';
 export type { FableJustification, ConsultationTrigger, MyohoTrigger, RunawayCheck, QualityFloor } from './governance';
 export type { AutonomyLevel } from './types';
+export { RESPONSIBLE_TECHNOLOGY_POLICY, shouldInvoke } from './responsible-technology';
+export type { InvocationGuard, ResponsibleTechnologyRule } from './responsible-technology';
+export { summariseModelLearning, MIN_OBSERVATIONS_FOR_RECOMMENDATION } from './model-learning';
+export type { ModelObservation, ModelLearning } from './model-learning';
