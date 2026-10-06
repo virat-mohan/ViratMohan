@@ -37,6 +37,37 @@ if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
 
 const view = buildControlTowerView(registry);
 const closedCount = registry.list().filter((i) => i.state === 'closed').length;
+
+// Lifecycle presentation. RESOLVED and CLOSED are never worded alike: closing needs verification and evidence.
+const STATE_MEANING: Record<string, { label: string; note: string }> = {
+  new: { label: 'New', note: 'Not triaged yet' },
+  triaged: { label: 'Triaged', note: 'Needs an owner' },
+  assigned: { label: 'Assigned', note: 'Not started' },
+  in_progress: { label: 'In progress', note: 'Being worked on' },
+  waiting: { label: 'Waiting', note: 'Held until the wait ends' },
+  blocked: { label: 'Blocked', note: 'Held by a blocker' },
+  pending_approval: { label: 'Pending approval', note: 'Waiting for a decision' },
+  resolved: { label: 'RESOLVED', note: 'Waiting for verification. Not closed.' },
+  verification: { label: 'VERIFICATION', note: 'Evidence is needed to close it.' },
+  closed: { label: 'CLOSED', note: 'Completed and kept in history.' },
+  reopened: { label: 'Reopened', note: 'Back in play' },
+};
+const NEXT_ACTION: Record<string, { action: string; button: string }> = {
+  assigned: { action: 'start', button: 'Start' },
+  in_progress: { action: 'resolve', button: 'Mark resolved' },
+  resolved: { action: 'verify', button: 'Send to verification' },
+  verification: { action: 'close', button: 'Verify and close' },
+};
+const RANK: Record<string, number> = { P0: 0, P1: 1, P2: 2, P3: 3, P4: 4 };
+const MAX_OPEN_SHOWN = 40;
+const openWork = registry.list()
+  .filter((i) => i.state !== 'closed' && !i.merged_into)
+  .sort((a, b) => (RANK[a.priority ?? 'P4'] ?? 4) - (RANK[b.priority ?? 'P4'] ?? 4) || (a.updated_at < b.updated_at ? 1 : -1));
+const closedWork = registry.list()
+  .filter((i) => i.state === 'closed')
+  .sort((a, b) => ((b.closed_at ?? '') > (a.closed_at ?? '') ? 1 : -1))
+  .slice(0, 10);
+const day = (iso: string) => iso.slice(0, 10);
 const board = buildMorningBoard(registry, now);
 const dev = findAgent('DS-02')!;
 const brandCeos = directReports('DS-02').filter((a) => a.role === 'brand_ceo');
@@ -175,6 +206,29 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
     .resp dd { overflow-wrap: anywhere; }
     .resp ul { margin: 0; padding-left: 18px; }
     @media (max-width: 600px) { .ask .row { grid-template-columns: 1fr; } .resp dl { grid-template-columns: 1fr; gap: 2px; } .resp dd { margin-bottom: 8px; } }
+
+    /* — Work lifecycle — */
+    .work { border-top: 1px solid var(--border); padding: 14px 0; }
+    .work:first-of-type { border-top: none; }
+    .work-head { display: flex; gap: 8px; align-items: baseline; }
+    .work-title { flex: 1; overflow-wrap: anywhere; font-weight: 500; }
+    .work-meta { font-size: 0.78rem; color: var(--ink-muted); margin: 2px 0 6px; overflow-wrap: anywhere; }
+    .state { font-size: 0.85rem; margin-bottom: 8px; }
+    .state b { padding: 1px 8px; border-radius: 4px; background: #F1ECE2; margin-right: 4px; }
+    .state-resolved b { background: #FFF3E0; color: #E65100; }
+    .state-verification b { background: #E3F2FD; color: #1565C0; }
+    .state-closed b { background: #E8F5E9; color: #2E7D32; }
+    details.act > summary.btn { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--ink); background: var(--ink); color: var(--paper); cursor: pointer; list-style: none; font-size: 1rem; }
+    details > summary::-webkit-details-marker { display: none; }
+    details.hist > summary { display: flex; align-items: center; min-height: 44px; color: var(--ink-muted); font-size: 0.85rem; cursor: pointer; list-style: none; }
+    details.hist ol { padding-left: 20px; font-size: 0.8rem; color: var(--ink-muted); overflow-wrap: anywhere; }
+    form.lc { margin-top: 10px; display: grid; gap: 10px; }
+    form.lc label { display: block; font-size: 0.8rem; color: var(--ink-muted); }
+    form.lc select, form.lc textarea, form.lc input { display: block; width: 100%; margin-top: 4px; min-height: 44px; font: inherit; font-size: 1rem; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--paper); color: var(--ink); }
+    form.lc textarea { min-height: 88px; resize: vertical; }
+    form.lc button { min-height: 44px; padding: 0 20px; border-radius: 8px; border: 1px solid var(--ink); background: var(--ink); color: var(--paper); font: inherit; font-size: 1rem; cursor: pointer; justify-self: start; }
+    form.lc button[disabled] { opacity: 0.55; cursor: default; }
+    .lc-msg { font-size: 0.85rem; min-height: 1.2em; }
 
     /* — Mobile-first responsive — */
     @media (max-width: 600px) {
@@ -343,6 +397,89 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
             ))
           )}
         </div>
+
+        <div class="card" id="work">
+          <h3>Work</h3>
+          <p class="empty" style="margin-bottom:8px">Move Work along its lifecycle. Closing needs verification and evidence.</p>
+          {openWork.length === 0 ? (
+            <p class="empty">No open work.</p>
+          ) : (
+            openWork.slice(0, MAX_OPEN_SHOWN).map((i) => (
+              <article class="work">
+                <div class="work-head">
+                  <span class={`tag tag-${(i.priority ?? 'p4').toLowerCase()}`}>{i.priority ?? '—'}</span>
+                  <strong class="work-title">{i.title}</strong>
+                </div>
+                <div class="work-meta">{i.ref} · {BRAND_LABEL[i.scope.brand ?? ''] ?? i.scope.brand ?? 'DevShop'} · owner {i.owner?.id ?? 'none'}</div>
+                <div class={`state state-${i.state}`}><b>{STATE_MEANING[i.state]?.label ?? i.state}</b> {STATE_MEANING[i.state]?.note}</div>
+                {NEXT_ACTION[i.state] && (
+                  <details class="act">
+                    <summary class="btn">{NEXT_ACTION[i.state].button}</summary>
+                    <form class="lc" data-work={i.ref} data-action={NEXT_ACTION[i.state].action}>
+                      {NEXT_ACTION[i.state].action === 'resolve' && (
+                        <>
+                          <label>How it ended
+                            <select name="resolution_kind">
+                              <option value="completed">Completed</option>
+                              <option value="fixed">Fixed</option>
+                              <option value="workaround">Workaround</option>
+                              <option value="declined">Declined</option>
+                              <option value="wont_do">Won't do</option>
+                              <option value="not_reproducible">Not reproducible</option>
+                            </select>
+                          </label>
+                          <label>What was done
+                            <textarea name="summary" required maxlength="1000"></textarea>
+                          </label>
+                        </>
+                      )}
+                      {NEXT_ACTION[i.state].action === 'verify' && (
+                        <label>Note (optional)
+                          <textarea name="summary" maxlength="1000"></textarea>
+                        </label>
+                      )}
+                      {NEXT_ACTION[i.state].action === 'close' && (
+                        <>
+                          <label>How it was checked
+                            <input name="method" type="text" required maxlength="300" autocomplete="off" />
+                          </label>
+                          <label>What you saw (the evidence)
+                            <textarea name="evidence" required maxlength="1000"></textarea>
+                          </label>
+                        </>
+                      )}
+                      <button type="submit">Confirm</button>
+                      <p class="lc-msg" role="status"></p>
+                    </form>
+                  </details>
+                )}
+                <details class="hist">
+                  <summary>History ({i.events.length} events)</summary>
+                  <ol>{i.events.slice(-12).map((e) => <li>{day(e.at)} · {e.kind}{e.to ? ` → ${e.to}` : ''} · {e.actor.id}</li>)}</ol>
+                </details>
+              </article>
+            ))
+          )}
+          {openWork.length > MAX_OPEN_SHOWN && <p class="empty">Showing {MAX_OPEN_SHOWN} of {openWork.length} open items, most urgent first.</p>}
+
+          <h3 style="margin-top:20px">Recently closed</h3>
+          {closedWork.length === 0 ? (
+            <p class="empty">Nothing closed yet.</p>
+          ) : (
+            closedWork.map((i) => (
+              <article class="work">
+                <div class="work-head"><strong class="work-title">{i.title}</strong></div>
+                <div class="work-meta">{i.ref} · {BRAND_LABEL[i.scope.brand ?? ''] ?? i.scope.brand ?? 'DevShop'} · closed {i.closed_at ? day(i.closed_at) : ''}{i.closure ? ` · verified by ${i.closure.verified_by.id}` : ''}</div>
+                <div class="state state-closed"><b>CLOSED</b> {STATE_MEANING.closed.note}</div>
+                <details class="hist">
+                  <summary>History ({i.events.length} events)</summary>
+                  <ol>{i.events.slice(-12).map((e) => <li>{day(e.at)} · {e.kind}{e.to ? ` → ${e.to}` : ''} · {e.actor.id}</li>)}</ol>
+                  {i.closure && <p class="work-meta">Checked: {i.closure.method}</p>}
+                </details>
+              </article>
+            ))
+          )}
+        </div>
       </div>
     )}
 
@@ -481,6 +618,31 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
         finally { btn.disabled = false; btn.textContent = 'Send to the CEO'; }
       });
     }
+  </script>
+
+  <script>
+    document.querySelectorAll('form.lc').forEach((form) => {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = form.querySelector('button');
+        const msg = form.querySelector('.lc-msg');
+        const f = new FormData(form);
+        const action = form.dataset.action;
+        const body = { work: form.dataset.work, action };
+        const text = (k) => String(f.get(k) || '').trim();
+        if (text('summary')) body.summary = text('summary');
+        if (text('resolution_kind')) body.resolution_kind = text('resolution_kind');
+        if (action === 'close') { body.method = text('method'); body.evidence = [{ kind: 'note', ref: 'founder-review:' + form.dataset.work, summary: text('evidence') }]; }
+        btn.disabled = true; msg.textContent = 'Working…';
+        try {
+          const res = await fetch('/retail-os/api/admin/work-lifecycle', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+          const d = await res.json();
+          if (!res.ok) { msg.textContent = d.error || 'Something went wrong'; btn.disabled = false; return; }
+          msg.textContent = 'Done: ' + d.work.state;
+          window.location.reload();
+        } catch { msg.textContent = 'Could not reach the lifecycle service. Try again.'; btn.disabled = false; }
+      });
+    });
   </script>
 </body>
 </html>

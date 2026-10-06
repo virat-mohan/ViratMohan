@@ -131,6 +131,10 @@ All dashboards are genuinely usable on mobile as a first-class operating use cas
 
 Breadcrumbs and responsive patterns are built into the shared shell (`DashboardShell.tsx`, `globals.css`) so new brands inherit them from the starter.
 
+### Work lifecycle controls (Founder Control Tower)
+
+The pipeline tab's Work card is the one place the Founder moves Work along its lifecycle: Start, Mark resolved, Send to verification, Verify and close. Rules for any dashboard that shows Work: show only the valid next action for the state; word RESOLVED ("waiting for verification, not closed"), VERIFICATION ("evidence is needed to close it") and CLOSED ("completed and kept in history") differently; ask for what the contract requires (what was done; how it was checked and what was seen); show history behind a tap; keep each control a 44px target and each form one column on a phone; never offer a delete. The server enforces every rule again, so the page is a convenience, not the control. Brand dashboards do not get these controls yet.
+
 ### Implementation status by application
 
 | Application | Framework | Breadcrumbs | Mobile nav | Canonical shell | Notes |

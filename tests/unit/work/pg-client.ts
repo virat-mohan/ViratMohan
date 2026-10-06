@@ -8,9 +8,9 @@ import { fileURLToPath } from 'node:url';
 const migration = (f: string) => readFileSync(fileURLToPath(new URL(`../../../migrations/${f}`, import.meta.url)), 'utf8');
 export const MIGRATIONS = [migration('0055_work_registry.sql'), migration('0056_work_persist.sql')];
 
-export async function freshDb(): Promise<PGlite> {
+export async function freshDb(opts: { without0056?: boolean } = {}): Promise<PGlite> {
   const db = new PGlite();
-  for (const m of MIGRATIONS) await db.exec(m);
+  for (const m of opts.without0056 ? MIGRATIONS.slice(0, 1) : MIGRATIONS) await db.exec(m);
   return db;
 }
 
@@ -55,6 +55,10 @@ export function pgClient(db: PGlite) {
         return { data: r.rows[0].r, error: null };
       } catch (e) {
         const err = e as { message?: string; code?: string };
+        // What PostgREST says when the function does not exist in the schema cache.
+        if (/function .*work_persist.* does not exist/i.test(err.message ?? '')) {
+          return { data: null, error: { message: 'Could not find the function public.work_persist(p) in the schema cache', code: 'PGRST202' } };
+        }
         return { data: null, error: { message: err.message ?? String(e), code: err.code } };
       }
     },

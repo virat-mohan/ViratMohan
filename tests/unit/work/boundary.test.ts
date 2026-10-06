@@ -96,6 +96,7 @@ describe('only authorized surfaces reach the Work Registry', () => {
     'src/lib/ceo/work-matcher.ts',
     'src/lib/ceo/decision-quality.test.ts',
     'scripts/verify/ceo-live.ts',
+    'scripts/verify/ceo-live-run.ts',
     'src/lib/ceo/founder-service.ts',
     'src/lib/ceo/founder-service.test.ts',
     'src/pages/retail-os/api/admin/ceo-input.ts',

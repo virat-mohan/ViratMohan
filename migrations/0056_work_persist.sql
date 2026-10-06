@@ -17,7 +17,9 @@
 --
 -- Security: SECURITY INVOKER (the default) with a fixed search_path, so it runs with the caller's rights and the
 -- row level security from 0055 still applies. EXECUTE is revoked from PUBLIC, anon and authenticated and granted
--- only to service_role, the role the server uses. The table-writing helper is internal and not granted to anyone.
+-- only to service_role, the role the server uses (Supabase's default privileges would otherwise grant new functions
+-- to anon and authenticated, so the revokes are explicit). The table-writing helper is internal: service_role holds
+-- it only because work_persist runs with the caller's rights, and it is granted explicitly rather than by default.
 
 create or replace function work_persist_rows(tbl text, rows jsonb, upsert_on text default null, order_by text default null)
 returns integer
@@ -100,7 +102,7 @@ begin
 end
 $$;
 
--- Least privilege. The helper is internal: nobody is granted it.
+-- Least privilege. Nothing here depends on Supabase's default function privileges: every grant is explicit.
 revoke all on function work_persist_rows(text, jsonb, text, text) from public;
 revoke all on function work_persist(jsonb) from public;
 do $$
@@ -115,6 +117,7 @@ begin
   end if;
   if exists (select 1 from pg_roles where rolname = 'service_role') then
     grant execute on function work_persist(jsonb) to service_role;
+    grant execute on function work_persist_rows(text, jsonb, text, text) to service_role;
   end if;
 end
 $$;

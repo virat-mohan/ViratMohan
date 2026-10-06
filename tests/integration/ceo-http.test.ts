@@ -315,3 +315,51 @@ describe('Work lifecycle over real HTTP', () => {
     expect(b).toContain('1 Pending approval');
   }, 90_000);
 });
+
+describe('lifecycle controls in the Control Tower', () => {
+  it('offers only the valid next action and words RESOLVED and CLOSED differently', async () => {
+    const w = await ceo(`${TEST_TAG}Fix the Moon checkout`, { brand: 'moonglasses' });
+    const ref = w.body.work.ref as string;
+    const page = async () => tower('pipeline');
+
+    let t = await page();
+    expect(t).toContain('Assigned Not started');
+    expect(t).toContain('Start');
+    expect(t).not.toContain('Mark resolved');
+
+    await lifecycle({ work: ref, action: 'start' });
+    t = await page();
+    expect(t).toContain('In progress Being worked on');
+    expect(t).toContain('Mark resolved');
+    expect(t).not.toContain('Verify and close');
+
+    await lifecycle({ work: ref, action: 'resolve', summary: 'Done' });
+    t = await page();
+    expect(t).toContain('RESOLVED Waiting for verification. Not closed.');
+    expect(t).toContain('Send to verification');
+    expect(t).not.toContain('Verify and close');
+
+    await lifecycle({ work: ref, action: 'verify' });
+    t = await page();
+    expect(t).toContain('VERIFICATION Evidence is needed to close it.');
+    expect(t).toContain('Verify and close');
+    expect(t).toContain('How it was checked');
+    expect(t).toContain('What you saw (the evidence)');
+
+    await lifecycle({ work: ref, action: 'close', method: 'Reviewed', evidence: [{ kind: 'note', ref: 'r', summary: 'Looked right' }] });
+    t = await page();
+    expect(t).toContain('Recently closed');
+    expect(t).toContain('CLOSED Completed and kept in history.');
+    expect(t).toContain('verified by DS-00');
+    expect(t).not.toContain('Verify and close');
+    expect(t).not.toContain('Send to verification');
+  }, 150_000);
+
+  it('offers no lifecycle action on Work waiting for approval', async () => {
+    await ceo(`${TEST_TAG}Set up the DNS`, { brand: 'moonglasses' });
+    const t = await tower('pipeline');
+    expect(t).toContain('Pending approval Waiting for a decision');
+    expect(t).not.toContain('Mark resolved');
+    expect(t).not.toMatch(/\bStart\b/);
+  }, 90_000);
+});

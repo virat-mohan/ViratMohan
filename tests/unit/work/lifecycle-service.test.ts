@@ -197,6 +197,27 @@ describe('closing a test record without deleting it', () => {
   });
 });
 
+describe('a human-owned test record is never attributed to the human', () => {
+  it('the Founder performs the steps and the human owner is not recorded as resolving', async () => {
+    const { store } = await setup();
+    let id = '';
+    await mutateRegistry(store, (reg) => {
+      const c = reg.createItem({ title: '[IT-TEST] human owned', type: 'task', scope: Scopes.devshop() }, DEV);
+      if (!c.ok) throw new Error('seed');
+      id = c.value.id;
+      reg.transition(id, 'triaged', DEV, { payload: { triage: { type: 'task', priority: 'P3', priority_reason: 't', scope: Scopes.devshop() } } });
+      reg.transition(id, 'assigned', VIRAT, { payload: { owner: PRINCE } });
+      return { value: null, changed: true };
+    });
+    const r = await advanceWork(store, { work: id, action: 'close_test_record', by: VIRAT });
+    expect(r.ok).toBe(true);
+    const item = await get(store, id);
+    expect(item.resolution?.by.id).toBe('DS-00');
+    expect(item.events.filter((e) => e.kind === 'state_change').slice(-4).every((e) => e.actor.id === 'DS-00')).toBe(true);
+    expect(item.owner?.id).toBe('P-01');
+  });
+});
+
 describe('the schema itself refuses what the lifecycle forbids', () => {
   it('no closing without a verified closure, no deleting Work, no changing history', async () => {
     const { store, db } = await setup();

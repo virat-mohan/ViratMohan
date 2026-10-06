@@ -46,14 +46,18 @@ function run(reg: InMemoryWorkRegistry, req: LifecycleRequest): Result<WorkItem>
     case 'close_test_record': {
       if (!isTestRecord(item.title)) return fail('not_permitted', `only Work whose title starts with ${TEST_RECORD_MARKERS.join(' or ')} can be closed this way`);
       const owner = item.owner;
+      // The steps before verification are recorded against the owner only when the owner is an agent. A human owner
+      // is never shown as having done work they did not do: the Founder performs those steps and says so.
+      const doer: Actor | null = owner ? (owner.kind === 'agent' ? owner : req.by) : null;
+      const why = 'closing a verification record on the Founder\'s instruction';
       const steps: ((r: InMemoryWorkRegistry) => Result<WorkItem>)[] = [];
       if (item.state === 'assigned') {
-        if (!owner) return fail('owner_required', 'the item has no accountable owner');
-        steps.push((r) => r.transition(id, 'in_progress', owner, { reason: 'closing a verification record on the Founder\'s instruction' }));
+        if (!doer) return fail('owner_required', 'the item has no accountable owner');
+        steps.push((r) => r.transition(id, 'in_progress', doer, { reason: why }));
       }
       if (item.state === 'assigned' || item.state === 'in_progress') {
-        if (!owner) return fail('owner_required', 'the item has no accountable owner');
-        steps.push((r) => r.transition(id, 'resolved', owner, { reason: 'closing a verification record on the Founder\'s instruction', payload: { resolution: { kind: 'completed', summary: 'Verification record: its purpose is served. Closed, not deleted; history retained.' } } }));
+        if (!doer) return fail('owner_required', 'the item has no accountable owner');
+        steps.push((r) => r.transition(id, 'resolved', doer, { reason: why, payload: { resolution: { kind: 'completed', summary: 'Verification record: its purpose is served. Closed, not deleted; history retained.' } } }));
       }
       if (item.state === 'assigned' || item.state === 'in_progress' || item.state === 'resolved') {
         steps.push((r) => r.transition(id, 'verification', req.by, { reason: 'Founder verifies the record' }));
