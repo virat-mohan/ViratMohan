@@ -5,9 +5,39 @@
 import type { WorkStore } from '../../src/lib/work/db-store';
 import { loadRegistry, mutateRegistry } from '../../src/lib/work/db-registry';
 import { buildControlTowerView } from '../../src/lib/control-tower/view';
-import { advanceWork } from '../../src/lib/work/lifecycle-service';
+import { advanceWork, isTestRecord } from '../../src/lib/work/lifecycle-service';
 import { VIRAT } from '../../src/lib/work/actors';
+import type { Actor, Result, WorkItem } from '../../src/lib/work/types';
+import { ok } from '../../src/lib/work/types';
 import type { FounderResult } from '../../src/lib/ceo/founder-service';
+
+const CEO_AGENT: Actor = { kind: 'agent', id: 'DS-02' };
+
+/**
+ * Close one [IT-LIVE]/[IT-TEST] record through the lifecycle (never a delete). A record that never left NEW or TRIAGED
+ * (for example one a source event created) is first triaged and assigned to the CEO agent, because the one-step close
+ * only accepts assigned, in progress, resolved or in verification. Anything that is not a test record is refused.
+ */
+export async function closeTestRecord(store: WorkStore, work: string, method: string): Promise<Result<WorkItem>> {
+  const prep = await mutateRegistry(store, (reg) => {
+    const item = reg.list().find((i) => i.id === work || i.ref === work);
+    if (!item || !isTestRecord(item.title)) return { value: ok(null) as Result<null>, changed: false };
+    let changed = false;
+    if (item.state === 'new') {
+      const r = reg.transition(item.id, 'triaged', CEO_AGENT, { payload: { triage: { type: 'task', priority: 'P4', priority_reason: 'verification record', scope: item.scope } } });
+      if (!r.ok) return { value: r as Result<null>, changed: false };
+      changed = true;
+    }
+    if (reg.get(item.id)!.state === 'triaged') {
+      const r = reg.transition(item.id, 'assigned', CEO_AGENT, { payload: { owner: CEO_AGENT } });
+      if (!r.ok) return { value: r as Result<null>, changed };
+      changed = true;
+    }
+    return { value: ok(null) as Result<null>, changed };
+  });
+  if (!prep.ok) return prep as Result<WorkItem>;
+  return advanceWork(store, { work, action: 'close_test_record', by: VIRAT, method });
+}
 
 export type Ask = (text: string, opts?: { work_id?: string; authorised?: boolean }) => Promise<{ status: number; body: any }>;
 export interface Check { name: string; ok: boolean; detail?: string }
@@ -21,7 +51,7 @@ export async function closeLeftoverTestRecords(store: WorkStore): Promise<{ clos
   const open = reg.list().filter((i) => i.title.startsWith(MARK) && i.state !== 'closed');
   const closed: string[] = []; const failed: { ref: string; why: string }[] = [];
   for (const item of open) {
-    const r = await advanceWork(store, { work: item.id, action: 'close_test_record', by: VIRAT, method: 'verify:ceo-live closed a record left by an earlier run' });
+    const r = await closeTestRecord(store, item.id, 'verify:ceo-live closed a record left by an earlier run');
     if (r.ok) closed.push(item.ref); else failed.push({ ref: item.ref, why: `${r.error.code}: ${r.error.message}` });
   }
   return { closed, failed };

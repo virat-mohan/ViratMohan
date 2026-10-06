@@ -98,6 +98,7 @@ describe('only authorized surfaces reach the Work Registry', () => {
     'scripts/verify/ceo-live.ts',
     'scripts/verify/ceo-live-run.ts',
     'scripts/verify/live-concurrency.ts',
+    'scripts/verify/live-concurrency-run.ts',
     'src/lib/ceo/founder-service.ts',
     'src/lib/ceo/founder-service.test.ts',
     'src/pages/retail-os/api/admin/ceo-input.ts',
@@ -118,7 +119,7 @@ describe('only authorized surfaces reach the Work Registry', () => {
   // The live concurrency script counts rows in the registry tables to prove nothing partial remains; opt-in, control plane only.
   const AUTHORIZED_TABLE_NAME_PATHS = new Set([
     'src/lib/retail-os-dashboard/command-centre.ts',
-    'scripts/verify/live-concurrency.ts',
+    'scripts/verify/live-concurrency-run.ts',
   ]);
 
   it('no unauthorized surface names the registry tables or the migration', () => {
