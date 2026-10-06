@@ -7,11 +7,19 @@ import { serverBrain } from '../../../lib/brain';
 import { mailConfigured } from '../../../lib/mail/send';
 import { knowledgeLoop, questionIn } from '../../../lib/knowledge-loop';
 import { governedMessages, ModelGateError } from '../../../lib/intelligence/provider';
+import { createRateLimiter, limitedResponse } from '../../../lib/rate-limit';
+import { clientIp } from '../../../lib/retail-os-http';
+
+// Each request can make up to three model calls. 10 a minute is a fast typist; 100 an hour is a long conversation.
+const limiter = createRateLimiter({ rules: [{ limit: 10, windowMs: 60_000 }, { limit: 100, windowMs: 3_600_000 }] });
 
 type Msg = { role: 'user' | 'assistant'; content: string };
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { 'content-type': 'application/json' } });
 
 export const POST: APIRoute = async ({ request }) => {
+  // Counted before the body is read, so a malformed request still uses up the client's allowance.
+  const limited = limitedResponse(limiter, clientIp(request), { reply: "You're sending messages quickly. Give me a minute, or message Virat directly on WhatsApp.", error: 'rate limited' });
+  if (limited) return limited;
   const body = (await request.json().catch(() => null)) as { sessionId?: string; page?: string; messages?: Msg[] } | null;
   const sessionId = String(body?.sessionId || '').slice(0, 64);
   const messages = (body?.messages || []).filter((m) => (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')

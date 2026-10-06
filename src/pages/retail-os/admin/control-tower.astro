@@ -147,8 +147,8 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
     .shell { max-width: 960px; margin: 0 auto; padding: 24px 16px 64px; }
 
     /* — Breadcrumbs — */
-    .breadcrumbs { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--ink-muted); margin-bottom: 12px; flex-wrap: wrap; }
-    .breadcrumbs a { color: var(--gold); text-decoration: none; }
+    .breadcrumbs { display: flex; align-items: center; gap: 6px; font-size: 0.875rem; color: var(--ink-muted); margin-bottom: 12px; flex-wrap: wrap; }
+    .breadcrumbs a { color: var(--gold); text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; }
     .breadcrumbs a:hover { text-decoration: underline; }
     .breadcrumbs .sep { color: var(--border); }
     .breadcrumbs .current { color: var(--ink); font-weight: 500; }
@@ -165,7 +165,7 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
     .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
     .kpi { text-align: center; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); }
     .kpi-val { font-family: var(--display); font-size: 1.6rem; }
-    .kpi-label { font-size: 0.72rem; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .kpi-label { font-size: 0.8rem; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.04em; }
     .item-row { display: flex; gap: 8px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
     .item-row:last-child { border-bottom: none; }
     .tag { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 0.72rem; font-weight: 600; color: #fff; white-space: nowrap; }
@@ -178,10 +178,10 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
     .pipeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; margin-bottom: 16px; }
     .stage { text-align: center; padding: 12px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); }
     .stage-count { font-family: var(--display); font-size: 1.4rem; }
-    .stage-label { font-size: 0.72rem; color: var(--ink-muted); text-transform: uppercase; }
+    .stage-label { font-size: 0.8rem; color: var(--ink-muted); text-transform: uppercase; }
     .agent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
     .agent-card { padding: 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); }
-    .agent-id { font-size: 0.72rem; color: var(--gold); font-weight: 600; }
+    .agent-id { font-size: 0.8rem; color: var(--gold); font-weight: 600; }
     .agent-name { font-weight: 600; }
     .agent-role { font-size: 0.78rem; color: var(--ink-muted); }
     .brand-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
@@ -240,7 +240,7 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
       .pipeline { grid-template-columns: repeat(4, 1fr); gap: 6px; }
       .stage { padding: 8px 4px; }
       .stage-count { font-size: 1.1rem; }
-      .stage-label { font-size: 0.65rem; }
+      .stage-label { font-size: 0.8rem; }
       .item-row { flex-wrap: wrap; gap: 4px; padding: 10px 0; }
       .item-row span[style*="flex:1"] { width: 100%; flex: none !important; order: -1; font-weight: 500; }
       .agent-grid { grid-template-columns: 1fr; }
@@ -497,7 +497,7 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
                 <div class="agent-id">{a.id}</div>
                 <div class="agent-name">{a.name}</div>
                 <div class="agent-role">{a.scope?.brand ? (BRAND_LABEL[a.scope.brand] ?? a.scope.brand) : 'Brand CEO'}</div>
-                <div style="font-size:0.72rem;color:var(--ink-muted);margin-top:4px">{BRAND_STATUS[a.scope?.brand ?? ''] ?? '—'}</div>
+                <div style="font-size:0.8rem;color:var(--ink-muted);margin-top:4px">{BRAND_STATUS[a.scope?.brand ?? ''] ?? '—'}</div>
               </div>
             ))}
           </div>
@@ -581,7 +581,7 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
       </div>
     )}
 
-    <p style="margin-top:32px;font-size:0.72rem;color:var(--ink-muted);text-align:center">
+    <p style="margin-top:32px;font-size:0.8rem;color:var(--ink-muted);text-align:center">
       Founder Control Tower · DevShop Retail OS · Source: {dataSource === 'supabase' ? 'Control-plane Work Registry' : 'Empty (not connected)'}
     </p>
   </div>

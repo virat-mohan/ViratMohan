@@ -2,6 +2,8 @@
 
 Status: **CODE COMPLETE and TESTED** (deterministic contract only — no live automation, no autonomous change).
 
+**Not autonomous self-modification.** The Improvement System proposes, records and tracks changes; it does not apply any. Approving a change, and every change to Brand Foundation, the Brand Book, authority, model policy, financial controls, production architecture, compensation or company policy, stays with the people named in `learning.ts` (`PROTECTED_DOMAINS`, Founder approval). Nothing detects or closes the loop on its own yet (see "What is NOT implemented").
+
 ## What it is
 
 A closed-loop improvement mechanism: DETECT → UNDERSTAND → ROOT CAUSE → IMPROVE → IMPLEMENT → VERIFY → STANDARDISE → LEARN → PREVENT RECURRENCE.

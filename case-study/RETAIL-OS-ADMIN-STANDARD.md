@@ -153,16 +153,19 @@ Travaholic and Moon have `canonical-dashboard-shell` branches that consume `@ret
 
 Do not create separate dashboard architectures for individual brands. Use: common Retail OS dashboard structure + brand configuration + enabled modules + brand-specific extensions. Whenever the Retail OS dashboard / Command Centre / admin surface is implemented or migrated, use this common structure as the authoritative standard. A new brand does not invent an unrelated dashboard architecture without explicit architectural justification.
 
-## Phone and desktop check of the viratmohan.com admin pages (6 Oct 2026)
+## Phone and desktop check of the viratmohan.com admin pages (6 Oct 2026, final)
 
-Method: Playwright Chromium, 11 static pages under `/retail-os/admin` at 320, 375, 390, 430 and 1280px (55 loads), phone widths with touch and device scale 3. Data was whatever the local server could read; this checks the page shell and layout, not every data state. Dynamic pages (`plan/[id]`, `design/[id]`, `media/[brandKey]`) were not loaded. The admin pages on `viratmohan.com` only; brand storefronts and the Next.js brand dashboards are separate repos and were not checked.
+Method: Playwright Chromium against a local dev server, 320, 375, 390, 430 and 1280px (90 views: 11 static admin pages, one plan and one design page found through links, and all 5 Control Tower tabs). Phone widths with touch and device scale 3. Nothing was clicked, typed or submitted; the Control Tower tabs were opened by their URLs. The local server read the live database, so the views held real data; metrics were collected and only Control Tower screens were looked at. Not loaded: `media/[brandKey]` (no link to it was found), and every brand storefront and Next.js brand dashboard (separate repos, not audited here; their status below is from the table above, not re-checked).
 
-**LAYOUT VERIFIED:** every load returned 200 with no page error; no page-level horizontal scroll at any width; `.vm-band` present, visible, at the top, full width and 5px on all 55 loads. The Founder Control Tower reads correctly at 390px (breadcrumb, tabs, KPI cards, Ask the CEO tab). The Applications page (`/retail-os/admin`) had a two-column grid that spilled out of its card at phone width; fixed with one breakpoint and checked at 320, 390, 430 and 1280px.
+**LAYOUT VERIFIED (90 of 90 views):** HTTP 200 and no page error; no page-level horizontal scroll at any width; `.vm-band` present, visible, at the top, full width and 5px; desktop 1280px has no overflow. On phones: 0 of 2,072 interactive elements under 44px and 0 form fields under 16px text. The Founder Control Tower is at 16px body text, 12.8px minimum labels, 44px breadcrumb and tabs on all five tabs, including Ask the CEO.
 
-**GAPS (older admin styles, not caused by this release, not fixed here):**
-- Breadcrumbs exist only on the Control Tower. The other 10 pages have none.
-- Body text is 14 to 15px on phones (the standard is at least 16px); on `/` and `/reports` it is 14px.
-- Touch targets under 44px are common: for example 44 of 46 controls on `/`, 255 of 282 on `/brands`, 35 of 40 on `/invoices`, and the Control Tower breadcrumb link (110x19px).
-- Form fields under 16px text on phones (43 on `/`, 206 on `/brands`, 30 on `/invoices`), which makes iOS zoom in on focus.
+**Fixed in this block (all CSS):** the admin home grid and long answer values now wrap on phones; the Control Tower breadcrumb links are 44px tall and its micro-labels (KPI, agent id, pipeline stage, footer) went from 10.4–11.5px to 12.8px; `public/retail-os/admin-touch.css` (phone only, 600px and below, linked from 13 admin pages) sets form fields to 16px and buttons, summaries and tab and nav links to 44px.
+
+**GAPS, not fixed (non-blocking):**
+- Breadcrumbs exist only on the Control Tower. The other admin pages rely on their own link rows. A shared breadcrumb is new UI across a dozen pages and was left out of this block.
+- Body text on the older pages is 14–15px on phones (the standard is 16px); only the Control Tower is at 16px. The micro-labels there are 12.8px by choice, not 16px.
+- Desktop (1280px) still has 368 controls under 44px on the older pages. The standard's 44px rule is applied to phones only.
+- The audit's spill check reports one element on the admin home at 320, 375 and 390px (`dd > b`). It is 2–3px of trailing whitespace hanging past a wrapped label under `white-space: pre-wrap`, not visible content, and was left alone.
+- The dark bar at the bottom of the screenshots is Astro's dev toolbar, which exists only in the dev server.
 
 A page-level overflow test does not catch content that spills out of its own container; the Applications page passed it while visibly broken. Check element bounds against their container as well.

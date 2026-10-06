@@ -35,18 +35,18 @@ export const OPERATIONS: Record<OperationId, OperationSpec> = {
   },
   'llm.suggest_framework': {
     agentId: 'DS-12', costCeilingFactor: 8,
-    profile: { ...base, complexity: 'simple', risk: 'low', materiality: 'low', qualityRequirement: 'standard', humanReview: true },
-    basis: 'Drafts a library entry; never auto-saved, admin edits every field.',
+    profile: { ...base, complexity: 'simple', risk: 'low', materiality: 'low', qualityRequirement: 'standard', humanReview: true, minimumTier: 'standard' },
+    basis: 'Drafts a library entry; never auto-saved, admin edits every field. SONNET FLOOR: it needs factual recall, and a reviewer cannot easily see a plausible invented source or link. Rare call, so Haiku would save almost nothing.',
   },
   'llm.estimate_hours': {
     agentId: 'DS-13', costCeilingFactor: 8,
-    profile: { ...base, complexity: 'moderate', risk: 'low', materiality: 'moderate', qualityRequirement: 'standard', humanReview: true },
-    basis: 'AMC and implementation hour estimates behind a proposal price; each estimate is tagged known/assumed and shown to an admin.',
+    profile: { ...base, complexity: 'moderate', risk: 'low', materiality: 'moderate', qualityRequirement: 'standard', humanReview: true, minimumTier: 'standard' },
+    basis: 'AMC and implementation hour estimates behind a proposal price; each estimate is tagged known/assumed and shown to an admin. SONNET FLOOR: money-affecting reasoning, and a rare call.',
   },
   'brain.routine': {
     agentId: 'DS-14', costCeilingFactor: 8,
-    profile: { ...base, complexity: 'simple', risk: 'low', materiality: 'low', qualityRequirement: 'standard', humanReview: false },
-    basis: 'Routine Brain answer grounded in the knowledge store.',
+    profile: { ...base, complexity: 'simple', risk: 'low', materiality: 'low', qualityRequirement: 'standard', humanReview: false, minimumTier: 'standard' },
+    basis: 'Routine Brain answer grounded in the knowledge store. SONNET FLOOR: partner- and customer-facing text that must hold a brand voice, with no human reading each answer.',
   },
   'brain.high_stakes': {
     agentId: 'DS-02', costCeilingFactor: 50, standingApproval: ['DS-02'],
@@ -61,12 +61,12 @@ export const OPERATIONS: Record<OperationId, OperationSpec> = {
   'ledger.classify_message': {
     agentId: 'DS-13', costCeilingFactor: 8,
     profile: { ...base, complexity: 'simple', risk: 'low', materiality: 'moderate', qualityRequirement: 'standard', humanReview: true },
-    basis: 'Fallback after rules fail; confidence capped at 0.85 and low confidence goes to a review queue (src/lib/ingest/whatsapp.ts).',
+    basis: 'Fallback after rules fail; confidence capped at 0.85 and low confidence goes to a review queue (src/lib/ingest/whatsapp.ts). HAIKU SUFFICIENT: structured extraction from a short message, high volume, low cost of a miss. Routes to Haiku once Haiku is configured.',
   },
   'faq.reword_answer': {
     agentId: 'DS-14', costCeilingFactor: 8,
-    profile: { ...base, complexity: 'simple', risk: 'low', materiality: 'low', qualityRequirement: 'standard', humanReview: true },
-    basis: "Rewords Virat's own reply for the FAQ; shown to the admin before it is published.",
+    profile: { ...base, complexity: 'simple', risk: 'low', materiality: 'low', qualityRequirement: 'standard', humanReview: true, minimumTier: 'standard' },
+    basis: "Rewords Virat's own reply for the FAQ; shown to the admin before it is published. SONNET FLOOR: it must keep commercial terms off a public page; a miss costs Virat's review time, and the call is rare.",
   },
   'plan.business_plan': {
     agentId: 'DS-12', costCeilingFactor: 8,

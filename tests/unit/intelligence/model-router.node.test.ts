@@ -213,3 +213,26 @@ describe('Model Router: governance rules', () => {
     assert.ok(!agentPolicy('DS-14').escalationModelIds.includes('claude-fable-5-1'));
   });
 });
+
+describe('minimumTier is a hard floor that human review cannot lower', () => {
+  const all = withAvailability(MODEL_REGISTRY.map((m) => m.id));
+  const simple: TaskProfile = { ...base, complexity: 'simple', humanReview: true };
+
+  it('without a floor, a simple human-reviewed task routes to the economy tier', () => {
+    assert.equal(routeTask(simple, all).tier, 'economy');
+  });
+
+  it('a standard floor holds even with human review', () => {
+    assert.equal(routeTask({ ...simple, minimumTier: 'standard' }, all).tier, 'standard');
+  });
+
+  it('a premium floor holds with human review, and an elite floor still does', () => {
+    assert.equal(routeTask({ ...simple, minimumTier: 'premium' }, all).tier, 'premium');
+    assert.equal(routeTask({ ...simple, minimumTier: 'elite' }, all).tier, 'elite');
+  });
+
+  it('a floor never lowers a tier the task already needs', () => {
+    const hard: TaskProfile = { ...base, complexity: 'exceptional', humanReview: false, minimumTier: 'standard' };
+    assert.equal(routeTask(hard, all).tier, 'elite');
+  });
+});

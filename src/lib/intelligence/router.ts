@@ -151,13 +151,15 @@ export function routeTask(task: TaskProfile, models: ModelEntry[] = MODEL_REGIST
   const reviewDiscount: ModelTier = task.humanReview ? 'economy' : 'standard';
 
   let requiredTier = maxTier(complexityTier, riskTier, materialityTier, qualityTier, systemsTier, stepsTier, reversibilityTier);
-  if (task.minimumTier) requiredTier = maxTier(requiredTier, task.minimumTier);
 
   // Human review can pull down one tier level if not critical
   if (task.humanReview && TIER_RANK[requiredTier] > 0 && requiredTier !== 'elite' && requiredTier !== 'specialist') {
     const tiers: ModelTier[] = ['economy', 'standard', 'premium', 'elite', 'specialist'];
     requiredTier = tiers[TIER_RANK[requiredTier] - 1];
   }
+
+  // A floor is a hard minimum, applied after the review discount so review can never lower it.
+  if (task.minimumTier) requiredTier = maxTier(requiredTier, task.minimumTier);
 
   // Find the cheapest model at or above the required tier, preferring available ones
   const candidates = models

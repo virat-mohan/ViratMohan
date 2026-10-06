@@ -79,3 +79,27 @@ describe('governed provider', () => {
     assert.equal(resolveOperationModel('llm.classify_and_build', ['claude-haiku-4-5', 'claude-sonnet-5']), 'claude-sonnet-5');
   });
 });
+
+describe('operation profiles: least-cost sufficient model', () => {
+  const withHaiku = ['claude-haiku-4-5', 'claude-sonnet-5', 'claude-opus-5-5'];
+  const expected: Record<OperationId, string> = {
+    'ledger.classify_message': 'claude-haiku-4-5',
+    'brain.routine': 'claude-sonnet-5',
+    'llm.suggest_framework': 'claude-sonnet-5',
+    'llm.estimate_hours': 'claude-sonnet-5',
+    'faq.reword_answer': 'claude-sonnet-5',
+    'llm.classify_and_build': 'claude-sonnet-5',
+    'chat.public_lead': 'claude-sonnet-5',
+    'plan.business_plan': 'claude-sonnet-5',
+    'design.direction': 'claude-sonnet-5',
+    'brain.high_stakes': 'claude-opus-5-5',
+  };
+
+  it('with Haiku configured, only the ledger fallback routes down to it; nothing else changes', () => {
+    for (const op of ops) assert.equal(resolveOperationModel(op, withHaiku), expected[op], op);
+  });
+
+  it('with only the models in use today, every operation routes as it does in production', () => {
+    for (const op of ops) assert.equal(resolveOperationModel(op), op === 'brain.high_stakes' ? 'claude-opus-5-5' : 'claude-sonnet-5', op);
+  });
+});

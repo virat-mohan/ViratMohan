@@ -295,10 +295,23 @@ A focused read of the release path, not a penetration test. Verified in code unl
 
 **No high-severity finding.** Admin endpoints (`ceo-input`, `work-lifecycle`) check auth inside the handler before any store access and are also gated by `src/middleware.ts`, which uses a timing-safe comparison and fails closed with 503 when `ADMIN_PASSWORD` is unset. An unauthenticated caller cannot create Work or change a lifecycle. `work_persist` and its helper are executable only by `service_role` (`migrations/0056_work_persist.sql`). `brand` in Founder input is checked against the known list; `serviceDb` takes only environment values; brand selection elsewhere is a whitelist lookup behind admin auth. No hardcoded keys or tracked `.env` files were found in `src/`, `scripts/` or `public/`. A more capable model gains no authority: every permit carries `grantsAuthority: false`, and only `provider.ts` can call the API.
 
-**Open findings, none introduced by this release, none fixed here:**
-- MEDIUM: `src/pages/retail-os/api/apply.ts` has no rate limit, honeypot or length cap, and sends mail to the submitted address. Header injection is refused (`buildMime` rejects CR/LF), so a crafted address only fails the send. The 2 Oct 2026 lesson says every public form should have all three.
-- MEDIUM: `src/pages/retail-os/api/chat.ts` bounds spend per request (3 rounds, 500 tokens, 25 user turns) but not per client; `sessionId` is client-chosen.
+**Mitigated 6 Oct 2026:** `apply.ts` and `chat.ts` are now rate limited per client (below). They remain without a honeypot or a length cap on the apply fields.
+
+**Open findings, none introduced by this release:**
+- MEDIUM: other public endpoints that write or send mail have no limit: `retail-os/api/resend-link.ts` (emails a stored link to any address that has an application), `partners/api/apply.ts` and `dashboard/api/request.ts` (database inserts). Not changed, because this block scoped the limiter to chat and apply. The same helper (`src/lib/rate-limit.ts`) is a three-line addition to each.
+- LOW: `apply.ts` has no honeypot or field length caps. Header injection is refused (`buildMime` rejects CR/LF), so a crafted address only fails the send.
 - LOW: the `health/report.ts` bearer comparison is a plain `!==` (it runs before any database access and fails closed if `CRON_SECRET` is unset); `safeEqual` exists in `src/lib/admin-auth.ts`. Several admin endpoints return raw `e.message`, behind Basic auth.
 - INFO: `work_persist` is `SECURITY INVOKER`, so it relies on `service_role` bypassing row level security; the live runs show it works.
 - NOT VERIFIED: the key was not searched for in `.astro` script blocks or `public/` in a dedicated pass; PostgREST filter injection from request bodies was not exercised (no `.or()` or `.ilike()` built from a body was seen).
 - NOTE: a local dev server picked up live database credentials from this environment and showed live data during the phone check. Only read-only page loads were made. If that is not intended for development sessions, scope the environment's credentials.
+
+### Public endpoint rate limits (6 Oct 2026)
+
+`src/lib/rate-limit.ts`: an in-memory sliding window per client address (the first `x-forwarded-for` entry; on Vercel the platform sets it, behind any other proxy a client could spoof it), no dependency and no database writes. The check runs before the body is read, so a malformed request still uses up the client's allowance, and a refused request is not counted, so hammering cannot extend a lockout. A request with no readable client address is allowed rather than putting every visitor in one shared bucket. A limiter fault lets the request through. Memory is capped at 5,000 clients (least recently used is dropped). Refusals return 429 with `Retry-After`; admin endpoints are not limited here, and the limiter is never a substitute for the admin gate.
+
+| Endpoint | Limit | Why |
+|---|---|---|
+| `retail-os/api/chat.ts` | 10 a minute, 100 an hour | Each request can make up to three model calls. 10 a minute is a fast typist; 100 an hour is a long conversation. The chat widget shows the 429 reply text and a WhatsApp fallback. |
+| `retail-os/api/apply.ts` | 3 a minute, 10 an hour | Each accepted application emails the founder and the admin, so it is also a mail relay. A person applies once and may retry; 10 an hour leaves room for a shared office address. The apply form falls back to its email draft on any failure. |
+
+**Limit of the mechanism, stated plainly:** it is per server instance. It stops one client hammering a warm instance; it does not stop a distributed attack, and a client that reaches a cold instance starts a fresh window. A database-backed counter would fix that and was not built (it would add writes and a table). Tested in `tests/unit/rate-limit.test.ts` and `tests/unit/public-endpoints.test.ts` against the real handlers.

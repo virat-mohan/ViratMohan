@@ -1,6 +1,8 @@
 # Intelligence Governance: Model Registry, Router, Visual Guardian
 
-Status: **CODE COMPLETE and TESTED** (deterministic contract only — no live provider switching).
+Status: **ENFORCED at every production call site; CODE COMPLETE and TESTED. No live provider switching.**
+
+**What these are not.** Model governance is not live provider switching: the router picks among models that are configured, it does not probe the provider or change models by itself. The Visual Guardian is a contract, not a live visual inspection engine, and nothing in a publish path calls it. Local embedded Postgres is not the live Supabase project; `WORK-REGISTRY.md` says which checks ran on which.
 
 ## Model Registry
 
@@ -116,13 +118,34 @@ Operations and where they route today (only the models existing code already cal
 | brain.routine, chat.public_lead, ledger.classify_message, faq.reword_answer, plan.business_plan, design.direction | DS-14 / DS-12 / DS-13 / DS-11 | Sonnet 5 |
 | brain.high_stakes | DS-02 | Opus 5.5, under a standing DS-02 approval recorded in `operations.ts` |
 
+### Operation profile review (6 Oct 2026)
+
+Rule: the least-cost sufficient model, counting the cost of a miss and of the human who reviews it, not tokens alone. Volume decides whether a cheaper model is worth a risk.
+
+| Operation | Today | Minimum sufficient | Why | Change |
+|---|---|---|---|---|
+| ledger.classify_message | Sonnet 5 | **Haiku** | Structured extraction from a short message; rules run first; confidence capped at 0.85; low confidence goes to a review queue; high volume; a miss is cheap | Profile unchanged; routes to Haiku once Haiku is configured |
+| brain.routine | Sonnet 5 | **Sonnet** | Partner- and customer-facing text in a brand voice, nobody reads each answer, frequent | Sonnet floor added |
+| llm.suggest_framework | Sonnet 5 | **Sonnet** | Needs factual recall; a reviewer cannot easily see an invented source or link; rare, so Haiku saves almost nothing | Sonnet floor added |
+| llm.estimate_hours | Sonnet 5 | **Sonnet** | Feeds proposal pricing; rare | Sonnet floor added |
+| faq.reword_answer | Sonnet 5 | **Sonnet** | Must keep commercial terms off a public page; a miss costs Virat's review time; rare | Sonnet floor added |
+| chat.public_lead | Sonnet 5 | **Sonnet** | Public, tool use, escalation judgement, no human review (medium risk already requires the standard tier) | None |
+| llm.classify_and_build | Sonnet 5 | **Sonnet** | Complex nine-step build; the artefact is checked deterministically and an admin reviews it; no evidence Sonnet is insufficient | None |
+| plan.business_plan | Sonnet 5 | **Sonnet** | One structured pass with web search; drivers clamped afterwards | None |
+| design.direction | Sonnet 5 | **Sonnet** | Creative judgement with web search, three parallel calls; no evidence Sonnet is insufficient | None |
+| brain.high_stakes | Opus 5.5 | **Opus** (kept) | High failure cost; the standing approval and the task analysis both hold; Sonnet under human review would be cheaper, and that is Virat's call | None |
+
+No operation needs a tier above Opus 5.5, and none is exceptional. Only one operation, ledger.classify_message, is a clear Haiku candidate, and Haiku is not configured, so nothing routes to it yet. Sonnet floors exist so that adding Haiku later cannot move the other four down by accident.
+
+**Router defect fixed.** A task's `minimumTier` was applied before the human-review discount, so review quietly lowered a floor (a `standard` floor on a reviewed task became `economy`; `elite` survived only through a special case). The floor is now applied after the discount and cannot be lowered. Tested in `model-router.node.test.ts`.
+
 **For Virat to confirm:** `brain.high_stakes` keeps the pre-existing behaviour (Opus 5.5 for high-stakes Brain questions) through a minimum tier of `elite` and a standing approval written in the registry. It is a decision recorded in code, not an agent approving itself; lower or remove it there if Sonnet under human review is enough. Task profiles in `operations.ts` are my reading of each call site (for example, human review is claimed only where the code shows an admin or review queue); review them.
 
 **Limits, stated plainly.**
 - "Available" means configured, not probed. Nothing checks the provider at runtime, so a retired model would fail at the API, not at the gate.
 - When Haiku is added to `PROVIDER_CONFIGURED_MODEL_IDS`, human-reviewed simple tasks (for example `ledger.classify_message`) route to it automatically. That is tested but not enabled.
 - Tokens and cost are not captured: the callers read the response body, and the provider does not. Attribution records operation, agent, model, tier, duration and status only.
-- Ceilings are per call and per request (retry count, round count, runaway limits). There is no cross-request or daily spend cap. The public chat endpoint also has no per-client rate limit, so total spend there is bounded per request, not overall.
+- Ceilings are per call and per request (retry count, round count, runaway limits). There is no cross-request or daily spend cap. The public chat endpoint is rate limited per client (10 a minute, 100 an hour) by an in-memory limiter that is per server instance, so it bounds one client on a warm instance, not a distributed attack.
 
 ## Model Learning
 
@@ -147,7 +170,7 @@ These are documented requirements, not claims of implementation.
 
 ## Visual Design & Brand Guardian (DS-16 Guard)
 
-Status: **CODE COMPLETE** (agent definition, review contract, platform compliance checks). No live review engine.
+Status: **CONTRACT / GATE FUNCTIONS IMPLEMENTED and unit-tested. AUTOMATED VISUAL INSPECTION ENGINE NOT BUILT. NOT WIRED to any publish path.** `visual-guardian.ts` holds the passport, the defect and verdict types, `checkPlatformCompliance()` and `resolveReleaseGate()` as pure functions. Nothing outside `src/lib/intelligence/` calls them, so no code blocks a release today, and nothing looks at an image. "Inspect" in the passport below is a permission for a reviewer (a person now, an engine later), not a working capability.
 
 ### Agent passport
 
