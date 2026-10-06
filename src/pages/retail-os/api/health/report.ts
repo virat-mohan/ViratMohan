@@ -32,5 +32,6 @@ export const POST: APIRoute = async ({ request }) => {
     }
   }
 
-  return json({ ok: true, id: ins.data.id, failed, work: workResult }, 200);
+  // Fail closed: a run whose failures could not reach the Work Registry is reported as an error, never as ok.
+  return json({ ok: workResult.ok, id: ins.data.id, failed, work: workResult }, workResult.ok ? 200 : 500);
 };

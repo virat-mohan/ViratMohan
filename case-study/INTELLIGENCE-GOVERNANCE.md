@@ -100,6 +100,14 @@ Source: `src/lib/intelligence/responsible-technology.ts`.
 
 **Policy implemented. Runtime enforcement is via the guard contract — no live provider integration yet.**
 
+## Invocation gate
+
+Source: `src/lib/intelligence/invocation-gate.ts`. `gateInvocation()` is the one place a model call is approved. It stops runaways, requires a runtime-confirmed model, routes with `routeTask`, applies the responsible-technology guard, enforces the Fable justification and a per-call cost ceiling, requires CEO/Myoho approval where routing says so, and returns an attribution record. A permit always carries `grantsAuthority: false`.
+
+**Status: POLICY IMPLEMENTED and tested. RUNTIME PROVIDER SWITCHING NOT YET AVAILABLE.**
+
+Eight files still call the Anthropic API directly with a model they choose themselves (listed in `tests/unit/intelligence/provider-boundary.test.ts`: `llm.ts`, `retail-os-prepare.ts`, `retail-os-faq.ts`, `retail-os-business-plan.ts`, `retail-os-design-direction.ts`, `ingest/whatsapp.ts`, `brain/claude.ts`, `api/chat.ts`). They are not governed yet. That test fails if a ninth appears. Moving each onto the gate changes live model calls, so it is deferred to a per-path change with its own check, not done here.
+
 ## Model Learning
 
 Source: `src/lib/intelligence/model-learning.ts`.
@@ -204,8 +212,8 @@ CSS class: `.vm-band` (5px) / `.vm-band--hero` (10px). Source: `/brand/tokens.cs
 ### Current status
 
 - `.vm-band` exists in tokens.css and is used on: dashboard, mission, ops pages, lead shell.
-- Admin pages (retail-os/admin/*) do NOT yet carry `.vm-band`. This is a known gap.
-- Adding `.vm-band` to admin pages is a documented next step, not done in this change.
+- All 14 `retail-os/admin` pages carry `.vm-band` (INTEGRATION VERIFIED by grep; no browser check at 390px/1280px has been run, so mobile rendering is NOT VERIFIED).
+- Brand-owned storefronts live in separate repos and are outside this check.
 
 ### Dashboard permanent UX standard
 

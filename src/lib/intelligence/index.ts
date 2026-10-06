@@ -9,5 +9,7 @@ export type { FableJustification, ConsultationTrigger, MyohoTrigger, RunawayChec
 export type { AutonomyLevel } from './types';
 export { RESPONSIBLE_TECHNOLOGY_POLICY, shouldInvoke } from './responsible-technology';
 export type { InvocationGuard, ResponsibleTechnologyRule } from './responsible-technology';
+export { gateInvocation } from './invocation-gate';
+export type { InvocationRequest, InvocationPermit, RequiredAuthority } from './invocation-gate';
 export { summariseModelLearning, MIN_OBSERVATIONS_FOR_RECOMMENDATION } from './model-learning';
 export type { ModelObservation, ModelLearning } from './model-learning';

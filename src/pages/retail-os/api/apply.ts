@@ -7,6 +7,7 @@ import { sendEmail } from '../../../lib/email';
 import { getOrigin } from '../../../lib/http';
 import { renderRetailOsEmail } from '../../../lib/retail-os-email';
 import { mailConfigured } from '../../../lib/mail/send';
+import { syncLeadFromApplication } from '../../../lib/lead-sync';
 
 export const POST: APIRoute = async ({ request }) => {
   const env = getEnv();
