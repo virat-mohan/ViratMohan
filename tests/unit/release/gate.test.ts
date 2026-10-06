@@ -32,4 +32,17 @@ describe('release gate', () => {
     expect(s.production).toHaveLength(1);
     expect(s.other).toHaveLength(2);
   });
+  it('a public API route is production path: the missing-import bug in apply.ts would have blocked', () => {
+    const s = splitTypeErrors("src/pages/retail-os/api/apply.ts(191,5): error TS2304: Cannot find name 'syncLeadFromApplication'.");
+    expect(s.production).toHaveLength(1);
+  });
+  it('an unresolved name or module anywhere in src blocks, even outside the listed paths', () => {
+    const s = splitTypeErrors([
+      "src/lib/some-other.ts(3,1): error TS2304: Cannot find name 'x'.",
+      "src/lib/some-other.ts(4,1): error TS2307: Cannot find module './gone'.",
+      "src/lib/lead-mail/run.ts(244,40): error TS2339: Property 'purpose' does not exist.",
+    ].join('\n'));
+    expect(s.production).toHaveLength(2);
+    expect(s.other).toHaveLength(1);
+  });
 });

@@ -104,9 +104,25 @@ Source: `src/lib/intelligence/responsible-technology.ts`.
 
 Source: `src/lib/intelligence/invocation-gate.ts`. `gateInvocation()` is the one place a model call is approved. It stops runaways, requires a runtime-confirmed model, routes with `routeTask`, applies the responsible-technology guard, enforces the Fable justification and a per-call cost ceiling, requires CEO/Myoho approval where routing says so, and returns an attribution record. A permit always carries `grantsAuthority: false`.
 
-**Status: POLICY IMPLEMENTED and tested. RUNTIME PROVIDER SWITCHING NOT YET AVAILABLE.**
+**Status: ENFORCED at every production call site (INTEGRATION VERIFIED by tests and the build; not yet exercised against the live Anthropic API after deploy). RUNTIME PROVIDER PROBING AND AUTOMATIC SWITCHING NOT IMPLEMENTED.**
 
-Eight files still call the Anthropic API directly with a model they choose themselves (listed in `tests/unit/intelligence/provider-boundary.test.ts`: `llm.ts`, `retail-os-prepare.ts`, `retail-os-faq.ts`, `retail-os-business-plan.ts`, `retail-os-design-direction.ts`, `ingest/whatsapp.ts`, `brain/claude.ts`, `api/chat.ts`). They are not governed yet. That test fails if a ninth appears. Moving each onto the gate changes live model calls, so it is deferred to a per-path change with its own check, not done here.
+`src/lib/intelligence/provider.ts` is the only file that calls the Anthropic API. Every call site names an operation (`src/lib/intelligence/operations.ts`: owning agent, task profile, cost ceiling, basis) and calls `governedMessages`. The router chooses the model from the profile; the call site cannot. `tests/unit/intelligence/provider-boundary.test.ts` fails if any other file calls the API, builds an Anthropic request, or carries a `claude-*` model id literal. Each call logs one structured line (operation, agent, model, tier, hierarchy, retry, round, status, duration).
+
+Operations and where they route today (only the models existing code already called are configured: `claude-sonnet-5` and `claude-opus-5-5`):
+
+| Operation | Agent | Routes to |
+|---|---|---|
+| llm.classify_and_build, llm.suggest_framework, llm.estimate_hours | DS-12 / DS-13 | Sonnet 5 |
+| brain.routine, chat.public_lead, ledger.classify_message, faq.reword_answer, plan.business_plan, design.direction | DS-14 / DS-12 / DS-13 / DS-11 | Sonnet 5 |
+| brain.high_stakes | DS-02 | Opus 5.5, under a standing DS-02 approval recorded in `operations.ts` |
+
+**For Virat to confirm:** `brain.high_stakes` keeps the pre-existing behaviour (Opus 5.5 for high-stakes Brain questions) through a minimum tier of `elite` and a standing approval written in the registry. It is a decision recorded in code, not an agent approving itself; lower or remove it there if Sonnet under human review is enough. Task profiles in `operations.ts` are my reading of each call site (for example, human review is claimed only where the code shows an admin or review queue); review them.
+
+**Limits, stated plainly.**
+- "Available" means configured, not probed. Nothing checks the provider at runtime, so a retired model would fail at the API, not at the gate.
+- When Haiku is added to `PROVIDER_CONFIGURED_MODEL_IDS`, human-reviewed simple tasks (for example `ledger.classify_message`) route to it automatically. That is tested but not enabled.
+- Tokens and cost are not captured: the callers read the response body, and the provider does not. Attribution records operation, agent, model, tier, duration and status only.
+- Ceilings are per call and per request (retry count, round count, runaway limits). There is no cross-request or daily spend cap. The public chat endpoint also has no per-client rate limit, so total spend there is bounded per request, not overall.
 
 ## Model Learning
 

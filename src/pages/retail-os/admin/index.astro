@@ -62,6 +62,8 @@ if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
   .app-head .meta{font-size:11px; color:rgba(244,234,212,0.75);}
   .app-body{padding:16px 18px; display:grid; grid-template-columns:1fr 1fr; gap:8px 24px; font-size:12.5px;}
   .app-body div span:first-child{color:var(--ink-soft); font-weight:600; margin-right:4px;}
+  .app-body > *{min-width:0; overflow-wrap:anywhere;}
+  @media (max-width:600px){ .app-body{grid-template-columns:1fr;} }
   .stages{border-top:1.5px solid var(--line); margin-top:12px; padding-top:12px;}
   .stage-row{display:flex; align-items:center; justify-content:space-between; gap:10px; padding-block:6px; font-size:12.5px;}
   .stage-row label{font-weight:600;}

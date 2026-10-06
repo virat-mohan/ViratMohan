@@ -152,3 +152,17 @@ Travaholic and Moon have `canonical-dashboard-shell` branches that consume `@ret
 ## Architectural rule
 
 Do not create separate dashboard architectures for individual brands. Use: common Retail OS dashboard structure + brand configuration + enabled modules + brand-specific extensions. Whenever the Retail OS dashboard / Command Centre / admin surface is implemented or migrated, use this common structure as the authoritative standard. A new brand does not invent an unrelated dashboard architecture without explicit architectural justification.
+
+## Phone and desktop check of the viratmohan.com admin pages (6 Oct 2026)
+
+Method: Playwright Chromium, 11 static pages under `/retail-os/admin` at 320, 375, 390, 430 and 1280px (55 loads), phone widths with touch and device scale 3. Data was whatever the local server could read; this checks the page shell and layout, not every data state. Dynamic pages (`plan/[id]`, `design/[id]`, `media/[brandKey]`) were not loaded. The admin pages on `viratmohan.com` only; brand storefronts and the Next.js brand dashboards are separate repos and were not checked.
+
+**LAYOUT VERIFIED:** every load returned 200 with no page error; no page-level horizontal scroll at any width; `.vm-band` present, visible, at the top, full width and 5px on all 55 loads. The Founder Control Tower reads correctly at 390px (breadcrumb, tabs, KPI cards, Ask the CEO tab). The Applications page (`/retail-os/admin`) had a two-column grid that spilled out of its card at phone width; fixed with one breakpoint and checked at 320, 390, 430 and 1280px.
+
+**GAPS (older admin styles, not caused by this release, not fixed here):**
+- Breadcrumbs exist only on the Control Tower. The other 10 pages have none.
+- Body text is 14 to 15px on phones (the standard is at least 16px); on `/` and `/reports` it is 14px.
+- Touch targets under 44px are common: for example 44 of 46 controls on `/`, 255 of 282 on `/brands`, 35 of 40 on `/invoices`, and the Control Tower breadcrumb link (110x19px).
+- Form fields under 16px text on phones (43 on `/`, 206 on `/brands`, 30 on `/invoices`), which makes iOS zoom in on focus.
+
+A page-level overflow test does not catch content that spills out of its own container; the Applications page passed it while visibly broken. Check element bounds against their container as well.
