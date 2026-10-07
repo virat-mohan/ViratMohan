@@ -205,11 +205,11 @@ describe('Brand Memory', () => {
             hypothesis: 'test',
             at: '2024-09-01T00:00:00Z',
             sampleSize: '1 week',
-            result: 'fail',
+            result: 'fail' as const,
             finding: 'no improvement',
           },
         ],
-      };
+      } as BrandMemory;
       const result = checkApprovalGates(bad);
       expect(result.pass).toBe(false);
       expect(result.blocks.some((b) => b.includes('failing tests'))).toBe(true);
@@ -230,18 +230,18 @@ describe('Brand Memory', () => {
             hypothesis: 'test 1',
             at: '2024-09-01T00:00:00Z',
             sampleSize: '1 week',
-            result: 'fail',
+            result: 'fail' as const,
             finding: 'no improvement',
           },
           {
             hypothesis: 'test 2',
             at: '2024-09-08T00:00:00Z',
             sampleSize: '1 week',
-            result: 'pass',
+            result: 'pass' as const,
             finding: '+40%',
           },
         ],
-      };
+      } as BrandMemory;
       const result = checkApprovalGates(good);
       expect(result.pass).toBe(true);
     });

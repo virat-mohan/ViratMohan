@@ -76,7 +76,7 @@ describe('benchmark cases (live)', () => {
         if (bench.name === 'sparse-input-structural-assumption') {
           expect(result.problemBreakdown[0].confidence_level).not.toBe('strongly_supported');
           expect(result.clarifyingQuestions.length).toBeGreaterThan(0);
-          const firstQuestion = result.clarifyingQuestions[0].toLowerCase();
+          const firstQuestion = result.clarifyingQuestions[0].question.toLowerCase();
           expect(firstQuestion.includes('b2b') || firstQuestion.includes('b2c') || firstQuestion.includes('motion')).toBe(true);
         }
 

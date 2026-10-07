@@ -20,7 +20,7 @@ const valid: Product = {
       id: 'var-001',
       sku: 'EXM-CAP-001-BLK-S',
       name: 'Black / Small',
-      attributes: { color: 'black', size: 'S', material: 'cotton', fit: 'standard', power: null, other: null },
+      attributes: { color: 'black', size: 'S', material: 'cotton', fit: 'standard', power: '', other: '' },
       costToMake: 150,
       price: 599,
       stock: 50,
@@ -33,7 +33,7 @@ const valid: Product = {
       id: 'var-002',
       sku: 'EXM-CAP-001-RED-M',
       name: 'Red / Medium',
-      attributes: { color: 'red', size: 'M', material: 'cotton', fit: 'standard', power: null, other: null },
+      attributes: { color: 'red', size: 'M', material: 'cotton', fit: 'standard', power: '', other: '' },
       costToMake: 150,
       price: 599,
       stock: 30,
@@ -219,7 +219,7 @@ describe('Catalogue', () => {
     });
 
     it('blocks if not approved status', () => {
-      const bad = { ...readyForLive, status: 'review' };
+      const bad = { ...readyForLive, status: 'review' as const } as Product;
       const result = checkLiveGates(bad);
       expect(result.ready).toBe(false);
       expect(result.blocks.some((b) => b.includes('approved'))).toBe(true);

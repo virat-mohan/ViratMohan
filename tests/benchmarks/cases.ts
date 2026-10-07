@@ -1,5 +1,25 @@
 import type { ClassifyAndBuildInput } from '../../src/lib/llm';
 
+// Minimal agent library for test fixtures
+const MINI_AGENTS: ClassifyAndBuildInput['agentLibrary'] = [
+  {
+    name: 'Analyst',
+    capability_category: 'research',
+    description: 'Researches problems and gathers data',
+    typical_trigger: 'Diagnostic needed',
+    typical_output: 'Report with findings',
+    applicable_business_functions: ['Growth (sales & marketing)', 'Finance', 'Operations'],
+  },
+  {
+    name: 'Implementer',
+    capability_category: 'execution',
+    description: 'Executes plans and tracks progress',
+    typical_trigger: 'Plan ready to execute',
+    typical_output: 'Results and measurement',
+    applicable_business_functions: ['Growth (sales & marketing)', 'Operations', 'Efficiency / Operations'],
+  },
+];
+
 // A minimal, real subset of the framework library — enough to exercise
 // framework selection and fit scoring without a live Supabase call. Not
 // the full curated set; benchmark cases don't need it to be.
@@ -31,6 +51,7 @@ export const BENCHMARK_CASES: BenchmarkCase[] = [
       industry: 'E-commerce / D2C',
       tools: 'Shopify',
       websiteSnippet: null,
+      agentLibrary: MINI_AGENTS,
       preferredFramework: null,
     },
   },
@@ -43,6 +64,7 @@ export const BENCHMARK_CASES: BenchmarkCase[] = [
       industry: null,
       tools: null,
       websiteSnippet: '<html><body><h1>Aon plc</h1><p>Aon is a leading global professional services firm providing a broad range of risk, retirement and health solutions to insurance producers and brokers worldwide.</p></body></html>',
+      agentLibrary: MINI_AGENTS,
       preferredFramework: null,
     },
   },
@@ -55,6 +77,7 @@ export const BENCHMARK_CASES: BenchmarkCase[] = [
       industry: null,
       tools: null,
       websiteSnippet: null,
+      agentLibrary: MINI_AGENTS,
       preferredFramework: null,
     },
   },
@@ -67,6 +90,7 @@ export const BENCHMARK_CASES: BenchmarkCase[] = [
       industry: 'Financial services',
       tools: 'Spreadsheets, Email',
       websiteSnippet: null,
+      agentLibrary: MINI_AGENTS,
       preferredFramework: null,
     },
   },
@@ -79,6 +103,7 @@ export const BENCHMARK_CASES: BenchmarkCase[] = [
       industry: 'E-commerce / D2C',
       tools: 'Zendesk, Shopify',
       websiteSnippet: null,
+      agentLibrary: MINI_AGENTS,
       preferredFramework: null,
     },
   },
