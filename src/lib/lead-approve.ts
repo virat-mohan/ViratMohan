@@ -37,8 +37,9 @@ export async function submitForApproval(env: Env, sb: SupabaseClient, d: Journey
     // On any doubt or failure we do not send — we park for approval.
     const dupSince = new Date(now.getTime() - 10 * 60_000).toISOString();
     const { data: recent } = await sb.from('lead_messages')
-      .select('id').eq('lead_id', d.leadId).eq('status', 'sent').gte('at', dupSince).filter('meta->purpose', 'eq', `"${d.purpose}"`).limit(1);
-    if (!recent?.length) {
+      .select('id, meta').eq('lead_id', d.leadId).eq('status', 'sent').gte('at', dupSince).limit(10);
+    const recentSamePurpose = (recent ?? []).filter((m) => (m.meta as any)?.purpose === d.purpose);
+    if (!recentSamePurpose.length) {
       try {
         await sendNow(env, sb, { id: messageId, lead_id: d.leadId, subject: d.subject, body: d.body, purpose: d.purpose, to: d.toEmail }, now,
           { auto: true, rule: `ALLOWLIST_${d.purpose.toUpperCase()}`, recipient: d.toEmail, template: d.purpose });
