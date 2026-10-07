@@ -30,6 +30,22 @@ for (const [id, cmd] of suites) {
   checks.push({ id, area: 'tests', blocking: true, status: r.ok ? 'pass' : 'fail', evidence: tail(r.out) });
 }
 
+const domains: [string, string, string][] = [
+  ['brand-foundation', 'tests/unit/brand-foundation.test.ts', 'Brand Foundation data system'],
+  ['brand-memory', 'tests/unit/brand-memory.test.ts', 'Brand Memory learning system'],
+  ['catalogue', 'tests/unit/catalogue.test.ts', 'Product Catalogue system'],
+  ['lead-journey', 'tests/unit/lead-journey.test.ts', 'Lead journey and NDA workflow'],
+  ['shipping-policy', 'tests/unit/shipping-policy.test.ts', 'Shipping policy calculations'],
+  ['invoice', 'tests/unit/invoice.test.ts', 'Invoice generation and settlement'],
+  ['mail', 'tests/unit/mail.test.ts', 'Email sending and formatting'],
+  ['security-boundary', 'tests/unit/security-boundary.test.ts', 'Security and data isolation'],
+  ['dashboard-coherence', 'tests/unit/dashboard-coherence.test.ts', 'Admin dashboard platform consistency'],
+];
+for (const [id, file, name] of domains) {
+  const r = run(`npx vitest run ${file}`);
+  checks.push({ id: `domain-${id}`, area: 'tests', blocking: true, status: r.ok ? 'pass' : 'fail', evidence: r.ok ? `${name} verified` : tail(r.out) });
+}
+
 const hasCreds = !!process.env.SUPABASE_URL && !!process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.CEO_LIVE_VERIFY === 'yes';
 if (hasCreds) {
   const live = run('npm run verify:ceo-live');
