@@ -1,402 +1,99 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import type { HealthCheck } from '../../src/pages/api/health';
+// The real GET /api/health handler with the database, environment and mail replaced by controllable fakes.
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-describe('GET /api/health - Health Check Endpoint', () => {
-  describe('Healthy state', () => {
-    it('returns 200 with status=healthy when all critical checks pass', async () => {
-      const response = {
-        ok: true,
-        timestamp: new Date().toISOString(),
-        checks: [
-          { name: 'Supabase', ok: true },
-          { name: 'Environment', ok: true },
-          { name: 'Email', ok: true },
-        ],
-        status: 'healthy' as const,
-      };
+const SECRET = 'sentinel-secret-value-do-not-leak';
+type Result = { error: unknown } | 'throw';
+const state = {
+  env: {} as Record<string, string>,
+  tables: {} as Record<string, Result>,
+  mail: true as boolean | 'throw',
+};
+const healthyEnv = () => ({ SUPABASE_URL: 'https://x.supabase.co', SUPABASE_SERVICE_ROLE_KEY: SECRET, LEAD_TOKEN_SECRET: SECRET });
 
-      expect(response.ok).toBe(true);
-      expect(response.status).toBe('healthy');
-      expect(response.checks.every((c) => c.ok)).toBe(true);
-    });
+vi.mock('../../../src/lib/env', () => ({ getEnv: () => state.env }));
+vi.mock('../../../src/lib/mail/send', () => ({
+  mailConfigured: () => { if (state.mail === 'throw') throw new Error(`boom ${SECRET}`); return state.mail; },
+}));
+vi.mock('../../../src/lib/ledger', () => ({
+  serviceDb: () => ({
+    from: (table: string) => ({
+      select: () => ({
+        limit: async () => {
+          const r = state.tables[table] ?? { error: null };
+          if (r === 'throw') throw new Error(`down ${SECRET}`);
+          return r;
+        },
+      }),
+    }),
+  }),
+}));
 
-    it('includes all check details with timestamps', async () => {
-      const now = new Date().toISOString();
-      const response = {
-        ok: true,
-        timestamp: now,
-        checks: [
-          { name: 'Supabase', ok: true },
-          { name: 'Environment', ok: true },
-          { name: 'Email', ok: true },
-        ],
-        status: 'healthy' as const,
-      };
+async function call() {
+  const { GET } = await import('../../../src/pages/api/health');
+  const res = await (GET as (c: unknown) => Promise<Response>)({});
+  const text = await res.text();
+  return { res, text, body: JSON.parse(text) as { ok: boolean; status: string; timestamp: string; checks: { name: string; ok: boolean; error?: string }[] } };
+}
+const check = (b: Awaited<ReturnType<typeof call>>['body'], name: string) => b.checks.find((c) => c.name === name)!;
 
-      expect(response.timestamp).toBe(now);
-      expect(response.checks).toHaveLength(3);
-    });
+beforeEach(() => { state.env = healthyEnv(); state.tables = {}; state.mail = true; vi.resetModules(); });
 
-    it('verifies Supabase connectivity via RPC call', async () => {
-      const check = { name: 'Supabase', ok: true };
-
-      expect(check.name).toBe('Supabase');
-      expect(check.ok).toBe(true);
-      expect(check.error).toBeUndefined();
-    });
+describe('GET /api/health', () => {
+  it('is 200 and healthy when the database, environment and mail are all fine', async () => {
+    const { res, body } = await call();
+    expect(res.status).toBe(200);
+    expect(res.headers.get('cache-control')).toBe('no-store');
+    expect(body).toMatchObject({ ok: true, status: 'healthy' });
+    expect(body.checks.map((c) => c.name)).toEqual(['Supabase', 'Environment', 'Email']);
+    expect(body.checks.every((c) => c.ok)).toBe(true);
+    expect(Number.isNaN(Date.parse(body.timestamp))).toBe(false);
   });
 
-  describe('Missing critical configuration', () => {
-    it('returns 503 with status=unhealthy when SUPABASE_URL is missing', async () => {
-      const response = {
-        ok: false,
-        timestamp: new Date().toISOString(),
-        checks: [
-          { name: 'Environment', ok: false, error: 'Missing: SUPABASE_URL' },
-        ],
-        status: 'unhealthy' as const,
-      };
-
-      expect(response.ok).toBe(false);
-      expect(response.status).toBe('unhealthy');
-      expect(response.checks.some((c) => c.error?.includes('SUPABASE_URL'))).toBe(true);
-    });
-
-    it('returns 503 with status=unhealthy when SUPABASE_SERVICE_ROLE_KEY is missing', async () => {
-      const response = {
-        ok: false,
-        timestamp: new Date().toISOString(),
-        checks: [
-          {
-            name: 'Environment',
-            ok: false,
-            error: 'Missing: SUPABASE_SERVICE_ROLE_KEY',
-          },
-        ],
-        status: 'unhealthy' as const,
-      };
-
-      expect(response.ok).toBe(false);
-      expect(response.status).toBe('unhealthy');
-      expect(
-        response.checks.some((c) => c.error?.includes('SUPABASE_SERVICE_ROLE_KEY'))
-      ).toBe(true);
-    });
-
-    it('returns 503 with status=unhealthy when LEAD_TOKEN_SECRET is missing', async () => {
-      const response = {
-        ok: false,
-        timestamp: new Date().toISOString(),
-        checks: [
-          {
-            name: 'Environment',
-            ok: false,
-            error: 'Missing: LEAD_TOKEN_SECRET',
-          },
-        ],
-        status: 'unhealthy' as const,
-      };
-
-      expect(response.ok).toBe(false);
-      expect(response.status).toBe('unhealthy');
-    });
-
-    it('lists all missing environment variables in error message', async () => {
-      const response = {
-        ok: false,
-        timestamp: new Date().toISOString(),
-        checks: [
-          {
-            name: 'Environment',
-            ok: false,
-            error: 'Missing: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, LEAD_TOKEN_SECRET',
-          },
-        ],
-        status: 'unhealthy' as const,
-      };
-
-      const errorCheck = response.checks.find((c) => c.name === 'Environment');
-      expect(errorCheck?.error).toMatch(/Missing:/);
-      expect(errorCheck?.error?.split(',').length).toBeGreaterThanOrEqual(1);
-    });
+  it('is 503 when the database returns an error (bad credentials or missing table), which the old check ignored', async () => {
+    state.tables.leads = { error: { message: 'Invalid API key' } };
+    const { res, body } = await call();
+    expect(res.status).toBe(503);
+    expect(body).toMatchObject({ ok: false, status: 'unhealthy' });
+    expect(check(body, 'Supabase')).toEqual({ name: 'Supabase', ok: false, error: 'Cannot connect to database' });
   });
 
-  describe('Invalid database credentials', () => {
-    it('returns 503 with status=unhealthy when Supabase connection fails', async () => {
-      const response = {
-        ok: false,
-        timestamp: new Date().toISOString(),
-        checks: [
-          { name: 'Supabase', ok: false, error: 'Cannot connect to database' },
-          { name: 'Environment', ok: true },
-        ],
-        status: 'unhealthy' as const,
-      };
-
-      expect(response.ok).toBe(false);
-      expect(response.status).toBe('unhealthy');
-      expect(response.checks.some((c) => c.name === 'Supabase' && !c.ok)).toBe(true);
-    });
-
-    it('includes error details when database authentication fails', async () => {
-      const check = {
-        name: 'Supabase',
-        ok: false,
-        error: 'Cannot connect to database',
-      };
-
-      expect(check.error).toBeDefined();
-      expect(check.error).toContain('database');
-    });
+  it('is 503 when the database is unreachable and the client throws', async () => {
+    state.tables.leads = 'throw';
+    const { res, body } = await call();
+    expect(res.status).toBe(503);
+    expect(check(body, 'Supabase').ok).toBe(false);
   });
 
-  describe('Unavailable database', () => {
-    it('returns 503 with status=unhealthy when database is unreachable', async () => {
-      const response = {
-        ok: false,
-        timestamp: new Date().toISOString(),
-        checks: [
-          { name: 'Supabase', ok: false, error: 'Cannot connect to database' },
-          { name: 'Environment', ok: true },
-        ],
-        status: 'unhealthy' as const,
-      };
-
-      expect(response.ok).toBe(false);
-      expect(response.status).toBe('unhealthy');
-    });
-
-    it('distinguishes database unavailability from authentication error in response', async () => {
-      const response = {
-        ok: false,
-        timestamp: new Date().toISOString(),
-        checks: [
-          { name: 'Supabase', ok: false, error: 'Cannot connect to database' },
-        ],
-        status: 'unhealthy' as const,
-      };
-
-      const dbCheck = response.checks.find((c) => c.name === 'Supabase');
-      expect(dbCheck?.error).toBeDefined();
-    });
+  it('is 503 and names the missing variables (names only) when critical configuration is absent', async () => {
+    state.env = { SUPABASE_URL: 'https://x.supabase.co', SUPABASE_SERVICE_ROLE_KEY: '', LEAD_TOKEN_SECRET: '' };
+    const { res, body } = await call();
+    expect(res.status).toBe(503);
+    expect(check(body, 'Environment').error).toBe('Missing: SUPABASE_SERVICE_ROLE_KEY, LEAD_TOKEN_SECRET');
   });
 
-  describe('Unavailable non-critical service', () => {
-    it('returns 200 with status=degraded when email is not configured but critical services OK', async () => {
-      const response = {
-        ok: true,
-        timestamp: new Date().toISOString(),
-        checks: [
-          { name: 'Supabase', ok: true },
-          { name: 'Environment', ok: true },
-          { name: 'Email', ok: false, error: 'Not configured' },
-        ],
-        status: 'degraded' as const,
-      };
-
-      expect(response.ok).toBe(true); // Still returns 200 because critical services OK
-      expect(response.status).toBe('degraded');
-      expect(response.checks.some((c) => c.name === 'Email' && !c.ok)).toBe(true);
-    });
-
-    it('still returns HTTP 200 even when non-critical services fail', async () => {
-      const response = {
-        ok: true,
-        timestamp: new Date().toISOString(),
-        checks: [
-          { name: 'Supabase', ok: true },
-          { name: 'Environment', ok: true },
-          { name: 'Email', ok: false, error: 'Configuration check failed' },
-        ],
-        status: 'degraded' as const,
-      };
-
-      expect(response.ok).toBe(true);
-    });
-
-    it('distinguishes between critical and non-critical check failures', async () => {
-      const response = {
-        ok: true,
-        timestamp: new Date().toISOString(),
-        checks: [
-          { name: 'Supabase', ok: true },
-          { name: 'Environment', ok: true },
-          { name: 'Email', ok: false, error: 'Not configured' },
-        ],
-        status: 'degraded' as const,
-      };
-
-      const critical = response.checks.filter((c) =>
-        ['Supabase', 'Environment'].includes(c.name)
-      );
-      const nonCritical = response.checks.filter(
-        (c) => !['Supabase', 'Environment'].includes(c.name)
-      );
-
-      expect(critical.every((c) => c.ok)).toBe(true);
-      expect(nonCritical.some((c) => !c.ok)).toBe(true);
-    });
+  it('is 200 and degraded, not healthy, when only mail is unavailable', async () => {
+    state.mail = false;
+    const { res, body } = await call();
+    expect(res.status).toBe(200);
+    expect(body).toMatchObject({ ok: true, status: 'degraded' });
+    expect(check(body, 'Email')).toEqual({ name: 'Email', ok: false, error: 'Not configured' });
   });
 
-  describe('HTTP status code contract', () => {
-    it('returns HTTP 200 when all critical services are healthy', async () => {
-      const statusCode = 200;
-      const response = {
-        ok: true,
-        status: 'healthy' as const,
-      };
-
-      expect(statusCode).toBe(200);
-      expect(response.ok).toBe(true);
-    });
-
-    it('returns HTTP 503 when any critical service fails', async () => {
-      const statusCode = 503;
-      const response = {
-        ok: false,
-        status: 'unhealthy' as const,
-      };
-
-      expect(statusCode).toBe(503);
-      expect(response.ok).toBe(false);
-    });
-
-    it('returns HTTP 200 when only non-critical services fail', async () => {
-      const statusCode = 200;
-      const response = {
-        ok: true,
-        status: 'degraded' as const,
-      };
-
-      expect(statusCode).toBe(200);
-      expect(response.ok).toBe(true);
-    });
+  it('treats a throwing mail check as degraded, not a crash', async () => {
+    state.mail = 'throw';
+    const { res, body } = await call();
+    expect(res.status).toBe(200);
+    expect(body.status).toBe('degraded');
+    expect(check(body, 'Email').error).toBe('Configuration check failed');
   });
 
-  describe('Response contract', () => {
-    it('includes all required fields in response', async () => {
-      const response = {
-        ok: true,
-        timestamp: new Date().toISOString(),
-        checks: [{ name: 'Supabase', ok: true }],
-        status: 'healthy' as const,
-      };
-
-      expect(response).toHaveProperty('ok');
-      expect(response).toHaveProperty('timestamp');
-      expect(response).toHaveProperty('checks');
-      expect(response).toHaveProperty('status');
-    });
-
-    it('returns ISO8601 timestamp', async () => {
-      const response = {
-        ok: true,
-        timestamp: new Date().toISOString(),
-        checks: [],
-        status: 'healthy' as const,
-      };
-
-      const timestamp = new Date(response.timestamp);
-      expect(timestamp.getTime()).toBeLessThanOrEqual(Date.now());
-      expect(response.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
-    });
-
-    it('includes check array with at least Supabase and Environment', async () => {
-      const response = {
-        ok: true,
-        timestamp: new Date().toISOString(),
-        checks: [
-          { name: 'Supabase', ok: true },
-          { name: 'Environment', ok: true },
-          { name: 'Email', ok: true },
-        ],
-        status: 'healthy' as const,
-      };
-
-      expect(response.checks.length).toBeGreaterThanOrEqual(2);
-      expect(response.checks.some((c) => c.name === 'Supabase')).toBe(true);
-      expect(response.checks.some((c) => c.name === 'Environment')).toBe(true);
-    });
-
-    it('each check has name and ok properties', async () => {
-      const checks = [
-        { name: 'Supabase', ok: true },
-        { name: 'Environment', ok: false, error: 'Missing: SUPABASE_URL' },
-      ];
-
-      checks.forEach((check) => {
-        expect(check).toHaveProperty('name');
-        expect(check).toHaveProperty('ok');
-        expect(typeof check.name).toBe('string');
-        expect(typeof check.ok).toBe('boolean');
-      });
-    });
-
-    it('failed checks include error message', async () => {
-      const check = { name: 'Environment', ok: false, error: 'Missing: SUPABASE_URL' };
-
-      expect(check.ok).toBe(false);
-      expect(check.error).toBeDefined();
-      expect(typeof check.error).toBe('string');
-    });
-
-    it('status is one of: healthy, degraded, unhealthy', async () => {
-      const responses = [
-        { ok: true, status: 'healthy' as const },
-        { ok: true, status: 'degraded' as const },
-        { ok: false, status: 'unhealthy' as const },
-      ];
-
-      responses.forEach((response) => {
-        expect(['healthy', 'degraded', 'unhealthy']).toContain(response.status);
-      });
-    });
-  });
-
-  describe('Edge cases', () => {
-    it('handles Supabase connection check exception', async () => {
-      const response = {
-        ok: false,
-        timestamp: new Date().toISOString(),
-        checks: [
-          { name: 'Supabase', ok: false, error: 'Cannot connect to database' },
-        ],
-        status: 'unhealthy' as const,
-      };
-
-      expect(response.checks.some((c) => c.name === 'Supabase')).toBe(true);
-    });
-
-    it('handles environment variable read exception', async () => {
-      const response = {
-        ok: false,
-        timestamp: new Date().toISOString(),
-        checks: [
-          { name: 'Environment', ok: false, error: 'Cannot read environment' },
-        ],
-        status: 'unhealthy' as const,
-      };
-
-      expect(
-        response.checks.some(
-          (c) => c.name === 'Environment' && c.error?.includes('Cannot read')
-        )
-      ).toBe(true);
-    });
-
-    it('handles email configuration check exception', async () => {
-      const response = {
-        ok: true,
-        timestamp: new Date().toISOString(),
-        checks: [
-          { name: 'Supabase', ok: true },
-          { name: 'Environment', ok: true },
-          { name: 'Email', ok: false, error: 'Configuration check failed' },
-        ],
-        status: 'degraded' as const,
-      };
-
-      expect(response.checks.some((c) => c.name === 'Email' && !c.ok)).toBe(true);
-    });
+  it('never puts a secret or a raw error message in any response', async () => {
+    for (const setup of [() => { state.tables.leads = 'throw'; }, () => { state.tables.leads = { error: { message: SECRET } }; }, () => { state.mail = 'throw'; }, () => { state.env = { ...healthyEnv(), LEAD_TOKEN_SECRET: '' }; }]) {
+      state.env = healthyEnv(); state.tables = {}; state.mail = true; setup();
+      vi.resetModules();
+      const { text } = await call();
+      expect(text).not.toContain(SECRET);
+      expect(text).not.toContain('boom');
+    }
   });
 });

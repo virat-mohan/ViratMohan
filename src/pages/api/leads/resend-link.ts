@@ -4,7 +4,6 @@ import type { APIRoute } from 'astro';
 import { getEnv } from '../../../lib/env';
 import { serviceDb } from '../../../lib/ledger';
 import { sendEmail } from '../../../lib/email';
-import { getOrigin } from '../../../lib/http';
 import { renderRetailOsEmail } from '../../../lib/retail-os-email';
 import { mailConfigured } from '../../../lib/mail/send';
 import { endpointLimit } from '../../../lib/rate-limit';
@@ -44,24 +43,24 @@ export const POST: APIRoute = async ({ request }) => {
     const messages = await store.messagesFor(leadId);
     const msg = messages.reverse().find((m) => m.status === 'awaiting_approval');
 
-    if (msg && mailConfigured(env)) {
-      const lead = (await store.leads()).find((l) => l.id === leadId);
-      if (!lead?.contact_email) return json({ ok: true }, 200);
-
+    const approver = env.ADMIN_NOTIFY_EMAIL || env.GMAIL_ADDRESS;
+    if (msg && approver && mailConfigured(env)) {
       const now = new Date();
-      const { token } = signToken(msg.id, env.LEAD_APPROVAL_SECRET, now.getTime());
+      const { token, payload } = signToken(msg.id, env.LEAD_APPROVAL_SECRET, now.getTime());
+      await store.saveToken(payload.n, msg.id, new Date(payload.exp));
       const approveUrl = `${SITE}/api/leads/approve?t=${encodeURIComponent(token)}`;
 
+      // The approval link goes to the approver only, never to the lead it is about.
       await sendEmail(
         {
-          to: lead.contact_email,
+          to: approver,
           subject: msg.subject ?? 'Your approval link',
           html: renderRetailOsEmail({
             preheader: 'Your approval link to send a message.',
             heading: 'Approve & send',
-            lines: [msg.body.split('\n')[0] || 'Review and approve your message.'],
+            lines: [msg.body.split('\n')[0] || 'Review and approve the message.'],
             cta: { label: 'Approve & send', url: approveUrl },
-            note: 'This link is valid for 24 hours.',
+            note: 'This link is valid for 72 hours and works once.',
           }),
         },
         env

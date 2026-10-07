@@ -3,6 +3,7 @@ export const prerender = false;
 import type { APIRoute } from 'astro';
 import { getEnv } from '../../../lib/env';
 import { endpointLimit } from '../../../lib/rate-limit';
+import { checkAdminAuth } from '../../../lib/admin-auth';
 
 // Rate limit: 20 admin requests per minute, 100 per hour per IP.
 // Admin operations are less frequent than public endpoints.
@@ -19,7 +20,7 @@ export interface DashboardRequest {
 
 // Dashboard admin request endpoint.
 // Rate limited per IP. Input validated and size-capped.
-// Requires ADMIN_PASSWORD for authentication.
+// Requires the admin password (Basic auth). Validates and acknowledges; it changes no data.
 export const POST: APIRoute = async ({ request }) => {
   const limited = limit(request);
   if (limited) return limited;
@@ -32,11 +33,10 @@ export const POST: APIRoute = async ({ request }) => {
 
   const env = getEnv();
 
-  // Authenticate via ADMIN_PASSWORD
-  const authHeader = request.headers.get('authorization') || '';
-  const expectedAuth = `Bearer ${env.ADMIN_PASSWORD}`;
-  if (!env.ADMIN_PASSWORD || authHeader !== expectedAuth) {
-    return json({ error: 'Unauthorized' }, 401);
+  // Same timing-safe, fail-closed check as the admin middleware (Basic auth, 503 when ADMIN_PASSWORD is unset).
+  const auth = checkAdminAuth(request.headers.get('authorization'), env.ADMIN_PASSWORD);
+  if (!auth.ok) {
+    return auth.status === 503 ? json({ error: 'Admin access is not configured' }, 503) : json({ error: 'Unauthorized' }, 401);
   }
 
   let body: DashboardRequest;

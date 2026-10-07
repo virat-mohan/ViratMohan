@@ -18,54 +18,47 @@ type HealthResponse = {
   status: 'healthy' | 'degraded' | 'unhealthy';
 };
 
+const CRITICAL = new Set(['Supabase', 'Environment']);
+const REQUIRED_ENV = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'LEAD_TOKEN_SECRET'] as const;
+
+// A real read of a real table. supabase-js returns failures in `error` instead of throwing, so it is checked.
+// Messages are fixed strings: nothing from the database or the environment is echoed back.
+async function readTable(name: string, table: string, failure: string): Promise<HealthCheck> {
+  try {
+    const { error } = await serviceDb(getEnv()).from(table).select('id').limit(1);
+    return error ? { name, ok: false, error: failure } : { name, ok: true };
+  } catch {
+    return { name, ok: false, error: failure };
+  }
+}
+
 export const GET: APIRoute = async (): Promise<Response> => {
-  const checks: HealthCheck[] = [];
-  const now = new Date();
+  const env = getEnv();
+  const missing = REQUIRED_ENV.filter((k) => !env[k]);
+  const checks: HealthCheck[] = [
+    await readTable('Supabase', 'leads', 'Cannot connect to database'),
+    missing.length > 0 ? { name: 'Environment', ok: false, error: `Missing: ${missing.join(', ')}` } : { name: 'Environment', ok: true },
+  ];
 
-  // Check Supabase connectivity (critical)
   try {
-    const sb = serviceDb(getEnv());
-    await sb.rpc('request_start').single();
-    checks.push({ name: 'Supabase', ok: true });
-  } catch (e) {
-    checks.push({ name: 'Supabase', ok: false, error: 'Cannot connect to database' });
-  }
-
-  // Check required environment variables (critical)
-  try {
-    const env = getEnv();
-    const required = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'LEAD_TOKEN_SECRET'];
-    const missing = required.filter((k) => !env[k as keyof typeof env]);
-    if (missing.length > 0) {
-      checks.push({ name: 'Environment', ok: false, error: `Missing: ${missing.join(', ')}` });
-    } else {
-      checks.push({ name: 'Environment', ok: true });
-    }
-  } catch (e) {
-    checks.push({ name: 'Environment', ok: false, error: 'Cannot read environment' });
-  }
-
-  // Check email configuration (non-critical)
-  try {
-    const env = getEnv();
     const emailOk = mailConfigured(env);
-    checks.push({ name: 'Email', ok: emailOk, error: emailOk ? undefined : 'Not configured' });
-  } catch (e) {
+    checks.push({ name: 'Email', ok: emailOk, ...(emailOk ? {} : { error: 'Not configured' }) });
+  } catch {
     checks.push({ name: 'Email', ok: false, error: 'Configuration check failed' });
   }
 
-  const critical = checks.filter((c) => ['Supabase', 'Environment'].includes(c.name));
-  const allCriticalOk = critical.every((c) => c.ok);
+  const criticalOk = checks.filter((c) => CRITICAL.has(c.name)).every((c) => c.ok);
+  const allOk = checks.every((c) => c.ok);
 
   const response: HealthResponse = {
-    ok: allCriticalOk,
-    timestamp: now.toISOString(),
+    ok: criticalOk,
+    timestamp: new Date().toISOString(),
     checks,
-    status: allCriticalOk ? 'healthy' : critical.some((c) => !c.ok) ? 'unhealthy' : 'degraded',
+    status: !criticalOk ? 'unhealthy' : allOk ? 'healthy' : 'degraded',
   };
 
   return new Response(JSON.stringify(response), {
-    status: allCriticalOk ? 200 : 503,
-    headers: { 'Content-Type': 'application/json' },
+    status: criticalOk ? 200 : 503,
+    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
   });
 };
