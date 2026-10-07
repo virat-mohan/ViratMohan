@@ -33,7 +33,7 @@ export async function sendNdaRequest(env: Env, sb: SupabaseClient, lead: LeadLit
   return { ...r, link };
 }
 
-export async function sendNdaReminder(env: Env, sb: SupabaseClient, lead: LeadLite, now = new Date()) {
+export async function sendNdaReminder(env: Env, sb: SupabaseClient, lead: LeadLite & { nda_sent_at?: string | null }, now = new Date()) {
   if (!lead.contact_email) throw new Error('This lead has no email address.');
   const link = ndaLink(env, lead.id);
   const d = ndaReminderDraft(lead, link, now);

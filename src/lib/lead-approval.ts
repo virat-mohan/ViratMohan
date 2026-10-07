@@ -22,7 +22,7 @@ export function dbApproval(sb: SupabaseClient): LeadApprovalPort {
     async submit(d) {
       const { data, error } = await sb.from('lead_messages').insert({
         lead_id: d.leadId, direction: 'outbound', channel: 'email', status: 'awaiting_approval',
-        subject: d.subject, body: d.body, purpose: d.purpose, send_after: d.sendAfter, created_by: d.createdBy ?? 'lead-audit',
+        subject: d.subject, body: d.body, meta: { purpose: d.purpose, sendAfter: d.sendAfter }, created_by: d.createdBy ?? 'lead-audit',
       }).select('id').single();
       if (error) throw new Error(`lead draft: ${error.message}`);
       return { messageId: data.id as string };

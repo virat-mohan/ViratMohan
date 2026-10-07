@@ -241,10 +241,11 @@ export async function approve(d: { store: LeadStore; gmail: GmailApi; secret: st
       const text = cleanTextLinks(`${msg.body}\n\n-- \n${signatureText(d.mailbox)}`);
       const raw = b64url(buildMime({ from: viratFromHeader(d.mailbox), to: lead.contact_email, subject: msg.subject ?? 'From Virat', text }));
       const sent = await d.gmail.sendRaw(raw);
-      const stage = stageAfterSent(msg.purpose, lead.stage);
+      const purpose = (msg.meta.purpose as string) ?? null;
+      const stage = stageAfterSent(purpose, lead.stage);
       await d.store.updateMessage(msg.id, { status: 'sent', gmail_message_id: sent.id, gmail_thread_id: sent.threadId, at: d.now.toISOString() });
-      const stamp: Record<string, unknown> = msg.purpose === 'nda_request' ? { nda_sent_at: d.now.toISOString() } : msg.purpose === 'nda_reminder' ? { nda_reminded_at: d.now.toISOString() } : {};
-      const nextStep = NEXT_STEP[msg.purpose ?? ''] ?? 'Reply and agree the next step';
+      const stamp: Record<string, unknown> = purpose === 'nda_request' ? { nda_sent_at: d.now.toISOString() } : purpose === 'nda_reminder' ? { nda_reminded_at: d.now.toISOString() } : {};
+      const nextStep = NEXT_STEP[purpose ?? ''] ?? 'Reply and agree the next step';
       await d.store.updateLead(msg.lead_id, { stage: stage as LeadStage, next_step: nextStep, next_step_due: dueDate(d.now, 3), ...stamp } as Partial<Lead>);
       await d.onSent?.(msg);
       return { ok: true, leadId: msg.lead_id, stage, nextStep };
