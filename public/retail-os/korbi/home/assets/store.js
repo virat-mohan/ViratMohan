@@ -5,6 +5,8 @@
     'warm-white': { name: 'Road LED Bulbs · 4300K Warm White', img: base + 'assets/bulb-4300k.jpg', price: 11500 },
     'cool-white': { name: 'Road LED Bulbs · 6000K Cool White', img: base + 'assets/bulb-6000k.jpg', price: 11500 }
   };
+  // H4 is ₹12,500 the pair; every other holder type is ₹11,500 (Tushar, 6 Oct 2026).
+  function priceFor(holder, p) { return holder === 'H4' ? 12500 : p.price; }
   var KEY = 'korbiPreviewCart';
   function load() { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; } }
   function save(c) { try { localStorage.setItem(KEY, JSON.stringify(c)); } catch (e) {} }
@@ -24,9 +26,9 @@
     if (!cart.length) lines.innerHTML = '<p class="empty">Your cart is empty.</p>';
     cart.forEach(function (l, i) {
       var p = PRODUCTS[l.id]; if (!p) return;
-      count += l.qty; sub += l.qty * p.price;
+      var unit = priceFor(l.holder, p); count += l.qty; sub += l.qty * unit;
       var el = document.createElement('div'); el.className = 'line';
-      el.innerHTML = '<img src="' + p.img + '" alt=""><div><p>' + p.name + '<small>Holder type: ' + l.holder + '</small></p><div class="qty"><button data-i="' + i + '" data-d="-1" aria-label="One less">−</button><span>' + l.qty + '</span><button data-i="' + i + '" data-d="1" aria-label="One more">+</button></div><br><button class="rm" data-rm="' + i + '">Remove</button></div><p>' + inr(l.qty * p.price) + '</p>';
+      el.innerHTML = '<img src="' + p.img + '" alt=""><div><p>' + p.name + '<small>Holder type: ' + l.holder + '</small></p><div class="qty"><button data-i="' + i + '" data-d="-1" aria-label="One less">−</button><span>' + l.qty + '</span><button data-i="' + i + '" data-d="1" aria-label="One more">+</button></div><br><button class="rm" data-rm="' + i + '">Remove</button></div><p>' + inr(l.qty * unit) + '</p>';
       lines.appendChild(el);
     });
     document.getElementById('sub').textContent = inr(sub);
@@ -45,6 +47,7 @@
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
   document.querySelectorAll('[data-open-cart]').forEach(function (b) { b.addEventListener('click', function (e) { e.preventDefault(); open(); }); });
 
+  window.korbiPrice = function (holder) { return inr(priceFor(holder, { price: 11500 })); };
   window.korbiAdd = function (id, holder, qty) {
     var hit = cart.find(function (l) { return l.id === id && l.holder === holder; });
     if (hit) hit.qty = Math.min(10, hit.qty + qty); else cart.push({ id: id, holder: holder, qty: qty });
