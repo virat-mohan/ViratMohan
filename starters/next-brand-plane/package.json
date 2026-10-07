@@ -10,6 +10,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@retail-os/brand-config": "git+https://github.com/virat-mohan/retail-os-brand-config.git#955bacb4d47ee13c2d707ec00070e0e3ad50913b",
     "next": "^14.2.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0"
