@@ -4,9 +4,11 @@ Prepared for Prince Keshri (Tech Deployment Officer). Approval for material prod
 Status of this candidate today: CODE VERIFIED, TEST VERIFIED, BUILD VERIFIED, LOCAL VERIFIED. Not STAGING VERIFIED. Not LIVE VERIFIED.
 No secret values appear here. Credentials are injected by the environment, never pasted into a Claude session.
 
-## 0. Fix before deploying (found while preparing this runbook)
+## 0. Release candidate update: deploy 8d3813e, not 0494875
 
-I audited my own work for this runbook and found defects. Items 1 and 2 stop me calling Health or Security "PASS". Please get Virat's call on whether to deploy as is or after a small fix commit.
+Application release code is now `8d3813e10530cb06cde4f8cb43880fb0174a0984` (short `8d3813e`): 0494875 plus one focused fix commit. Use it wherever this runbook says 0494875 (sections A, E and F step 1). This runbook's own commit is documentation only and is not what gets deployed.
+
+The four defects below were found in my own work and are fixed in 8d3813e. Defects 1, 2 and 3 were release-blocking. Defect 4's authentication compare is fixed; its no-op behaviour is deliberately left (see the table). Health no longer probes the Work Registry: a boundary test only lets listed files name those tables, so Work Registry persistence is proven by the live gate and the section C SQL, not by `/api/health`. Because health now reads the `leads` table, it returns 503 if the database or credentials are wrong, which is the point.
 
 | # | Defect | Evidence | Smallest fix |
 |---|---|---|---|
@@ -21,11 +23,11 @@ Defects 3 and 4 are a security and scope question for Virat, not a build detail.
 
 - Repository: `virat-mohan/ViratMohan`
 - Branch: `claude/laughing-gates-hgqo0o`
-- Commit to deploy: `04948755eb68b79c74710c8fdb75d46c88d24a57` (short `0494875`)
+- Commit to deploy: `8d3813e10530cb06cde4f8cb43880fb0174a0984` (short `8d3813e`), which contains 0494875 (`04948755eb68b79c74710c8fdb75d46c88d24a57`) plus the fix commit
 - Working tree at preparation: clean for tracked source. `starters/next-brand-plane/tsconfig.tsbuildinfo` was modified by the build before the commit and is committed with it.
 - Branch is pushed to origin. No pull request exists. I have not opened one.
 
-Check on the machine that deploys: `git rev-parse HEAD` must print the SHA above.
+Check on the machine that deploys: `git rev-parse` of the deployed commit must print `8d3813e10530cb06cde4f8cb43880fb0174a0984`.
 
 ## B. Vercel
 
@@ -101,7 +103,7 @@ Prince confirms presence only: in Vercel the variable exists in Production scope
 Credentials come from the shell environment of the machine or CI job that runs them (Vercel or CI secret store). They are not pasted into this session or into shell history.
 
 ```bash
-git checkout 04948755eb68b79c74710c8fdb75d46c88d24a57 && npm ci
+git checkout 8d3813e10530cb06cde4f8cb43880fb0174a0984 && npm ci
 
 # the three outstanding checks, plus the 15 local ones, in one run
 CEO_LIVE_VERIFY=yes SUPABASE_URL="$SUPABASE_URL" SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY" npm run verify:release
@@ -124,11 +126,11 @@ Notes from the scripts themselves:
 
 Record each result as LIVE PASS, LIVE FAIL, NOT RUN or NOT APPLICABLE, with the evidence named.
 
-1. Deploy `0494875`. Record: SHA, UTC and IST timestamp, environment, deployment URL, previous deployment ID (for rollback), result.
+1. Deploy `8d3813e`. Record: SHA, UTC and IST timestamp, environment, deployment URL, previous deployment ID (for rollback), result.
 2. Confirm production serves that build. Compare the Vercel deployment's commit with the SHA. (The app has no version endpoint. If you want one, say so and I will propose the smallest change.)
 3. Confirm the Production env variables in section D exist (names only).
 4. Run the section C verification SQL. Record the outputs and the baseline row counts.
-5. `curl -s -o /dev/null -w "%{http_code}\n" https://www.viratmohan.com/api/health` and save the JSON body. Per defect 1 the Supabase line cannot currently prove a failure, so a 200 is weaker evidence than it looks. Also run `node scripts/health/check.mjs viratmohan`.
+5. `curl -s -o /dev/null -w "%{http_code}\n" https://www.viratmohan.com/api/health` and save the JSON body. The Supabase line now reads the `leads` table and fails on a database error, so a 200 with `Supabase: ok` is real evidence of a working connection. Also run `node scripts/health/check.mjs viratmohan`.
 6. Run section E, `live-ceo-verification`.
 7. Run section E, `live-concurrency`.
 8. Run section E, `live-rollback`.
