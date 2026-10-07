@@ -177,7 +177,7 @@ All 12 repositories under `virat-mohan`. The previous scan's list was complete �
 | Coachyourpsyche | Coach Your Psyche | Coach your Psyche | 07 | emergent app | — | private | Revisit / experiment (dormant) | — | No |
 | Mystique | Mystique (ecommerce) | — (no Claude Project mapped) | 07 | emergent app | — | private | Revisit / experiment (dormant). **No Claude Project mapped — confirm disposition with Virat** | — | No |
 
-> No repository exists for: Fresh For Paws, Pookie, Vintage Sunglasses, Aloo Chips, Radico Khaitan, The Party Collective, Raghu Antiques, Rakhi Taneja, Blak Sand, Clarity Campaign Sales, Restaurant F&B vertical, and the DevShop Core/Governance projects. Do not create repos automatically.
+> No repository exists for: Fresh For Paws (its backend is staged in this repo and its Supabase project exists), Pookie, Vintage Sunglasses, Aloo Chips, Radico Khaitan, The Party Collective, Raghu Antiques, Rakhi Taneja, Blak Sand, Clarity Campaign Sales, Restaurant F&B vertical, and the DevShop Core/Governance projects. Do not create repos automatically.
 
 ---
 
@@ -200,10 +200,10 @@ Do not create a separate product category for Vishal/Wiiz. `Email drafts for Vis
 | **Travaholic Caps** | Paid Active | **Retail OS Live** | `Travaholic_caps` | Reference implementation for the admin standard + Brand Foundation consumer pattern |
 | **Ceremony Kitchen** | Paid Active | Implementation Active (Retail OS + client-specific extensions) | `ceremony-os` | Ceremony Finance & Ceremony Ops are client-specific extensions, not core modules |
 | **Korbi** | Paid Active | **Retail OS Live** (Astro) | `korbi` | KORBI / Ankay Holdings |
-| **Fresh For Paws** (`freshforpaws.com`) | **Paid Active** | **Staged — not deployed** | — | NCNDA 27 Sep 2026, deposit 30 Sep, build clock started 30 Sep, target 7 Oct 2026. Founder Srishti Bhatia. WooCommerce front stays; Retail OS runs behind it. Supabase control-plane `brands` row `freshforpaws` + `retail_os_applications` 8ad86490. **No dedicated repo created.** Staged Retail OS backend exists in `retail-os-brands/freshforpaws/` (schema, WooCommerce integration, brand voice, design mockups) but nothing is deployed: no Supabase project provisioned, no edge functions live, no dashboard, no production connection. Future dashboard = **Next.js Brand Plane** (from `starters/next-brand-plane` in `retail-os-brand-config`), not Astro. Future Brand CEO = FP-01 Paws. Source: `case-study/brands/freshforpaws.md`. |
+| **Fresh For Paws** (`freshforpaws.com`) | **Paid Active** | **Provisioning** (corrected 2026-10-07) | — (staged in `retail-os-brands/freshforpaws/`) | NCNDA 27 Sep 2026, deposit 30 Sep, build clock started 30 Sep, target 7 Oct 2026. Founder Srishti Bhatia. WooCommerce front stays; Retail OS runs behind it. Control-plane `brands` row `freshforpaws` (status building) + `retail_os_applications` 8ad86490; lead stage `deposit_paid`. **Verified live 2026-10-07 (read-only):** Supabase project `freshforpaws-os` (ref `ksstmmmdvdpeygfzothu`) exists and is ACTIVE_HEALTHY (created 5 Oct); the staged schema is applied (11 tables, RLS on; applied by hand, so the migration ledger is empty); `woo-webhook` and `woo-sync` are deployed (v4); an hourly Woo sync is running (last run ok: 27 products, 2 orders). **Still missing:** no GitHub repo or Vercel project (so no brand plane or dashboard); not registered in the control plane portfolio reader (needs `RETAIL_OS_BRAND_FRESHFORPAWS_*` in Vercel, a secret Virat sets); 0 of 27 products have cost, pack size or shelf life; Meta, GA4, Razorpay and delivery inputs outstanding. Future dashboard = **Next.js Brand Plane** (from `starters/next-brand-plane` in `retail-os-brand-config`). Future Brand CEO = FP-01 Paws (registered). Source: `case-study/brands/freshforpaws.md`, `case-study/ESTATE-ASSEMBLY.md`. |
 | **The Feeling Co / FlowerBasket** | Active (client work) | To confirm — repo `thefeelingco` is static HTML + React | `thefeelingco` | Surfaced via FlowerBasket vendor outreach work item; confirm current technical state with Virat |
 
-> A domain alone is not proof of a technical implementation. Fresh For Paws has staged backend code in `retail-os-brands/freshforpaws/` but no deployed infrastructure or dedicated repository.
+> A domain alone is not proof of a technical implementation. Fresh For Paws has a live Supabase project, an applied schema and deployed Woo Edge Functions (checked 2026-10-07), but no dedicated repository and no brand plane.
 
 ---
 
@@ -299,3 +299,15 @@ Rule: do not create a new ticket, task, request or incident system. Use the Work
 - `case-study/brands/*.md`, `CLAUDE.md`.
 
 Anything not confirmed above is marked *to confirm*, not asserted.
+
+## 16. Assembly update, 2026-10-07
+
+Full detail and the typed source are in `case-study/ESTATE-ASSEMBLY.md` and `src/lib/brand-node/estate.ts` (guarded by `tests/unit/brand-node/estate.test.ts`). Corrections to the tables above, each checked against a repository or the live control plane:
+
+- **Fresh For Paws** is Provisioning, not "Staged, not deployed": see section 7.
+- **Korbi:** the registry says `building`, this document said Retail OS Live, and the repository shows no confirmed production deploy. Treated as Active, production unknown, until Virat confirms.
+- **The Feeling Co:** the registry says `live`; the Flower Basket app runs on mock data and its own audit says it is not production ready. Proposed class `custom-build`, to confirm.
+- **Two starters exist:** the hardened one in `retail-os-brand-config/starters/next-brand-plane` (named in section 14) and an older, dashboard-only one in `ViratMohan/starters/next-brand-plane`, kept because the ViratMohan release gate typechecks it. Consolidation is Virat's decision.
+- **Brand databases:** one Supabase project per brand is confirmed: Moon `fewnyteoprmuyzfvopnb`, Travaholic Caps `mdornfpcskvjnuawqpqf`, Ceremony `jnfapkxpkdizwjzrccjm`, Korbi `dajglwnvrhrxryzjkjka`, Fresh For Paws `ksstmmmdvdpeygfzothu`, India Contemporary `smzfdqwgaxwdxkiuqftc` (inactive).
+- **Dashboards:** Moon (`4895444`) and Travaholic Caps (`3c26476`) each have a pushed, unmerged `canonical-dashboard-shell` branch that only rewires navigation. Moon's `main` has moved 34 commits since its base. Travaholic's `main` reverted the Brand Foundation change that its branch builds on (`7356b0e`).
+- **Brand keys:** the agent registry and the health runner used `ceremony` and `travaholic` where the central registry says `ceremonykitchen` and `caps`. The Work Registry refuses unknown brand keys, so this would have broken the moment the registry was wired live. Fixed in `src/lib/ceo/types.ts` and `src/lib/work/health-runner.ts`.

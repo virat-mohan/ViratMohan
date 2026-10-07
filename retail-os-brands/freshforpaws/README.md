@@ -24,10 +24,10 @@ Status as of 1 Oct 2026. Access comes from Srishti to **tech@viratmohan.com** (s
 
 | # | Connection | Needs | Who | Status |
 |---|---|---|---|---|
-| 1 | Supabase project `freshforpaws-os` (ap-south-1, Mumbai) | Create, then apply `0001` | DevShop | **Blocked:** project creation timed out twice from the agent; create in the Supabase dashboard |
-| 2 | WooCommerce REST key | WP admin as Shop Manager → WooCommerce → Settings → Advanced → REST API → Add key, user devshop, **Read**. Set `WOO_STORE_URL=https://freshforpaws.com`, `WOO_CONSUMER_KEY`, `WOO_CONSUMER_SECRET` as function secrets | DevShop, after Srishti adds the Shop Manager user | Waiting on access |
+| 1 | Supabase project `freshforpaws-os` (ap-northeast-1) | Create, then apply `0001` | DevShop | **Done** (checked 2026-10-07): project `freshforpaws-os`, ref `ksstmmmdvdpeygfzothu`, ACTIVE_HEALTHY, created 5 Oct; `0001` applied by hand (11 tables, RLS on; migration ledger empty) |
+| 2 | WooCommerce REST key | WP admin as Shop Manager → WooCommerce → Settings → Advanced → REST API → Add key, user devshop, **Read**. Set `WOO_STORE_URL=https://freshforpaws.com`, `WOO_CONSUMER_KEY`, `WOO_CONSUMER_SECRET` as function secrets | DevShop, after Srishti adds the Shop Manager user | **Working** (checked 2026-10-07): the hourly sync reads WooCommerce and reports ok, so a valid read key is set |
 | 3 | WooCommerce webhooks | WooCommerce → Settings → Advanced → Webhooks: `Order created`, `Order updated`, `Product updated` → `https://<ref>.supabase.co/functions/v1/woo-webhook`, secret = `WOO_WEBHOOK_SECRET` | DevShop | Waiting on 1 and 2 |
-| 4 | Backfill | `POST /functions/v1/woo-sync?backfill_days=90` with header `x-cron-secret` | DevShop | After 3 |
+| 4 | Backfill | `POST /functions/v1/woo-sync?backfill_days=90` with header `x-cron-secret` | DevShop | Orders back to 26 Aug and 27 products are present, so a backfill or sync has run |
 | 5 | Hourly sync | pg_cron + pg_net calling `woo-sync` every hour with `x-cron-secret` | DevShop | After 4 |
 | 6 | Console | Add `RETAIL_OS_BRAND_FRESHFORPAWS_URL`, `..._SERVICE_KEY`, `..._NAME=Fresh For Paws` in Vercel (viratmohan.com) and redeploy | Virat (secret) | After 1 |
 | 7 | Products sheet | Fill `products.cost_per_pack`, `pack_size`, `shelf_life_days` from Srishti's sheet | DevShop | Waiting on sheet |
