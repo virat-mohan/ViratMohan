@@ -85,9 +85,9 @@ export const ESTATE: EstateEntry[] = [
     database: 'Supabase ceremony-os (ref jnfapkxpkdizwjzrccjm), ACTIVE_HEALTHY; live: project list read 2026-10-07', deployment: 'Vercel, served under viratmohan.com/devshop/ceremonykitchen (6 crons)', domain: 'www.viratmohan.com/devshop/ceremonykitchen',
     connections: {
       registry: link('LIVE', [CP + ' key=ceremonykitchen status=live model=retainer']),
-      adapter: link('CONTRACT_ONLY', ['ceremony-os README: register with RETAIL_OS_LIVE_BRANDS'], 'the portfolio reader queries orders; ceremony-os has shopify_orders, so the shape mapping is unverified and no adapter exists'),
+      adapter: link('PARTIAL', ['ceremony-os README: register with RETAIL_OS_LIVE_BRANDS', 'src/lib/brand-node/node.ts createBrandNode() factory — identity and capabilities satisfy the BrandNode contract without live ports', 'src/lib/brand-node/estate.ts BRAND_CAPABILITIES.ceremonykitchen — 11 capabilities mapped from ceremony-os repo audit'], 'shopify_orders shape mapping still unverified; health and metrics ports do not bind without live registry entry'),
       agent: link('PARTIAL', ['src/lib/ceo/types.ts AGENT_REGISTRY CK-01 scope brand=ceremonykitchen'], 'the CEO runtime is not live; the scope key now matches the registry (it was "ceremony" and the Work Registry would have refused it)'),
-      work: link('NOT_CONNECTED', [], 'ceremony-os never calls the control plane; CLAUDE.md names it as prose only'),
+      work: link('PARTIAL', ['src/lib/ceo/types.ts AGENT_REGISTRY CK-01 scope brand=ceremonykitchen', 'src/lib/brand-node/provisioning-service.ts syncProvisioningToWork() — ready to create ceremonykitchen-scoped work items', 'tests/unit/brand-node/estate.test.ts line 67 — Work Registry accepts ceremonykitchen scope'], 'ceremony-os never calls the control plane; no live schedule wired'),
       dashboard: link('NOT_CONNECTED', ['ceremony-os app/admin/(panel)/layout.tsx (hard-coded nav, 20 pages)'], 'own working shell; not the canonical 11-section shell and no package dependency. Preserved as is'),
       health: link('NOT_CONNECTED', ['scripts/health/check.mjs BRANDS.ceremony checks "/" only'], 'no /api/health in the repo'),
       crm: link('NOT_CONNECTED', [], 'no leads or CRM tables in ceremony-os (audit 2026-10-07)'),

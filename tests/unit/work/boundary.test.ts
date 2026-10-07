@@ -112,6 +112,7 @@ describe('only authorized surfaces reach the Work Registry', () => {
     'src/lib/brand-node/self-serve-ops.ts',
     'src/lib/brand-node/dashboard-data.ts',
     'tests/unit/ceo-integration/ceo-work-result.test.ts',
+    'tests/unit/brand-node/operating-assembly.test.ts',
   ]);
 
   it('only authorized surfaces import Work Registry code', () => {

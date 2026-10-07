@@ -80,7 +80,14 @@ export function syncProvisioningToWork(
           !['closed', 'resolved'].includes(i.state),
       );
       if (existing) {
-        const r = registry.transition(existing.id, 'resolved', VIRAT, { reason: `provisioning component complete: ${entry.detail}` });
+        // Drive the item to in_progress so it can be resolved (new→triaged→assigned→in_progress→resolved)
+        const item = existing;
+        if (item.state === 'new') registry.transition(item.id, 'triaged', VIRAT, { payload: { triage: { priority: 'P2' } } });
+        const after = registry.list().find((i) => i.id === item.id)!;
+        if (after.state === 'triaged') registry.transition(after.id, 'assigned', VIRAT, { payload: { owner: VIRAT } });
+        const after2 = registry.list().find((i) => i.id === item.id)!;
+        if (after2.state === 'assigned') registry.transition(after2.id, 'in_progress', VIRAT);
+        const r = registry.transition(item.id, 'resolved', VIRAT, { payload: { resolution: { kind: 'completed', summary: `provisioning component complete: ${entry.detail}` } } });
         if (r.ok) {
           closedCount++;
           refs.push({ component: entry.component, state: entry.state, workId: existing.id, action: 'closed', detail: 'resolved on completion' });
