@@ -15,8 +15,8 @@ import type { Result } from './types';
 const DEFAULT_BRAND_MAP: Record<string, string | null> = {
   viratmohan: null,
   moonglasses: 'moonglasses',
-  travaholic: 'travaholic',
-  ceremony: 'ceremony',
+  travaholic: 'caps',                 // the registry key for Travaholic Caps (brands.key)
+  ceremony: 'ceremonykitchen',        // the registry key for Ceremony Kitchen (brands.key)
 };
 
 export interface HealthRunnerOptions {

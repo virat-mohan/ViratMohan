@@ -28,7 +28,7 @@ export const AGENT_REGISTRY: AgentEntry[] = [
   { id: 'DS-02', name: 'Dev', role: 'ceo', reports_to: 'DS-01', scope: null, capabilities: ['operations', 'coordination', 'delegation', 'monitoring'] },
   { id: 'MG-01', name: 'Moon', role: 'brand_ceo', reports_to: 'DS-02', scope: { kind: 'brand', brand: 'moonglasses', founder: null, system: null, extension: null }, capabilities: ['brand-operations'] },
   { id: 'TC-01', name: 'Trav', role: 'brand_ceo', reports_to: 'DS-02', scope: { kind: 'brand', brand: 'caps', founder: null, system: null, extension: null }, capabilities: ['brand-operations'] },
-  { id: 'CK-01', name: 'Cera', role: 'brand_ceo', reports_to: 'DS-02', scope: { kind: 'brand', brand: 'ceremony', founder: null, system: null, extension: null }, capabilities: ['brand-operations'] },
+  { id: 'CK-01', name: 'Cera', role: 'brand_ceo', reports_to: 'DS-02', scope: { kind: 'brand', brand: 'ceremonykitchen', founder: null, system: null, extension: null }, capabilities: ['brand-operations'] },
   { id: 'FP-01', name: 'Paws', role: 'brand_ceo', reports_to: 'DS-02', scope: { kind: 'brand', brand: 'freshforpaws', founder: null, system: null, extension: null }, capabilities: ['brand-operations'] },
   { id: 'KB-01', name: 'Kor', role: 'brand_ceo', reports_to: 'DS-02', scope: { kind: 'brand', brand: 'korbi', founder: null, system: null, extension: null }, capabilities: ['brand-operations'] },
   { id: 'DS-10', name: 'Check', role: 'hod', reports_to: 'DS-02', scope: null, capabilities: ['quality', 'health-checks', 'audits'] },

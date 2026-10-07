@@ -130,7 +130,7 @@ describe('health runner', () => {
     expect(items[0].scope.brand).toBeNull();
   });
 
-  it('known brand resolves to its brand key', async () => {
+  it('known brand resolves to its central registry key (travaholic is the brands.key "caps")', async () => {
     const store = makeStore();
     const run: HealthRun = {
       at: NOW,
@@ -138,7 +138,7 @@ describe('health runner', () => {
     };
     await runHealthIngestion(store, run);
     const { items } = await store.loadAll();
-    expect(items[0].scope.brand).toBe('travaholic');
+    expect(items[0].scope.brand).toBe('caps');
   });
 
   it('unknown brand with failures returns an error, does not create misattributed items', async () => {
