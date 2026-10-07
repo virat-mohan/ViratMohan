@@ -169,7 +169,7 @@ describe('D. Agent → brand scope', () => {
   it('every Brand CEO in AGENT_REGISTRY uses a valid known brand key', () => {
     for (const agent of AGENT_REGISTRY) {
       if (agent.scope?.kind === 'brand') {
-        expect(KNOWN_BRANDS.has(agent.scope.brand), `${agent.id} scope brand '${agent.scope.brand}' not in known brands`).toBe(true);
+        expect(KNOWN_BRANDS.has(agent.scope.brand!), `${agent.id} scope brand '${agent.scope.brand}' not in known brands`).toBe(true);
       }
     }
   });
@@ -499,17 +499,17 @@ describe('K. Synthetic self-serve journey', () => {
       registryStatus: 'live', foundation: 'committed', approvedProducts: 5, agentId: 'TC-01',
       dashboardDeployed: true, health: 'PASS', workId: null,
       tasks: [
-        { id: 't1', task: 'Set up github repo', status: 'done' as const, owner: 'team', stage: 1, priority: 1, sort: 0, note: null },
-        { id: 't2', task: 'Set up supabase project', status: 'done' as const, owner: 'team', stage: 1, priority: 1, sort: 1, note: null },
-        { id: 't3', task: 'Set up ADMIN_PASSWORD environment variable', status: 'done' as const, owner: 'team', stage: 1, priority: 1, sort: 2, note: null },
-        { id: 't4', task: 'Deploy to vercel', status: 'done' as const, owner: 'team', stage: 1, priority: 1, sort: 3, note: null },
-        { id: 't5', task: 'Set up domain', status: 'done' as const, owner: 'team', stage: 1, priority: 1, sort: 4, note: null },
-        { id: 't6', task: 'Set up payments gateway', status: 'done' as const, owner: 'team', stage: 2, priority: 1, sort: 5, note: null },
-        { id: 't7', task: 'Set up shipping and commerce', status: 'done' as const, owner: 'team', stage: 3, priority: 1, sort: 6, note: null },
-        { id: 't8', task: 'Set up email integration', status: 'done' as const, owner: 'team', stage: 4, priority: 1, sort: 7, note: null },
-        { id: 't9', task: 'Set up whatsapp integration', status: 'done' as const, owner: 'team', stage: 5, priority: 1, sort: 8, note: null },
-        { id: 't10', task: 'Set up analytics and pixel', status: 'done' as const, owner: 'team', stage: 7, priority: 1, sort: 9, note: null },
-        { id: 't11', task: 'Go live review', status: 'done' as const, owner: 'team', stage: 9, priority: 1, sort: 10, note: null },
+        { task: 'Set up github repo', status: 'done' as const, owner: 'team', stage: 1, priority: 1, sort: 0, note: null },
+        { task: 'Set up supabase project', status: 'done' as const, owner: 'team', stage: 1, priority: 1, sort: 1, note: null },
+        { task: 'Set up ADMIN_PASSWORD environment variable', status: 'done' as const, owner: 'team', stage: 1, priority: 1, sort: 2, note: null },
+        { task: 'Deploy to vercel', status: 'done' as const, owner: 'team', stage: 1, priority: 1, sort: 3, note: null },
+        { task: 'Set up domain', status: 'done' as const, owner: 'team', stage: 1, priority: 1, sort: 4, note: null },
+        { task: 'Set up payments gateway', status: 'done' as const, owner: 'team', stage: 2, priority: 1, sort: 5, note: null },
+        { task: 'Set up shipping and commerce', status: 'done' as const, owner: 'team', stage: 3, priority: 1, sort: 6, note: null },
+        { task: 'Set up email integration', status: 'done' as const, owner: 'team', stage: 4, priority: 1, sort: 7, note: null },
+        { task: 'Set up whatsapp integration', status: 'done' as const, owner: 'team', stage: 5, priority: 1, sort: 8, note: null },
+        { task: 'Set up analytics and pixel', status: 'done' as const, owner: 'team', stage: 7, priority: 1, sort: 9, note: null },
+        { task: 'Go live review', status: 'done' as const, owner: 'team', stage: 9, priority: 1, sort: 10, note: null },
       ],
     };
     const prov = provisioningRecord(provFacts);

@@ -107,6 +107,11 @@ describe('only authorized surfaces reach the Work Registry', () => {
     'src/lib/improvement/types.ts',
     'src/lib/improvement/detection.ts',
     'src/lib/improvement/learning.ts',
+    'src/lib/brand-node/brand-ceo-context.ts',
+    'src/lib/brand-node/provisioning-service.ts',
+    'src/lib/brand-node/self-serve-ops.ts',
+    'src/lib/brand-node/dashboard-data.ts',
+    'tests/unit/ceo-integration/ceo-work-result.test.ts',
   ]);
 
   it('only authorized surfaces import Work Registry code', () => {
