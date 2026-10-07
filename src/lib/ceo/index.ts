@@ -6,3 +6,5 @@ export * from './context-pack';
 export * from './authority';
 export * from './response';
 export * from './orchestrator';
+export * from './channel-adapter';
+export * from './daily-meeting';

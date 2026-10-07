@@ -113,6 +113,10 @@ describe('only authorized surfaces reach the Work Registry', () => {
     'src/lib/brand-node/dashboard-data.ts',
     'tests/unit/ceo-integration/ceo-work-result.test.ts',
     'tests/unit/brand-node/operating-assembly.test.ts',
+    'src/lib/ceo/channel-adapter.ts',
+    'src/lib/ceo/daily-meeting.ts',
+    'tests/unit/ceo-integration/channel-adapter.test.ts',
+    'tests/unit/ceo-integration/daily-meeting.test.ts',
   ]);
 
   it('only authorized surfaces import Work Registry code', () => {
