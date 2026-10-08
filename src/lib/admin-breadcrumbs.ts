@@ -19,6 +19,9 @@ const PAGES: Record<string, PageDef> = {
   [`${ADMIN}/invoices`]: { label: 'Invoices' },
   [`${ADMIN}/inbox`]: { label: 'WhatsApp inbox' },
   [`${ADMIN}/publish`]: { label: 'Publish to Instagram' },
+  [`${ADMIN}/training`]: { label: 'Agent Training' },
+  [`${ADMIN}/people`]: { label: 'People OS' },
+  [`${ADMIN}/onboarding`]: { label: 'Onboarding' },
 };
 const CONSOLE_TABS: Record<string, string> = { today: 'Command Centre', crm: 'CRM pipeline', team: 'Team & tasks', live: 'Live brands', brands: 'Brands & contacts', social: 'Social' };
 

@@ -1,0 +1,138 @@
+---
+import AdminBreadcrumbs from '../../../components/AdminBreadcrumbs.astro';
+export const prerender = false;
+import { getEnv } from '../../../lib/env';
+import { serviceDb } from '../../../lib/ledger';
+import { brandsDb, type Brand } from '../../../lib/brands';
+import { createSupabaseWorkStore } from '../../../lib/work/db-store';
+import { loadRegistry } from '../../../lib/work/db-registry';
+import { InMemoryWorkRegistry } from '../../../lib/work/registry';
+import { buildProvisioningRecord, PROVISIONING_COMPONENTS, type ProvisioningRecord, type ProvState } from '../../../lib/brand-node/provisioning';
+import { buildSelfServeFlow, STAGE_META } from '../../../lib/brand-node/self-serve-ops';
+import type { WorkItem } from '../../../lib/work/types';
+
+const env = getEnv();
+let brands: Brand[] = [];
+let records: Array<{ brand: Brand; prov: ProvisioningRecord | null; flow: ReturnType<typeof buildSelfServeFlow> | null }> = [];
+let dataSource = 'empty';
+let registryItems: WorkItem[] = [];
+
+if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
+  try {
+    const sb = serviceDb(env);
+    const db = brandsDb(sb);
+    brands = await db.listAll();
+    const store = createSupabaseWorkStore(sb);
+    const registry = await loadRegistry(store);
+    registryItems = registry.list();
+    dataSource = 'supabase';
+  } catch { /* fallback */ }
+}
+
+const selected = Astro.url.searchParams.get('brand') ?? null;
+
+const PROV_COLOURS: Record<ProvState, string> = {
+  NOT_STARTED: '#aaa',
+  IN_PROGRESS: '#d4a574',
+  WAITING: '#e8751a',
+  BLOCKED: '#c1272d',
+  COMPLETE: '#2d5016',
+  FAILED: '#c1272d',
+};
+const PROV_LABEL: Record<ProvState, string> = {
+  NOT_STARTED: 'Not Started',
+  IN_PROGRESS: 'In Progress',
+  WAITING: 'Waiting',
+  BLOCKED: 'Blocked',
+  COMPLETE: 'Complete',
+  FAILED: 'Failed',
+};
+---
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Onboarding Control Plane — DevShop Retail OS</title>
+  <link rel="stylesheet" href="/brand/tokens.css" />
+  <link rel="stylesheet" href="/retail-os/admin-touch.css" />
+  <style>
+    body { font-family: var(--font-sans, system-ui); background: var(--paper, #faf8f4); color: var(--ink, #1a1a1a); margin: 0; padding: 0 16px 40px; }
+    h1 { font-family: var(--font-display, Georgia); font-size: 1.5rem; font-weight: 600; margin: 24px 0 8px; }
+    h2 { font-size: 1.1rem; margin: 20px 0 8px; }
+    .brand-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin: 16px 0; }
+    .brand-card { background: #fff; border: 1px solid #e8e4de; border-radius: 8px; padding: 16px; }
+    .brand-card a { text-decoration: none; color: inherit; display: block; }
+    .brand-name { font-weight: 600; font-size: 1rem; }
+    .brand-status { font-size: 0.85rem; margin-top: 4px; }
+    .progress-bar { height: 6px; background: #e8e4de; border-radius: 3px; margin-top: 8px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--gold, #d4a574); border-radius: 3px; }
+    .component-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; margin: 12px 0; }
+    .component { background: #fff; border: 1px solid #e8e4de; border-radius: 6px; padding: 10px; }
+    .comp-name { font-weight: 500; font-size: 0.9rem; text-transform: capitalize; }
+    .comp-detail { font-size: 0.8rem; color: #666; margin-top: 2px; }
+    .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; color: #fff; }
+    .blocker { background: #fef3f2; border-left: 3px solid #c1272d; padding: 8px 12px; margin: 6px 0; border-radius: 0 4px 4px 0; font-size: 0.85rem; }
+    .detail-section { background: #fff; border: 1px solid #e8e4de; border-radius: 8px; padding: 16px; margin: 12px 0; }
+    .empty { color: #aaa; font-size: 0.9rem; }
+    @media (max-width: 600px) { .brand-grid, .component-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="vm-band"></div>
+  <AdminBreadcrumbs items={[{ label: 'Retail OS', href: '/retail-os/admin' }, { label: 'Onboarding' }]} />
+  <h1>Onboarding Control Plane</h1>
+  <p style="color:#666; font-size:0.9rem; margin-top:0;">
+    {brands.length} brand{brands.length !== 1 ? 's' : ''} registered · Data: {dataSource}
+    {brands.length === 0 && dataSource === 'empty' && ' · Connect Supabase to see brand data'}
+  </p>
+
+  <div class="brand-grid">
+    {brands.map(b => {
+      const key = (b as { key?: string }).key ?? b.name?.toLowerCase().replace(/\s+/g, '') ?? '';
+      return (
+        <div class="brand-card">
+          <a href={`/retail-os/admin/onboarding?brand=${key}`}>
+            <div class="brand-name">{b.name ?? key}</div>
+            <div class="brand-status">
+              Status: {(b as { status?: string }).status ?? 'unknown'}
+            </div>
+          </a>
+        </div>
+      );
+    })}
+    {brands.length === 0 && (
+      <div class="brand-card">
+        <div class="empty">
+          No brands found. This page shows all brands undergoing onboarding with their provisioning status,
+          dependencies, blockers and next actions. Each provisioning component (commercial, payment, brand registry,
+          foundation, catalogue, repository, database, environment, deployment, domain, payments integration,
+          commerce, email, WhatsApp, analytics, team, agents, dashboard, health, go-live) shows status, owner,
+          dependencies, timestamps, blockers, evidence, SLA and next action.
+        </div>
+        <div style="margin-top:12px;">
+          <h2 style="margin-top:0;">Provisioning Components ({PROVISIONING_COMPONENTS.length})</h2>
+          <div class="component-grid">
+            {PROVISIONING_COMPONENTS.map(c => (
+              <div class="component">
+                <div class="comp-name">{c.replace(/_/g, ' ')}</div>
+                <div class="comp-detail">SETUP_REQUIRED — no brand data</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+
+  {selected && brands.length === 0 && (
+    <div class="detail-section">
+      <h2>Brand: {selected}</h2>
+      <p class="empty">
+        Brand data not available. Connect Supabase and ensure the brands table is populated.
+        The onboarding control plane reads from the brands registry, provisioning records, and
+        the Work Registry to show exact provisioning state per component.
+      </p>
+    </div>
+  )}
+</body>
+</html>

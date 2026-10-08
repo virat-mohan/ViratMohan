@@ -121,6 +121,8 @@ describe('only authorized surfaces reach the Work Registry', () => {
     'src/lib/ceo/people.ts',
     'tests/unit/ceo-integration/agent-training.test.ts',
     'tests/unit/ceo-integration/people.test.ts',
+    'src/pages/retail-os/admin/people.astro',
+    'src/pages/retail-os/admin/onboarding.astro',
   ]);
 
   it('only authorized surfaces import Work Registry code', () => {
