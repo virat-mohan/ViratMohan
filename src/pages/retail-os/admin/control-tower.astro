@@ -4,7 +4,9 @@ export const prerender = false;
 import { InMemoryWorkRegistry } from '../../../lib/work/registry';
 import { buildControlTowerView } from '../../../lib/control-tower/view';
 import { buildMorningBoard } from '../../../lib/ceo/morning-board';
+import { buildDailyMeeting, type DailyMeetingItem, type DailyMeetingBrandStatus } from '../../../lib/ceo/daily-meeting';
 import { AGENT_REGISTRY, CEO_AUTONOMY, findAgent, directReports } from '../../../lib/ceo/types';
+import { CHANNEL_STATUSES, COMMAND_CENTRE_STATUS, EMAIL_CHANNEL_STATUS, WHATSAPP_CHANNEL_STATUS, type ChannelStatus } from '../../../lib/ceo/channel-adapter';
 import { CONTROL_TOWER_STAGES } from '../../../lib/control-tower/types';
 import type { MorningBoardItem } from '../../../lib/ceo/types';
 import type { ControlTowerStage, WorkSummary } from '../../../lib/control-tower/types';
@@ -37,9 +39,13 @@ if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
 }
 
 const view = buildControlTowerView(registry);
+const board = buildMorningBoard(registry, now);
+const meeting = buildDailyMeeting(registry, now);
 const closedCount = registry.list().filter((i) => i.state === 'closed').length;
+const dev = findAgent('DS-02')!;
+const brandCeos = directReports('DS-02').filter((a) => a.role === 'brand_ceo');
+const hods = directReports('DS-02').filter((a) => a.role !== 'brand_ceo');
 
-// Lifecycle presentation. RESOLVED and CLOSED are never worded alike: closing needs verification and evidence.
 const STATE_MEANING: Record<string, { label: string; note: string }> = {
   new: { label: 'New', note: 'Not triaged yet' },
   triaged: { label: 'Triaged', note: 'Needs an owner' },
@@ -69,10 +75,6 @@ const closedWork = registry.list()
   .sort((a, b) => ((b.closed_at ?? '') > (a.closed_at ?? '') ? 1 : -1))
   .slice(0, 10);
 const day = (iso: string) => iso.slice(0, 10);
-const board = buildMorningBoard(registry, now);
-const dev = findAgent('DS-02')!;
-const brandCeos = directReports('DS-02').filter((a) => a.role === 'brand_ceo');
-const hods = directReports('DS-02').filter((a) => a.role !== 'brand_ceo');
 
 const CATEGORY_LABEL: Record<string, string> = {
   critical_incident: 'Critical',
@@ -100,7 +102,7 @@ const STAGE_LABEL: Record<string, string> = {
 const BRAND_LABEL: Record<string, string> = {
   caps: 'Travaholic Caps',
   moonglasses: 'Moon Glasses',
-  ceremony: 'Ceremony Kitchen',
+  ceremonykitchen: 'Ceremony Kitchen',
   freshforpaws: 'Fresh For Paws',
   korbi: 'Korbi',
 };
@@ -108,20 +110,44 @@ const BRAND_LABEL: Record<string, string> = {
 const BRAND_STATUS: Record<string, string> = {
   caps: 'Retail OS Live',
   moonglasses: 'Retail OS Live',
-  ceremony: 'Implementation Active',
+  ceremonykitchen: 'Implementation Active',
   freshforpaws: 'Staged — not deployed',
   korbi: 'Retail OS Live',
 };
 
-const TAB_NAMES = ['board', 'pipeline', 'agents', 'brands', 'ceo'] as const;
-const TAB_LABEL: Record<string, string> = { board: 'Morning Board', pipeline: 'Work Pipeline', agents: 'Agents', brands: 'Brands', ceo: 'Ask the CEO' };
-const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_NAMES[number]) ? Astro.url.searchParams.get('tab')! : 'board';
+const CHANNEL_ICON: Record<string, string> = {
+  connected: '●',
+  partial: '◐',
+  setup_required: '○',
+  not_configured: '—',
+};
+
+const CHANNEL_COLOR: Record<string, string> = {
+  connected: '#2E7D32',
+  partial: '#E67A33',
+  setup_required: '#C5A572',
+  not_configured: '#A3A3A3',
+};
+
+const TAB_NAMES = ['ceo', 'today', 'meeting', 'work', 'agents', 'brands'] as const;
+const TAB_LABEL: Record<string, string> = {
+  ceo: 'Talk to CEO',
+  today: 'Today',
+  meeting: 'Daily Meeting',
+  work: 'Work',
+  agents: 'Agents',
+  brands: 'Brands',
+};
+const TAB_ALIAS: Record<string, string> = { board: 'today', pipeline: 'work' };
+const rawTab = Astro.url.searchParams.get('tab') ?? '';
+const resolvedTab = TAB_ALIAS[rawTab] ?? rawTab;
+const tab = TAB_NAMES.includes(resolvedTab as typeof TAB_NAMES[number]) ? resolvedTab : 'ceo';
 ---
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{TAB_LABEL[tab]} — Founder Control Tower — DevShop Retail OS</title>
+  <title>Founder Command Centre — DevShop Retail OS</title>
   <link rel="stylesheet" href="/brand/tokens.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -147,20 +173,28 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
     body { font-family: var(--sans); background: var(--paper); color: var(--ink); line-height: 1.5; -webkit-text-size-adjust: 100%; }
     .shell { max-width: 960px; margin: 0 auto; padding: 24px 16px 64px; }
 
-
     h1 { font-family: var(--display); font-size: 1.5rem; font-weight: 400; margin-bottom: 4px; }
-    .subtitle { font-size: 0.85rem; color: var(--ink-muted); margin-bottom: 24px; }
+    .subtitle { font-size: 0.85rem; color: var(--ink-muted); margin-bottom: 16px; }
+
+    /* Tabs — CEO first */
     .tabs { display: flex; gap: 4px; margin-bottom: 24px; flex-wrap: wrap; }
     .tab { padding: 8px 14px; border-radius: 6px; font-size: 0.82rem; text-decoration: none; color: var(--ink-muted); border: 1px solid var(--border); background: none; min-height: 44px; display: inline-flex; align-items: center; }
     .tab.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .tab.primary { border-color: var(--gold); }
+
+    /* Cards */
     .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 16px; }
     .card h2 { font-family: var(--display); font-size: 1.1rem; font-weight: 400; margin-bottom: 12px; }
     .card h3 { font-size: 0.85rem; font-weight: 600; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
     .empty { color: var(--ink-muted); font-size: 0.85rem; font-style: italic; }
+
+    /* KPIs */
     .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
     .kpi { text-align: center; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); }
     .kpi-val { font-family: var(--display); font-size: 1.6rem; }
     .kpi-label { font-size: 0.8rem; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+
+    /* Items */
     .item-row { display: flex; gap: 8px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
     .item-row:last-child { border-bottom: none; }
     .tag { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 0.72rem; font-weight: 600; color: #fff; white-space: nowrap; }
@@ -170,10 +204,14 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
     .tag-p3 { background: var(--tag-p3); }
     .tag-p4 { background: var(--tag-p4); }
     .tag-cat { background: var(--terracotta); }
+
+    /* Pipeline */
     .pipeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; margin-bottom: 16px; }
     .stage { text-align: center; padding: 12px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); }
     .stage-count { font-family: var(--display); font-size: 1.4rem; }
     .stage-label { font-size: 0.8rem; color: var(--ink-muted); text-transform: uppercase; }
+
+    /* Agent + brand grids */
     .agent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
     .agent-card { padding: 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); }
     .agent-id { font-size: 0.8rem; color: var(--gold); font-weight: 600; }
@@ -189,7 +227,7 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
     .brand-work { font-size: 0.82rem; color: var(--ink-muted); }
     .notice { padding: 12px 16px; border-radius: 8px; background: #FFF8E1; border: 1px solid #FFE082; font-size: 0.82rem; color: #6D5B00; margin-bottom: 16px; }
 
-    /* — Ask the CEO — */
+    /* CEO conversation */
     .ask label { display: block; font-size: 0.8rem; color: var(--ink-muted); margin-bottom: 4px; }
     .ask textarea, .ask select, .ask input { min-height: 44px; width: 100%; font: inherit; font-size: 1rem; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--paper); color: var(--ink); }
     .ask textarea { min-height: 96px; resize: vertical; }
@@ -200,11 +238,30 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
     .resp dt { color: var(--ink-muted); }
     .resp dd { overflow-wrap: anywhere; }
     .resp ul { margin: 0; padding-left: 18px; }
-    @media (max-width: 600px) { .ask .row { grid-template-columns: 1fr; } .resp dl { grid-template-columns: 1fr; gap: 2px; } .resp dd { margin-bottom: 8px; } }
 
-    /* — Work lifecycle — */
-    .work { border-top: 1px solid var(--border); padding: 14px 0; }
-    .work:first-of-type { border-top: none; }
+    /* Channel indicators */
+    .channels { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+    .ch { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: var(--ink-muted); }
+    .ch-dot { font-size: 0.9rem; line-height: 1; }
+
+    /* Meeting sections */
+    .meeting-section { margin-bottom: 20px; }
+    .meeting-section h3 { margin-bottom: 8px; }
+    .meeting-item { display: flex; gap: 8px; align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+    .meeting-item:last-child { border-bottom: none; }
+    .rec { padding: 10px 14px; background: #F1ECE2; border-radius: 8px; font-size: 0.88rem; margin-bottom: 8px; }
+    .rec-critical { background: #FDE8E8; border: 1px solid #EFB0B0; }
+
+    /* Needs Virat — urgent card */
+    .virat-card { border-left: 3px solid var(--terracotta); }
+
+    /* Brand meeting row */
+    .brand-meeting { display: grid; grid-template-columns: 1fr auto auto auto auto; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; align-items: center; }
+    .brand-meeting:last-child { border-bottom: none; }
+
+    /* Work lifecycle */
+    .work-item { border-top: 1px solid var(--border); padding: 14px 0; }
+    .work-item:first-of-type { border-top: none; }
     .work-head { display: flex; gap: 8px; align-items: baseline; }
     .work-title { flex: 1; overflow-wrap: anywhere; font-weight: 500; }
     .work-meta { font-size: 0.78rem; color: var(--ink-muted); margin: 2px 0 6px; overflow-wrap: anywhere; }
@@ -225,7 +282,7 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
     form.lc button[disabled] { opacity: 0.55; cursor: default; }
     .lc-msg { font-size: 0.85rem; min-height: 1.2em; }
 
-    /* — Mobile-first responsive — */
+    /* Mobile-first */
     @media (max-width: 600px) {
       .shell { padding: 16px 16px 48px; }
       h1 { font-size: 1.25rem; }
@@ -242,6 +299,11 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
       .brand-grid { grid-template-columns: 1fr; }
       .tabs { gap: 6px; }
       .tab { padding: 8px 12px; font-size: 0.8rem; }
+      .ask .row { grid-template-columns: 1fr; }
+      .resp dl { grid-template-columns: 1fr; gap: 2px; }
+      .resp dd { margin-bottom: 8px; }
+      .brand-meeting { grid-template-columns: 1fr; gap: 4px; }
+      .channels { gap: 12px; }
     }
 
     @media (max-width: 390px) {
@@ -255,31 +317,114 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
   <div class="shell">
     <AdminBreadcrumbs tab={tab} />
 
-    <h1>Founder Control Tower</h1>
-    <p class="subtitle">DevShop Retail OS — {now.toISOString().slice(0, 10)} — Operating view. Only the Ask the CEO tab writes, through the CEO runtime</p>
+    <h1>Founder Command Centre</h1>
+    <p class="subtitle">DevShop Retail OS — {now.toISOString().slice(0, 10)}</p>
+
+    <!-- Channel status indicators -->
+    <div class="channels">
+      {CHANNEL_STATUSES.map((ch: ChannelStatus) => (
+        <div class="ch">
+          <span class="ch-dot" style={`color:${CHANNEL_COLOR[ch.state]}`}>{CHANNEL_ICON[ch.state]}</span>
+          <span>{ch.channel === 'internal' ? 'Command Centre' : ch.channel === 'email' ? 'Email' : 'WhatsApp'}</span>
+          {ch.state !== 'connected' && <span style="font-size:0.72rem;color:var(--terracotta)">{ch.state.replace('_', ' ')}</span>}
+        </div>
+      ))}
+    </div>
 
     <div class="tabs" role="tablist">
-      <a class={`tab ${tab === 'board' ? 'active' : ''}`} href="?tab=board" role="tab" aria-selected={tab === 'board'}>Morning Board</a>
-      <a class={`tab ${tab === 'pipeline' ? 'active' : ''}`} href="?tab=pipeline" role="tab" aria-selected={tab === 'pipeline'}>Work Pipeline</a>
-      <a class={`tab ${tab === 'agents' ? 'active' : ''}`} href="?tab=agents" role="tab" aria-selected={tab === 'agents'}>Agents</a>
-      <a class={`tab ${tab === 'brands' ? 'active' : ''}`} href="?tab=brands" role="tab" aria-selected={tab === 'brands'}>Brands</a>
-      <a class={`tab ${tab === 'ceo' ? 'active' : ''}`} href="?tab=ceo" role="tab" aria-selected={tab === 'ceo'}>Ask the CEO</a>
+      {TAB_NAMES.map((t) => (
+        <a class={`tab ${tab === t ? 'active' : ''} ${t === 'ceo' ? 'primary' : ''}`} href={`?tab=${t}`} role="tab" aria-selected={tab === t}>{TAB_LABEL[t]}</a>
+      ))}
     </div>
 
     {dataSource === 'supabase' ? (
       <div class="notice" style="background:#E8F5E9;border-color:#A5D6A7;color:#1B5E20">
-        Data source: control-plane Work Registry (Supabase). {registry.list().length} work items loaded.
+        Connected to Work Registry. {registry.list().length} work items loaded.
       </div>
     ) : (
       <div class="notice">
         {loadError === 'Supabase not configured'
-          ? 'Work Registry database not configured. Showing empty state. Configure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to connect.'
+          ? 'Work Registry not connected. Showing empty state.'
           : `Work Registry unavailable: ${loadError}. Showing empty state.`}
       </div>
     )}
 
-    {tab === 'board' && (
+    {/* ═══════════ TAB: CEO CONVERSATION (PRIMARY) ═══════════ */}
+    {tab === 'ceo' && (
+      <div class="ask">
+        <div class="card">
+          <h2>Talk to the CEO</h2>
+          <p class="subtitle" style="margin-bottom:12px">
+            Dev (DS-02) is your single point of contact. Give instructions, ask questions, approve decisions. The CEO routes to the right agent.
+          </p>
+          <form id="ceo-form">
+            <label for="ceo-text">What do you need?</label>
+            <textarea id="ceo-text" maxlength="2000" required placeholder="Instruction, question, approval, or decision…"></textarea>
+            <div class="row">
+              <div>
+                <label for="ceo-brand">Brand (optional)</label>
+                <select id="ceo-brand">
+                  <option value="">All brands / DevShop</option>
+                  {Object.entries(BRAND_LABEL).map(([key, name]) => <option value={key}>{name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label for="ceo-work">Work reference (optional)</label>
+                <input id="ceo-work" type="text" autocomplete="off" placeholder="W-001" />
+              </div>
+            </div>
+            <button type="submit" id="ceo-send">Send to the CEO</button>
+          </form>
+        </div>
+        <div class="card resp" id="ceo-result" hidden aria-live="polite"></div>
+
+        <!-- CEO Brief (inline on CEO tab) -->
+        <div class="card">
+          <h2>CEO Brief</h2>
+          <div class="kpi-row">
+            <div class="kpi">
+              <div class="kpi-val">{board.total_open_work}</div>
+              <div class="kpi-label">Open</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-val" style={board.critical_count > 0 ? 'color:var(--tag-p0)' : ''}>{board.critical_count}</div>
+              <div class="kpi-label">Critical</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-val" style={board.blocked_count > 0 ? 'color:var(--tag-p1)' : ''}>{board.blocked_count}</div>
+              <div class="kpi-label">Blocked</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-val" style={board.pending_approval_count > 0 ? 'color:var(--terracotta)' : ''}>{board.pending_approval_count}</div>
+              <div class="kpi-label">Approvals</div>
+            </div>
+          </div>
+          {meeting.ceoRecommendation.map((r) => (
+            <div class={`rec ${r.includes('critical') ? 'rec-critical' : ''}`}>{r}</div>
+          ))}
+        </div>
+
+        <!-- Needs Virat (inline on CEO tab — most urgent) -->
+        {meeting.needsVirat.length > 0 && (
+          <div class="card virat-card">
+            <h2>Needs your decision</h2>
+            {meeting.needsVirat.map((item: DailyMeetingItem) => (
+              <div class="meeting-item">
+                {item.priority && <span class={`tag tag-${item.priority.toLowerCase()}`}>{item.priority}</span>}
+                <span style="flex:1">{item.title}</span>
+                <span style="font-size:0.78rem;color:var(--ink-muted)">{item.state}</span>
+                {item.brand && <span style="font-size:0.78rem;color:var(--ink-muted)">{BRAND_LABEL[item.brand] ?? item.brand}</span>}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    )}
+
+    {/* ═══════════ TAB: TODAY ═══════════ */}
+    {tab === 'today' && (
       <div>
+        <!-- Morning Board KPIs -->
         <div class="kpi-row">
           <div class="kpi">
             <div class="kpi-val">{board.total_open_work}</div>
@@ -299,6 +444,59 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
           </div>
         </div>
 
+        <!-- CEO Recommendation -->
+        <div class="card">
+          <h2>CEO Recommendation</h2>
+          {meeting.ceoRecommendation.map((r) => (
+            <div class={`rec ${r.includes('critical') ? 'rec-critical' : ''}`}>{r}</div>
+          ))}
+        </div>
+
+        <!-- Needs Virat -->
+        <div class="card virat-card">
+          <h2>Needs Virat</h2>
+          {meeting.needsVirat.length === 0 ? (
+            <p class="empty">Nothing waiting on you.</p>
+          ) : (
+            meeting.needsVirat.map((item: DailyMeetingItem) => (
+              <div class="meeting-item">
+                {item.priority && <span class={`tag tag-${item.priority.toLowerCase()}`}>{item.priority}</span>}
+                <span style="flex:1">{item.title}</span>
+                <span style="font-size:0.78rem;color:var(--ink-muted)">{item.state}</span>
+                {item.brand && <span style="font-size:0.78rem;color:var(--ink-muted)">{BRAND_LABEL[item.brand] ?? item.brand}</span>}
+              </div>
+            ))
+          )}
+        </div>
+
+        <!-- Today's Objectives -->
+        <div class="card">
+          <h2>Today's Objectives</h2>
+          {meeting.today.length === 0 ? (
+            <p class="empty">No active work items today.</p>
+          ) : (
+            meeting.today.map((item: DailyMeetingItem) => (
+              <div class="meeting-item">
+                {item.priority && <span class={`tag tag-${item.priority.toLowerCase()}`}>{item.priority}</span>}
+                <span style="flex:1">{item.title}</span>
+                <span style="font-size:0.78rem;color:var(--ink-muted)">{item.state}</span>
+                {item.owner && <span style="font-size:0.78rem;color:var(--gold)">{item.owner}</span>}
+              </div>
+            ))
+          )}
+        </div>
+
+        <!-- Commitments -->
+        {meeting.commitments.length > 0 && (
+          <div class="card">
+            <h2>Active Commitments</h2>
+            {meeting.commitments.map((c) => (
+              <div class="meeting-item"><span style="flex:1">{c}</span></div>
+            ))}
+          </div>
+        )}
+
+        <!-- Material Exceptions -->
         <div class="card">
           <h2>Material Exceptions</h2>
           {board.items.length === 0 ? (
@@ -315,16 +513,154 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
           )}
         </div>
 
-        {board.brands_with_issues.length > 0 && (
-          <div class="card">
-            <h3>Brands with issues</h3>
-            <p style="font-size:0.85rem">{board.brands_with_issues.map((b: string) => BRAND_LABEL[b] ?? b).join(', ')}</p>
+        <!-- Quick Brand Status -->
+        <div class="card">
+          <h2>Brands at a Glance</h2>
+          <div style="font-size:0.82rem">
+            <div class="brand-meeting" style="font-weight:600;color:var(--ink-muted)">
+              <span>Brand</span><span>Open</span><span>Critical</span><span>Blocked</span><span>Agent</span>
+            </div>
+            {meeting.brands.map((b: DailyMeetingBrandStatus) => (
+              <div class="brand-meeting">
+                <span>{BRAND_LABEL[b.brandKey] ?? b.brandKey}</span>
+                <span>{b.openWork}</span>
+                <span style={b.critical > 0 ? 'color:var(--tag-p0);font-weight:600' : ''}>{b.critical}</span>
+                <span style={b.blocked > 0 ? 'color:var(--tag-p1);font-weight:600' : ''}>{b.blocked}</span>
+                <span style="color:var(--gold)">{b.agentId}</span>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
       </div>
     )}
 
-    {tab === 'pipeline' && (
+    {/* ═══════════ TAB: DAILY CEO MEETING ═══════════ */}
+    {tab === 'meeting' && (
+      <div>
+        <div class="card">
+          <h2>Daily CEO Meeting — {meeting.date}</h2>
+          <p class="subtitle" style="margin-bottom:16px">
+            Structured operating report. YESTERDAY / TODAY / NEEDS VIRAT / RECOMMENDATION / COMMITMENTS / BRANDS / RESULTS
+          </p>
+        </div>
+
+        <!-- Yesterday -->
+        <div class="card meeting-section">
+          <h3>Yesterday</h3>
+          {meeting.yesterday.length === 0 ? (
+            <p class="empty">No state changes yesterday.</p>
+          ) : (
+            meeting.yesterday.map((item: DailyMeetingItem) => (
+              <div class="meeting-item">
+                {item.priority && <span class={`tag tag-${item.priority.toLowerCase()}`}>{item.priority}</span>}
+                <span style="flex:1">{item.title}</span>
+                <span style="font-size:0.78rem;color:var(--ink-muted)">{item.state}</span>
+                {item.brand && <span style="font-size:0.78rem;color:var(--ink-muted)">{BRAND_LABEL[item.brand] ?? item.brand}</span>}
+              </div>
+            ))
+          )}
+        </div>
+
+        <!-- Today -->
+        <div class="card meeting-section">
+          <h3>Today</h3>
+          {meeting.today.length === 0 ? (
+            <p class="empty">No active work today.</p>
+          ) : (
+            meeting.today.map((item: DailyMeetingItem) => (
+              <div class="meeting-item">
+                {item.priority && <span class={`tag tag-${item.priority.toLowerCase()}`}>{item.priority}</span>}
+                <span style="flex:1">{item.title}</span>
+                <span style="font-size:0.78rem;color:var(--ink-muted)">{item.state}</span>
+                {item.owner && <span style="font-size:0.78rem;color:var(--gold)">{item.owner}</span>}
+              </div>
+            ))
+          )}
+        </div>
+
+        <!-- Needs Virat -->
+        <div class="card virat-card meeting-section">
+          <h3>Needs Virat</h3>
+          {meeting.needsVirat.length === 0 ? (
+            <p class="empty">Nothing waiting on you.</p>
+          ) : (
+            meeting.needsVirat.map((item: DailyMeetingItem) => (
+              <div class="meeting-item">
+                {item.priority && <span class={`tag tag-${item.priority.toLowerCase()}`}>{item.priority}</span>}
+                <span style="flex:1">{item.title}</span>
+                <span style="font-size:0.78rem;color:var(--ink-muted)">{item.state}</span>
+                {item.brand && <span style="font-size:0.78rem;color:var(--ink-muted)">{BRAND_LABEL[item.brand] ?? item.brand}</span>}
+              </div>
+            ))
+          )}
+        </div>
+
+        <!-- CEO Recommendation -->
+        <div class="card meeting-section">
+          <h3>CEO Recommendation</h3>
+          {meeting.ceoRecommendation.map((r) => (
+            <div class={`rec ${r.includes('critical') ? 'rec-critical' : ''}`}>{r}</div>
+          ))}
+        </div>
+
+        <!-- Commitments -->
+        <div class="card meeting-section">
+          <h3>Commitments</h3>
+          {meeting.commitments.length === 0 ? (
+            <p class="empty">No deadline commitments active.</p>
+          ) : (
+            meeting.commitments.map((c) => (
+              <div class="meeting-item"><span style="flex:1">{c}</span></div>
+            ))
+          )}
+        </div>
+
+        <!-- Brands -->
+        <div class="card meeting-section">
+          <h3>Brands</h3>
+          <div style="font-size:0.82rem">
+            <div class="brand-meeting" style="font-weight:600;color:var(--ink-muted)">
+              <span>Brand</span><span>Open</span><span>Critical</span><span>Blocked</span><span>Resolved yday</span>
+            </div>
+            {meeting.brands.map((b: DailyMeetingBrandStatus) => (
+              <div class="brand-meeting">
+                <span>{BRAND_LABEL[b.brandKey] ?? b.brandKey}</span>
+                <span>{b.openWork}</span>
+                <span style={b.critical > 0 ? 'color:var(--tag-p0);font-weight:600' : ''}>{b.critical}</span>
+                <span style={b.blocked > 0 ? 'color:var(--tag-p1);font-weight:600' : ''}>{b.blocked}</span>
+                <span>{b.resolvedYesterday}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <!-- Results -->
+        <div class="card meeting-section">
+          <h3>Results</h3>
+          <div class="kpi-row">
+            <div class="kpi">
+              <div class="kpi-val">{meeting.results.totalOpen}</div>
+              <div class="kpi-label">Total open</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-val">{meeting.results.resolvedYesterday}</div>
+              <div class="kpi-label">Resolved yday</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-val">{meeting.results.createdYesterday}</div>
+              <div class="kpi-label">Created yday</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-val">{meeting.results.closedYesterday}</div>
+              <div class="kpi-label">Closed yday</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* ═══════════ TAB: WORK PIPELINE ═══════════ */}
+    {tab === 'work' && (
       <div>
         <div class="card">
           <h2>Work Pipeline — {view.total} open items</h2>
@@ -380,14 +716,14 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
           )}
         </div>
 
-        <div class="card" id="work">
+        <div class="card" id="work-list">
           <h3>Work</h3>
-          <p class="empty" style="margin-bottom:8px">Move Work along its lifecycle. Closing needs verification and evidence.</p>
+          <p class="empty" style="margin-bottom:8px">Move work along its lifecycle. Closing needs verification and evidence.</p>
           {openWork.length === 0 ? (
             <p class="empty">No open work.</p>
           ) : (
             openWork.slice(0, MAX_OPEN_SHOWN).map((i) => (
-              <article class="work">
+              <article class="work-item">
                 <div class="work-head">
                   <span class={`tag tag-${(i.priority ?? 'p4').toLowerCase()}`}>{i.priority ?? '—'}</span>
                   <strong class="work-title">{i.title}</strong>
@@ -449,7 +785,7 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
             <p class="empty">Nothing closed yet.</p>
           ) : (
             closedWork.map((i) => (
-              <article class="work">
+              <article class="work-item">
                 <div class="work-head"><strong class="work-title">{i.title}</strong></div>
                 <div class="work-meta">{i.ref} · {BRAND_LABEL[i.scope.brand ?? ''] ?? i.scope.brand ?? 'DevShop'} · closed {i.closed_at ? day(i.closed_at) : ''}{i.closure ? ` · verified by ${i.closure.verified_by.id}` : ''}</div>
                 <div class="state state-closed"><b>CLOSED</b> {STATE_MEANING.closed.note}</div>
@@ -465,6 +801,7 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
       </div>
     )}
 
+    {/* ═══════════ TAB: AGENTS ═══════════ */}
     {tab === 'agents' && (
       <div>
         <div class="card">
@@ -510,6 +847,7 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
       </div>
     )}
 
+    {/* ═══════════ TAB: BRANDS ═══════════ */}
     {tab === 'brands' && (
       <div>
         <div class="card">
@@ -531,39 +869,30 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
             ))}
           </div>
         </div>
-      </div>
-    )}
 
-    {tab === 'ceo' && (
-      <div class="ask">
+        <!-- Per-brand operating detail from daily meeting -->
         <div class="card">
-          <h2>Ask the CEO</h2>
-          <p class="subtitle" style="margin-bottom:12px">Dev (DS-02) checks existing Work first, then your authority rules. Nothing is sent, deployed or spent from here.</p>
-          <form id="ceo-form">
-            <label for="ceo-text">Request, question, approval or decision</label>
-            <textarea id="ceo-text" maxlength="2000" required></textarea>
-            <div class="row">
-              <div>
-                <label for="ceo-brand">Brand (optional)</label>
-                <select id="ceo-brand">
-                  <option value="">No brand</option>
-                  {Object.entries(BRAND_LABEL).map(([key, name]) => <option value={key}>{name}</option>)}
-                </select>
-              </div>
-              <div>
-                <label for="ceo-work">Work reference (optional)</label>
-                <input id="ceo-work" type="text" autocomplete="off" />
-              </div>
+          <h2>Brand Operating Status</h2>
+          <div style="font-size:0.82rem">
+            <div class="brand-meeting" style="font-weight:600;color:var(--ink-muted)">
+              <span>Brand</span><span>Open</span><span>Critical</span><span>Blocked</span><span>Agent</span>
             </div>
-            <button type="submit" id="ceo-send">Send to the CEO</button>
-          </form>
+            {meeting.brands.map((b: DailyMeetingBrandStatus) => (
+              <div class="brand-meeting">
+                <span>{BRAND_LABEL[b.brandKey] ?? b.brandKey}</span>
+                <span>{b.openWork}</span>
+                <span style={b.critical > 0 ? 'color:var(--tag-p0);font-weight:600' : ''}>{b.critical}</span>
+                <span style={b.blocked > 0 ? 'color:var(--tag-p1);font-weight:600' : ''}>{b.blocked}</span>
+                <span style="color:var(--gold)">{b.agentId} {b.agentName}</span>
+              </div>
+            ))}
+          </div>
         </div>
-        <div class="card resp" id="ceo-result" hidden aria-live="polite"></div>
       </div>
     )}
 
     <p style="margin-top:32px;font-size:0.8rem;color:var(--ink-muted);text-align:center">
-      Founder Control Tower · DevShop Retail OS · Source: {dataSource === 'supabase' ? 'Control-plane Work Registry' : 'Empty (not connected)'}
+      Founder Command Centre · DevShop Retail OS · Source: {dataSource === 'supabase' ? 'Control-plane Work Registry' : 'Empty (not connected)'}
     </p>
   </div>
 
@@ -595,7 +924,7 @@ const tab = TAB_NAMES.includes(Astro.url.searchParams.get('tab') as typeof TAB_N
           if (d.context.relatedWork.length) row(dl, 'Related Work', d.context.relatedWork.map(ref).join(' | '));
           out.append(dl);
           if (d.audit.length) { const h = document.createElement('h3'); h.textContent = 'Audit'; h.style.marginTop = '12px'; const ul = document.createElement('ul'); for (const a of d.audit) { const li = document.createElement('li'); li.textContent = a; ul.append(li); } out.append(h, ul); }
-          if (d.outcome.mutationApplied) { const p = document.createElement('p'); p.style.marginTop = '12px'; const a = document.createElement('a'); a.href = '?tab=pipeline'; a.textContent = 'See it in the Work Pipeline'; p.append(a); out.append(p); }
+          if (d.outcome.mutationApplied) { const p = document.createElement('p'); p.style.marginTop = '12px'; const a = document.createElement('a'); a.href = '?tab=work'; a.textContent = 'See it in the Work Pipeline'; p.append(a); out.append(p); }
         } catch { out.textContent = 'Could not reach the CEO runtime. Try again.'; }
         finally { btn.disabled = false; btn.textContent = 'Send to the CEO'; }
       });
