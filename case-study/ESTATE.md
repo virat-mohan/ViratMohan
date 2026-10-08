@@ -2,7 +2,7 @@
 
 **The single source of truth for the estate: the business hierarchy, every Claude Project, every repository, every brand/client, and what each is called now vs. what it should be called.** Read this before creating any new Claude Project, repository, package or major subsystem (see §12, the anti-duplication rule).
 
-- **As of:** 2026-10-05
+- **As of:** 2026-10-08
 - **Owner:** Virat (master control: the viratmohan.com Claude Code session).
 - **Authority:** classifications in §2–§9 are confirmed by Virat (2026-10-05). Do not re-classify unless you hit a genuine, unresolvable contradiction.
 
