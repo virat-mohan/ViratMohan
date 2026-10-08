@@ -14,11 +14,26 @@ import { getEnv } from '../../../lib/env';
 import { serviceDb } from '../../../lib/ledger';
 import { createSupabaseWorkStore } from '../../../lib/work/db-store';
 import { loadRegistry } from '../../../lib/work/db-registry';
+import { certificationSummary, type CertLevel } from '../../../lib/ceo/agent-training';
+import { peopleSummary } from '../../../lib/ceo/people';
+import {
+  createSupabaseDecisionStore,
+  createSupabaseOnboardingStore,
+  createSupabaseDashboardConfigStore,
+  createSupabaseTrainingStore,
+  type OrgDecision, type OnboardingRecord, type DashboardConfig,
+} from '../../../lib/ceo/db-stores';
+import type { AssessmentResult } from '../../../lib/ceo/agent-training';
 
 const now = new Date();
 let registry: InMemoryWorkRegistry;
 let dataSource: 'supabase' | 'empty';
 let loadError: string | null = null;
+
+let decisions: OrgDecision[] = [];
+let onboarding: OnboardingRecord[] = [];
+let dashboards: DashboardConfig[] = [];
+let storedAssessments = new Map<string, AssessmentResult[]>();
 
 const env = getEnv();
 if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -27,6 +42,18 @@ if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
     const store = createSupabaseWorkStore(sb);
     registry = await loadRegistry(store);
     dataSource = 'supabase';
+
+    // Load extended context from DB — degrade gracefully if tables don't exist yet
+    try { decisions = await createSupabaseDecisionStore(sb).loadDecisions(); } catch {}
+    try { onboarding = await createSupabaseOnboardingStore(sb).loadAll(); } catch {}
+    try { dashboards = await createSupabaseDashboardConfigStore(sb).loadAllConfigs(); } catch {}
+    try {
+      const ts = createSupabaseTrainingStore(sb);
+      await Promise.all(AGENT_REGISTRY.map(async (a) => {
+        const p = await ts.loadPassport(a.id);
+        if (p?.assessments?.length) storedAssessments.set(a.id, p.assessments);
+      }));
+    } catch {}
   } catch (err: unknown) {
     loadError = err instanceof Error ? err.message : String(err);
     registry = new InMemoryWorkRegistry();
@@ -45,6 +72,13 @@ const closedCount = registry.list().filter((i) => i.state === 'closed').length;
 const dev = findAgent('DS-02')!;
 const brandCeos = directReports('DS-02').filter((a) => a.role === 'brand_ceo');
 const hods = directReports('DS-02').filter((a) => a.role !== 'brand_ceo');
+
+// Extended operating picture
+const certSummary = certificationSummary(now, storedAssessments);
+const peopleData = peopleSummary(registry.list(), now);
+const pendingDecisionCount = decisions.filter(d => !d.superseded_by).length;
+const onboardingActive = onboarding.filter(o => o.stage !== 'LAUNCH' && o.stage !== 'MONDAY_RESULT');
+const dashboardCount = dashboards.length;
 
 const STATE_MEANING: Record<string, { label: string; note: string }> = {
   new: { label: 'New', note: 'Not triaged yet' },
