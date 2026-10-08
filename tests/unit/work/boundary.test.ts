@@ -117,6 +117,10 @@ describe('only authorized surfaces reach the Work Registry', () => {
     'src/lib/ceo/daily-meeting.ts',
     'tests/unit/ceo-integration/channel-adapter.test.ts',
     'tests/unit/ceo-integration/daily-meeting.test.ts',
+    'src/lib/ceo/agent-training.ts',
+    'src/lib/ceo/people.ts',
+    'tests/unit/ceo-integration/agent-training.test.ts',
+    'tests/unit/ceo-integration/people.test.ts',
   ]);
 
   it('only authorized surfaces import Work Registry code', () => {

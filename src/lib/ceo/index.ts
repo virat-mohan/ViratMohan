@@ -8,3 +8,5 @@ export * from './response';
 export * from './orchestrator';
 export * from './channel-adapter';
 export * from './daily-meeting';
+export * from './agent-training';
+export * from './people';
