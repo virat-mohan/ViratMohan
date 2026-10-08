@@ -160,6 +160,20 @@ export const ASSESSMENT_SCENARIOS: AssessmentScenario[] = [
 
   // Guardian (DS-01)
   { id: 'GD-A01', module_id: 'GD-01', role_or_agent: 'DS-01', description: 'Review a proposed marketing message for mission alignment and values compliance', expected_outcome: 'Alignment assessment with specific references to mission/values, pass/fail with reasons', verification: 'References point to actual mission/values statements' },
+
+  // HOD shared (all HoDs DS-10 through DS-15)
+  { id: 'HOD-A01', module_id: 'HOD-01', role_or_agent: 'hod', description: 'Coordinate a cross-function deliverable with two other agents, tracking dependencies and blockers', expected_outcome: 'Clear task breakdown, dependency graph, status updates and escalation when blocked', verification: 'Dependencies correctly identified; status updates match actual progress' },
+
+  // CEO gaps (DS-02)
+  { id: 'CEO-A03', module_id: 'CEO-03', role_or_agent: 'DS-02', description: 'Evaluate company-wide unit economics across brands and identify the highest-leverage improvement', expected_outcome: 'Consolidated economics with brand breakdown, improvement ranked by impact', verification: 'Numbers traceable to source data; improvement impact quantified' },
+  { id: 'CEO-A04', module_id: 'CEO-04', role_or_agent: 'DS-02', description: 'Run the weekly operating cadence: collect agent reports, surface blockers, set priorities for next week', expected_outcome: 'Cadence summary with all agents reporting, blockers escalated, priorities set', verification: 'All active agents included; priorities align with strategic objectives' },
+
+  // Brand CEO gaps (all brand_ceo)
+  { id: 'BC-A03', module_id: 'BC-02', role_or_agent: 'brand_ceo', description: 'Design a 7-day growth experiment using owned channels (WhatsApp, email, SEO) with measurable outcomes', expected_outcome: 'Experiment plan with hypothesis, channel mix, budget, expected lift and measurement method', verification: 'Channels are owned/earned; measurement is feasible with available data' },
+  { id: 'BC-A04', module_id: 'BC-04', role_or_agent: 'brand_ceo', description: 'Produce the weekly brand performance report with contribution profit, order trends and channel attribution', expected_outcome: 'Accurate report with all line items sourced, trends identified, actions proposed', verification: 'Every number traceable to a data source; trends match the data direction' },
+
+  // Improve gap (DS-17 — SP-01 coverage)
+  { id: 'IMP-A02', module_id: 'SP-01', role_or_agent: 'DS-17', description: 'Demonstrate specialist competence by auditing a process for inefficiency and proposing a measurable standard', expected_outcome: 'Inefficiency identified with data, proposed standard with acceptance criteria', verification: 'Inefficiency confirmed in process data; standard is measurable' },
 ];
 
 export function scenariosForAgent(agentId: string): AssessmentScenario[] {

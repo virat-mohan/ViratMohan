@@ -100,7 +100,7 @@ describe('assessment scenarios', () => {
   it('scenariosForAgent returns the right scenarios for DS-13 (CFO)', () => {
     const scenarios = scenariosForAgent('DS-13');
     expect(scenarios.length).toBeGreaterThanOrEqual(3);
-    expect(scenarios.every((s) => s.role_or_agent === 'DS-13' || s.role_or_agent === 'specialist')).toBe(true);
+    expect(scenarios.every((s) => s.role_or_agent === 'DS-13' || s.role_or_agent === 'hod')).toBe(true);
   });
 
   it('scenariosForAgent returns brand_ceo scenarios for a brand CEO agent', () => {

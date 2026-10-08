@@ -12,6 +12,8 @@ import { brandCeoFor } from './types';
 import { classifyFounderInput } from './founder-input';
 import { processFounderInput, type OrchestratorOutcome, type RoutingDecision } from './orchestrator';
 import type { RoleBindings } from './roles';
+import { buildExtendedContext, answerAttention, type ExtendedCeoContext } from './ceo-context-extended';
+import { brainContextSummary, type BrainContext } from './brain-context';
 
 export const MAX_FOUNDER_TEXT = 2000;
 const MAX_RELATED = 5;
@@ -37,6 +39,13 @@ export interface FounderResponse {
   escalation: { required: boolean; to: string | null };
   nextStep: string;
   audit: string[];
+  extended?: {
+    agentCount: number;
+    humanCount: number;
+    brandCount: number;
+    brainSummary: string | null;
+    attentionSummary: string | null;
+  };
 }
 
 export interface FounderRequestBody { text?: unknown; brand?: unknown; work_id?: unknown }
@@ -100,6 +109,11 @@ export interface FounderDeps {
   adminPassword: string | undefined;
   now?: Date;
   bindings?: RoleBindings;
+  brainContext?: import('./brain-context').BrainContext;
+  decisions?: import('./db-stores').OrgDecision[];
+  onboarding?: import('./db-stores').OnboardingRecord[];
+  dashboards?: import('./db-stores').DashboardConfig[];
+  storedAssessments?: Map<string, import('./agent-training').AssessmentResult[]>;
 }
 
 /** Whole request handler, kept out of the Astro route so it can be tested without the framework. */
@@ -128,7 +142,24 @@ export async function handleFounderInput(
       if (workId && !registry.get(workId)) return { value: { status: 400, body: { error: 'Unknown Work reference' } }, changed: false };
       const input = classifyFounderInput(body.text as string, VIRAT, { channel: 'command_centre', brand, work_id: workId, now });
       const outcome = processFounderInput(input, registry, { now, bindings: deps.bindings });
-      return { value: { status: 200, body: toFounderResponse(outcome) }, changed: outcome.mutationApplied };
+      const response = toFounderResponse(outcome);
+
+      // Build extended context when deps are provided
+      if (deps.decisions || deps.onboarding || deps.dashboards || deps.storedAssessments || deps.brainContext) {
+        const extended = buildExtendedContext(input, registry, {
+          now, decisions: deps.decisions, onboarding: deps.onboarding,
+          dashboards: deps.dashboards, storedAssessments: deps.storedAssessments,
+        });
+        response.extended = {
+          agentCount: extended.agents.length,
+          humanCount: extended.humans.length,
+          brandCount: extended.brands.length,
+          brainSummary: deps.brainContext ? brainContextSummary(deps.brainContext) : null,
+          attentionSummary: answerAttention(extended),
+        };
+      }
+
+      return { value: { status: 200, body: response }, changed: outcome.mutationApplied };
     });
     return result;
   } catch (e) {

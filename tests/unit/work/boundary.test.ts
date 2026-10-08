@@ -126,6 +126,8 @@ describe('only authorized surfaces reach the Work Registry', () => {
     'src/lib/ceo/db-stores.ts',
     'src/lib/ceo/ceo-context-extended.ts',
     'tests/unit/ceo-integration/operating-system.test.ts',
+    'src/lib/ceo/brain-context.ts',
+    'tests/unit/ceo-integration/integration-closure.test.ts',
   ]);
 
   it('only authorized surfaces import Work Registry code', () => {

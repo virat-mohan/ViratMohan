@@ -12,3 +12,4 @@ export * from './agent-training';
 export * from './people';
 export * from './db-stores';
 export * from './ceo-context-extended';
+export * from './brain-context';
