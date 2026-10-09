@@ -24,7 +24,7 @@ for (const p of list) {
   }
   const species = cats.some((c) => /purr/i.test(c)) ? 'cat' : 'dog';
   const group = /combo/i.test(cats.join(' ')) ? 'combo' : /mini paws/i.test(cats.join(' ')) ? 'puppy' : /liv-love|liverlicious|topper/i.test(name) ? 'topper' : /peanut butter/i.test(name) ? 'treat' : 'meal';
-  out.push({ id: p.id, name, species, group, cats, sizes, image: p.images[0]?.src ?? null, url: p.permalink, blurb: txt(p.short_description).slice(0, 420) });
+  out.push({ id: p.id, name, species, group, cats, sizes, image: p.images[0]?.src ?? null, images: p.images.slice(0, 5).map((i) => i.src), url: p.permalink, blurb: txt(p.short_description).slice(0, 1400) });
 }
 writeFileSync(new URL('../public/preview/freshforpaws/catalogue.json', import.meta.url), JSON.stringify({ source: 'freshforpaws.com WooCommerce Store API', readAt: new Date().toISOString(), products: out }, null, 1));
 console.log('products', out.length, 'with image', out.filter((x) => x.image).length);
