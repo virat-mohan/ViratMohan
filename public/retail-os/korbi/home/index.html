@@ -49,7 +49,9 @@ h1{font:300 clamp(36px,5.2vw,64px)/1.2 var(--jp);margin:18px 0 0;letter-spacing:
 .price{font:400 22px/1 var(--min)}.price small{font:300 11px/1 var(--jp);letter-spacing:.2em;color:var(--dim);margin-left:8px}
 .watch{background:none;border:0;min-height:44px;padding:0;font:500 12px/1 var(--jp);letter-spacing:.2em;text-transform:uppercase;color:var(--ink);text-decoration:underline;text-underline-offset:5px;cursor:pointer}
 .stage{position:relative;background:var(--card);display:grid;place-items:center;overflow:hidden;min-height:400px}
-.kanji{position:absolute;top:28px;right:30px;font:400 clamp(64px,8vw,120px)/1 var(--min);color:var(--seal);writing-mode:vertical-rl}
+.kanji{position:absolute;top:28px;right:30px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.kanji span{font:400 clamp(64px,8vw,120px)/1 var(--min);color:var(--seal)}
+.kanji small{font:500 10px/1 var(--jp);letter-spacing:.22em;color:var(--dim);white-space:nowrap}
 .stage svg{width:min(66%,360px);height:auto}
 .stage .spec{position:absolute;left:24px;right:24px;bottom:20px;display:flex;justify-content:space-between;gap:12px;font-size:11px;letter-spacing:.22em;color:var(--dim)}
 
@@ -191,7 +193,7 @@ footer a{text-decoration:underline;text-underline-offset:3px}
     <div class="cta"><a class="btn" href="#buy">Choose your bulb</a><span class="price">₹11,500<small>FROM · A PAIR</small></span><button class="watch" type="button" id="watch">▶ Watch the film</button></div>
   </div>
   <div class="stage">
-    <span class="kanji" aria-hidden="true">光</span>
+    <div class="kanji"><span aria-hidden="true">光</span><small>HIKARI · LIGHT</small></div>
     <svg viewBox="0 0 300 300" aria-hidden="true">
       <defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#DCD8CF"/><stop offset=".5" stop-color="#FFF"/><stop offset="1" stop-color="#CFCBC1"/></linearGradient>
       <radialGradient id="h" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FFF4DC"/><stop offset="1" stop-color="#FFF4DC" stop-opacity="0"/></radialGradient></defs>
