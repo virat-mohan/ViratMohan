@@ -11,6 +11,7 @@ import { CEO, brandCeoFor, type WorkQuestion } from './types';
 import type { FounderInput } from './founder-input';
 import { buildContextPack, type ContextPack } from './context-pack';
 import { checkAuthority, requiredCapabilityForInput, canCeoAssign, type AuthorityVerdict } from './authority';
+import type { AssessmentResult } from './agent-training';
 import { buildCeoResponse, type CeoResponse } from './response';
 import { createQuestion } from './coordinator';
 import { decidePriority, type PriorityDecision } from './priority-policy';
@@ -71,6 +72,7 @@ export interface OrchestratorOutcome {
 export interface OrchestratorOptions {
   now?: Date;
   bindings?: RoleBindings;
+  storedAssessments?: Map<string, AssessmentResult[]>;
 }
 
 export function processFounderInput(
@@ -100,7 +102,7 @@ export function processFounderInput(
     : null;
   const intent = fn && input.kind !== 'question' ? deploymentIntent(input.text) : null;
   const routing = fn ? routingFor(roleForFunction(fn, bindings), intent ? describeIntent(intent) : 'question about a deployment target') : null;
-  const ctx: Ctx = { input, context, response, authority, registry, now, bindings, routing };
+  const ctx: Ctx = { input, context, response, authority, registry, now, bindings, routing, storedAssessments: opts.storedAssessments };
 
   switch (input.kind) {
     case 'relationship':
@@ -129,6 +131,7 @@ interface Ctx {
   now: Date;
   bindings: RoleBindings;
   routing: RoutingDecision | null;
+  storedAssessments?: Map<string, AssessmentResult[]>;
 }
 
 type Partial_ = Partial<OrchestratorOutcome> & Pick<OrchestratorOutcome, 'kind' | 'summary' | 'nextStep'>;
@@ -313,7 +316,7 @@ function workFlow(c: Ctx): OrchestratorOutcome {
   const owner = c.routing
     ? ({ kind: 'agent', id: c.routing.governance } as Actor)
     : brandOwner(c.input) ?? CEO;
-  const assign = canCeoAssign(owner, c.bindings);
+  const assign = canCeoAssign(owner, c.bindings, c.storedAssessments);
   if (!assign.allowed) {
     return done(c, { kind: 'escalated', operation: 'escalate', summary: `Cannot assign to ${owner.id}: ${assign.reason}`, escalationRequired: true, nextStep: `Approval from ${assign.holder} needed first` });
   }

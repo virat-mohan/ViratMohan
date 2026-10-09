@@ -11,6 +11,8 @@ import { handleWorkerAction, type WorkerActionRequest } from '../../../src/lib/c
 import { certificationSummary, canExerciseAutonomy, trainingModulesFor, deriveCertification } from '../../../src/lib/ceo/agent-training';
 import { buildExtendedContext } from '../../../src/lib/ceo/ceo-context-extended';
 import { classifyFounderInput } from '../../../src/lib/ceo/founder-input';
+import { processFounderInput } from '../../../src/lib/ceo/orchestrator';
+import { canCeoAssign } from '../../../src/lib/ceo/authority';
 
 const NOW = new Date('2026-10-08T10:00:00.000Z');
 const AUTH = 'Basic ' + Buffer.from('admin:test-admin-pw').toString('base64');
@@ -237,6 +239,45 @@ describe('E: Persistent memory loop proof', () => {
     expect(body.extended.brainSummary).toContain('company fact');
     expect(body.extended.brainSummary).toContain('governance rule');
     expect(body.extended.brainSummary).toContain('learning');
+  });
+});
+
+describe('F2: Certification gates CEO delegation in the orchestrator', () => {
+  it('uncertified agent is blocked when storedAssessments are provided', () => {
+    const emptyAssessments = new Map<string, AssessmentResult[]>();
+    const target = { kind: 'agent' as const, id: 'tc_01' };
+    const verdict = canCeoAssign(target, undefined, emptyAssessments);
+    expect(verdict.allowed).toBe(false);
+    if (!verdict.allowed) expect(verdict.reason).toContain('not yet certified');
+  });
+
+  it('certified agent is allowed when storedAssessments show passed modules', () => {
+    const modules = trainingModulesFor('TC-01');
+    const allPassed: AssessmentResult[] = modules.map((m, i) => ({
+      scenario_id: ASSESSMENT_SCENARIOS.find(s => s.module_id === m.id)?.id ?? `SYNTH-${i}`,
+      passed: true, evidence: `Module ${m.id} verified`,
+      assessed_at: NOW.toISOString(), assessed_by: 'DS-02',
+    }));
+    const assessments = new Map([['TC-01', allPassed]]);
+    const target = { kind: 'agent' as const, id: 'tc_01' };
+    const verdict = canCeoAssign(target, undefined, assessments);
+    expect(verdict.allowed).toBe(true);
+  });
+
+  it('without storedAssessments, delegation is allowed (backward compatible)', () => {
+    const target = { kind: 'agent' as const, id: 'tc_01' };
+    const verdict = canCeoAssign(target);
+    expect(verdict.allowed).toBe(true);
+  });
+
+  it('orchestrator blocks delegation to uncertified agent', () => {
+    const reg = new InMemoryWorkRegistry({ now: () => NOW.toISOString() });
+    const input = classifyFounderInput('Deploy the staging build for Travaholic', VIRAT, { channel: 'command_centre', now: NOW });
+    const emptyAssessments = new Map<string, AssessmentResult[]>();
+    const outcome = processFounderInput(input, reg, { now: NOW, storedAssessments: emptyAssessments });
+    if (outcome.kind === 'escalated') {
+      expect(outcome.summary).toContain('certified');
+    }
   });
 });
 

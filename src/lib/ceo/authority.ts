@@ -7,9 +7,10 @@ import type { Actor, Authority } from '../work/types';
 import { AUTHORITY_HOLDERS } from '../work/actors';
 import { ROLE_BINDINGS, rolesHeldBy, type RoleBindings, type RoleId } from './roles';
 import {
-  CEO_ID, CEO, AGENT_REGISTRY, autonomyFor, canActAutonomously, brandCeoFor,
+  CEO_ID, CEO, AGENT_REGISTRY, autonomyFor, canActAutonomously, brandCeoFor, findAgent,
   type AutonomyLevel, type AutonomyGrant, type AgentEntry,
 } from './types';
+import { canExerciseAutonomy, type AssessmentResult } from './agent-training';
 import type { FounderInput, FounderInputKind } from './founder-input';
 
 export type AuthorityVerdict =
@@ -68,7 +69,11 @@ function resolveApprovalCapability(text: string): string {
  * one of those roles (resolved from the role bindings), the assignment needs the role's assignment authority.
  * Nothing here names a person: who holds a role is configuration in roles.ts.
  */
-export function canCeoAssign(target: Actor, bindings: RoleBindings = ROLE_BINDINGS): AuthorityVerdict {
+export function canCeoAssign(
+  target: Actor,
+  bindings: RoleBindings = ROLE_BINDINGS,
+  storedAssessments?: Map<string, AssessmentResult[]>,
+): AuthorityVerdict {
   const grant = autonomyFor('assign-work');
   if (!grant) {
     return { allowed: false, level: 'L4', capability: 'assign-work', holder: 'DS-00', reason: 'No assign-work grant' };
@@ -82,6 +87,19 @@ export function canCeoAssign(target: Actor, bindings: RoleBindings = ROLE_BINDIN
       holder: resolveApproverForAuthority(authority),
       reason: `Assignment to ${held} requires approval (authority: ${authority})`,
     };
+  }
+  if (target.kind === 'agent' && storedAssessments) {
+    const agent = findAgent(target.id.toUpperCase().replace('_', '-'));
+    if (agent && agent.id !== CEO_ID && agent.id !== 'DS-00') {
+      const assessments = storedAssessments.get(agent.id);
+      if (!canExerciseAutonomy(agent.id, 'CERTIFIED_L1', assessments)) {
+        return {
+          allowed: false, level: 'L1', capability: 'assign-work',
+          holder: CEO_ID,
+          reason: `Agent ${agent.id} (${agent.name}) is not yet certified — training or assessment required before delegation`,
+        };
+      }
+    }
   }
   return checkAuthority('assign-work');
 }
