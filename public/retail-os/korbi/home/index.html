@@ -148,6 +148,13 @@ h1{font:300 clamp(36px,5.2vw,64px)/1.2 var(--jp);margin:18px 0 0;letter-spacing:
 .faq details[open] summary::after{content:"–"}
 .faq p{color:var(--dim);margin:0 0 16px;max-width:66ch}
 
+.founder{display:grid;grid-template-columns:minmax(0,.8fr) 1.2fr;gap:clamp(24px,5vw,72px);align-items:center}
+@media (max-width:820px){.founder{grid-template-columns:1fr}}
+.founder .ph{aspect-ratio:4/5;max-width:360px;width:100%;background:var(--card);border:1px solid var(--rule);display:grid;place-items:center;align-content:center;gap:10px;font:400 72px/1 var(--min);color:var(--seal)}
+.founder .ph span{font:400 11px/1 var(--jp);letter-spacing:.24em;text-transform:uppercase;color:var(--dim)}
+.founder .role{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin:0 0 18px}
+.founder p{color:var(--dim);max-width:52ch}
+.founder .note{font:400 18px/1.6 var(--min);color:var(--ink);border-left:2px solid var(--seal);padding-left:16px}
 footer{padding-block:40px 110px;display:grid;gap:22px;font-size:13px;color:var(--dim)}
 footer .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
 @media (max-width:720px){footer .cols{grid-template-columns:1fr}}
@@ -166,7 +173,7 @@ footer a{text-decoration:underline;text-underline-offset:3px}
 <div class="preview">PREVIEW FOR KORBI · NOT LIVE</div>
 <div class="bar">DESIGNED IN JAPAN · MADE FOR INDIA</div>
 <header class="wrap"><a href="#top" aria-label="KORBI home"><img src="assets/korbi-logo.svg" alt="KORBI · The Light Samurai" width="102" height="34"></a>
-  <nav><a href="#buy">Shop</a><a href="#tech" class="hide">Technology</a><a href="#story" class="hide">Our story</a><button class="cartbtn" type="button" data-open-cart>Cart<b data-count hidden>0</b></button></nav></header>
+  <nav><a href="#buy">Shop</a><a href="#tech" class="hide">Technology</a><a href="#story" class="hide">Our story</a><a href="#founder" class="hide">Founder</a><button class="cartbtn" type="button" data-open-cart>Cart<b data-count hidden>0</b></button></nav></header>
 
 <main id="top">
 <section class="hero">
@@ -326,6 +333,18 @@ footer a{text-decoration:underline;text-underline-offset:3px}
     <details><summary>Who should fit them?</summary><p>A certified, professional technician. Fitting by anyone else voids the warranty and replacement rights.</p></details>
     <details><summary>What if a bulb doesn't work out of the box?</summary><p>Send a video showing the fault and no damage within 7 working days of delivery, and KORBI replaces it with a new unit. Refunds are only for confirmed manufacturing defects.</p></details>
     <details><summary>When will it arrive?</summary><p>Orders leave in 1–2 business days and reach you in 3–11 working days, anywhere in India. You get a tracking number on dispatch.</p></details>
+  </div>
+</section>
+<section class="wrap pad" id="founder">
+  <div class="founder">
+    <div class="ph" role="img" aria-label="Photo of Tushar Chaudhary, to come">光<span>Founder photo to come</span></div>
+    <div>
+      <span class="tag">The founder</span>
+      <h2 style="margin:12px 0 6px">Tushar Chaudhary</h2>
+      <p class="role">Founder, KORBI · New Delhi</p>
+      <p>Tushar started KORBI in 2024 to bring Japanese-designed lighting to Indian roads: a bulb that lights the driver's path without blinding the car coming the other way.</p>
+      <p class="note">Tushar's own note, in his words, goes here.</p>
+    </div>
   </div>
 </section>
 </main>

@@ -89,3 +89,4 @@ Design references (Shyam, 30 Sep): whitekailash.com, wheaty.in, muji.com/jp/ja/s
 - Brand book: /retail-os/korbi/brand-book/. Brand-voice module in the korbi repo (src/lib/brand-voice.ts).
 - To confirm with KORBI: the site lists 6000K as "6500 Kelvin" in photometrics; the ballast label says 5.83A but the spec says 5.19A; whether shipping is free (the policy says "if applicable, at checkout").
 - Removed "fit it yourself" copy: KORBI's policy requires a certified technician, or the warranty is void.
+- 9 Oct: Founder section added at the bottom with Tushar only (Virat). Placeholders for Tushar's photo and his own note, to be filled from him.
