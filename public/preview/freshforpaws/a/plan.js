@@ -102,72 +102,88 @@
     $('pbSteps').scrollIntoView({behavior:'smooth',block:'start'});
   }
 
+
+  var STEPNAMES=['Tell us about your dog','Your plan','Review'];
+  function crumbs(n){
+    var ol=$('crumbs'); ol.innerHTML='<li><a href="index.html">Home</a></li><li><a href="plan.html">Build a plan</a></li>';
+    if(n===1) ol.innerHTML+='<li aria-current="page">Tell us about your dog</li>';
+    else { ol.innerHTML+='<li><a href="#" data-go="1">Tell us about your dog</a></li>'; if(n===2) ol.innerHTML+='<li aria-current="page">Your plan</li>'; else ol.innerHTML+='<li><a href="#" data-go="2">Your plan</a></li><li aria-current="page">Review</li>'; }
+    Array.prototype.forEach.call(ol.querySelectorAll('[data-go]'),function(a){a.onclick=function(e){e.preventDefault();go(+a.getAttribute('data-go'))}});
+  }
+  var cur=1;
+  function go(n,push){
+    cur=n;
+    ['s1','s2','s3'].forEach(function(id,i){$(id).classList.toggle('pb-hide',i!==n-1)});
+    Array.prototype.forEach.call($('pbSteps').children,function(li,i){li.className=i===n-1?'on':(i<n-1?'done':'');if(i===n-1)li.setAttribute('aria-current','step');else li.removeAttribute('aria-current')});
+    $('pbTitle').textContent=n===1?'Tell us about your dog':(n===2?st.name+'\'s plan':'Review '+st.name+'\'s plan');
+    $('pbLead').classList.toggle('pb-hide',n!==1);
+    $('pbBar').classList.toggle('pb-hide',n!==2);
+    crumbs(n); document.title=STEPNAMES[n-1]+' · Fresh For Paws · Mockup A';
+    if(push!==false){try{history.pushState({n:n},'','#'+['dog','plan','review'][n-1])}catch(e){}}
+    window.scrollTo({top:0,behavior:'auto'});
+    var h=$('pbTitle'); h.setAttribute('tabindex','-1'); h.focus({preventScroll:true});
+  }
+  window.addEventListener('popstate',function(e){var n=(e.state&&e.state.n)||1; if(n>1&&!st.rec){n=1} go(n,false)});
+
   $('pbGo1').onclick=function(){
-    var b=BREEDS[+$('pbBreed').value], months=(+$('pbY').value)*12+(+$('pbM').value), kg=parseFloat($('pbKg').value);
+    var b=BREEDS[+$('pbBreed').value], months=(+$('pbY').value)*12+(+$('pbM').value), kg=parseFloat($('pbKg').value), sx=(val('sex')||'m-yes').split('-');
     if(!(kg>0)||kg>90){$('pbKg').setCustomValidity('Enter a weight between 1 and 90 kg');$('pbKg').reportValidity();return}
     $('pbKg').setCustomValidity('');
-    st={name:($('pbName').value||'Your dog').trim(),breed:b[0],size:b[1],months:months,kg:kg,sex:val('sex'),neut:val('neut'),bcs:val('bcs'),pref:val('pref'),
+    st={name:($('pbName').value||'Your dog').trim(),breed:b[0],size:b[1],months:months,kg:kg,sex:sx[0]==='m'?'male':'female',neut:sx[1],bcs:val('bcs'),pref:val('pref'),rot:3,tier:'fortnight',
         avoid:Array.prototype.map.call(document.querySelectorAll('#pbAvoid input:checked'),function(e){return e.value})};
-    st.rot=st.rot||3; st.stage=stage(st.size,st.months); st.en=energy(st); st.rec=pick(st);
-    plan(); show(2);
+    st.stage=stage(st.size,st.months); st.en=energy(st); st.rec=pick(st);
+    plan(); go(2);
   };
 
   function plan(){
-    var p=st,en=p.en,g=en.kcal/(SAMPLE_KCAL/100);
+    var p=st,en=p.en,g=en.kcal/(SAMPLE_KCAL/100), M=meals(p), per=Math.round(g/M/5)*5;
     var stg={puppy:'a puppy',adult:'an adult',senior:'a senior'}[p.stage];
-    var h='<p class="kick">'+esc(p.name)+'\'s plan</p><h2>'+esc(p.name)+' is '+stg+', needing about '+Math.round(en.kcal)+' kcal a day</h2>';
-    h+='<div class="pb-kpis"><div class="pb-kpi"><b>'+Math.round(en.rer)+'</b><span>Resting energy a day: 70 × '+p.kg+'^0.75</span></div><div class="pb-kpi"><b>× '+en.f.toFixed(1)+'</b><span>Life-stage factor: '+esc(en.why)+'</span></div><div class="pb-kpi"><b>'+Math.round(g)+' g</b><span>of food a day <span class="pb-sample">sample</span> at '+SAMPLE_KCAL+' kcal per 100 g</span></div></div>';
-    h+='<div class="pb-note">'+esc(p.breed)+' is a '+p.size+' breed. Under '+SIZE[p.size].puppy+' months counts as a puppy and over '+SIZE[p.size].senior+' years as senior. '+esc(p.name)+' is '+Math.floor(p.months/12)+' years '+(p.months%12)+' months, so '+stg+'. '+(p.bcs==='ideal'?'Body shape is ideal, so the standard factor applies.':p.bcs==='over'?'An overweight dog starts on a gentler factor; your vet sets the goal weight.':'A thin dog starts on a higher factor; your vet confirms the target.')+'</div>';
+    var h='<p class="pb-sum"><b>'+esc(p.name)+'</b> is '+stg+' and needs about <b>'+Math.round(en.kcal)+' kcal</b> a day: around <b>'+Math.round(g)+' g</b> of food <span class="pb-sample">sample</span> in <b>'+M+' meals of '+per+' g</b>.</p>';
     if(p.stage==='puppy'&&(p.size==='large'||p.size==='giant'))h+='<div class="pb-note warn"><b>To confirm with Fresh For Paws:</b> large and giant breed puppies need a controlled calcium level. The puppy recipe must be confirmed for them before this plan is sold.</div>';
     if(p.rec.blocked)h+='<div class="pb-note warn">The only puppy recipe contains chicken, which you asked us to leave out. We will suggest a plan by message instead.</div>';
     if(p.pref==='vegan')h+='<div class="pb-note warn">Plant-only diets need careful balance. Please keep your vet in the loop.</div>';
-    if(p.rec.list.length){
-      h+='<h3 style="margin:18px 0 12px">Chosen from our menu, and why</h3><div class="pb-recipes">';
-      p.rec.list.forEach(function(r){h+='<div class="pb-rec">'+imgTag(r.p)+'<div class="in"><span class="tag">'+esc(r.tag)+'</span><h3>'+esc(r.id)+'</h3><p>'+esc(r.why)+'</p><p style="opacity:.7;font-size:13.5px">'+rs(r.p100)+' for 100 g · '+rs(r.p300)+' for 300 g</p></div></div>'});
-      h+='</div><p style="margin-top:12px;font-size:14px;opacity:.75">We use three recipes in rotation so meals stay varied. Move to a new recipe over 7 to 10 days.'+(topper?' Add a '+esc(topper.p.name.replace(/\s+/g,' '))+' liver topper ('+rs(topper.price)+') as a treat if you like.':'')+'</p>';
-    }else h+='<p>No recipe on the menu fits those choices yet.</p>';
-    h+='<div class="pb-actions"><button class="btn outline" id="b2" type="button">Back</button><button class="btn" id="n2" type="button"'+(p.rec.list.length?'':' disabled')+'>Choose how to buy</button></div>';
-    $('s2').innerHTML=h;$('b2').onclick=function(){show(1)};$('n2').onclick=function(){buy('fortnight');show(3)};
+    if(!p.rec.list.length){h+='<p>No recipe on the menu fits those choices yet.</p><div class="pb-actions"><button class="btn outline" id="b2" type="button">Back</button></div>';$('s2').innerHTML=h;$('b2').onclick=function(){history.back()};return}
+    h+='<h2 class="pb-h">Meals we chose, and why</h2><div class="pb-recipes">';
+    p.rec.list.forEach(function(r){h+='<div class="pb-rec">'+imgTag(r.p)+'<div class="in"><span class="tag">'+esc(r.tag)+'</span><h3>'+esc(r.id)+'</h3><p>'+esc(r.why)+'</p></div></div>'});
+    h+='</div><h2 class="pb-h">How would you like to buy?</h2><div class="pb-plans" id="pbPlans"></div><p class="pb-fine" id="pbShip"></p>';
+    h+='<details class="pb-opt"><summary>Change how often the recipe rotates</summary><div class="pb-chips" style="margin-top:10px">';
+    [[1,'Every day'],[3,'Every 3 days'],[7,'Every week']].forEach(function(o){h+='<label class="pb-chip"><input type="radio" name="rot" value="'+o[0]+'"'+(p.rot===o[0]?' checked':'')+'><span>'+o[1]+'</span></label>'});
+    h+='</div><p class="pb-fine">Every recipe is complete and balanced on its own, so rotating is for variety, not for nutrition. Dogs with sensitive tummies do best changing slowly.</p></details>';
+    h+='<details class="pb-opt"><summary>How we worked this out</summary><div class="pb-how"><p>Resting energy is 70 × '+p.kg+'^0.75 = <b>'+Math.round(en.rer)+' kcal</b>. The life-stage factor is <b>× '+en.f.toFixed(1)+'</b> ('+esc(en.why)+'), so <b>'+Math.round(en.kcal)+' kcal</b> a day. '+esc(p.breed)+' is a '+p.size+' breed: under '+SIZE[p.size].puppy+' months is a puppy and over '+SIZE[p.size].senior+' years is senior.</p><ul><li><b>Energy.</b> The formula is in the NRC\'s Nutrient Requirements of Dogs and Cats (2006) and the WSAVA nutrition guidelines.</li><li><b>Factors.</b> 1.6 neutered adult, 1.8 not neutered, 3.0 puppy under 4 months, 2.0 puppy from 4 months (Hand et al., <i>Small Animal Clinical Nutrition</i>).</li><li><b>Body shape.</b> Rib and waist feel is the idea behind the 9-point body condition score vets use.</li><li><b>What we leave out.</b> Anything you tick. Chicken, dairy, beef and wheat are the foods most often reported as allergens in dogs.</li></ul><div class="pb-note warn"><b>A starting point, not veterinary advice.</b> A vet adjusts these figures for each dog. Dogs with a health condition, pregnant or nursing dogs, and dogs gaining or losing weight fast should follow their vet\'s plan.</div></div></details>';
+    h+='<div class="pb-actions"><button class="btn outline" id="b2" type="button">Back</button><button class="btn" id="n2" type="button">Review</button></div>';
+    $('s2').innerHTML=h;
+    Array.prototype.forEach.call(document.querySelectorAll('input[name=rot]'),function(e){e.onchange=function(){p.rot=+e.value;plans()}});
+    $('b2').onclick=function(){history.back()}; $('n2').onclick=function(){review();go(3)}; $('pbBarGo').onclick=$('n2').onclick;
+    plans();
   }
-  function buy(sel){
-    var p=st, selId=sel||(document.querySelector('input[name=tier]:checked')||{}).value||'fortnight';
-    var h='<p class="kick">How to buy</p><h2>How should '+esc(p.name)+' eat?</h2>';
-    if(p.rec.list.length>1){
-      h+='<p class="lab" style="font-weight:600;margin-bottom:6px">How often should the recipe change?</p><div class="pb-chips" style="margin-bottom:18px">';
-      [[1,'Every day'],[3,'Every 3 days'],[7,'Every week']].forEach(function(o){h+='<label class="pb-chip"><input type="radio" name="rot" value="'+o[0]+'"'+(p.rot===o[0]?' checked':'')+'><span>'+o[1]+'</span></label>'});
-      h+='</div><p style="font-size:13.5px;opacity:.75;margin:-8px 0 16px">Every recipe is complete and balanced on its own, so rotating is for variety, not for nutrition. Dogs with sensitive tummies do best changing slowly.</p>';
-    }
-    h+='<div class="pb-plans">';
-    TIERS.forEach(function(t,i){
-      var c=cost(p.rec.list,p.en.kcal,t.days,p.rot,p);
-      t.c=c;t.list=c.sum;t.net=c.sum*(1-t.disc);
-      h+='<label class="pb-plan'+(t.id===selId?' sel':'')+'" id="pl-'+t.id+'"><input type="radio" name="tier" value="'+t.id+'"'+(t.id===selId?' checked':'')+'><h3>'+t.label+'</h3><span class="pb-save">'+Math.round(t.disc*100)+'% off</span><div class="big">'+rs(t.net)+'</div><s>'+rs(t.list)+'</s><p style="font-size:13.5px;margin:6px 0 0">'+t.days+' days of food, '+t.when+'</p><p style="font-size:13.5px;margin:4px 0 0"><b>'+c.packs+' packs</b> a delivery, about '+(c.packs/t.days).toFixed(1)+' a day</p><p style="font-size:13px;margin:4px 0 0;opacity:.75">'+(t.net>=1000?'Free shipping':'Plus shipping at checkout')+'</p></label>';
+  function plans(){
+    var p=st, h='';
+    TIERS.forEach(function(t){
+      var c=cost(p.rec.list,p.en.kcal,t.days,p.rot,p); t.c=c; t.list=c.sum; t.net=c.sum*(1-t.disc);
+      h+='<label class="pb-plan'+(t.id===p.tier?' sel':'')+'" id="pl-'+t.id+'"><input type="radio" name="tier" value="'+t.id+'"'+(t.id===p.tier?' checked':'')+'><h3>'+t.label+'</h3><span class="pb-save">'+Math.round(t.disc*100)+'% off</span><div class="big">'+rs(t.net)+'</div><s>'+rs(t.list)+'</s><p>'+t.days+' days of food · '+c.packs+' packs</p><p class="sh">'+(t.net>=1000?'Free shipping':'Plus shipping')+'</p></label>';
     });
-    h+='</div><p style="font-size:13.5px;opacity:.7;margin-top:12px">Packs are 300 g and 100 g at the menu price, whichever fits the days. Recipes keep rotating from one delivery to the next, so a later delivery can cost a little more or less than the first. Orders of ₹1,000 and above ship free, with the cost inside the price. Orders up to ₹999 pay shipping at the Shiprocket rate for the pincode, shown at checkout. Payment is prepaid only: UPI or card, no cash on delivery.</p><div class="pb-actions"><button class="btn outline" id="b3" type="button">Back</button><button class="btn" id="n3" type="button">Review and see the feeding calendar</button></div>';
-    $('s3').innerHTML=h;
-    Array.prototype.forEach.call(document.querySelectorAll('input[name=tier]'),function(e){e.onchange=function(){TIERS.forEach(function(t){$('pl-'+t.id).classList.toggle('sel',t.id===e.value)})}});
-    Array.prototype.forEach.call(document.querySelectorAll('input[name=rot]'),function(e){e.onchange=function(){p.rot=+e.value;buy((document.querySelector('input[name=tier]:checked')||{}).value)}});
-    $('b3').onclick=function(){show(2)};$('n3').onclick=function(){review();show(4)};
+    $('pbPlans').innerHTML=h;
+    Array.prototype.forEach.call(document.querySelectorAll('input[name=tier]'),function(e){e.onchange=function(){p.tier=e.value;plans()}});
+    var t=TIERS.filter(function(x){return x.id===p.tier})[0];
+    $('pbShip').textContent='Orders of ₹1,000 and above ship free, cost inside the price. Orders up to ₹999 pay shipping at the Shiprocket rate, shown at checkout. Prepaid only: UPI or card, no cash on delivery.';
+    $('pbBarPrice').textContent=rs(t.net)+' · '+t.label.toLowerCase(); $('pbBarSub').textContent=t.days+' days of food'+(t.net>=1000?', free shipping':', plus shipping');
   }
   function review(){
-    var p=st,id=document.querySelector('input[name=tier]:checked').value,t=TIERS.filter(function(x){return x.id===id})[0];
-    var h='<p class="kick">Review</p><h2>'+esc(p.name)+'\'s plan: '+t.label.toLowerCase()+'</h2><div class="pb-scroll"><table class="pb-table"><thead><tr><th>Recipe</th><th class="n">300 g</th><th class="n">100 g</th><th class="n">Price</th></tr></thead><tbody>';
-    t.c.lines.forEach(function(l){h+='<tr><td>'+esc(l.r.id)+'</td><td class="n">'+l.pk.n3+'</td><td class="n">'+l.pk.n1+'</td><td class="n">'+rs(l.cost)+'</td></tr>'});
-    h+='<tr><td colspan="3"><b>Menu price</b></td><td class="n">'+rs(t.list)+'</td></tr><tr><td colspan="3">'+t.label+' discount, '+Math.round(t.disc*100)+'%</td><td class="n">− '+rs(t.list-t.net)+'</td></tr><tr><td colspan="3"><b>You pay each time</b></td><td class="n"><b>'+rs(t.net)+'</b></td></tr></tbody></table></div>';
-    if(t.id!=='bundle')h+='<p style="margin-top:14px">About '+rs(t.net*30/t.days)+' a month on this plan, against '+rs(t.list*30/t.days)+' at menu price.</p>';
-    var sch=t.c.sch, show14=Math.min(t.days,14);
-    h+='<h3 style="margin:24px 0 6px">Feeding calendar</h3><p style="font-size:14.5px;margin-bottom:12px">'+esc(p.name)+' eats '+Math.round(sch.gDay)+' g a day <span class="pb-sample">sample</span>, in '+sch.meals+' meals of about '+sch.perMeal+' g'+(sch.meals>2?' (puppies do best on three or four small meals)':', morning and evening')+'. '+(t.days>14?'First 14 days shown; the pattern carries on.':'')+'</p><div class="pb-cal">';
-    sch.rows.slice(0,show14).forEach(function(r){h+='<div class="pb-day"><span class="d">Day '+r.day+'</span><b>'+esc(r.r.id)+'</b><span>'+r.meals+' × '+r.perMeal+' g</span></div>'});
-    h+='</div><div class="pb-note"><b>Why the plan feeds this way.</b><ul style="margin:6px 0 0;padding-left:1.1em">'
-      +'<li><b>Meals a day.</b> Adult dogs do well on two meals a day. Puppies need smaller, more frequent meals: four a day under four months, three until about six months, then two. (Common veterinary guidance, including the WSAVA.)</li>'
-      +'<li><b>Same times each day.</b> A steady routine helps digestion and makes a change in appetite easy to spot.</li>'
-      +'<li><b>Switching recipes.</b> Mix the new food in over 7 to 10 days: a quarter new on days 1 to 3, half on days 4 to 6, three quarters on days 7 to 9, then all. Gradual change is the standard way to avoid an upset stomach.</li>'
-      +'<li><b>Rotation.</b> Each recipe is listed as complete and balanced, so one alone meets the dog\'s needs. Rotating adds variety and keeps meals interesting; it is a choice, not a requirement.</li>'
-      +'<li><b>Treats and toppers.</b> Keep them to no more than about 10% of the day\'s calories. A Liv-Love topper counts.</li>'
-      +'<li><b>Weigh every month.</b> We re-size the food when weight or age changes. If weight moves more than about 5% in a month, talk to your vet.</li></ul></div>';
-    h+='<div class="pb-note"><b>What you can count on.</b> A message the day before each charge with a link to skip, pause, swap a recipe or cancel. Pay by UPI or card, prepaid only: no cash on delivery. '+(t.net>=1000?'Shipping is free on this order.':'Shipping for this order is charged at the Shiprocket rate for your pincode and shown at checkout. Add enough to reach ₹1,000 and it ships free.')+' We re-size the food when your dog\'s weight or age changes.</div>';
-    h+='<div class="pb-note warn"><b>For Virat and Srishti, not shown to customers.</b> At this price the product share (25% of the sale) is '+rs(t.net*0.25)+' per delivery. The food in this plan must cost less than that to make, or the discount is too deep.</div>';
-    h+='<div class="pb-actions"><button class="btn outline" id="b4" type="button">Back</button><button class="btn" id="n4" type="button">Place the order (demo)</button></div><p id="pbDone" style="margin-top:12px;font-size:14px"></p>';
-    $('s4').innerHTML=h;$('b4').onclick=function(){show(3)};$('n4').onclick=function(){$('pbDone').textContent='Demo only: nothing was charged and no order was created. The live build opens Razorpay, then sets up the repeat schedule.'};
+    var p=st,t=TIERS.filter(function(x){return x.id===p.tier})[0],c=t.c,sch=c.sch;
+    var h='<div class="pb-scroll"><table class="pb-table"><thead><tr><th>Recipe</th><th class="n">300 g</th><th class="n">100 g</th><th class="n">Price</th></tr></thead><tbody>';
+    c.lines.forEach(function(l){h+='<tr><td>'+esc(l.r.id)+'</td><td class="n">'+l.pk.n3+'</td><td class="n">'+l.pk.n1+'</td><td class="n">'+rs(l.cost)+'</td></tr>'});
+    h+='<tr><td colspan="3">Menu price</td><td class="n">'+rs(t.list)+'</td></tr><tr><td colspan="3">'+t.label+', '+Math.round(t.disc*100)+'% off</td><td class="n">− '+rs(t.list-t.net)+'</td></tr><tr><td colspan="3"><b>You pay each time</b></td><td class="n"><b>'+rs(t.net)+'</b></td></tr></tbody></table></div>';
+    h+='<p class="pb-fine">'+(t.net>=1000?'Shipping is free on this order.':'Shipping is added at the Shiprocket rate for your pincode. Add '+rs(1000-t.net)+' more and it ships free.')+(t.id!=='bundle'?' About '+rs(t.net*30/t.days)+' a month, against '+rs(t.list*30/t.days)+' at menu price.':'')+'</p>';
+    h+='<h2 class="pb-h">Feeding calendar</h2><p class="pb-fine" style="margin-top:0">'+esc(p.name)+' eats '+Math.round(sch.gDay)+' g a day <span class="pb-sample">sample</span> in '+sch.meals+' meals of about '+sch.perMeal+' g.</p><div class="pb-cal" id="pbCal"></div><div class="pb-actions" style="margin-top:12px"><button class="btn outline small" id="calMore" type="button">Show 14 days</button></div>';
+    h+='<details class="pb-opt"><summary>Why we feed it this way</summary><ul class="pb-how"><li><b>Meals a day.</b> Adults do well on two. Puppies need smaller, more frequent meals: four under four months, three until about six months, then two (common veterinary guidance, including the WSAVA).</li><li><b>Same times each day.</b> A steady routine helps digestion and makes a change in appetite easy to spot.</li><li><b>Switching recipes.</b> Mix the new food in over 7 to 10 days: a quarter new on days 1 to 3, half on days 4 to 6, three quarters on days 7 to 9, then all.</li><li><b>Treats and toppers.</b> No more than about 10% of the day\'s calories.</li><li><b>Weigh every month.</b> We re-size the food when weight or age changes. If weight moves more than about 5% in a month, talk to your vet.</li></ul></details>';
+    h+='<div class="pb-note"><b>What you can count on.</b> A message the day before each charge with a link to skip, pause, swap a recipe or cancel. Prepaid only, no cash on delivery.</div>';
+    h+='<div class="pb-note warn"><b>For Virat and Srishti, not shown to customers.</b> At this price the product share (25% of the sale) is '+rs(t.net*0.25)+' per delivery. The food in this plan must cost less than that to make.</div>';
+    h+='<div class="pb-actions"><button class="btn outline" id="b3" type="button">Back</button><button class="btn" id="n3" type="button">Place the order (demo)</button></div><p id="pbDone" class="pb-fine"></p>';
+    $('s3').innerHTML=h;
+    var shown=7; function cal(){var o='';sch.rows.slice(0,Math.min(shown,t.days)).forEach(function(r){o+='<div class="pb-day"><span class="d">Day '+r.day+'</span><b>'+esc(r.r.id)+'</b><span>'+r.meals+' × '+r.perMeal+' g</span></div>'});$('pbCal').innerHTML=o;$('calMore').hidden=(t.days<=shown);} cal();
+    $('calMore').onclick=function(){shown=14;cal()};
+    $('b3').onclick=function(){history.back()}; $('n3').onclick=function(){$('pbDone').textContent='Demo only: nothing was charged and no order was created. The live build opens Razorpay, then sets up the repeat schedule.'};
   }
+  try{var hh=location.hash; if(hh==='#plan'||hh==='#review'){history.replaceState({n:1},'','#dog')}}catch(e){}
+  crumbs(1);
 })();
