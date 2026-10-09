@@ -57,10 +57,15 @@ h1{font:300 clamp(36px,5.2vw,64px)/1.2 var(--jp);margin:18px 0 0;letter-spacing:
 .buy{display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,5vw,72px);align-items:start}
 @media (max-width:820px){.buy{grid-template-columns:1fr}}
 .buy .shot{position:sticky;top:76px;aspect-ratio:4/5;background:#0d0d0d;overflow:hidden}
-@media (max-width:820px){.buy .shot{position:static;aspect-ratio:16/9;order:2}.buy{display:flex;flex-direction:column}.buy>div:last-child{order:1}}
+@media (max-width:820px){.buy .shot{position:static;order:2}.buy .shot>img{aspect-ratio:1/1}.buy{display:flex;flex-direction:column}.buy>div:last-child{order:1}}
 .chips span{border-radius:0!important;padding:6px 4px;line-height:1.2}
 .chips label{min-width:0}
-.buy .shot img{width:100%;height:100%;object-fit:cover;transition:opacity .4s ease}
+.buy .shot{background:none;overflow:visible;aspect-ratio:auto}
+.buy .shot>img{width:100%;aspect-ratio:4/5;object-fit:cover;background:#0d0d0d;transition:opacity .4s ease}
+.thumbs{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:8px}
+.thumbs button{padding:0;border:1px solid var(--rule);background:none;cursor:pointer;aspect-ratio:1;overflow:hidden;min-height:44px}
+.thumbs button[aria-pressed="true"]{outline:2px solid var(--ink);outline-offset:1px}
+.thumbs img{width:100%;height:100%;object-fit:cover}
 .step{margin-top:30px}
 .step .n{font:400 13px/1 var(--min);color:var(--seal);margin-right:10px}
 .step h3{font:500 12px/1 var(--jp);letter-spacing:.22em;text-transform:uppercase;margin-bottom:14px}
@@ -112,7 +117,7 @@ h1{font:300 clamp(36px,5.2vw,64px)/1.2 var(--jp);margin:18px 0 0;letter-spacing:
 .specs .grp{grid-column:1/-1;font:500 11px/1 var(--jp);letter-spacing:.26em;text-transform:uppercase;color:var(--seal);padding:26px 0 10px;border-bottom:1px solid var(--rule)}
 
 /* Box */
-.box{display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,5vw,72px);align-items:center}
+.box{display:grid;grid-template-columns:1fr;max-width:760px;gap:clamp(24px,5vw,72px);align-items:center}
 @media (max-width:820px){.box{grid-template-columns:1fr}}
 .box img{aspect-ratio:4/5;object-fit:cover;width:100%}
 .box ol{list-style:none;padding:0;margin:22px 0 0;border-top:1px solid var(--rule)}
@@ -202,7 +207,14 @@ footer a{text-decoration:underline;text-underline-offset:3px}
 
 <section class="wrap pad" id="buy">
   <div class="buy">
-    <div class="shot"><img id="shot" src="assets/p-warm.jpg" alt="KORBI 4300K Warm White bulb, lit" width="832" height="1040"></div>
+    <div class="shot"><img id="shot" src="assets/p-warm.jpg" alt="KORBI 4300K Warm White bulb, lit" width="832" height="1040">
+      <div class="thumbs" id="thumbs">
+        <button type="button" aria-pressed="true" data-k="lit" aria-label="Bulb, lit"><img id="t0" src="assets/p-warm.jpg" alt=""></button>
+        <button type="button" aria-pressed="false" data-src="assets/p-open.jpg" aria-label="Open box: the pair and ballasts"><img src="assets/p-open.jpg" alt="" loading="lazy"></button>
+        <button type="button" aria-pressed="false" data-src="assets/p-box.jpg" aria-label="The KORBI box"><img src="assets/p-box.jpg" alt="" loading="lazy"></button>
+        <button type="button" aria-pressed="false" data-src="assets/p-ballast.jpg" aria-label="Ballast and bulb"><img src="assets/p-ballast.jpg" alt="" loading="lazy"></button>
+        <button type="button" aria-pressed="false" data-src="assets/p-sticker.jpg" aria-label="KORBI sticker"><img src="assets/p-sticker.jpg" alt="" loading="lazy"></button>
+      </div></div>
     <div>
       <span class="tag">KORBI Road LED Bulbs · a pair</span>
       <h2 style="margin-top:12px">Choose your bulb</h2>
@@ -229,6 +241,43 @@ footer a{text-decoration:underline;text-underline-offset:3px}
   </div>
 </section>
 
+<section class="wrap pad" id="specs">
+  <div class="specs">
+    <div><span class="tag">Specifications</span><h2 style="margin-top:12px">The details.</h2>
+      <p style="color:var(--dim)">Beam adaptable: one bulb works for high beam, low beam and fog lamps, with no adjustments.</p>
+      <p style="color:var(--dim)">4300K all weather is adapted for fog, rain and mist. 6000K clear sky is for clear nights and city roads.</p></div>
+    <dl>
+      <span class="grp">Quick details</span>
+      <dt>Holder types</dt><dd>H1, H4, H7, H8, H11, HB3, HIR2, 9005, 9012</dd>
+      <dt>Technology</dt><dd>LED flip chip</dd>
+      <dt>Cutoff pattern</dt><dd>Specifically designed for the Indian right-hand-drive market</dd>
+      <dt>Colour temperature</dt><dd>4K all weather · 6K clear sky</dd>
+      <dt>Application</dt><dd>High beam, low beam and fog lamps</dd>
+      <dt>IP rating</dt><dd>IP68, adaptable for snow, rain, fog and dust</dd>
+      <dt>Warranty</dt><dd>1 + 1 year, extendable on online registration</dd>
+      <span class="grp">Electric data</span>
+      <dt>Power input</dt><dd>70 watts</dd>
+      <dt>Nominal wattage</dt><dd>62 watts</dd>
+      <dt>Nominal voltage</dt><dd>12.0V</dd>
+      <dt>Operating voltage</dt><dd>13.5V ± 20%</dd>
+      <dt>Input voltage</dt><dd>DC 9–16V</dd>
+      <dt>Working current</dt><dd>5.19A</dd>
+      <dt>Lifespan (Tc)</dt><dd>30,000 hours</dd>
+      <span class="grp">Photometrics</span>
+      <dt>Colour temperature</dt><dd>4300K · 6000K</dd>
+      <dt>Nominal luminous flux</dt><dd>8,400 lumens</dd>
+      <dt>LED colour</dt><dd>All weather (warm white) · Clear sky (cool white)</dd>
+      <span class="grp">Dimensions</span>
+      <dt>Bulb length</dt><dd>75 × 37 mm</dd>
+      <dt>Box</dt><dd>230 × 145 × 80 mm</dd>
+      <span class="grp">Weight data</span>
+      <dt>Product weight</dt><dd>50 g (bulb only)</dd>
+      <dt>Packed box weight</dt><dd>0.55 kg (550 g)</dd>
+      <dt>Box contents</dt><dd>1 pair of LED bulbs, fitting tool, zip ties, warranty card, stickers</dd>
+    </dl>
+  </div>
+</section>
+
 <section class="wrap pad">
   <div class="cut">
     <div><span class="tag">Cutoff pattern</span><h2 style="margin-top:12px">A beam made for the left side of the road.</h2><p>India drives on the left, so the beam dips on the right, where oncoming drivers are. On the left it reaches further, so you see the kerb and the road ahead. No glare, no scatter.</p></div>
@@ -243,6 +292,11 @@ footer a{text-decoration:underline;text-underline-offset:3px}
     </svg>
   </div>
 </section>
+<section class="scripts">
+  <img src="assets/scripts1.jpg" alt="KORBI written in Indian scripts" width="1437" height="123" loading="lazy">
+  <img src="assets/scripts2.jpg" alt="" width="1437" height="129" loading="lazy">
+  <p>Created for the Indian domestic market</p>
+</section>
 
 <section class="wrap pad" id="tech">
   <span class="tag">Japanese engineered</span>
@@ -255,38 +309,9 @@ footer a{text-decoration:underline;text-underline-offset:3px}
   </div>
 </section>
 
-<section class="wrap pad" id="specs">
-  <div class="specs">
-    <div><span class="tag">Specifications</span><h2 style="margin-top:12px">The details.</h2><p style="color:var(--dim)">One bulb fits high beam, low beam and fog lamps. No adjustments needed.</p></div>
-    <dl>
-      <span class="grp">Quick details</span>
-      <dt>Holder types</dt><dd>H1, H4, H7, H8, H11, HB3, HIR2, 9005, 9012</dd>
-      <dt>Technology</dt><dd>LED flip chip</dd>
-      <dt>Cutoff pattern</dt><dd>Designed for India's right-hand-drive market</dd>
-      <dt>Colour</dt><dd>4300K all weather (warm white) · 6000K clear sky (cool white)</dd>
-      <dt>Use</dt><dd>High beam, low beam and fog lamps</dd>
-      <dt>IP rating</dt><dd>IP68: snow, rain, fog and dust</dd>
-      <dt>Warranty</dt><dd>1 year + 1 year when registered online</dd>
-      <span class="grp">Electrical</span>
-      <dt>Power input</dt><dd>70W</dd>
-      <dt>Nominal wattage</dt><dd>62W</dd>
-      <dt>Nominal voltage</dt><dd>12.0V</dd>
-      <dt>Operating voltage</dt><dd>13.5V ± 20%</dd>
-      <dt>Input voltage</dt><dd>DC 9–16V</dd>
-      <dt>Working current</dt><dd>5.19A</dd>
-      <dt>Lifespan</dt><dd>30,000 hours</dd>
-      <span class="grp">Light</span>
-      <dt>Luminous flux</dt><dd>8,400 lumens</dd>
-      <span class="grp">Size and weight</span>
-      <dt>Bulb</dt><dd>75 × 37 mm · 50 g</dd>
-      <dt>Box</dt><dd>230 × 145 × 80 mm · 550 g</dd>
-    </dl>
-  </div>
-</section>
 
 <section class="wrap pad">
   <div class="box">
-    <img src="assets/p-open.jpg" alt="An open KORBI box: two bulbs and their ballasts" width="1000" height="1250" loading="lazy">
     <div><span class="tag">In the box</span><h2 style="margin-top:12px">Everything to fit them.</h2>
       <ol><li><b>01</b>A pair of LED bulbs, attached to the ballast</li><li><b>02</b>A fitting tool</li><li><b>03</b>Zip ties</li><li><b>04</b>Warranty card and stickers</li></ol>
     </div>
@@ -318,11 +343,6 @@ footer a{text-decoration:underline;text-underline-offset:3px}
       </div>
     </div>
   </div>
-</section>
-<section class="scripts">
-  <img src="assets/scripts1.jpg" alt="KORBI written in Indian scripts" width="1437" height="123" loading="lazy">
-  <img src="assets/scripts2.jpg" alt="" width="1437" height="129" loading="lazy">
-  <p>Created for the Indian domestic market</p>
 </section>
 
 <section class="wrap pad" id="faq">
@@ -387,7 +407,9 @@ footer a{text-decoration:underline;text-underline-offset:3px}
   function paint(){var s=cur(),c=C[s.c],p=korbiPrice(s.h);
     document.getElementById('pr').textContent=p;document.getElementById('sel').textContent=c.n+' · '+s.h+' · taxes included';
     document.getElementById('bbn').textContent=c.s+' · '+s.h;document.getElementById('bbp').textContent=p+' · pair';
-    if(shot.getAttribute('src')!==c.img){shot.src=c.img;shot.alt='KORBI '+c.n+' bulb, lit'}}
+    document.getElementById('t0').src=c.img;var lit=document.querySelector('[data-k=lit]');
+    if(lit.getAttribute('aria-pressed')==='true'&&shot.getAttribute('src')!==c.img){shot.src=c.img;shot.alt='KORBI '+c.n+' bulb, lit'}}
+  document.querySelectorAll('#thumbs button').forEach(function(b){b.onclick=function(){var s=cur();shot.src=b.dataset.src||C[s.c].img;shot.alt=b.getAttribute('aria-label');document.querySelectorAll('#thumbs button').forEach(function(x){x.setAttribute('aria-pressed',x===b)})}});
   document.querySelectorAll('input[name=holder],input[name=colour]').forEach(function(r){r.addEventListener('change',paint)});
   var pre=new URLSearchParams(location.search).get('c');if(pre==='cool'){document.querySelector('input[value=cool]').checked=true}
   paint();
