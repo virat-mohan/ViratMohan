@@ -27,7 +27,7 @@
   var $=function(id){return document.getElementById(id)};
   var rs=function(n){return '₹'+Math.round(n).toLocaleString('en-IN')};
   var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
-  var cat=null, menu=[], puppy=null, topper=null, st={};
+  var cat=null, menu=[], puppy=null, topper=null, st={rot:3};
 
   function price(p,size){var s=p.sizes.filter(function(x){return x.size===size})[0];return s?s.price:null}
   function imgTag(p,alt){var f=p.species==='cat'?'../img/range-cats.webp':'../img/range-dogs.webp';
@@ -76,10 +76,25 @@
     return {list:pool.slice(0,3),blocked:false};
   }
   function packs(g){var n3=Math.floor(g/300),rem=g-n3*300,n1=Math.ceil(rem/100);if(n1>=3){n3++;n1=0}return {n3:n3,n1:n1}}
-  function cost(list,kcal,days){
-    var totalG=kcal/(SAMPLE_KCAL/100)*days, each=totalG/list.length, lines=[], sum=0;
-    list.forEach(function(r){var pk=packs(each),c=pk.n3*r.p300+pk.n1*r.p100;lines.push({r:r,pk:pk,cost:c});sum+=c});
-    return {lines:lines,sum:sum};
+  function meals(p){return p.stage==='puppy'?(p.months<4?4:(p.months<6?3:2)):2}
+  // Day-by-day schedule: one recipe a day, changed every `rot` days, rotation continuing across deliveries.
+  function schedule(list,kcal,days,rot,p){
+    var gDay=kcal/(SAMPLE_KCAL/100), M=meals(p), perMeal=Math.round(gDay/M/5)*5, rows=[], by={};
+    for(var d=0;d<days;d++){
+      var r=list[Math.floor(d/rot)%list.length];
+      rows.push({day:d+1,r:r,g:gDay,meals:M,perMeal:perMeal});
+      by[r.id]=(by[r.id]||0)+gDay;
+    }
+    return {rows:rows,by:by,gDay:gDay,meals:M,perMeal:perMeal};
+  }
+  function cost(list,kcal,days,rot,p){
+    var sch=schedule(list,kcal,days,rot,p), lines=[], sum=0, total=0;
+    list.forEach(function(r){
+      var g=sch.by[r.id]||0; if(!g)return;
+      var pk=packs(g), c=pk.n3*r.p300+pk.n1*r.p100;
+      lines.push({r:r,pk:pk,cost:c,grams:g}); sum+=c; total+=pk.n3+pk.n1;
+    });
+    return {lines:lines,sum:sum,sch:sch,packs:total};
   }
   function show(n){
     ['s1','s2','s3','s4'].forEach(function(id,i){$(id).classList.toggle('pb-hide',i!==n-1)});
@@ -93,7 +108,7 @@
     $('pbKg').setCustomValidity('');
     st={name:($('pbName').value||'Your dog').trim(),breed:b[0],size:b[1],months:months,kg:kg,sex:val('sex'),neut:val('neut'),bcs:val('bcs'),pref:val('pref'),
         avoid:Array.prototype.map.call(document.querySelectorAll('#pbAvoid input:checked'),function(e){return e.value})};
-    st.stage=stage(st.size,st.months); st.en=energy(st); st.rec=pick(st);
+    st.rot=st.rot||3; st.stage=stage(st.size,st.months); st.en=energy(st); st.rec=pick(st);
     plan(); show(2);
   };
 
@@ -112,17 +127,26 @@
       h+='</div><p style="margin-top:12px;font-size:14px;opacity:.75">We use three recipes in rotation so meals stay varied. Move to a new recipe over 7 to 10 days.'+(topper?' Add a '+esc(topper.p.name.replace(/\s+/g,' '))+' liver topper ('+rs(topper.price)+') as a treat if you like.':'')+'</p>';
     }else h+='<p>No recipe on the menu fits those choices yet.</p>';
     h+='<div class="pb-actions"><button class="btn outline" id="b2" type="button">Back</button><button class="btn" id="n2" type="button"'+(p.rec.list.length?'':' disabled')+'>Choose how to buy</button></div>';
-    $('s2').innerHTML=h;$('b2').onclick=function(){show(1)};$('n2').onclick=function(){buy();show(3)};
+    $('s2').innerHTML=h;$('b2').onclick=function(){show(1)};$('n2').onclick=function(){buy('fortnight');show(3)};
   }
-  function buy(){
-    var p=st,h='<p class="kick">How to buy</p><h2>How should '+esc(p.name)+' eat?</h2><div class="pb-plans">';
+  function buy(sel){
+    var p=st, selId=sel||(document.querySelector('input[name=tier]:checked')||{}).value||'fortnight';
+    var h='<p class="kick">How to buy</p><h2>How should '+esc(p.name)+' eat?</h2>';
+    if(p.rec.list.length>1){
+      h+='<p class="lab" style="font-weight:600;margin-bottom:6px">How often should the recipe change?</p><div class="pb-chips" style="margin-bottom:18px">';
+      [[1,'Every day'],[3,'Every 3 days'],[7,'Every week']].forEach(function(o){h+='<label class="pb-chip"><input type="radio" name="rot" value="'+o[0]+'"'+(p.rot===o[0]?' checked':'')+'><span>'+o[1]+'</span></label>'});
+      h+='</div><p style="font-size:13.5px;opacity:.75;margin:-8px 0 16px">Every recipe is complete and balanced on its own, so rotating is for variety, not for nutrition. Dogs with sensitive tummies do best changing slowly.</p>';
+    }
+    h+='<div class="pb-plans">';
     TIERS.forEach(function(t,i){
-      var c=cost(p.rec.list,p.en.kcal,t.days);t.c=c;t.list=c.sum;t.net=c.sum*(1-t.disc);
-      h+='<label class="pb-plan'+(i===2?' sel':'')+'" id="pl-'+t.id+'"><input type="radio" name="tier" value="'+t.id+'"'+(i===2?' checked':'')+'><h3>'+t.label+'</h3><span class="pb-save">'+Math.round(t.disc*100)+'% off</span><div class="big">'+rs(t.net)+'</div><s>'+rs(t.list)+'</s><p style="font-size:13.5px;margin:6px 0 0">'+t.days+' days of food, '+t.when+'</p></label>';
+      var c=cost(p.rec.list,p.en.kcal,t.days,p.rot,p);
+      t.c=c;t.list=c.sum;t.net=c.sum*(1-t.disc);
+      h+='<label class="pb-plan'+(t.id===selId?' sel':'')+'" id="pl-'+t.id+'"><input type="radio" name="tier" value="'+t.id+'"'+(t.id===selId?' checked':'')+'><h3>'+t.label+'</h3><span class="pb-save">'+Math.round(t.disc*100)+'% off</span><div class="big">'+rs(t.net)+'</div><s>'+rs(t.list)+'</s><p style="font-size:13.5px;margin:6px 0 0">'+t.days+' days of food, '+t.when+'</p><p style="font-size:13.5px;margin:4px 0 0"><b>'+c.packs+' packs</b> a delivery, about '+(c.packs/t.days).toFixed(1)+' a day</p></label>';
     });
-    h+='</div><p style="font-size:13.5px;opacity:.7;margin-top:12px">Packs are 300 g and 100 g at the menu price, whichever fits the days. Free delivery in Delhi NCR is assumed, to be confirmed.</p><div class="pb-actions"><button class="btn outline" id="b3" type="button">Back</button><button class="btn" id="n3" type="button">Review</button></div>';
+    h+='</div><p style="font-size:13.5px;opacity:.7;margin-top:12px">Packs are 300 g and 100 g at the menu price, whichever fits the days. Recipes keep rotating from one delivery to the next, so a later delivery can cost a little more or less than the first. Free delivery in Delhi NCR is assumed, to be confirmed.</p><div class="pb-actions"><button class="btn outline" id="b3" type="button">Back</button><button class="btn" id="n3" type="button">Review and see the feeding calendar</button></div>';
     $('s3').innerHTML=h;
     Array.prototype.forEach.call(document.querySelectorAll('input[name=tier]'),function(e){e.onchange=function(){TIERS.forEach(function(t){$('pl-'+t.id).classList.toggle('sel',t.id===e.value)})}});
+    Array.prototype.forEach.call(document.querySelectorAll('input[name=rot]'),function(e){e.onchange=function(){p.rot=+e.value;buy((document.querySelector('input[name=tier]:checked')||{}).value)}});
     $('b3').onclick=function(){show(2)};$('n3').onclick=function(){review();show(4)};
   }
   function review(){
@@ -131,6 +155,16 @@
     t.c.lines.forEach(function(l){h+='<tr><td>'+esc(l.r.id)+'</td><td class="n">'+l.pk.n3+'</td><td class="n">'+l.pk.n1+'</td><td class="n">'+rs(l.cost)+'</td></tr>'});
     h+='<tr><td colspan="3"><b>Menu price</b></td><td class="n">'+rs(t.list)+'</td></tr><tr><td colspan="3">'+t.label+' discount, '+Math.round(t.disc*100)+'%</td><td class="n">− '+rs(t.list-t.net)+'</td></tr><tr><td colspan="3"><b>You pay each time</b></td><td class="n"><b>'+rs(t.net)+'</b></td></tr></tbody></table></div>';
     if(t.id!=='bundle')h+='<p style="margin-top:14px">About '+rs(t.net*30/t.days)+' a month on this plan, against '+rs(t.list*30/t.days)+' at menu price.</p>';
+    var sch=t.c.sch, show14=Math.min(t.days,14);
+    h+='<h3 style="margin:24px 0 6px">Feeding calendar</h3><p style="font-size:14.5px;margin-bottom:12px">'+esc(p.name)+' eats '+Math.round(sch.gDay)+' g a day <span class="pb-sample">sample</span>, in '+sch.meals+' meals of about '+sch.perMeal+' g'+(sch.meals>2?' (puppies do best on three or four small meals)':', morning and evening')+'. '+(t.days>14?'First 14 days shown; the pattern carries on.':'')+'</p><div class="pb-cal">';
+    sch.rows.slice(0,show14).forEach(function(r){h+='<div class="pb-day"><span class="d">Day '+r.day+'</span><b>'+esc(r.r.id)+'</b><span>'+r.meals+' × '+r.perMeal+' g</span></div>'});
+    h+='</div><div class="pb-note"><b>Why the plan feeds this way.</b><ul style="margin:6px 0 0;padding-left:1.1em">'
+      +'<li><b>Meals a day.</b> Adult dogs do well on two meals a day. Puppies need smaller, more frequent meals: four a day under four months, three until about six months, then two. (Common veterinary guidance, including the WSAVA.)</li>'
+      +'<li><b>Same times each day.</b> A steady routine helps digestion and makes a change in appetite easy to spot.</li>'
+      +'<li><b>Switching recipes.</b> Mix the new food in over 7 to 10 days: a quarter new on days 1 to 3, half on days 4 to 6, three quarters on days 7 to 9, then all. Gradual change is the standard way to avoid an upset stomach.</li>'
+      +'<li><b>Rotation.</b> Each recipe is listed as complete and balanced, so one alone meets the dog\'s needs. Rotating adds variety and keeps meals interesting; it is a choice, not a requirement.</li>'
+      +'<li><b>Treats and toppers.</b> Keep them to no more than about 10% of the day\'s calories. A Liv-Love topper counts.</li>'
+      +'<li><b>Weigh every month.</b> We re-size the food when weight or age changes. If weight moves more than about 5% in a month, talk to your vet.</li></ul></div>';
     h+='<div class="pb-note"><b>What you can count on.</b> A message the day before each charge with a link to skip, pause, swap a recipe or cancel. Pay by UPI AutoPay or card, prepaid. We re-size the food when your dog\'s weight or age changes.</div>';
     h+='<div class="pb-note warn"><b>For Virat and Srishti, not shown to customers.</b> At this price the product share (25% of the sale) is '+rs(t.net*0.25)+' per delivery. The food in this plan must cost less than that to make, or the discount is too deep.</div>';
     h+='<div class="pb-actions"><button class="btn outline" id="b4" type="button">Back</button><button class="btn" id="n4" type="button">Place the order (demo)</button></div><p id="pbDone" style="margin-top:12px;font-size:14px"></p>';
