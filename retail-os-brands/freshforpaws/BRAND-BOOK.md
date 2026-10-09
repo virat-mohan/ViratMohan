@@ -64,6 +64,10 @@ No other accent colour is used on the site; CTAs are teal. Packaging colours bel
 - Instagram: hashtags #FreshForPaws #ChooseFreshForPaws (GAP: confirm the second).
 - Current facts: WhatsApp 97179 70559 (keep or replace: GAP).
 
+## Shipping and payment (Virat, 9 Oct 2026)
+- Orders up to ₹999 pay shipping at the actual Shiprocket quote. Orders of ₹1,000 and above ship free, with the cost inside the price.
+- Prepaid only (UPI or card through Razorpay). No cash on delivery.
+
 ## Tell us about your dog (the plan builder)
 Added 9 Oct 2026 at Virat's request. Mockup A, `/preview/freshforpaws/a/plan.html`. It is the brand's signature journey: the owner tells us about the dog, we choose the meals and say why, and we price a one-time bundle or a subscription.
 - **Heading and voice:** "Tell us about your dog". Warm, plain, no pressure; always explain the reason for a recommendation. Never "grain-free" (rice recipes arrive end Oct 2026).

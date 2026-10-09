@@ -40,8 +40,7 @@ Client (pure client, profit share). NCNDA signed 27 Sep 2026, deposit received 3
 - Is there a brand book? Colours, fonts, logo files and usage.
 - Voice do/don't, banned phrases, hashtags, sign-off, store CTA.
 - Confirm tagline, WhatsApp number and sender address.
-- COD: keep or switch to prepaid only (Retail OS standard)?
-- Shipping: free over ₹999 or free on all; delivery method, slots, cold chain.
+- Shipping: delivery method, slots and cold chain still to come from Srishti (the price rule is set: see Current facts).
 
 ---
 
