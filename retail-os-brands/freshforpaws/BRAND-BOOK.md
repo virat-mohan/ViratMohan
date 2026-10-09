@@ -55,7 +55,7 @@ No other accent colour is used on the site; CTAs are teal. Packaging colours bel
 
 ## Fonts, logo, photo style
 - Section titles: bold geometric sans in capitals, teal. Body: light geometric sans. Nav: thin display caps. Mockups use the closest free fonts (Josefin Sans, Questrial). **GAP: exact font names from the site CSS or brand folder.**
-- Logo: teal heart with dog silhouette over "FRESH FOR PAWS" in white on teal, line "With love for our furry friends", registered mark. **GAP: master files from the brand folder.**
+- Logo: teal heart with dog silhouette over "FRESH FOR PAWS" in white on teal, line "With love for our furry friends", registered mark. **RULE (Virat, 9 Oct 2026): never put the logo on a white box. Use the transparent-background PNG only, on every channel.** **GAP: master transparent PNG from Srishti.** The only file we hold today, `public/preview/freshforpaws/img/logo.webp` (175x100), has a white background, so it breaks this rule and is a placeholder until the master arrives.
 - Photos: real dogs (Vanilla, Shih Tzus) in soft natural light, pink and pastel props, Srishti with Vanilla outdoors. Illustrated dogs and cats around the packs.
 
 ## House style by channel (GAP: Srishti to approve)
