@@ -1,0 +1,534 @@
+{
+ "source": "freshforpaws.com WooCommerce Store API",
+ "readAt": "2026-10-09T14:38:16.020Z",
+ "products": [
+  {
+   "id": 4136,
+   "name": "Chick – a – Doodle",
+   "species": "dog",
+   "group": "puppy",
+   "cats": [
+    "Mini Paws"
+   ],
+   "sizes": [
+    {
+     "size": "100g",
+     "price": 140
+    },
+    {
+     "size": "300g",
+     "price": 300
+    }
+   ],
+   "image": "https://freshforpaws.com/wp-content/uploads/2025/08/IMG_2351-e1755078932934.png",
+   "url": "https://freshforpaws.com/product/chick-a-doodle/",
+   "blurb": "Chick – a – Doodle is a complete & balanced recipe for puppies. Filled with lean protein from CHICKEN & LAMB LIVER, it has Rice, French Beans, Pumpkin, Carrot, Chickpeas, Potato, Peas, Flaxseeds & Curcumin. Our recipe is gentle on the tummy and ensures EASY DIGESTION as it is made with FIBRE-RICH ingredients. It is packed with 43 ESSENTIAL MICRO NUTRIENTS which help in enhancing the IMMUNITY of the puppy and GLUCOSAM"
+  },
+  {
+   "id": 3550,
+   "name": "All Meals",
+   "species": "cat",
+   "group": "combo",
+   "cats": [
+    "Purrs Combos"
+   ],
+   "sizes": [
+    {
+     "size": "",
+     "price": 500
+    }
+   ],
+   "image": "https://freshforpaws.com/wp-content/uploads/2024/08/3.jpg",
+   "url": "https://freshforpaws.com/product/all-meals/",
+   "blurb": "Our All Meals Range has four recipes – Purrfect Chicken Delight , Fin-tastic Fish Feast, Lamb Medley and Goat Goodness. These recipes are filled with High Meat Protein along with Healthy Fats, Vitamins & Minerals that make them a Complete & Balanced Diet for our feline friends."
+  },
+  {
+   "id": 3545,
+   "name": "Meal Topper",
+   "species": "cat",
+   "group": "combo",
+   "cats": [
+    "Purrs Combos"
+   ],
+   "sizes": [
+    {
+     "size": "",
+     "price": 225
+    }
+   ],
+   "image": "https://freshforpaws.com/wp-content/uploads/2024/08/1.jpg",
+   "url": "https://freshforpaws.com/product/meal-topper/",
+   "blurb": "Liverlicious will keep your purr wanting for more! We have it in two variants – Liverlicious ( Carrot ) & Liverlicious ( Pumpkin ) Liverlicious ( Pumpkin ) – PROTEIN – RICH topper to make sure our feline friend’s needs are taken care of! Filled with Vitamins like VITAMIN A, VITAMIN B12, VITAMIN C & K and minerals like minerals like IRON, FOLATE, SELENIUM, COPPER, ZINC & PHOSPHORUS . The Pumpkin’s FIBRE makes it highl"
+  },
+  {
+   "id": 3460,
+   "name": "Goat Goodness",
+   "species": "cat",
+   "group": "meal",
+   "cats": [
+    "Purrs"
+   ],
+   "sizes": [
+    {
+     "size": "85g",
+     "price": 150
+    }
+   ],
+   "image": "https://freshforpaws.com/wp-content/uploads/2024/07/IMG_6529.png",
+   "url": "https://freshforpaws.com/product/goat-goodness/",
+   "blurb": "With the goodness of Fresh and Tender Goat Meat, Goat Liver we have put Pumpkin, Carrot, Green Beans, Okra, Pomegranate, Basil, Hemp Hearts, Strawberries, Mango and Stock cooked in Wheatgerm and Coconut Oil. It is a COMPLETE & BALANCED meal and It is GRAIN- FREE. Our Meal is HIGH in PROTEIN and LOW in CALORIES. A decent amount of OMEGA-3 & 6 FATTY ACIDS, which helps REDUCE INFLAMMATION and keep the purr as STRONG as "
+  },
+  {
+   "id": 3459,
+   "name": "Lamb Medley",
+   "species": "cat",
+   "group": "meal",
+   "cats": [
+    "Purrs"
+   ],
+   "sizes": [
+    {
+     "size": "85g",
+     "price": 150
+    }
+   ],
+   "image": "https://freshforpaws.com/wp-content/uploads/2024/07/IMG_6527.png",
+   "url": "https://freshforpaws.com/product/lamb-medley/",
+   "blurb": "Our Lamb Medley is truly a medley between Fresh & Tender Lamb, Lamb Liver, Pumpkin, Carrot, Okra, Pomegranate, Apple, Beetroot, Flaxseeds, Blueberries, Rosehip, Basil and stock cooked in Coconut & Wheatgerm Oil. It is a COMPLETE and BALANCED meal and is GRAIN- FREE. It’s packed with PROTEIN, AMINO ACIDS, and other nutrients that your kitty needs to stay in tip-top shape. It is LOW in FAT and rich in VITAMIN A, Bs, C,"
+  },
+  {
+   "id": 3458,
+   "name": "Fin-tastic Fish Feast",
+   "species": "cat",
+   "group": "meal",
+   "cats": [
+    "Purrs"
+   ],
+   "sizes": [
+    {
+     "size": "85g",
+     "price": 140
+    }
+   ],
+   "image": "https://freshforpaws.com/wp-content/uploads/2024/07/IMG_6525.png",
+   "url": "https://freshforpaws.com/product/fin-tastic-fish-feast/",
+   "blurb": "Our Fin-tastic Fish Feast is GRAIN – FREE & EASY TO DIGEST with wholesome ingredients which are Fresh Fish, Pumpkin, Green Peas, Chickpeas, Green Beans, Carrot, Spinach, Zucchini, Basil, Rosehip & Stock made in Cod Liver Oil. The meal is COMPLETE & BALANCED. It is packed with fresh fish with high levels of PROTEIN and OMEGA 3 & 6. It is full of VITAMINS A, B6, B12, C, D, E & K and MINERALS like CALCIUM, MAGNESIUM, PH"
+  },
+  {
+   "id": 3457,
+   "name": "Purrfect Chicken Delight",
+   "species": "cat",
+   "group": "meal",
+   "cats": [
+    "Purrs"
+   ],
+   "sizes": [
+    {
+     "size": "80g",
+     "price": 120
+    }
+   ],
+   "image": "https://freshforpaws.com/wp-content/uploads/2024/07/IMG_6523.png",
+   "url": "https://freshforpaws.com/product/purrfect-chicken-delight/",
+   "blurb": "Our Purrfect Chicken Delight is full of Fresh Chicken, Chicken Liver, Chickpeas, Sweet Potato, Carrots, Broccoli, Kale, Beetroot, Pear, Basil, Curcumin, Flaxseeds and Stock all made in Olive Oil. It is a GRAIN – FREE recipe and is a COMPLETE & BALANCED meal. It’s a LEAN PROTEIN meal filled with OMEGA 3 & 6 fatty acids that helps promote HEALTHY SKIN & COAT. It is rich in ESSENTIAL AMINO ACIDS, GLUCOSAMINE that promot"
+  },
+  {
+   "id": 3456,
+   "name": "Liverlicious (Carrot)",
+   "species": "cat",
+   "group": "topper",
+   "cats": [
+    "Purrs"
+   ],
+   "sizes": [
+    {
+     "size": "80g",
+     "price": 120
+    }
+   ],
+   "image": "https://freshforpaws.com/wp-content/uploads/2024/07/IMG_6520.png",
+   "url": "https://freshforpaws.com/product/liverlicious-carrot/",
+   "blurb": "Our smooth Meal Topper is sure to win the heart of our feline friends. Besides being a great source of PROTEIN it is an excellent source of vitamins such a VITAMIN A which supports HEALTHY VISION due to the BETA CAROTENE, HEALTHY SKIN & COAT and PROPER MUSCLE and NERVE FUNCTION. VITAMIN B12 helps maintain the IMMUNE SYSTEM. VITAMIN C helps in ACIDIFY URINE which prevents urinary issues like bladder stones. It has VIT"
+  },
+  {
+   "id": 3455,
+   "name": "Liverlicious (Pumpkin)",
+   "species": "cat",
+   "group": "topper",
+   "cats": [
+    "Purrs"
+   ],
+   "sizes": [
+    {
+     "size": "80g",
+     "price": 120
+    }
+   ],
+   "image": "https://freshforpaws.com/wp-content/uploads/2024/07/IMG_6729.jpg",
+   "url": "https://freshforpaws.com/product/liverlicious-pumpkin/",
+   "blurb": "PROTEIN – RICH topper to make sure our feline friend’s needs are taken care of! Filled with Vitamins like VITAMIN A, VITAMIN B12, VITAMIN C & K and minerals like minerals like IRON, FOLATE, SELENIUM, COPPER, ZINC & PHOSPHORUS . The Pumpkin’s FIBRE makes it highly digestible. The BETA- CAROTENE helps maintain VISION. The Topper supports BONE & JOINT HEALTH, SKIN, COAT and IMMUNITY. It helps in OVERALL FUNCTION of the "
+  },
+  {
+   "id": 1925,
+   "name": "Liv-Love Combo",
+   "species": "dog",
+   "group": "combo",
+   "cats": [
+    "Paws Combos"
+   ],
+   "sizes": [
+    {
+     "size": "",
+     "price": 225
+    }
+   ],
+   "image": "https://freshforpaws.com/wp-content/uploads/2022/09/Liv-Love-1.jpg",
+   "url": "https://freshforpaws.com/product/liv-love/",
+   "blurb": "As the name suggests every dog loves Chicken Liver, hence we introduced this. It comes in two varieties – Liv-Love ( Pumpkin) & Liv-Love (Carrot). Our liver topper can even be used as a treat. Liv – Love ( Pumpkin) – A PROTEIN- VITAMIN RICH meal topper with added advantages of Pumpkin. In addition to containing IRON, COPPER, ZINC and ESSENTIAL FATTY ACIDS, liver CLEANSES the blood of toxins and supports healthy VISIO"
+  },
+  {
+   "id": 1922,
+   "name": "Whole Range Meals’ Combo",
+   "species": "dog",
+   "group": "combo",
+   "cats": [
+    "Paws Combos"
+   ],
+   "sizes": [
+    {
+     "size": "100g",
+     "price": 1150
+    },
+    {
+     "size": "300g",
+     "price": 2850
+    }
+   ],
+   "image": "https://freshforpaws.com/wp-content/uploads/2022/09/All-meals-.jpg",
+   "url": "https://freshforpaws.com/product/whole-range-meals/",
+   "blurb": "Our Range has nine recipes. These recipes are filled in Plant Protein and Meat Protein along with Healthy Fats, Vitamins & Minerals that make them a Complete & Balanced Diet for our furry friends."
+  },
+  {
+   "id": 1915,
+   "name": "Vegetarian Range Combo",
+   "species": "dog",
+   "group": "combo",
+   "cats": [
+    "Paws Combos"
+   ],
+   "sizes": [
+    {
+     "size": "100g",
+     "price": 450
+    },
+    {
+     "size": "300g",
+     "price": 1100
+    }
+   ],
+   "image": "https://freshforpaws.com/wp-content/uploads/2022/09/Vegetarian-Range.jpg",
+   "url": "https://freshforpaws.com/product/vegetarian/",
+   "blurb": "Our Vegetarian Range has four recipes – A Green Affair, Pumpkin’ It Up, Oh My Greens and Go, Go, Cottage Cheese. These recipes are filled in Plant & Dairy Protein along with Healthy Fats, Vitamins & Minerals that make them a Complete & Balanced Diet for our furry friends. &nbsp;"
+  },
+  {
+   "id": 1912,
+   "name": "Non -Vegetarian Range Combo",
+   "species": "dog",
+   "group": "combo",
+   "cats": [
+    "Paws Combos"
+   ],
+   "sizes": [
+    {
+     "size": "100g",
+     "price": 700
+    },
+    {
+     "size": "300g",
+     "price": 1700
+    }
+   ],
+   "image": "https://freshforpaws.com/wp-content/uploads/2022/09/Non-Vegetarian-Range-.jpg",
+   "url": "https://freshforpaws.com/product/non-vegetarian/",
+   "blurb": "Our Non- Vegetarian Range has five recipes – Eggstravaganza, Chicken Pot Pie, Fish Supper, Lamb On The Go and Wholesome Goat Feast. These recipes are filled with High Meat Protein along with Healthy Fats, Vitamins & Minerals that make them a Complete & Balanced Diet for our furry friends. &nbsp;"
+  },
+  {
+   "id": 1905,
+   "name": "Vegan Range Combo",
+   "species": "dog",
+   "group": "combo",
+   "cats": [
+    "Paws Combos"
+   ],
+   "sizes": [
+    {
+     "size": "100g",
+     "price": 350
+    },
+    {
+     "size": "300g",
+     "price": 800
+    }
+   ],
+   "image": "https://freshforpaws.com/wp-content/uploads/2022/09/Vegan-1.jpg",
+   "url": "https://freshforpaws.com/product/vegan/",
+   "blurb": "Our Vegan Range has three recipes – A Green Affair, Pumpkin’ It Up and Oh My Greens. These recipes are filled in Plant Protein along with Healthy Fats, Vitamins & Minerals that make them a Complete & Balanced Diet for our furry friends. &nbsp;"
+  },
+  {
+   "id": 1779,
+   "name": "Peanut Butter",
+   "species": "dog",
+   "group": "treat",
+   "cats": [
+    "Paws"
+   ],
+   "sizes": [
+    {
+     "size": "100g",
+     "price": 225
+    },
+    {
+     "size": "250g",
+     "price": 475
+    }
+   ],
+   "image": "https://freshforpaws.com/wp-content/uploads/2022/09/70B70CA2-5F89-4275-9EE6-1ABB7E18E658.png",
+   "url": "https://freshforpaws.com/product/peanut-butter/",
+   "blurb": "Our Peanut Butter has been a favorite of our furry friends since we started. This yummy jar of Fresh For Paws’ PeanutButter is HIGH in PROTEIN & filled with HEATHY FATS. It contains VITAMINS A, B6, C, D and E along with minerals – NIACIN, POTASSIUM, ZINC, IRON, MAGNESIUM, CALCIUM, MANGANESE, COPPER and PHOSPHOROUS. Our star treat has ANTI-INFLAMMATORY, ANTI-MICROBIAL & ANTI- FUNGAL properties and helps contribute tow"
+  },
+  {
+   "id": 1773,
+   "name": "Liv-Love ( Pumpkin )",
+   "species": "dog",
+   "group": "topper",
+   "cats": [
+    "Paws"
+   ],
+   "sizes": [
+    {
+     "size": "100g",
+     "price": 120
+    }
+   ],
+   "image": "https://freshforpaws.com/wp-content/uploads/2022/09/1-9.jpg",
+   "url": "https://freshforpaws.com/product/liv-love-pumpkin-2/",
+   "blurb": "A PROTEIN- VITAMIN RICH meal topper with added advantages of Pumpkin. In addition to containing IRON, COPPER, ZINC and essential FATTY ACIDS, liver CLEANSES the blood of toxins and supports HEALTHY VISION. Pumpkin being rich in VITAMIN A & VITAMIN C helps in keeping a healthy EYESIGHT and boosts the IMMUNE SYSTEM. The high water content in pumpkin flesh also contributes to SUPPLE SKIN and a LUSTROUS COAT. It’s a win "
+  },
+  {
+   "id": 1770,
+   "name": "Liv-Love ( Carrot )",
+   "species": "dog",
+   "group": "topper",
+   "cats": [
+    "Paws"
+   ],
+   "sizes": [
+    {
+     "size": "80g",
+     "price": 120
+    }
+   ],
+   "image": "https://freshforpaws.com/wp-content/uploads/2022/09/1-10.jpg",
+   "url": "https://freshforpaws.com/product/liv-love-carrot-2/",
+   "blurb": "A super meal topper for our little ones to ensure they get plenty of nutrition. Rich in BETA- CAROTENE that helps maintain the dog’s VISION. Carrots are rich in VITAMIN A, providing a host of nutritional benefits to dogs. Beyond supporting EYE HEALTH, it also assists in supporting a thriving IMMUNE SYSTEM and HEALTHY SKIN and COAT. Chicken Liver is a true SUPERFOOD for dogs. From supporting the DIGESTION to supportin"
+  },
+  {
+   "id": 1763,
+   "name": "Lamb On The Go",
+   "species": "dog",
+   "group": "meal",
+   "cats": [
+    "Paws"
+   ],
+   "sizes": [
+    {
+     "size": "100g",
+     "price": 160
+    },
+    {
+     "size": "300g",
+     "price": 390
+    }
+   ],
+   "image": "https://freshforpaws.com/wp-content/uploads/2022/09/2-7.jpg",
+   "url": "https://freshforpaws.com/product/lamb-on-the-go/",
+   "blurb": "Our Lamb On The Go makes a delicious meal for our furry friends. It is made from Fresh Lamb, Lamb Liver, Pumpkin, Carrot, Okra, Pomegranate, Apple, Beetroot, Flaxseeds, Blueberries, Rosehip, Basil and stock cooked in Coconut & Wheatgerm Oil. It a COMPLETE and BALANCED meal and is GRAIN- FREE. It’s packed with PROTEIN, AMINO ACIDS, and other nutrients that your pooch needs to stay in tip-top shape. It is LOW in FAT an"
+  },
+  {
+   "id": 1760,
+   "name": "Wholesome Goat Feast",
+   "species": "dog",
+   "group": "meal",
+   "cats": [
+    "Paws"
+   ],
+   "sizes": [
+    {
+     "size": "100g",
+     "price": 160
+    },
+    {
+     "size": "300g",
+     "price": 390
+    }
+   ],
+   "image": "https://freshforpaws.com/wp-content/uploads/2022/09/1-8.jpg",
+   "url": "https://freshforpaws.com/product/wholesome-goat-feast/",
+   "blurb": "As the name says, it’s a FEAST! it is a COMPLETE & BALANCED meal and It is GRAIN- FREE. Our Meal is HIGH in PROTEIN and LOW in CALORIES. It contains a decent amount of OMEGA-3 & 6 FATTY ACIDS, which help REDUCE INFLAMMATION and keep the pup as STRONG as they can be. It is rich in FOLIC ACID and ESSENTIAL FATTY ACIDS that will ensure the overall WELL BEING of the dog. It has VITAMIN A, Bs, C, E, K, BETA- CAROTENE and "
+  },
+  {
+   "id": 1755,
+   "name": "Fish Supper",
+   "species": "dog",
+   "group": "meal",
+   "cats": [
+    "Paws"
+   ],
+   "sizes": [
+    {
+     "size": "100g",
+     "price": 155
+    },
+    {
+     "size": "300g",
+     "price": 360
+    }
+   ],
+   "image": "https://freshforpaws.com/wp-content/uploads/2022/09/1-6.jpg",
+   "url": "https://freshforpaws.com/product/fish-supper/",
+   "blurb": "Our Fish Supper is rich in LEAN PROTEIN and LOW in FAT &CALORIES which makes it an ideal choice. It is GRAIN -FREE. Packed with VITAMINS A, B6, B12, C, D, E & K and Minerals – CALCIUM, MAGNESIUM, PHOSPHOROUS, IRON, POTASSIUM, ZINC, NIACIN and SELENIUM. It is high in BETA- CAROTENE and ANTIOXIDANTS. It is rich in OMEGA – 3 fatty acids. All these maintain the NERVOUS SYSTEM, SKIN& LUSTROUS COAT, VISION, IMMUNE SYSTEM, "
+  },
+  {
+   "id": 1750,
+   "name": "Chicken Pot Pie",
+   "species": "dog",
+   "group": "meal",
+   "cats": [
+    "Paws"
+   ],
+   "sizes": [
+    {
+     "size": "100g",
+     "price": 140
+    },
+    {
+     "size": "300g",
+     "price": 315
+    }
+   ],
+   "image": "https://freshforpaws.com/wp-content/uploads/2022/09/1-5.jpg",
+   "url": "https://freshforpaws.com/product/chicken-pot-pie/",
+   "blurb": "Full of FRESH CHICKEN, this GRAIN- FREE recipe is a COMPLETE & BALANCED meal. Along with Fresh Chicken, it has Chicken Liver, Chickpeas, Sweet Potato, Carrots, Broccoli, Kale, Beetroot, Pear, Basil, Curcumin, Flaxseeds and Stock all made in Olive Oil. It’s a LEAN PROTEIN meal filled with OMEGA 3 & 6 fatty acids that help promote HEALTHY SKIN & COAT. It is rich in ESSENTIAL AMINO ACIDS, GLUCOSAMINE that promotes BONE "
+  },
+  {
+   "id": 1745,
+   "name": "Eggstravaganza",
+   "species": "dog",
+   "group": "meal",
+   "cats": [
+    "Paws"
+   ],
+   "sizes": [
+    {
+     "size": "100g",
+     "price": 140
+    },
+    {
+     "size": "300g",
+     "price": 315
+    }
+   ],
+   "image": "https://freshforpaws.com/wp-content/uploads/2022/09/1-4.jpg",
+   "url": "https://freshforpaws.com/product/eggstravaganza/",
+   "blurb": "Eggs are an excellent source of NUTRITION and hence we came up with this COMPLETE & BALANCED MEAL which is GRAIN- FREE for our best friends The recipe is made up for Eggs, Quinoa, Green Peas, Squash, Broccoli, Okra, Spinach, Strawberries, Plantain, Blueberries, Flaxseeds and Stock tossed in Olive Oil. It are high in PROTEIN, FIBRE, FATTY ACIDS, AMINO ACIDS & VITAMINS that help support dogs inside and out. The recipe "
+  },
+  {
+   "id": 1740,
+   "name": "Go Go Cottage Cheese",
+   "species": "dog",
+   "group": "meal",
+   "cats": [
+    "Paws"
+   ],
+   "sizes": [
+    {
+     "size": "100g",
+     "price": 125
+    },
+    {
+     "size": "300g",
+     "price": 300
+    }
+   ],
+   "image": "https://freshforpaws.com/wp-content/uploads/2022/09/1-3.jpg",
+   "url": "https://freshforpaws.com/product/go-go-cottage-cheese/",
+   "blurb": "Go, Go, Cottage Cheese is a great source of PROTEIN for vegetarian furry friends. It contains Cottage Cheese, Green Peas, Sweet Potato, Carrots, Moringa Powder, Apples, Flaxseeds, Blueberries, Turmeric & Stock all made together in Olive Oil. It is a good source of PROTEIN and is LOW in FAT & CHOLESTEROL. It is rich in AMINO ACIDS. Cottage Cheese contains PROBIOTICS which supports a HEALTHY IMMUNE SYSTEM. In terms of "
+  },
+  {
+   "id": 1735,
+   "name": "Pumpkin It Up",
+   "species": "dog",
+   "group": "meal",
+   "cats": [
+    "Paws"
+   ],
+   "sizes": [
+    {
+     "size": "100g",
+     "price": 125
+    },
+    {
+     "size": "300g",
+     "price": 300
+    }
+   ],
+   "image": "https://freshforpaws.com/wp-content/uploads/2022/09/1-2.jpg",
+   "url": "https://freshforpaws.com/product/pumpkin-it-up/",
+   "blurb": "As the name suggests we Pumpkin’ It Up is filled with the goodness of Pumpkin and other ingredients – Green Lentils, Chickpeas, Squash, Kale, Quinoa, Spinach, Hemp Oil, Pumpkin Seeds, Basil & Stock. It’s a GRAINFREE and our last VEGAN recipe. Packed with Vitamin A, B1, B6, C, E & K and Minerals – IRON, POTASSIUM, CALCIUM, & MAGNESIUM. It is HIGHLY DIGESTIBLE, full of PLANT PROTEIN, FIBRE, LOW on FAT and CALORIES. The"
+  },
+  {
+   "id": 1730,
+   "name": "Oh My Greens",
+   "species": "dog",
+   "group": "meal",
+   "cats": [
+    "Paws"
+   ],
+   "sizes": [
+    {
+     "size": "100g",
+     "price": 115
+    },
+    {
+     "size": "300g",
+     "price": 260
+    }
+   ],
+   "image": "https://freshforpaws.com/wp-content/uploads/2022/09/1-1.jpg",
+   "url": "https://freshforpaws.com/product/oh-my-greens/",
+   "blurb": "Greens in this recipes are Green Peas, Broccoli, Spinach, Zucchini and Spirulina combined with Carrots, Beetroot, Coconut, Pomegranate, Brewers’ Yeast, Chia Seeds, Chamomile, Turmeric & Stock , made in Olive Oil to give our dogs a COMPLETE & BALANCED meal. It’s GRAIN- FREE & VEGAN. Our recipe is High in PLANT PROTEIN, FIBRE and has LOW FAT. It has large amounts of VITAMIN A, Bs, C & K and minerals in goodquantity nam"
+  },
+  {
+   "id": 1721,
+   "name": "A Green Affair",
+   "species": "dog",
+   "group": "meal",
+   "cats": [
+    "Paws"
+   ],
+   "sizes": [
+    {
+     "size": "100g",
+     "price": 125
+    },
+    {
+     "size": "300g",
+     "price": 300
+    }
+   ],
+   "image": "https://freshforpaws.com/wp-content/uploads/2022/09/1.jpg",
+   "url": "https://freshforpaws.com/product/a-green-affair/",
+   "blurb": "PLANT PROTEIN from various vegetables – Pumpkin, Green Lentils, Bottle Gourd, Spinach, Quinoa, Sweet Potato, Zucchini, Brewers’ Yeast, Hemp Hearts & Stock and the micronutrients from them namely VITAMINS A, B, C, E & K and minerals – IRON, POTASSIUM, CALCIUM, SELENIUM, MAGNESIUM & POTASSIUM makes this recipe one of its kind. The minerals are essential for a variety of CELL and ORGAN FUNCTION and overall GOOD HEALTH. "
+  }
+ ]
+}

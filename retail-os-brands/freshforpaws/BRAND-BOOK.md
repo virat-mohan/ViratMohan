@@ -63,3 +63,13 @@ No other accent colour is used on the site; CTAs are teal. Packaging colours bel
 - WhatsApp: first name, one line, one link. Sign-off: "Team Fresh For Paws" (GAP).
 - Instagram: hashtags #FreshForPaws #ChooseFreshForPaws (GAP: confirm the second).
 - Current facts: WhatsApp 97179 70559 (keep or replace: GAP).
+
+## Tell us about your dog (the plan builder)
+Added 9 Oct 2026 at Virat's request. Mockup A, `/preview/freshforpaws/a/plan.html`. It is the brand's signature journey: the owner tells us about the dog, we choose the meals and say why, and we price a one-time bundle or a subscription.
+- **Heading and voice:** "Tell us about your dog". Warm, plain, no pressure; always explain the reason for a recommendation. Never "grain-free" (rice recipes arrive end Oct 2026).
+- **Asks:** name, breed, age, weight, sex, neutered or spayed, body shape (ribs and waist), diet preference (all, vegetarian, vegan), foods never to feed.
+- **How the plan is worked out:** resting energy 70 x kg^0.75 (NRC 2006, WSAVA), times a life-stage factor (neutered adult 1.6, intact adult 1.8, puppy under 4 months 3.0, puppy from 4 months 2.0, from Hand et al., Small Animal Clinical Nutrition). Breed size sets the puppy and senior ages. Overweight starts at 1.2, thin at 1.8, senior at 1.4. These are vet starting points, not veterinary advice; the page says so.
+- **Menu logic:** three recipes from the live WooCommerce menu in rotation, each with its reason; anything ticked as "never feed" is removed; vegetarian and vegan choices filter the menu. Large and giant breed puppies show a "confirm with Fresh For Paws" flag until the puppy recipe is confirmed for calcium.
+- **Prices:** straight from WooCommerce (100 g and 300 g packs). Proposed discounts for Virat to decide: one-time bundle 5%, every week 8%, twice a month 10%, every month 12%. Guardrail: the product share (25% of the sale) must still cover the real cost of the food.
+- **Images and data:** every menu item, price and picture comes from the WooCommerce Store API through `scripts/ffp-catalogue.mjs` (writes `public/preview/freshforpaws/catalogue.json`). Re-run it to refresh; the live build reads the same API server-side.
+- **Open (ask Srishti):** calories per 100 g and the guaranteed analysis of each recipe (the builder uses a marked "sample" placeholder); complete and balanced for which life stages; shelf life and storage for a week, fortnight and month; cost per pack; delivery slots; cats (Fresh For Purrs) once the same data exists.

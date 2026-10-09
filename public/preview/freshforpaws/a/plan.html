@@ -1,47 +1,55 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex,nofollow"><title>Build a plan · Fresh For Paws · Mockup A</title>
+<meta name="robots" content="noindex,nofollow"><title>Tell us about your dog · Fresh For Paws · Mockup A</title>
 <link rel="preload" href="../fonts/questrial-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="../brand.css"><link rel="stylesheet" href="style.css"></head>
 <body>
-<div class="mock">Mockup A · preview, not live</div>
+<div class="mock">Mockup A · preview, not live · prices and pictures read from the WooCommerce store</div>
 <header class="nav">
   <a class="logo" href="index.html"><img src="../img/logo.webp" alt="Fresh For Paws" height="36"> Fresh&nbsp;For&nbsp;Paws</a>
   <nav><a href="index.html">Home</a><a href="shop.html">Shop</a><a href="plan.html" aria-current="page">Build a plan</a><a href="recipe.html">Recipes</a><a href="about.html">Our story</a><a href="faq.html">FAQ</a></nav>
   <a class="btn small" href="shop.html">Shop now</a>
 </header>
 <main>
-<section class="wrap quiz">
+<section class="wrap pb">
   <p class="kick">Build a plan</p>
-  <h1>The right meals, the right amount</h1>
-  <p>Answer three questions and we'll recommend the right Fresh For Paws meals and daily portion for your pet's calorie needs.</p>
+  <h1>Tell us about your dog</h1>
+  <p class="lead">A few answers, and we work out how much your dog needs each day, choose the meals from our menu with the reason for each, and give you a price. Subscribe and save.</p>
+  <ol class="pb-steps" id="pbSteps"><li class="on">1 Your dog</li><li>2 Their plan</li><li>3 How to buy</li><li>4 Review</li></ol>
 
-  <form onsubmit="return false">
-    <label>What kind of pet?
-      <select><option>Dog</option><option>Cat</option><option>Puppy (under 1 year)</option></select>
-    </label>
-    <label>Breed (or size)
-      <select><option>Small (under 10 kg)</option><option>Medium (10–25 kg)</option><option>Large (25–45 kg)</option><option>Giant (over 45 kg)</option></select>
-    </label>
-    <label>Activity level
-      <select><option>Normal — daily walks</option><option>Active — runs and play</option><option>Low — senior or recovering</option></select>
-    </label>
-    <button class="btn" type="submit">Get my plan</button>
-  </form>
-
-  <div class="result" style="margin-top:32px">
-    <h3>Your plan (sample)</h3>
-    <p><b>Daily portion:</b> ~300 g per day</p>
-    <p><b>Recommended:</b> 1 × Chicken Pot Pie (300 g) or 3 × 100 g packs per day</p>
-    <p><b>Monthly cost:</b> approximately ₹ 9,450 (at ₹ 315 / day)</p>
-    <p style="opacity:.6;font-size:14px">Sample calculation for a medium, normally active dog. Actual portions will be calculated from Srishti's formula once the plan builder is connected.</p>
-    <a class="btn" href="shop.html" style="margin-top:12px">Shop my plan</a>
+  <div class="pb-card" id="s1">
+    <form class="pb-form" onsubmit="return false">
+      <div><label for="pbName">Your dog's name</label><input id="pbName" type="text" value="Biscuit" autocomplete="off"></div>
+      <div><label for="pbBreed">Breed</label><select id="pbBreed"></select></div>
+      <div><span class="lab">Age</span><div class="pb-row2"><select id="pbY" aria-label="Years"></select><select id="pbM" aria-label="Months"></select></div></div>
+      <div><label for="pbKg">Weight in kg</label><input id="pbKg" type="number" inputmode="decimal" min="1" max="90" step="0.5" value="22"></div>
+      <div><span class="lab">Sex</span><div class="pb-chips"><label class="pb-chip"><input type="radio" name="sex" value="male" checked><span>Boy</span></label><label class="pb-chip"><input type="radio" name="sex" value="female"><span>Girl</span></label></div></div>
+      <div><span class="lab">Neutered or spayed?</span><div class="pb-chips"><label class="pb-chip"><input type="radio" name="neut" value="yes" checked><span>Yes</span></label><label class="pb-chip"><input type="radio" name="neut" value="no"><span>No</span></label></div></div>
+      <div class="pb-full"><span class="lab">Body shape today</span><div class="pb-chips"><label class="pb-chip"><input type="radio" name="bcs" value="thin"><span>Ribs easy to see</span></label><label class="pb-chip"><input type="radio" name="bcs" value="ideal" checked><span>Ribs felt, waist visible</span></label><label class="pb-chip"><input type="radio" name="bcs" value="over"><span>Ribs hard to feel, no waist</span></label></div></div>
+      <div class="pb-full"><span class="lab">What does your dog eat?</span><div class="pb-chips"><label class="pb-chip"><input type="radio" name="pref" value="any" checked><span>Meat and veg, all recipes</span></label><label class="pb-chip"><input type="radio" name="pref" value="veg"><span>Vegetarian</span></label><label class="pb-chip"><input type="radio" name="pref" value="vegan"><span>Vegan</span></label></div></div>
+      <div class="pb-full"><span class="lab">Never feed (tick any)</span><div class="pb-chips" id="pbAvoid">
+        <label class="pb-chip"><input type="checkbox" value="chicken"><span>Chicken</span></label><label class="pb-chip"><input type="checkbox" value="egg"><span>Egg</span></label><label class="pb-chip"><input type="checkbox" value="fish"><span>Fish</span></label><label class="pb-chip"><input type="checkbox" value="lamb"><span>Lamb</span></label><label class="pb-chip"><input type="checkbox" value="goat"><span>Goat</span></label><label class="pb-chip"><input type="checkbox" value="dairy"><span>Dairy</span></label></div></div>
+    </form>
+    <div class="pb-actions"><button class="btn" id="pbGo1" type="button">Build the plan</button></div>
   </div>
+  <div class="pb-card pb-hide" id="s2"></div>
+  <div class="pb-card pb-hide" id="s3"></div>
+  <div class="pb-card pb-hide" id="s4"></div>
+
+  <h2 style="margin-top:56px">How we work it out</h2>
+  <ul class="pb-why">
+    <li><b>Energy.</b> Resting energy is 70 × (weight in kg)^0.75 kilocalories a day, the standard formula in the NRC's Nutrient Requirements of Dogs and Cats (2006) and the WSAVA nutrition guidelines.</li>
+    <li><b>Life stage.</b> The daily need is that figure times a factor: 1.6 for a neutered adult, 1.8 for an intact adult, 3.0 for a puppy under four months, 2.0 for a puppy from four months, as published in <i>Small Animal Clinical Nutrition</i> (Hand et al.). Breed size sets when a dog counts as a puppy or a senior.</li>
+    <li><b>Body shape.</b> We ask how the ribs and waist feel, the idea behind the 9-point body condition score vets use, because it says more than weight alone.</li>
+    <li><b>What we leave out.</b> Whatever you tick, we remove. Chicken, dairy, beef and wheat are the foods most often reported as allergens in dogs.</li>
+  </ul>
+  <div class="pb-note warn"><b>A starting point, not veterinary advice.</b> A vet adjusts these figures for the individual dog. Dogs with a health condition, pregnant or nursing dogs, and dogs gaining or losing weight fast should follow their vet's plan.</div>
+  <p class="pb-src" id="pbSrc"></p>
 </section>
 </main>
-
 <footer class="foot">
   <div><b>Fresh For Paws</b><br>Choose Fresh, Choose Fresh For Paws!</div>
   <div class="links"><a href="index.html">Home</a><a href="shop.html">Shop</a><a href="plan.html">Build a plan</a><a href="recipe.html">Recipes</a><a href="about.html">Our story</a><a href="faq.html">FAQ</a></div>
-  <div class="small">Mockup by DevShop Retail OS for review.</div>
+  <div class="small">Mockup by DevShop Retail OS for review. Menu, prices and pictures come from the Fresh For Paws WooCommerce store.</div>
 </footer>
+<script src="plan.js"></script>
 </body></html>
