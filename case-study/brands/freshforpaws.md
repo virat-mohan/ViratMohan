@@ -32,9 +32,9 @@ Client (pure client, profit share). NCNDA signed 27 Sep 2026, deposit received 3
 
 ## 7. Current facts
 - Site: https://freshforpaws.com (WooCommerce). Contact contact@freshforpaws.com; founder srishti@freshforpaws.com.
-- Offers: free shipping over ₹999; subscription monthly plans (website, 2 Oct 2026, confirm). Pay with a Post at 1%.
-- Payment: application says COD and prepaid; Razorpay stays. Retail OS standard is COD off: confirm with Virat/Srishti.
-- Shipping: light product, free shipping inside the price under the Retail OS rule; current site rule is free over ₹999. Delivery zones Delhi NCR, Gurugram, Noida; capacity, slots and cold chain still to come from Srishti.
+- Offers: free shipping from ₹1,000 (cost inside the price); orders up to ₹999 pay shipping at the Shiprocket quote; prepaid only, no COD (Virat, 9 Oct 2026); subscription monthly plans (website, 2 Oct 2026, confirm). Pay with a Post at 1%.
+- Payment: prepaid only, no COD (Virat, 9 Oct 2026). Razorpay stays; the live checkout offers Razorpay only.
+- Shipping (Virat, 9 Oct 2026): orders up to ₹999 pay shipping at the actual Shiprocket quote; ₹1,000 and above ship free with the cost inside the price. Check on 9 Oct: the live cart showed a flat ₹50 on a ₹140 order, so confirm Shiprocket live rates are wired in. Delivery zones Delhi NCR, Gurugram, Noida; capacity, slots and cold chain still to come from Srishti.
 
 ## 8. Gaps (ask Srishti Bhatia)
 - Is there a brand book? Colours, fonts, logo files and usage.
@@ -55,7 +55,7 @@ One place for everything done on Fresh For Paws so far. Pulled together on 26 Se
 - Category: fresh-cooked, ready-to-eat dog and cat meals. D2C.
 - Store categories: Dog meals, Cat meals (Fresh For Purrs), Puppy meals (Mini Paws), Treats & toppers, Combos
 - Revenue ₹1L–5L a month, 5K–50K following, 10–50 products (self-reported on the application)
-- Target cities: Delhi NCR, Gurugram, Noida. Free shipping over ₹999. No returns. COD and prepaid.
+- Target cities: Delhi NCR, Gurugram, Noida. Free shipping from ₹1,000, orders up to ₹999 pay the Shiprocket quote. No returns. Prepaid only, no COD.
 
 ## The deal (as it stands)
 - Front end stays WooCommerce. Retail OS runs behind it.
