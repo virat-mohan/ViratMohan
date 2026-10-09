@@ -81,3 +81,11 @@ Design references (Shyam, 30 Sep): whitekailash.com, wheaty.in, muji.com/jp/ja/s
 - Asked for: a ratings/reviews page on the website (to build).
 - He attached a technical sheet (4 photos). My Gmail tool can't download attachments, so it needs to go in the Korbi Drive folder.
 - To flag to Virat: the fee is ₹1,000 per unit at the ₹11,500 list price. H4 at ₹12,500 falls under "price change, discuss case by case".
+
+## Direction confirmed and rebuilt (9 Oct 2026)
+- Virat: follow the first prototype (mockup A, Shoji). Keep its bulb illustration and 光 seal on top, and its fonts (Zen Kaku Gothic New + Shippori Mincho) and colours. The first section is holder type, then colour. All information comes from the existing site. Sections are tightened with no repetition. Make a brand book.
+- Pulled from korbi.in (products.json, pages, policies, Judge.me reviews): full specs, prices (H4 ₹12,500), 4 reviews (5.0), Our Story, warranty/returns/shipping policies, helpline +91 96677 76763, help@korbi.in, address. Original product photos are in assets/p-*.jpg.
+- Homepage rebuilt on mockup A. The old /products/* pages now redirect to the buy section.
+- Brand book: /retail-os/korbi/brand-book/. Brand-voice module in the korbi repo (src/lib/brand-voice.ts).
+- To confirm with KORBI: the site lists 6000K as "6500 Kelvin" in photometrics; the ballast label says 5.83A but the spec says 5.19A; whether shipping is free (the policy says "if applicable, at checkout").
+- Removed "fit it yourself" copy: KORBI's policy requires a certified technician, or the warranty is void.
