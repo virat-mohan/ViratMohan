@@ -259,3 +259,6 @@ details p{margin:10px 0 4px}
 
 /* footer link tap targets */
 .foot .links a,.foot a{display:inline-flex;align-items:center;min-height:44px}
+.pb-who{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.pb-who .pb-chip span{min-width:96px;justify-content:center}
+.pb-taster{border-style:dashed}

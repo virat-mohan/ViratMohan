@@ -16,24 +16,12 @@
     <li><a href="index.html">Home</a></li><li><a href="plan.html">Build a plan</a></li><li aria-current="page" id="crumbNow">Tell us about your dog</li>
   </ol></nav>
   <h1 id="pbTitle">Tell us about your dog</h1>
-  <p class="lead" id="pbLead">Six quick answers. We work out how much your dog needs, choose the meals and show you the price. Subscribe and save.</p>
+  <p class="lead" id="pbLead">A few quick answers. We work out how much your pet needs, choose the meals and show you the price. Try a taster first, or subscribe and save.</p>
   <ol class="pb-steps" id="pbSteps" aria-label="Progress"><li class="on">1 Your dog</li><li>2 Your plan</li><li>3 Review</li></ol>
 
   <div class="pb-card" id="s1">
-    <form class="pb-form" onsubmit="return false" id="pbForm">
-      <div><label for="pbName">Your dog's name</label><input id="pbName" type="text" value="Biscuit" autocomplete="off" enterkeyhint="next"></div>
-      <div><label for="pbBreed">Breed</label><select id="pbBreed"></select></div>
-      <div><span class="lab" id="ageLab">Age</span><div class="pb-row2" role="group" aria-labelledby="ageLab"><select id="pbY" aria-label="Years"></select><select id="pbM" aria-label="Months"></select></div></div>
-      <div><label for="pbKg">Weight in kg</label><input id="pbKg" type="number" inputmode="decimal" min="1" max="90" step="0.5" value="22" enterkeyhint="done"></div>
-      <div class="pb-full"><span class="lab" id="sexLab">Boy or girl?</span><div class="pb-chips" role="radiogroup" aria-labelledby="sexLab">
-        <label class="pb-chip"><input type="radio" name="sex" value="m-yes" checked><span>Boy, neutered</span></label><label class="pb-chip"><input type="radio" name="sex" value="m-no"><span>Boy, not neutered</span></label><label class="pb-chip"><input type="radio" name="sex" value="f-yes"><span>Girl, spayed</span></label><label class="pb-chip"><input type="radio" name="sex" value="f-no"><span>Girl, not spayed</span></label></div></div>
-      <div class="pb-full"><span class="lab" id="bcsLab">How does your dog feel? <small>Gently run your hands along the ribs.</small></span><div class="pb-chips" role="radiogroup" aria-labelledby="bcsLab">
-        <label class="pb-chip"><input type="radio" name="bcs" value="thin"><span>Ribs easy to feel and see</span></label><label class="pb-chip"><input type="radio" name="bcs" value="ideal" checked><span>Ribs felt, waist visible</span></label><label class="pb-chip"><input type="radio" name="bcs" value="over"><span>Hard to feel ribs</span></label></div></div>
-      <div class="pb-full"><span class="lab" id="prefLab">What does your dog eat?</span><div class="pb-chips" role="radiogroup" aria-labelledby="prefLab">
-        <label class="pb-chip"><input type="radio" name="pref" value="any" checked><span>Everything</span></label><label class="pb-chip"><input type="radio" name="pref" value="veg"><span>Vegetarian</span></label><label class="pb-chip"><input type="radio" name="pref" value="vegan"><span>Vegan</span></label></div></div>
-      <details class="pb-full pb-opt"><summary>Any foods to avoid? (optional)</summary><div class="pb-chips" id="pbAvoid">
-        <label class="pb-chip"><input type="checkbox" value="chicken"><span>Chicken</span></label><label class="pb-chip"><input type="checkbox" value="egg"><span>Egg</span></label><label class="pb-chip"><input type="checkbox" value="fish"><span>Fish</span></label><label class="pb-chip"><input type="checkbox" value="lamb"><span>Lamb</span></label><label class="pb-chip"><input type="checkbox" value="goat"><span>Goat</span></label><label class="pb-chip"><input type="checkbox" value="dairy"><span>Dairy</span></label></div></details>
-    </form>
+    <div class="pb-who" id="pbWho" role="radiogroup" aria-label="Who is the plan for?"></div>
+    <form class="pb-form" onsubmit="return false" id="pbForm"></form>
     <div class="pb-actions"><button class="btn" id="pbGo1" type="button">Show the plan</button></div>
   </div>
   <div class="pb-card pb-hide" id="s2" aria-live="polite"></div>
