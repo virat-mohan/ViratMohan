@@ -4,7 +4,7 @@ import type { APIRoute } from 'astro';
 import { getEnv } from '../../../../../lib/env';
 import { serviceDb } from '../../../../../lib/ledger';
 import { json } from '../../../../../lib/retail-os-http';
-import { publishImage, type Handle } from '../../../../../lib/ig-publish';
+import { publishImage, publishReel, type Handle } from '../../../../../lib/ig-publish';
 
 // Gated by src/middleware.ts (admin Basic Auth). POST { id } publishes one queued post
 // after Virat taps Publish; POST { id, cancel: true } cancels it.
@@ -20,7 +20,9 @@ export const POST: APIRoute = async ({ request }) => {
     if (prev?.status !== 'published') return json({ error: 'Publish the post this follows first.' }, 409);
   }
   try {
-    const r = await publishImage({ handle: row.handle as Handle, kind: row.kind, imageUrl: row.image_url, caption: row.caption }, env.META_VIRAT_SOCIAL_TOKEN);
+    const r = row.kind === 'reel'
+      ? await publishReel({ handle: row.handle as Handle, videoUrl: row.image_url, coverUrl: row.cover_url ?? undefined, caption: row.caption, collaborators: row.collaborators ?? [] }, env.META_VIRAT_SOCIAL_TOKEN)
+      : await publishImage({ handle: row.handle as Handle, kind: row.kind, imageUrl: row.image_url, caption: row.caption }, env.META_VIRAT_SOCIAL_TOKEN);
     await sb.from('social_publish_queue').update({ status: 'published', media_id: r.mediaId, permalink: r.permalink, published_at: new Date().toISOString(), error: null }).eq('id', id);
     return json({ ok: true, permalink: r.permalink }, 200);
   } catch (err) {

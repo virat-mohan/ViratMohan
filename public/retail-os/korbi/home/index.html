@@ -26,6 +26,8 @@ a{color:inherit;text-decoration:none}
 .intro{position:fixed;inset:0;z-index:40;background:#0d1117;display:grid;place-items:center;transition:opacity .9s ease,visibility .9s}
 .intro video{width:100%;height:100%;object-fit:cover}
 .intro.done{opacity:0;visibility:hidden}
+.intro.tap::after{content:"▶  Tap to play the film";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:#fffffff0;color:#111;font:500 13px/1 var(--sans);letter-spacing:.14em;padding:16px 22px;border-radius:40px;pointer-events:none}
+.watch{background:none;border:0;font:500 13px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--ink);text-decoration:underline;text-underline-offset:4px;cursor:pointer;min-height:44px;padding:0}
 .skip{position:absolute;right:18px;top:calc(18px + env(safe-area-inset-top,0px));font:500 12px/1 var(--sans);letter-spacing:.2em;color:#fff;background:#ffffff1f;border:1px solid #ffffff44;padding:10px 14px;cursor:pointer}
 .skip:focus-visible{outline:2px solid var(--red);outline-offset:2px}
 
@@ -181,7 +183,7 @@ footer .row{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;f
       <h1>Light your path.<br><b>Never blind the road ahead.</b></h1>
       <p class="lead">The only LED bulb developed in Japan specifically for India's right-hand drive market.</p>
     </div>
-    <div class="cta"><a class="btn" href="#shop">Shop the bulbs</a><span class="price">₹11,500<small>2 LED bulbs · 70 watts</small></span></div>
+    <div class="cta"><a class="btn" href="#shop">Shop the bulbs</a><button class="watch" type="button" id="watch">▶ Watch the film</button><span class="price">From ₹11,500<small>2 LED bulbs · 70 watts</small></span></div>
   </div>
   <div class="stage">
     <span class="sun" aria-hidden="true"></span>
@@ -196,11 +198,11 @@ footer .row{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;f
   <div class="grid2">
     <a class="prod" href="products/warm-white/">
       <img src="assets/bulb-4300k.jpg" alt="KORBI 4300K Warm White bulb, lit" loading="lazy" width="815" height="1036">
-      <div class="meta"><span class="dot" style="background:#E9A84E"></span><small>For all weather</small><b>Road LED Bulbs · 4300K Warm White</b><span class="pp">₹11,500 <em>for the pair</em></span><span class="go">View and choose holder type</span></div>
+      <div class="meta"><span class="dot" style="background:#E9A84E"></span><small>For all weather</small><b>Road LED Bulbs · 4300K Warm White</b><span class="pp">From ₹11,500 <em>for the pair</em></span><span class="go">View and choose holder type</span></div>
     </a>
     <a class="prod" href="products/cool-white/">
       <img src="assets/bulb-6000k.jpg" alt="KORBI 6000K Cool White bulb, lit" loading="lazy" width="815" height="1036">
-      <div class="meta"><span class="dot" style="background:#CFE0FF;box-shadow:inset 0 0 0 1px #0002"></span><small>Bright white</small><b>Road LED Bulbs · 6000K Cool White</b><span class="pp">₹11,500 <em>for the pair</em></span><span class="go">View and choose holder type</span></div>
+      <div class="meta"><span class="dot" style="background:#CFE0FF;box-shadow:inset 0 0 0 1px #0002"></span><small>Bright white</small><b>Road LED Bulbs · 6000K Cool White</b><span class="pp">From ₹11,500 <em>for the pair</em></span><span class="go">View and choose holder type</span></div>
     </a>
   </div>
 </section>
@@ -223,14 +225,14 @@ footer .row{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;f
 </section>
 
 <section class="cut wrap">
-  <div><h2>A beam pattern made for the left side of the road.</h2><p>The beam stays flat on the oncoming side, so other drivers aren't blinded, and lifts on the kerb side to light your path.</p></div>
-  <svg viewBox="0 0 600 260" role="img" aria-label="Diagram of the right-hand drive cutoff: flat on the oncoming side, raised on the kerb side">
+  <div><h2>A beam pattern made for the left side of the road.</h2><p>India drives on the left, so the beam dips on the right, the oncoming side, and other drivers aren't blinded. On the left, the kerb side, it reaches further to light your path.</p></div>
+  <svg viewBox="0 0 600 260" role="img" aria-label="Diagram of the right-hand drive cutoff: high on the left kerb side, dipped on the right oncoming side">
     <rect width="600" height="260" fill="#FFFFFF"/>
-    <path d="M0 150 L250 150 L300 110 L600 110 L600 260 L0 260 Z" fill="#E9A84E" opacity=".16"/>
-    <path d="M0 150 L250 150 L300 110 L600 110" fill="none" stroke="#111" stroke-width="1.4"/>
+    <path d="M0 110 L300 110 L350 150 L600 150 L600 260 L0 260 Z" fill="#E9A84E" opacity=".16"/>
+    <path d="M0 110 L300 110 L350 150 L600 150" fill="none" stroke="#111" stroke-width="1.4"/>
     <line x1="300" y1="0" x2="300" y2="260" stroke="#E2E0DA"/>
-    <text x="20" y="138" font-family="Outfit, sans-serif" font-size="12" letter-spacing="3" fill="#6F6D68">KERB SIDE · LIGHTS YOUR PATH</text>
-    <text x="318" y="96" font-family="Outfit, sans-serif" font-size="12" letter-spacing="3" fill="#6F6D68">ONCOMING SIDE · FLAT CUTOFF</text>
+    <text x="20" y="96" font-family="Outfit, sans-serif" font-size="12" letter-spacing="3" fill="#6F6D68">LEFT · KERB SIDE · REACHES FURTHER</text>
+    <text x="360" y="138" font-family="Outfit, sans-serif" font-size="12" letter-spacing="3" fill="#6F6D68">RIGHT · ONCOMING · DIPS</text>
     <circle cx="300" cy="110" r="5" fill="#E4262B"/>
   </svg>
 </section>
@@ -292,14 +294,15 @@ footer .row{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;f
   var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches, seen=false;
   try{seen=sessionStorage.getItem('korbiIntro')==='1'}catch(e){}
   function done(){intro.classList.add('done');try{sessionStorage.setItem('korbiIntro','1')}catch(e){}}
+  document.getElementById('watch').addEventListener('click',function(){intro.classList.remove('done');film.currentTime=0;var q=film.play();if(q&&q.catch)q.catch(function(){intro.classList.add('tap')});film.onended=function(){setTimeout(done,400)}});
   if(reduce||seen){intro.classList.add('done')}else{
     film.addEventListener('ended',function(){setTimeout(done,400)});
     film.addEventListener('error',done);
     skip.addEventListener('click',done);
-    intro.addEventListener('click',done);
-    film.addEventListener('stalled',done);
-    var p=film.play(); if(p&&p.catch)p.catch(done);
-    setTimeout(done,8000);
+    intro.addEventListener('click',function(e){if(intro.classList.contains('tap')){e.stopPropagation();film.play();}else done()});
+    // If the phone blocks autoplay (e.g. low-power mode), keep the poster up with a play button instead of skipping the film.
+    var p=film.play(); if(p&&p.catch)p.catch(function(){intro.classList.add('tap')});
+    film.addEventListener('playing',function(){intro.classList.remove('tap');setTimeout(done,9000)},{once:true});
   }
   // Holder types as listed on korbi.in (both colours), 2 Oct 2026.
   var cars=['H1','H4','H7','H8','H11','HB3','HIR2','9005','9012'];

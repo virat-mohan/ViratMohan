@@ -187,12 +187,19 @@ export async function brandMetrics(brand: LiveBrand, period: Period): Promise<Me
   const orders = (ordersRaw ?? []) as Record<string, unknown>[];
   const n = (v: unknown) => Number(v ?? 0) || 0;
 
-  let grossSales = 0, discounts = 0, refunds = 0, barterValue = 0, codOrders = 0, barterOrders = 0;
+  // Pay With A Post costs 1% of the item value of orders bought with a code a
+  // Pay With A Post order generated (mirrors the store's lib/pnl.ts). The free-pair
+  // order itself moves no money, so it is left out of sales; barterValue holds the fee.
+  const PWAP_FEE_RATE = 0.01;
+  const { data: codeRows } = await db.from('orders').select('barter_coupon_code').not('barter_coupon_code', 'is', null);
+  const pwapCodes = new Set((codeRows ?? []).map((r) => String((r as { barter_coupon_code: string }).barter_coupon_code).toUpperCase()));
+  let grossSales = 0, discounts = 0, refunds = 0, pwapDriven = 0, codOrders = 0, barterOrders = 0;
   for (const o of orders) {
+    if (o.is_post_barter) { barterOrders++; continue; }
     grossSales += n(o.subtotal);
     discounts += n(o.discount_amount) + n(o.referral_discount_amount) + n(o.loyalty_discount_amount) + n(o.coupon_discount_amount);
     refunds += n(o.refunded_amount);
-    if (o.is_post_barter) { barterValue += n(o.subtotal); barterOrders++; }
+    if (o.coupon_code_used && pwapCodes.has(String(o.coupon_code_used).toUpperCase())) pwapDriven += n(o.subtotal);
     if (o.payment_type === 'cod_advance') codOrders++;
   }
 
@@ -217,6 +224,7 @@ export async function brandMetrics(brand: LiveBrand, period: Period): Promise<Me
   const otherExpenses = (expenses ?? []).reduce((s, e) => s + n((e as { amount?: number }).amount), 0);
   const whatsappCost = Math.round((waCount ?? 0) * (Number(waCostSetting ?? 0.87) || 0.87));
 
+  const barterValue = Math.round(pwapDriven * PWAP_FEE_RATE);
   const netSales = grossSales - discounts - refunds;
   const cogs = units * costPerUnit;
   const grossProfit = netSales - cogs;

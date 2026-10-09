@@ -34,3 +34,28 @@ export async function publishImage(
   const m = await call(`/${id}`, { fields: 'permalink' }, token, 'GET', f).catch(() => ({}));
   return { mediaId: id, permalink: m.permalink ?? null };
 }
+
+// Reel: video container (REELS) with cover, optional Instagram collaborators, then publish.
+// Video processing is slow, so poll up to ~3 minutes.
+export async function publishReel(
+  o: { handle: Handle; videoUrl: string; coverUrl?: string; caption?: string; collaborators?: string[] },
+  token: string, f: typeof fetch = fetch, wait = (ms: number) => new Promise((r) => setTimeout(r, ms)),
+): Promise<{ mediaId: string; permalink: string | null }> {
+  if (!token) throw new Error('META_VIRAT_SOCIAL_TOKEN is not set in Vercel.');
+  const ig = IG_IDS[o.handle];
+  const params: Record<string, string> = { media_type: 'REELS', video_url: o.videoUrl, share_to_feed: 'true', caption: o.caption ?? '' };
+  if (o.coverUrl) params.cover_url = o.coverUrl;
+  if (o.collaborators?.length) params.collaborators = JSON.stringify(o.collaborators);
+  const { id: creation } = await call(`/${ig}/media`, params, token, 'POST', f);
+  let ok = false;
+  for (let i = 0; i < 60; i++) {
+    const s = await call(`/${creation}`, { fields: 'status_code,status' }, token, 'GET', f);
+    if (s.status_code === 'FINISHED') { ok = true; break; }
+    if (s.status_code === 'ERROR' || s.status_code === 'EXPIRED') throw new Error(`Instagram could not process the reel (${s.status ?? s.status_code}).`);
+    await wait(3000);
+  }
+  if (!ok) throw new Error('Instagram is still processing the reel. Tap Publish again in a minute.');
+  const { id } = await call(`/${ig}/media_publish`, { creation_id: creation }, token, 'POST', f);
+  const m = await call(`/${id}`, { fields: 'permalink' }, token, 'GET', f).catch(() => ({}));
+  return { mediaId: id, permalink: m.permalink ?? null };
+}

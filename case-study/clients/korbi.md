@@ -71,3 +71,13 @@ Design references (Shyam, 30 Sep): whitekailash.com, wheaty.in, muji.com/jp/ja/s
 ## Preview store (2 Oct 2026)
 - Homepage hero and "Shop the range" show both bulbs side by side. Each bulb has its own product page (/products/warm-white/, /products/cool-white/) with a colour switch, holder-type picker, quantity, a working cart (kept in the browser) and a full spec table. Checkout is held until Korbi approves.
 - Specs I still need from Korbi before launch: brightness (lumens), rated life (hours), cooling type, CANBUS/error-free, bulb dimensions, and whether shipping is free.
+
+## Tushar's feedback on the preview (6 Oct 2026)
+- Design: Tushar prefers calm and minimal; waiting on Shyam's view. Virat replied that design feedback comes first, and he'll set up a call with Shyam.
+- Fixed on 7 Oct:
+  - The brand film wasn't showing. If a phone blocks autoplay, the film was skipped. It now stays up with "Tap to play", and a "Watch the film" link in the hero replays it.
+  - The beam diagram was mirrored. It now dips on the right (oncoming) side and reaches further on the left (kerb) side.
+  - H4 is ₹12,500 the pair; every other holder type is ₹11,500. The price and the cart now follow the holder type.
+- Asked for: a ratings/reviews page on the website (to build).
+- He attached a technical sheet (4 photos). My Gmail tool can't download attachments, so it needs to go in the Korbi Drive folder.
+- To flag to Virat: the fee is ₹1,000 per unit at the ₹11,500 list price. H4 at ₹12,500 falls under "price change, discuss case by case".
