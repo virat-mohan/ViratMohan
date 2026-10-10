@@ -1,5 +1,8 @@
 # How to build here
 
+## Canonical brand & output standard (read first)
+Before creating ANY DevShop/Retail OS branded output — page, dashboard, admin surface, email, proposal, report, calendar, deck, one-pager, onboarding doc or client communication — read `case-study/BRAND_OUTPUT_STANDARD.md`. It is the one source of truth for palette (light paper + DevShop dark), typography, voice, client-vs-DevShop branding, canonical templates, terminology and metric definitions. Do not invent a competing look, template or metric; mark anything undefined `UNKNOWN` and ask.
+
 ## Design standard (applies to everything built and run)
 Every page, dashboard, image and email must look calm, soothing and premium, fitting the concept it serves.
 - Use the viratmohan.com palette and fonts (paper background, ink text, gold and terracotta accents; display, serif and sans fonts as in `case-study/brand.py`).
@@ -69,6 +72,14 @@ Client-specific today: **Ceremony Finance** and **Ceremony Ops** belong to Cerem
 
 Current environment model: each live brand is its own Supabase project + app (RETAIL_OS_LIVE_BRANDS). This is unchanged; no multi-tenancy decision has been made.
 
+### Anti-fork rule for brand planes
+A new brand starts from the starter (`starters/next-brand-plane` in `virat-mohan/retail-os-brand-config`) and its own configuration, never from a copy of another brand's repo. Details: `case-study/RETAIL-OS-BRAND-PLANE.md`.
+- **Three places, one job each.** The package holds contracts only (no brand values). The control plane's `brands` table is the central registry: it says a brand exists and on what terms. A brand's configuration (identity, Foundation, module manifest, environment) lives in that brand's own repo. Never add a fourth location, and never keep brand configuration in the control plane or the package.
+- **Client-specific features** are declared by the owning brand in its own config, never added to the shared module registry.
+- **Pin the package by full commit SHA** and commit the lockfile; `npm run check:pin:strict` must pass before a brand deploys. Never depend on a tag, branch or range.
+- **Each brand has its own Supabase project**, bound to its brand key. Never share one between brands.
+- Classify any new capability (core, optional module, configuration, client-specific, custom build) before writing it. Do not copy `proxy.ts` without its session module and the login throttle; the admin standard is the signed-session pattern described in the doc.
+
 ### Payments (standard)
 Cash on delivery is off across Retail OS. In India COD drives high RTO (return-to-origin) and the courier/logistics economics don't work, so storefront checkout is prepaid/UPI only. Each store gates COD behind a single `COD_DISABLED` flag (default on) — hide the tile via the checkout config and reject `cod_advance` server-side; leave admin/manual orders unaffected. Only turn COD back on for a brand if Virat says so.
 
@@ -83,6 +94,9 @@ Retail OS should eventually measure traffic → landing → engagement → produ
 
 ### AE / Lead Operator (future capability)
 When built, it reuses the existing Retail OS lead, communication, approval, audit and intelligence infrastructure — not an independent sales system. Not to be built until explicitly authorised.
+
+## Work Registry: one work system (the standard)
+All operational work — across DevShop, Retail OS, every brand, founders, agents, incidents, support, alerts, improvements and opportunities — belongs to the one canonical Work Registry (`src/lib/work/`, schema `migrations/0055_work_registry.sql`, docs `case-study/WORK-REGISTRY.md`). One issue is one work item with one accountable owner; supporting agents assist, observers watch. Reports from every channel (Command Centre, brandsupport@, WhatsApp, founder requests, agent detection, system alerts) resolve to one item. Lifecycle NEW→TRIAGED→ASSIGNED→IN PROGRESS→(WAITING|BLOCKED|PENDING APPROVAL)→RESOLVED→VERIFICATION→CLOSED→REOPENED, and RESOLVED is not CLOSED: closing needs verification and evidence. Priorities P0–P4. Before material repository work, take a repository lock and run the preflight (existing work, owner, dependencies, lock, PR/branch); live brand repos are one-writer-at-a-time. Agents never approve: anything needing money, prices, outbound comms, Prince's work, terms or an irreversible step is an approval only Virat (or the named specialist) decides, and Prince gets work only through Virat. Incidents are work items of type incident. The audit trail is append-only. Do not build a new ticket/task/incident system; use the Work Registry, or extend it and say what was missing. It is a tested foundation, not yet wired to any live system.
 
 ## Email comms (the standard)
 Every email — to Virat, to the team, to a client or a founder — goes out in the viratmohan.com brand aesthetic (`renderRetailOsEmail` in `src/lib/retail-os-email.ts`: paper/ink, gold and terracotta, the four-colour stripe, the DevShop logo and the one signature cc'ing founder@). It is summarised and easy to action: lead with the ask or the status, keep it short, one clear next step, real numbers only. Plain text is only the fallback twin (`body`), never the whole email. This applies to everything, not just daily updates and proposals: quick replies, internal task emails to tech@, and status or approval emails to Virat all use the branded HTML. If a path can't send HTML, that's a gap to fix, not a reason to send an unbranded email.
@@ -109,7 +123,7 @@ When building any new client, decide shipping with `recommendShipping()` in src/
 Before sending any email, WhatsApp or post (by tool or by code), fetch every link in it and confirm it returns 200 with the right page. Never link a page until its deploy is live: deploy, check the live URL, then send. The site's mail sender enforces this (src/lib/mail/link-check.ts blocks sends with broken links); sessions sending through the Gmail connector must do the same check by hand first. Learned 1 Oct 2026: a Korbi email linked /retail-os/korbi/home/ before that page was deployed.
 
 ## Brand dashboards: one standard (case-study/RETAIL-OS-ADMIN-STANDARD.md)
-Every brand admin uses the same navigation (Command Centre, Commerce, Inbox, Marketing, Growth Intelligence, Finance, Operations, Brand & settings, then Extensions for client-only pages), the same page names and paths, the same filter bar and the viratmohan.com look. Unused pages are hidden, not renamed; old paths redirect. Every brand gets the shared modules: WhatsApp inbox (own number via Embedded Signup in coexistence mode, bot later), Where orders came from, Integrations. Travaholic Caps is the reference implementation.
+Every brand admin uses the same canonical structure: Command Centre, Brand / Brand Foundation, Catalogue, Commerce, Growth, Inventory Master, Finance, Operations, Team & Partners, Reports, Settings. Common structure, not identical content — enabled modules and data differ by brand; the dashboard architecture, navigation philosophy and interaction patterns are consistent. Module states: Live, Available, Setup required, Commercial, Client-specific, Coming soon. Unused pages are hidden, not renamed; old paths redirect. Every brand gets the shared modules: WhatsApp inbox (own number via Embedded Signup in coexistence mode, bot later), Where orders came from, Integrations. Travaholic Caps is the reference implementation. Brand Dashboard (one brand) and Founder Control Tower (DevShop / all brands) are distinct — never merged.
 
 ## Brand book lock: no drift on any channel (case-study/BRAND-BOOK-STANDARD.md)
 Every brand speaks and looks only as its own brand book says, on every channel: store, emails, WhatsApp, posts, reels, ads, images, bot replies. Each brand repo has one brand book module (`lib/brand-voice.ts`, Ceremony OS is the reference) built only from the brand book and the founder's approved edits. Its `checkVoice()` runs before every approval and every send, and a block stops it. Every AI prompt includes `brandVoicePrompt()`. Sessions sending through a connector check the copy against the module by hand first. A gap in the book is asked of the founder, never guessed. New brands get the module and its test before any customer-facing word goes out. The CEO agent audits the last 7 days of copy weekly and fixes drift at the source.

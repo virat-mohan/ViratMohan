@@ -2,7 +2,7 @@
 
 **The single source of truth for the estate: the business hierarchy, every Claude Project, every repository, every brand/client, and what each is called now vs. what it should be called.** Read this before creating any new Claude Project, repository, package or major subsystem (see §12, the anti-duplication rule).
 
-- **As of:** 2026-10-05
+- **As of:** 2026-10-08
 - **Owner:** Virat (master control: the viratmohan.com Claude Code session).
 - **Authority:** classifications in §2–§9 are confirmed by Virat (2026-10-05). Do not re-classify unless you hit a genuine, unresolvable contradiction.
 
@@ -165,7 +165,7 @@ All 12 repositories under `virat-mohan`. The previous scan's list was complete �
 | Repository | Business / brand | Claude Project | Group | Framework | Database | Deployment | Status | Target name | Rename? |
 |---|---|---|---|---|---|---|---|---|---|
 | ViratMohan | DevShop control plane / viratmohan.com | DevShop Master Control; Virat Mohan website | 03 (+10) | Astro | Supabase `vszjwgxvqoqyixpfthwl` | viratmohan.com (public) | Active production | `devshop-control-plane` | Later — many links point here; defer |
-| retail-os-brand-config | Retail OS (`@retail-os/brand-config`) | Retail OS platform | 03 (shared pkg) | TS package (ships `dist`) | — | consumed via git SHA pin (private) | Active | — (canonical) | No |
+| retail-os-brand-config | Retail OS (`@retail-os/brand-config`) | Retail OS platform | 03 (shared pkg) | TS package (ships `dist`) | — | consumed via git SHA pin (private); v0.3.0 on branch claude/brand-plane-contract (PR #2, draft, unmerged, untagged): 29-module shared registry with setup requirements, one identity contract, admin gate, login throttle, voice mechanics. Also holds the Next.js starter `starters/next-brand-plane/` 0.2.0, outside the published package | Active | — (canonical) | No |
 | moon-glasses | Moon (owned brand) | Moon-glasses | 04 | Next.js 16 | Supabase | Vercel (public) | Active production — **Retail OS Live** | `retail-os-moon` | Later — live store; planned window only |
 | Travaholic_caps | Travaholic (active client) | Travaholic Caps | 05 | Next.js 16 | Supabase | Vercel (public) | Active production — **Retail OS Live** | `retail-os-travaholic` | Later — live store; planned window only |
 | korbi | KORBI / Ankay Holdings (active client) | Korbi | 05 | Astro | — | private | Active production — **Retail OS Live** (Astro stays) | `retail-os-korbi` | Later — live; Astro valid, no migration |
@@ -177,7 +177,7 @@ All 12 repositories under `virat-mohan`. The previous scan's list was complete �
 | Coachyourpsyche | Coach Your Psyche | Coach your Psyche | 07 | emergent app | — | private | Revisit / experiment (dormant) | — | No |
 | Mystique | Mystique (ecommerce) | — (no Claude Project mapped) | 07 | emergent app | — | private | Revisit / experiment (dormant). **No Claude Project mapped — confirm disposition with Virat** | — | No |
 
-> No repository exists for: Fresh For Paws, Pookie, Vintage Sunglasses, Aloo Chips, Radico Khaitan, The Party Collective, Raghu Antiques, Rakhi Taneja, Blak Sand, Clarity Campaign Sales, Restaurant F&B vertical, and the DevShop Core/Governance projects. Do not create repos automatically.
+> No repository exists for: Fresh For Paws (its backend is staged in this repo and its Supabase project exists), Pookie, Vintage Sunglasses, Aloo Chips, Radico Khaitan, The Party Collective, Raghu Antiques, Rakhi Taneja, Blak Sand, Clarity Campaign Sales, Restaurant F&B vertical, and the DevShop Core/Governance projects. Do not create repos automatically.
 
 ---
 
@@ -200,10 +200,10 @@ Do not create a separate product category for Vishal/Wiiz. `Email drafts for Vis
 | **Travaholic Caps** | Paid Active | **Retail OS Live** | `Travaholic_caps` | Reference implementation for the admin standard + Brand Foundation consumer pattern |
 | **Ceremony Kitchen** | Paid Active | Implementation Active (Retail OS + client-specific extensions) | `ceremony-os` | Ceremony Finance & Ceremony Ops are client-specific extensions, not core modules |
 | **Korbi** | Paid Active | **Retail OS Live** (Astro) | `korbi` | KORBI / Ankay Holdings |
-| **Fresh For Paws** (`freshforpaws.com`) | **Paid Active** | **ACTIVE PAID CLIENT — NO DEDICATED REPOSITORY IDENTIFIED** | — | NCNDA 27 Sep 2026, deposit 30 Sep, build clock started 30 Sep, target 7 Oct 2026. Founder Srishti Bhatia. WooCommerce front stays; Retail OS runs behind it. Supabase control-plane `brands` row `freshforpaws` + `retail_os_applications` 8ad86490. **No repo created.** Source: `case-study/brands/freshforpaws.md`. |
+| **Fresh For Paws** (`freshforpaws.com`) | **Paid Active** | **Provisioning** (corrected 2026-10-07) | — (staged in `retail-os-brands/freshforpaws/`) | NCNDA 27 Sep 2026, deposit 30 Sep, build clock started 30 Sep, target 7 Oct 2026. Founder Srishti Bhatia. WooCommerce front stays; Retail OS runs behind it. Control-plane `brands` row `freshforpaws` (status building) + `retail_os_applications` 8ad86490; lead stage `deposit_paid`. **Verified live 2026-10-07 (read-only):** Supabase project `freshforpaws-os` (ref `ksstmmmdvdpeygfzothu`) exists and is ACTIVE_HEALTHY (created 5 Oct); the staged schema is applied (11 tables, RLS on; applied by hand, so the migration ledger is empty); `woo-webhook` and `woo-sync` are deployed (v4); an hourly Woo sync is running (last run ok: 27 products, 2 orders). **Still missing:** no GitHub repo or Vercel project (so no brand plane or dashboard); not registered in the control plane portfolio reader (needs `RETAIL_OS_BRAND_FRESHFORPAWS_*` in Vercel, a secret Virat sets); 0 of 27 products have cost, pack size or shelf life; Meta, GA4, Razorpay and delivery inputs outstanding. Future dashboard = **Next.js Brand Plane** (from `starters/next-brand-plane` in `retail-os-brand-config`). Future Brand CEO = FP-01 Paws (registered). Source: `case-study/brands/freshforpaws.md`, `case-study/ESTATE-ASSEMBLY.md`. |
 | **The Feeling Co / FlowerBasket** | Active (client work) | To confirm — repo `thefeelingco` is static HTML + React | `thefeelingco` | Surfaced via FlowerBasket vendor outreach work item; confirm current technical state with Virat |
 
-> A domain alone is not proof of a technical implementation. Fresh For Paws appears here regardless of repository existence.
+> A domain alone is not proof of a technical implementation. Fresh For Paws has a live Supabase project, an applied schema and deployed Woo Edge Functions (checked 2026-10-07), but no dedicated repository and no brand plane.
 
 ---
 
@@ -247,6 +247,8 @@ Applies to **new** repos/packages. Existing production repos keep their names un
 
 Execution-only items (not permanent products): `DevShop video reel`, `URGENT: fix unauthenticated /api/admin…` (security incident — a false positive confirmed this session; `proxy.ts` already gates admin on both stores), `Update /devshop project grid to real statuses`, `Email drafts for Vishal Malhotra`, `FlowerBasket vendor outreach`, individual Employee Support Agent onboardings. These should ultimately be governed by the Work Registry, not retained as standalone products.
 
+The Work Registry foundation now exists (control plane): one canonical work object, lifecycle, ownership, deduplication, repository locks, escalation, approvals, incidents and an append-only audit trail. Contract `src/lib/work/`, schema `migrations/0055_work_registry.sql` (applied and verified on the control-plane DB, tracked in the migration ledger as `0055_work_registry`), a database-backed registry over those tables, a health-check runner that bridges `scripts/health/check.mjs` failures into Work Registry items, docs `case-study/WORK-REGISTRY.md`. Not wired to any live schedule; existing work-like tables are unchanged.
+
 ---
 
 ## 12. Anti-duplication rule (also in `CLAUDE.md`)
@@ -272,7 +274,24 @@ Before creating a new Claude Project, repository, package or major subsystem:
 
 ---
 
-## 14. Sources
+## 14. Brand-plane architecture
+
+The canonical Retail OS Brand Plane (registration authority, layers, identity contract, Foundation, admin auth and login throttle, module status, Supabase isolation and binding, versioning, provisioning, upgrade and retirement, security review, compatibility matrix with Travaholic and Moon) is `case-study/RETAIL-OS-BRAND-PLANE.md`. A new brand is configured, not forked.
+
+- **Registration authority (one per kind of fact):** the **central registry** is the control plane's `brands` table (`migrations/0042_brands.sql`) plus `RETAIL_OS_LIVE_BRANDS` and this document. **Brand configuration** (identity, Foundation, module manifest, environment) lives in each brand's own repo. The **package** holds contracts only. They are not the same thing.
+- **Shared package:** `@retail-os/brand-config` v0.3.0 (framework-neutral), holding the canonical 29-module registry. Brands pin it by commit SHA.
+- **Starter:** `starters/next-brand-plane/` inside the package repo, outside the published package. No new repository was created; extraction to a template repo is a later decision.
+- **Superseded:** the control-plane incubator is archived at `case-study/archive/retail-os-brand-config-incubator/` (history preserved, out of every active path). Its `brands/*.ts` registrations were not carried over; each brand's configuration belongs in its own repo.
+- **Brand data:** one Supabase project per brand, and the database is bound to its brand key. No multi-tenancy decision.
+- **Open:** whether the central registry should also record the package and starter version a brand runs (the source of truth today is the brand repo); when the starter becomes its own template repo.
+
+## 14a. Work Registry (control plane)
+
+`case-study/WORK-REGISTRY.md` is authoritative. One canonical work object for DevShop, Retail OS, every brand, founders, agents, incidents, support, alerts, improvements and opportunities, so one issue is one work item with one accountable owner. Control plane: `src/lib/work/` (pure, framework-neutral), `migrations/0055_work_registry.sql` (applied and verified on `vszjwgxvqoqyixpfthwl`, tracked in the migration ledger as `0055_work_registry`), and the database-backed registry over those tables (`db-store.ts`, `db-registry.ts`). Health-check runner bridges `scripts/health/check.mjs` failures into Work Registry items. No new repository or package; extract to a shared package when a brand plane or agent runtime must read it directly. The Control Tower will use it; nothing live reads or writes the registry yet.
+
+Rule: do not create a new ticket, task, request or incident system. Use the Work Registry; if it does not cover a need, extend it.
+
+## 15. Sources
 
 - GitHub `list_repos` for `virat-mohan` (2026-10-05) — the 12 repos in §5.
 - Virat (2026-10-05) — confirmed classification of Claude Projects (§2–§9), Fresh For Paws paid-active, Vishal/Wiiz tri-classification, Travaholic Stays legacy + Real Estate IP.
@@ -280,3 +299,15 @@ Before creating a new Claude Project, repository, package or major subsystem:
 - `case-study/brands/*.md`, `CLAUDE.md`.
 
 Anything not confirmed above is marked *to confirm*, not asserted.
+
+## 16. Assembly update, 2026-10-07
+
+Full detail and the typed source are in `case-study/ESTATE-ASSEMBLY.md` and `src/lib/brand-node/estate.ts` (guarded by `tests/unit/brand-node/estate.test.ts`). Corrections to the tables above, each checked against a repository or the live control plane:
+
+- **Fresh For Paws** is Provisioning, not "Staged, not deployed": see section 7.
+- **Korbi:** the registry says `building`, this document said Retail OS Live, and the repository shows no confirmed production deploy. Treated as Active, production unknown, until Virat confirms.
+- **The Feeling Co:** the registry says `live`; the Flower Basket app runs on mock data and its own audit says it is not production ready. Proposed class `custom-build`, to confirm.
+- **Two starters exist:** the hardened one in `retail-os-brand-config/starters/next-brand-plane` (named in section 14) and an older, dashboard-only one in `ViratMohan/starters/next-brand-plane`, kept because the ViratMohan release gate typechecks it. Consolidation is Virat's decision.
+- **Brand databases:** one Supabase project per brand is confirmed: Moon `fewnyteoprmuyzfvopnb`, Travaholic Caps `mdornfpcskvjnuawqpqf`, Ceremony `jnfapkxpkdizwjzrccjm`, Korbi `dajglwnvrhrxryzjkjka`, Fresh For Paws `ksstmmmdvdpeygfzothu`, India Contemporary `smzfdqwgaxwdxkiuqftc` (inactive).
+- **Dashboards:** Moon (`4895444`) and Travaholic Caps (`3c26476`) each have a pushed, unmerged `canonical-dashboard-shell` branch that only rewires navigation. Moon's `main` has moved 34 commits since its base. Travaholic's `main` reverted the Brand Foundation change that its branch builds on (`7356b0e`).
+- **Brand keys:** the agent registry and the health runner used `ceremony` and `travaholic` where the central registry says `ceremonykitchen` and `caps`. The Work Registry refuses unknown brand keys, so this would have broken the moment the registry was wired live. Fixed in `src/lib/ceo/types.ts` and `src/lib/work/health-runner.ts`.

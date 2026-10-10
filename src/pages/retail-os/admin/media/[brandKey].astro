@@ -1,4 +1,5 @@
 ---
+import AdminBreadcrumbs from '../../../../components/AdminBreadcrumbs.astro';
 export const prerender = false;
 import { getEnv } from '../../../../lib/env';
 import { brandsDb, type Brand } from '../../../../lib/brands';
@@ -53,9 +54,12 @@ input{width:100%;box-sizing:border-box;font:14px/1.4 var(--sans);padding:10px 12
 .tile button{justify-self:start;font:600 12px var(--sans);padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:transparent;cursor:pointer;}
 .empty{border:1px dashed var(--line);border-radius:14px;padding:28px;color:var(--dim);text-align:center;}
 </style>
+  <link rel="stylesheet" href="/retail-os/admin-touch.css">
 </head>
 <body>
+<div class="vm-band"></div>
 <main class="wrap">
+  <AdminBreadcrumbs resource={brand?.name ?? null} />
   <p class="eyebrow">DevShop Retail OS · {brand?.name ?? key}</p>
   <h1>Media assets</h1>
   <p class="sub">Every product image from the store, in one library. Connect Shopify once, import, and copy any image's link for the website, posts and ads.</p>

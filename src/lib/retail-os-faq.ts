@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Env } from './env';
+import { governedMessages } from './intelligence/provider';
 
 // Partner FAQ inbox — see migrations/0027_retail_os_faq.sql and 0038_knowledge_loop.sql.
 // Fed by the FAQ page, the site chat and the lead email assistant (src/lib/knowledge-loop.ts).
@@ -74,11 +75,10 @@ export function getFaqDb(env: Env) {
 // Rewords Virat's reply (WhatsApp or email) into the FAQ's voice: first person,
 // plain, short, no selling, nothing added that the reply did not say.
 export async function rewordAnswer(apiKey: string, question: string, rawAnswer: string, topics: string[]) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-    body: JSON.stringify({
-      model: 'claude-sonnet-5',
+  const { res } = await governedMessages({
+    operation: 'faq.reword_answer',
+    apiKey,
+    body: {
       max_tokens: 600,
       system: `You turn Virat Mohan's replies (from WhatsApp or email) into entries for the DevShop Retail OS partner FAQ.
 Rules: first person as Virat. Plain, short, straightforward: one to three sentences. No selling, no hype, no emojis, no em-dashes.
@@ -100,7 +100,7 @@ Also tidy the partner's question into a short, clear FAQ question, and pick the 
         },
       }],
       messages: [{ role: 'user', content: `Partner's question:\n${question}\n\nVirat's reply:\n${rawAnswer}` }],
-    }),
+    },
   });
   if (!res.ok) throw new Error(`Claude ${res.status}: ${(await res.text()).slice(0, 300)}`);
   const data = await res.json();

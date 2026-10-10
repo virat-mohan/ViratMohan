@@ -75,8 +75,7 @@ describe('NDA', () => {
 describe('approve sends a parked journey email', () => {
   it('sends fresh from Gmail, marks it sent and moves the lead to nda_sent', async () => {
     const store = new MemoryLeadStore([{ id: '00000000-0000-4000-8000-000000000001', brand_name: 'Kora Living', contact_name: 'Asha', contact_email: 'asha@kora.in', stage: 'new', next_step: null, next_step_due: null }]);
-    const row = (await store.insertMessage({ lead_id: '00000000-0000-4000-8000-000000000001', direction: 'outbound', channel: 'email', status: 'awaiting_approval', subject: 'NDA first', body: 'Hi Asha,\n\nSign here: https://viratmohan.com/retail-os/nda/x.y\n\nVirat', gmail_message_id: null, gmail_thread_id: null }))!;
-    (row as any).purpose = 'nda_request';
+    const row = (await store.insertMessage({ lead_id: '00000000-0000-4000-8000-000000000001', direction: 'outbound', channel: 'email', status: 'awaiting_approval', subject: 'NDA first', body: 'Hi Asha,\n\nSign here: https://viratmohan.com/retail-os/nda/x.y\n\nVirat', gmail_message_id: null, gmail_thread_id: null, meta: { purpose: 'nda_request' } }))!;
     const { token, payload } = signToken(row.id, 'secret', NOW.getTime());
     await store.saveToken(payload.n, row.id, new Date(payload.exp));
     const gmail = { sendRaw: vi.fn(async () => ({ id: 'g9', threadId: 't9' })), sendDraft: vi.fn(async () => { throw new Error('no draft'); }) } as unknown as GmailApi;

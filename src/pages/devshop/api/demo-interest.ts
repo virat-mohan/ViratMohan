@@ -9,8 +9,14 @@ import { getDb } from '../../../lib/db';
 import { getEnv } from '../../../lib/env';
 import { getOrigin } from '../../../lib/http';
 import { sendEmail } from '../../../lib/email';
+import { endpointLimit } from '../../../lib/rate-limit';
+
+// Public and unauthenticated. Emails the admin.
+const limit = endpointLimit({ rules: [{ limit: 3, windowMs: 60_000 }, { limit: 10, windowMs: 3_600_000 }], body: { error: 'Too many requests. Please wait a minute and try again.' } });
 
 export const POST: APIRoute = async ({ request }) => {
+  const limited = limit(request);
+  if (limited) return limited;
   const env = getEnv();
   const { id } = (await request.json().catch(() => ({}))) as { id?: string };
   if (!id) return json({ error: 'id is required' }, 400);

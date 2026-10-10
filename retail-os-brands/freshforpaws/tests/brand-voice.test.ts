@@ -6,6 +6,7 @@ describe('Fresh For Paws brand voice', () => {
   it('blocks unconfirmed claims', () => { expect(blocks('Vet-formulated, human grade meals')).toHaveLength(2); });
   it('blocks medical claims', () => { expect(blocks('This recipe cures kidney disease')).toContain('medical claim'); });
   it('blocks name errors', () => { expect(blocks('Try FreshForPaws today')).toContain('write "Fresh For Paws" (three words)'); expect(blocks('Fresh for Paws')).toContain('capitalise "For": Fresh For Paws'); });
+  it('allows the brand hashtags', () => { expect(blocks('Order now #FreshForPaws #ChooseFreshForPaws')).toEqual([]); expect(blocks('Try FreshForPaws today')).toHaveLength(1); });
   it('allows the domain', () => { expect(blocks('Order at freshforpaws.com')).toEqual([]); });
   it('blocks DevShop leaks', () => { expect(blocks("Powered by DevShop. Let's talk.")).toHaveLength(1); });
   it('warns on prices', () => { expect(checkVoice('Only ₹249').some((f) => f.level === 'warn')).toBe(true); });

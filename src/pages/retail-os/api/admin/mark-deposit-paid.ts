@@ -8,6 +8,7 @@ import { getOrigin } from '../../../../lib/http';
 import { renderRetailOsEmail } from '../../../../lib/retail-os-email';
 import { json, escapeHtml, readJson } from '../../../../lib/retail-os-http';
 import { mailConfigured } from '../../../../lib/mail/send';
+import { syncLeadFromApplication } from '../../../../lib/lead-sync';
 
 // Gated by src/middleware.ts. For a deposit collected in person (cash, UPI
 // shown on Virat's own phone, etc.) — records and confirms it in one step, so

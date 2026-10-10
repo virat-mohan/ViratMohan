@@ -1,4 +1,5 @@
 ---
+import AdminBreadcrumbs from '../../../components/AdminBreadcrumbs.astro';
 export const prerender = false;
 import { getEnv } from '../../../lib/env';
 import { serviceDb } from '../../../lib/ledger';
@@ -32,8 +33,10 @@ h1{font-family:var(--display);font-weight:400;text-transform:uppercase;font-size
 button{font:600 14px var(--sans);padding:10px 18px;border:0;border-radius:6px;background:var(--ink);color:var(--paper);cursor:pointer;margin-right:8px}
 button.o{background:transparent;color:var(--ink);border:1px solid var(--line)}
 .err{color:var(--terracotta);font-weight:600;font-size:13px} a{color:inherit}
-</style></head>
-<body><div class="wrap">
+</style>  <link rel="stylesheet" href="/retail-os/admin-touch.css">
+</head>
+<body><div class="vm-band"></div><div class="wrap">
+  <AdminBreadcrumbs />
 <a class="logo" href="/founder"><img src="/retail-os/email/devshop-logo.png" alt="DevShop" width="88" height="34"><i>Retail OS™</i></a>
 <h1>Publish to Instagram</h1>
 <p class="sub">Posts prepared for your own accounts. Nothing goes out until you tap Publish.</p>
@@ -41,9 +44,10 @@ button.o{background:transparent;color:var(--ink);border:1px solid var(--line)}
 {ready.length === 0 && <p class="sub">Nothing waiting.</p>}
 {ready.map((r) => (
   <div class="card" data-id={r.id}>
-    <img src={r.image_url} alt="" loading="lazy">
+    <img src={r.kind === 'reel' ? (r.cover_url || '') : r.image_url} alt={r.kind === 'reel' ? 'Reel cover' : ''} loading="lazy">
     <div>
-      <p class="k">@{r.handle} · {r.kind}{r.after_id ? ' · after the post above' : ''}</p>
+      <p class="k">@{r.handle} · {r.kind}{r.kind === 'reel' && (r.collaborators ?? []).length ? ` · collab with @${r.collaborators.join(', @')}` : ''}{r.after_id ? ' · after the post above' : ''}</p>
+      {r.kind === 'reel' && <p class="note"><a href={r.image_url}>Watch the video</a> before you publish. Takes up to 2-3 minutes to process.</p>}
       {r.caption && <p class="cap">{r.caption}</p>}
       {r.note && <p class="note">{r.note}</p>}
       {r.error && <p class="err">Last try: {r.error}</p>}

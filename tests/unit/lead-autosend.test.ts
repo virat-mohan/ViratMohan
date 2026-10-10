@@ -14,18 +14,18 @@ vi.mock('../../src/lib/lead-mail/live', () => ({ viratNotifier: () => notifier }
 const { submitForApproval } = await import('../../src/lib/lead-approve');
 
 // Minimal chainable fake Supabase. `recentSent` seeds the duplicate-check query.
-function fakeSb(opts: { recentSent?: boolean } = {}) {
+function fakeSb(opts: { recentSent?: boolean; recentPurpose?: string } = {}) {
   const inserted: any[] = [];
   const updates: any[] = [];
   const leads = new Map([['lead-1', { id: 'lead-1', stage: 'new' }]]);
   const b = (table: string) => {
-    const st: any = { table, _op: null, _payload: null };
+    const st: any = { table, _op: null, _payload: null, _purpose: null };
     st.insert = (p: any) => { st._op = 'insert'; st._payload = p; if (table === 'lead_messages') inserted.push(p); return st; };
     st.update = (p: any) => { st._op = 'update'; st._payload = p; if (table === 'lead_messages') updates.push(p); if (table === 'leads') { const l = leads.get('lead-1'); if (l) Object.assign(l, p); } return st; };
     st.select = () => st;
-    st.eq = () => st;
+    st.eq = function() { if (arguments[0] === 'purpose' || (table === 'lead_messages' && arguments[0] === 'status')) return st; return this; };
     st.gte = () => st;
-    st.limit = () => Promise.resolve({ data: table === 'lead_messages' && opts.recentSent ? [{ id: 'old' }] : [], error: null });
+    st.limit = () => Promise.resolve({ data: table === 'lead_messages' && opts.recentSent ? [{ id: 'old', meta: { purpose: opts.recentPurpose ?? 'nda_reminder' } }] : [], error: null });
     st.single = () => Promise.resolve({ data: { id: 'msg-1' }, error: null });
     st.maybeSingle = () => Promise.resolve({ data: leads.get('lead-1'), error: null });
     return st;

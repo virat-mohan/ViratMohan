@@ -1,0 +1,160 @@
+---
+import AdminBreadcrumbs from '../../../components/AdminBreadcrumbs.astro';
+export const prerender = false;
+import { AGENT_REGISTRY } from '../../../lib/ceo/types';
+import {
+  buildAllPassports,
+  certificationSummary,
+  scenariosForAgent,
+  ASSESSMENT_SCENARIOS,
+  type AgentPassport,
+  type CertLevel,
+} from '../../../lib/ceo/agent-training';
+
+const now = new Date();
+const passports = buildAllPassports(now);
+const summary = certificationSummary(now);
+const selected = Astro.url.searchParams.get('agent') ?? null;
+const selectedPassport: AgentPassport | null = selected ? passports.find((p) => p.agent_id === selected) ?? null : null;
+const selectedScenarios = selected ? scenariosForAgent(selected) : [];
+
+const CERT_COLOURS: Record<CertLevel, string> = {
+  TRAINING_REQUIRED: '#c1272d',
+  TRAINING: '#e8751a',
+  ASSESSMENT: '#d4a574',
+  CERTIFIED_L1: '#8b7355',
+  CERTIFIED_L2: '#5a7247',
+  AUTONOMOUS_L3: '#2d5016',
+};
+const CERT_LABEL: Record<CertLevel, string> = {
+  TRAINING_REQUIRED: 'Training Required',
+  TRAINING: 'In Training',
+  ASSESSMENT: 'Assessment',
+  CERTIFIED_L1: 'Certified L1',
+  CERTIFIED_L2: 'Certified L2',
+  AUTONOMOUS_L3: 'Autonomous L3',
+};
+---
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Agent Training & Certification — DevShop Retail OS</title>
+  <link rel="stylesheet" href="/brand/tokens.css" />
+  <link rel="stylesheet" href="/retail-os/admin-touch.css" />
+  <style>
+    body { font-family: var(--font-sans, system-ui); background: var(--paper, #faf8f4); color: var(--ink, #1a1a1a); margin: 0; padding: 0 16px 40px; }
+    h1 { font-family: var(--font-display, Georgia); font-size: 1.5rem; font-weight: 600; margin: 24px 0 8px; }
+    h2 { font-size: 1.1rem; margin: 24px 0 8px; }
+    .summary { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin: 16px 0; }
+    .card { background: #fff; border: 1px solid #e8e4de; border-radius: 8px; padding: 16px; }
+    .card a { text-decoration: none; color: inherit; display: block; }
+    .cert-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; color: #fff; font-size: 0.75rem; font-weight: 600; }
+    .agent-name { font-weight: 600; font-size: 1rem; margin-bottom: 4px; }
+    .agent-role { color: #666; font-size: 0.85rem; }
+    .stats { display: flex; gap: 16px; margin-top: 8px; font-size: 0.85rem; color: #555; }
+    .detail { background: #fff; border: 1px solid #e8e4de; border-radius: 8px; padding: 20px; margin: 16px 0; }
+    .module-list { list-style: none; padding: 0; }
+    .module-list li { padding: 8px 0; border-bottom: 1px solid #f0ede8; }
+    .module-list li:last-child { border-bottom: none; }
+    .scenario { background: #faf8f4; border-radius: 6px; padding: 12px; margin: 8px 0; }
+    .scenario-title { font-weight: 600; font-size: 0.9rem; }
+    .scenario-detail { font-size: 0.85rem; color: #555; margin-top: 4px; }
+    .gap { background: #fef3f2; border-left: 3px solid #c1272d; padding: 8px 12px; margin: 4px 0; border-radius: 0 4px 4px 0; font-size: 0.85rem; }
+    .kra-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .kra { background: #f5f0ea; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; }
+    @media (max-width: 600px) { .summary { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="vm-band"></div>
+  <AdminBreadcrumbs items={[{ label: 'Retail OS', href: '/retail-os/admin' }, { label: 'Agent Training' }]} />
+  <h1>Agent Organisation & Training</h1>
+  <p style="color:#666; font-size:0.9rem; margin-top:0;">
+    {summary.length} agents · {summary.filter(s => s.certification !== 'TRAINING_REQUIRED').length} certified · {ASSESSMENT_SCENARIOS.length} assessment scenarios
+  </p>
+
+  <div class="summary">
+    {summary.map(s => (
+      <div class="card">
+        <a href={`/retail-os/admin/training?agent=${s.agent_id}`}>
+          <div class="agent-name">{s.agent_id} {s.agent_name}</div>
+          <div class="agent-role">{s.role}</div>
+          <div style="margin-top:8px;">
+            <span class="cert-badge" style={`background:${CERT_COLOURS[s.certification]}`}>{CERT_LABEL[s.certification]}</span>
+          </div>
+          <div class="stats">
+            <span>{s.training_modules} modules</span>
+            <span>{s.assessments_passed} passed</span>
+            <span>{s.scenarios_available} scenarios</span>
+            <span>{s.gaps} gaps</span>
+          </div>
+        </a>
+      </div>
+    ))}
+  </div>
+
+  {selectedPassport && (
+    <div class="detail">
+      <h2>{selectedPassport.agent_id} {selectedPassport.agent_name}</h2>
+      <p style="margin:4px 0;"><strong>Role:</strong> {selectedPassport.role} · <strong>Reports to:</strong> {selectedPassport.reports_to}</p>
+      <p style="margin:4px 0;"><strong>Mandate:</strong> {selectedPassport.mandate}</p>
+      <p style="margin:4px 0;">
+        <strong>Certification:</strong>
+        <span class="cert-badge" style={`background:${CERT_COLOURS[selectedPassport.certification]}`}>{CERT_LABEL[selectedPassport.certification]}</span>
+      </p>
+      {selectedPassport.brand_permissions.length > 0 && (
+        <p style="margin:4px 0;"><strong>Brand permissions:</strong> {selectedPassport.brand_permissions.join(', ')}</p>
+      )}
+
+      <h2>KRAs</h2>
+      <div class="kra-list">
+        {selectedPassport.kras.map(k => <span class="kra">{k}</span>)}
+      </div>
+
+      <h2>Training Modules ({selectedPassport.training_modules.length})</h2>
+      <ul class="module-list">
+        {selectedPassport.training_modules.map(m => (
+          <li>
+            <strong>{m.id}</strong> {m.name} <span style="color:#888;">({m.domain})</span>
+            <div style="font-size:0.8rem; color:#777; margin-top:2px;">{m.topics.join(', ')}</div>
+          </li>
+        ))}
+      </ul>
+
+      {selectedPassport.gaps.length > 0 && (
+        <>
+          <h2>Competence Gaps</h2>
+          {selectedPassport.gaps.map(g => <div class="gap">{g}</div>)}
+        </>
+      )}
+
+      {selectedScenarios.length > 0 && (
+        <>
+          <h2>Assessment Scenarios ({selectedScenarios.length})</h2>
+          {selectedScenarios.map(s => (
+            <div class="scenario">
+              <div class="scenario-title">{s.id}: {s.description}</div>
+              <div class="scenario-detail"><strong>Expected:</strong> {s.expected_outcome}</div>
+              <div class="scenario-detail"><strong>Verification:</strong> {s.verification}</div>
+            </div>
+          ))}
+        </>
+      )}
+
+      {selectedPassport.assessments.length > 0 && (
+        <>
+          <h2>Assessment Results</h2>
+          {selectedPassport.assessments.map(a => (
+            <div class="scenario">
+              <div class="scenario-title">{a.scenario_id}: {a.passed ? '✓ Passed' : '✗ Failed'}</div>
+              <div class="scenario-detail">{a.evidence}</div>
+              <div class="scenario-detail">Assessed by {a.assessed_by} at {a.assessed_at}</div>
+            </div>
+          ))}
+        </>
+      )}
+    </div>
+  )}
+</body>
+</html>

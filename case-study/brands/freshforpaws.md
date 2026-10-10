@@ -32,16 +32,15 @@ Client (pure client, profit share). NCNDA signed 27 Sep 2026, deposit received 3
 
 ## 7. Current facts
 - Site: https://freshforpaws.com (WooCommerce). Contact contact@freshforpaws.com; founder srishti@freshforpaws.com.
-- Offers: free shipping over ₹999; subscription monthly plans (website, 2 Oct 2026, confirm). Pay with a Post at 1%.
-- Payment: application says COD and prepaid; Razorpay stays. Retail OS standard is COD off: confirm with Virat/Srishti.
-- Shipping: light product, free shipping inside the price under the Retail OS rule; current site rule is free over ₹999. Delivery zones Delhi NCR, Gurugram, Noida; capacity, slots and cold chain still to come from Srishti.
+- Offers: free shipping from ₹1,000 (cost inside the price); orders up to ₹999 pay shipping at the Shiprocket quote; prepaid only, no COD (Virat, 9 Oct 2026); subscription monthly plans (website, 2 Oct 2026, confirm). Pay with a Post at 1%.
+- Payment: prepaid only, no COD (Virat, 9 Oct 2026). Razorpay stays; the live checkout offers Razorpay only.
+- Shipping (Virat, 9 Oct 2026): orders up to ₹999 pay shipping at the actual Shiprocket quote; ₹1,000 and above ship free with the cost inside the price. Check on 9 Oct: the live cart showed a flat ₹50 on a ₹140 order, so confirm Shiprocket live rates are wired in. Delivery zones Delhi NCR, Gurugram, Noida; capacity, slots and cold chain still to come from Srishti.
 
 ## 8. Gaps (ask Srishti Bhatia)
 - Is there a brand book? Colours, fonts, logo files and usage.
 - Voice do/don't, banned phrases, hashtags, sign-off, store CTA.
 - Confirm tagline, WhatsApp number and sender address.
-- COD: keep or switch to prepaid only (Retail OS standard)?
-- Shipping: free over ₹999 or free on all; delivery method, slots, cold chain.
+- Shipping: delivery method, slots and cold chain still to come from Srishti (the price rule is set: see Current facts).
 
 ---
 
@@ -55,7 +54,7 @@ One place for everything done on Fresh For Paws so far. Pulled together on 26 Se
 - Category: fresh-cooked, ready-to-eat dog and cat meals. D2C.
 - Store categories: Dog meals, Cat meals (Fresh For Purrs), Puppy meals (Mini Paws), Treats & toppers, Combos
 - Revenue ₹1L–5L a month, 5K–50K following, 10–50 products (self-reported on the application)
-- Target cities: Delhi NCR, Gurugram, Noida. Free shipping over ₹999. No returns. COD and prepaid.
+- Target cities: Delhi NCR, Gurugram, Noida. Free shipping from ₹1,000, orders up to ₹999 pay the Shiprocket quote. No returns. Prepaid only, no COD.
 
 ## The deal (as it stands)
 - Front end stays WooCommerce. Retail OS runs behind it.
@@ -104,3 +103,16 @@ Collect WooCommerce admin access, product list and current order volume. Why: th
 
 ## Gaps I found
 - No freshforpaws repo, Supabase project or Drive folder exists yet (checked `list_repos`, Supabase projects, Drive search).
+
+## Tell us about your dog (the plan builder)
+Added 9 Oct 2026 at Virat's request. Mockup A, `/preview/freshforpaws/a/plan.html`. It is the brand's signature journey: the owner tells us about the pet, we choose the meals and say why, and we price a taster, a one-time bundle or a subscription. One page serves three pets, chosen at the top: **My dog**, **My cat** (Fresh For Purrs) and **My puppy** (Mini Paws). The heading and breadcrumb follow the pet: "Tell us about your dog / cat / puppy".
+- **Flow:** three steps (Your pet, Your plan, Review) with a breadcrumb (Home, Build a plan, Tell us about your dog, Your plan, Review), working back button and a sticky price bar on phones.
+- **Voice:** warm, plain, no pressure; always explain the reason for a recommendation. Never "grain-free" (rice recipes arrive end Oct 2026).
+- **Asks:** name, breed, age, weight, boy or girl and neutered, how the ribs feel, diet preference (dogs only), foods never to feed (optional).
+- **How the plan is worked out:** resting energy 70 x kg^0.75 (NRC 2006, WSAVA) times a life-stage factor. Dogs: neutered adult 1.6, intact adult 1.8, puppy under 4 months 3.0, puppy from 4 months 2.0, senior 1.4. Cats: neutered adult 1.2, intact adult 1.4, growing kitten 2.5. Overweight and thin pets start on a gentler or higher factor. All from Hand et al., Small Animal Clinical Nutrition: vet starting points, not veterinary advice, and the page says so. Breed size sets when a dog counts as a puppy or senior.
+- **Meals a day:** adults two; puppies and kittens four when very young, three to about six months, then two to three.
+- **Menu logic:** up to three recipes from the live WooCommerce menu in rotation (a puppy gets the Mini Paws recipe), each with its reason; anything ticked as "never feed" is removed. Cats get meat recipes only. Large and giant breed puppies, and kittens, show a "confirm with Fresh For Paws" flag until the recipe is confirmed for them.
+- **Taster before a plan:** one pack of each recommended recipe at menu price, to mix in over 7 to 10 days (a quarter new on days 1 to 3, half on days 4 to 6, three quarters on days 7 to 9, then all). Then the customer starts a plan sized from how the taster went.
+- **Prices:** straight from WooCommerce. Proposed discounts for Virat to decide: one-time bundle 5%, every week 8%, twice a month 10%, every month 12%; the taster has none. Guardrail: the product share (25% of the sale) must still cover the real cost of the food.
+- **Images and data:** every menu item, price and picture comes from the WooCommerce Store API through `scripts/ffp-catalogue.mjs` (writes `public/preview/freshforpaws/catalogue.json`). Re-run it to refresh; the live build reads the same API server-side.
+- **Open (ask Srishti):** calories per 100 g and the guaranteed analysis of each recipe (the builder uses a marked "sample" placeholder); complete and balanced for which life stages, kittens and large-breed puppies in particular; shelf life and storage for a week, fortnight and month; cost per pack; delivery slots.

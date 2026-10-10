@@ -9,6 +9,7 @@
 import { createHash } from 'node:crypto';
 import { accountsFor, type LedgerRow } from '../ledger';
 import type { EntryKind } from '../settlement';
+import { governedMessages } from '../intelligence/provider';
 
 export type WaMessage = { at: string; author: string; text: string; attachments: string[] };
 
@@ -194,10 +195,9 @@ Rules: never guess an amount that is not written. "k" = thousand, "lakh" = 10000
 Group: ${ctx.groupName ?? 'direct message'}
 Message: ${text}`;
   try {
-    const res = await fetchImpl('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: 'claude-sonnet-5', max_tokens: 300, messages: [{ role: 'user', content: prompt }] }),
+    const { res } = await governedMessages({
+      operation: 'ledger.classify_message', apiKey, fetchImpl,
+      body: { max_tokens: 300, messages: [{ role: 'user', content: prompt }] },
     });
     if (!res.ok) return null;
     const data = (await res.json()) as { content?: { type: string; text?: string }[] };

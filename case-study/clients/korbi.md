@@ -71,3 +71,24 @@ Design references (Shyam, 30 Sep): whitekailash.com, wheaty.in, muji.com/jp/ja/s
 ## Preview store (2 Oct 2026)
 - Homepage hero and "Shop the range" show both bulbs side by side. Each bulb has its own product page (/products/warm-white/, /products/cool-white/) with a colour switch, holder-type picker, quantity, a working cart (kept in the browser) and a full spec table. Checkout is held until Korbi approves.
 - Specs I still need from Korbi before launch: brightness (lumens), rated life (hours), cooling type, CANBUS/error-free, bulb dimensions, and whether shipping is free.
+
+## Tushar's feedback on the preview (6 Oct 2026)
+- Design: Tushar prefers calm and minimal; waiting on Shyam's view. Virat replied that design feedback comes first, and he'll set up a call with Shyam.
+- Fixed on 7 Oct:
+  - The brand film wasn't showing. If a phone blocks autoplay, the film was skipped. It now stays up with "Tap to play", and a "Watch the film" link in the hero replays it.
+  - The beam diagram was mirrored. It now dips on the right (oncoming) side and reaches further on the left (kerb) side.
+  - H4 is ₹12,500 the pair; every other holder type is ₹11,500. The price and the cart now follow the holder type.
+- Asked for: a ratings/reviews page on the website (to build).
+- He attached a technical sheet (4 photos). My Gmail tool can't download attachments, so it needs to go in the Korbi Drive folder.
+- To flag to Virat: the fee is ₹1,000 per unit at the ₹11,500 list price. H4 at ₹12,500 falls under "price change, discuss case by case".
+
+## Direction confirmed and rebuilt (9 Oct 2026)
+- Virat: follow the first prototype (mockup A, Shoji). Keep its bulb illustration and 光 seal on top, and its fonts (Zen Kaku Gothic New + Shippori Mincho) and colours. The first section is holder type, then colour. All information comes from the existing site. Sections are tightened with no repetition. Make a brand book.
+- Pulled from korbi.in (products.json, pages, policies, Judge.me reviews): full specs, prices (H4 ₹12,500), 4 reviews (5.0), Our Story, warranty/returns/shipping policies, helpline +91 96677 76763, help@korbi.in, address. Original product photos are in assets/p-*.jpg.
+- Homepage rebuilt on mockup A. The old /products/* pages now redirect to the buy section.
+- Brand book: /retail-os/korbi/brand-book/. Brand-voice module in the korbi repo (src/lib/brand-voice.ts).
+- To confirm with KORBI: the site lists 6000K as "6500 Kelvin" in photometrics; the ballast label says 5.83A but the spec says 5.19A; whether shipping is free (the policy says "if applicable, at checkout").
+- Removed "fit it yourself" copy: KORBI's policy requires a certified technician, or the warranty is void.
+- 9 Oct: Founder section added at the bottom with Tushar only (Virat). Placeholders for Tushar's photo and his own note, to be filled from him.
+- 9 Oct: The Indian-scripts band now sits right after the RHD beam section. Specs moved up under the buy section and now follow korbi.in's five groups (quick details, electric data, photometrics, dimensions, weight data). The buy section has a 5-photo gallery: lit bulb (follows the colour), open box, closed box, ballast, sticker.
+- 9 Oct (sent by Virat, thread 1a120eab625d061e): Virat shared the new site with Shyam and Tushar, asking (1) what to change, add or take out, and (2) for consent to a 3-step announcement on his LinkedIn/Instagram: an anonymous teaser, then the Korbi name and story only with their written yes, then launch. No Korbi name, logo or images are to be used until they agree in writing. Awaiting a reply.

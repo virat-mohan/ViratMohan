@@ -1,0 +1,8 @@
+/* Phone-only touch and text sizing for the viratmohan.com admin pages (CLAUDE.md "Web and mobile, always").
+   Desktop is untouched. Inputs at 16px stop iOS zooming on focus; 44px is the minimum tap target.
+   !important is deliberate: these pages style their inputs with more specific selectors. */
+@media (max-width: 600px) {
+  input:not([type=checkbox]):not([type=radio]):not([type=hidden]), select, textarea { font-size: 16px !important; min-height: 44px; }
+  button, .btn, summary, input[type=submit], input[type=button] { min-height: 44px; min-width: 44px; }
+  nav a, header a, .tabs a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; }
+}

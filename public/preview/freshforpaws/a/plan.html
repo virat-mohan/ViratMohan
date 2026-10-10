@@ -1,14 +1,40 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex,nofollow"><title>Build a plan · Fresh For Paws · Mockup A</title>
-<link rel="preload" href="../fonts/questrial-400.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="../brand.css"><link rel="stylesheet" href="style.css"></head>
-<body><div class="mock">Mockup A · Fresh, Trusted, Elevated · sample content, not live</div>
-<header class="nav"><a class="logo" href="index.html">Fresh&nbsp;For&nbsp;Paws</a><nav><a href="index.html">Home</a><a href="shop.html">Shop</a><a href="plan.html" aria-current=page>Build a plan</a><a href="recipe.html">Recipes</a><a href="about.html">Our story</a><a href="faq.html">FAQ</a></nav><a class="btn small" href="plan.html">Build my plan</a></header>
-<main><section class="quiz wrap"><p class="kick">Build a plan · 3 questions</p><h1>Let's find your dog's daily plan</h1>
-<form onsubmit="event.preventDefault();this.querySelector('.result').hidden=false">
-<label>Your pet<select><option>Dog</option><option>Cat</option><option>Puppy</option></select></label>
-<label>Weight (kg)<input type="number" min="1" max="80" value="12"></label>
-<label>Activity<select><option>Relaxed</option><option>Active</option><option>Very active</option></select></label>
-<button class="btn">See my plan</button>
-<div class="result" hidden><b>Your sample plan</b><p>Sample: 2 packs a day of Liv-Love. Portions are worked out by Srishti's feeding guide (to confirm). Price per day: ₹ TBD.</p><a class="btn" href="shop.html">Start with this plan</a></div></form></section></main>
-<footer class="foot"><div><b>Fresh For Paws</b><br>Choose Fresh, Choose Fresh For Paws! With love for our furry friends, since 2018.</div><div class="links"><a href="index.html">Home</a><a href="shop.html">Shop</a><a href="plan.html" aria-current=page>Build a plan</a><a href="recipe.html">Recipes</a><a href="about.html">Our story</a><a href="faq.html">FAQ</a></div><div class="small">Mockup by DevShop Retail OS for review. Photos, prices and recipes are placeholders until Srishti confirms.</div></footer>
-<a class="sticky" href="plan.html">Build my plan</a><script>(function(){var s=document.querySelector(".sticky"),h=document.querySelector("main>section");if(!s||!h||!("IntersectionObserver" in window)){s&&s.classList.add("show");return}new IntersectionObserver(function(e){s.classList.toggle("show",!e[0].isIntersecting)}).observe(h)})()</script></body></html>
+<meta name="robots" content="noindex,nofollow"><title>Tell us about your dog · Fresh For Paws · Mockup A</title>
+<link rel="preconnect" href="https://freshforpaws.com" crossorigin>
+<link rel="preload" href="../fonts/questrial-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../brand.css"><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="mock">Mockup A · preview, not live · menu, prices and pictures read from the WooCommerce store</div>
+<header class="nav">
+  <a class="logo" href="index.html"><img src="../img/logo.webp" alt="Fresh For Paws" width="62" height="36"> Fresh&nbsp;For&nbsp;Paws</a>
+  <nav aria-label="Main"><a href="index.html">Home</a><a href="shop.html">Shop</a><a class="hl" href="plan.html" aria-current="page">Build a plan</a><a href="recipe.html">Recipes</a><a href="about.html">Our story</a><a href="faq.html">FAQ</a></nav><details class="mnav"><summary>Menu</summary><div><a href="index.html">Home</a><a href="shop.html">Shop</a><a class="hl" href="plan.html" aria-current="page">Build a plan</a><a href="recipe.html">Recipes</a><a href="about.html">Our story</a><a href="faq.html">FAQ</a></div></details>
+  <a class="btn small plan-cta" href="plan.html">Build a plan</a>
+</header>
+<main>
+<section class="wrap pb">
+  <nav class="crumbs" aria-label="Breadcrumb"><ol id="crumbs">
+    <li><a href="index.html">Home</a></li><li><a class="hl" href="plan.html">Build a plan</a></li><li aria-current="page" id="crumbNow">Tell us about your dog</li>
+  </ol></nav>
+  <h1 id="pbTitle">Tell us about your dog</h1>
+  <p class="lead" id="pbLead">A few quick answers. We work out how much your pet needs, choose the meals and show you the price. Try a taster first, or subscribe and save.</p>
+  <ol class="pb-steps" id="pbSteps" aria-label="Progress"><li class="on">1 Your dog</li><li>2 Your plan</li><li>3 Review</li></ol>
+
+  <div class="pb-card" id="s1">
+    <div class="pb-who" id="pbWho" role="radiogroup" aria-label="Who is the plan for?"></div>
+    <form class="pb-form" onsubmit="return false" id="pbForm"></form>
+    <div class="pb-actions"><button class="btn" id="pbGo1" type="button">Show the plan</button></div>
+  </div>
+  <div class="pb-card pb-hide" id="s2" aria-live="polite"></div>
+  <div class="pb-card pb-hide" id="s3" aria-live="polite"></div>
+  <div class="pb-bar pb-hide" id="pbBar"><div><b id="pbBarPrice"></b><small id="pbBarSub"></small></div><button class="btn" id="pbBarGo" type="button">Review</button></div>
+  <p class="pb-src" id="pbSrc"></p>
+</section>
+</main>
+<footer class="foot">
+  <div><b>Fresh For Paws</b><br>Choose Fresh, Choose Fresh For Paws!</div>
+  <div class="links"><a href="index.html">Home</a><a href="shop.html">Shop</a><a class="hl" href="plan.html">Build a plan</a><a href="recipe.html">Recipes</a><a href="about.html">Our story</a><a href="faq.html">FAQ</a></div>
+  <div class="small">Mockup by DevShop Retail OS for review. Menu, prices and pictures come from the Fresh For Paws WooCommerce store.</div>
+</footer>
+<script src="app.js"></script>
+<script src="plan.js"></script>
+</body></html>

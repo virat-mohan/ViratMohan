@@ -13,7 +13,7 @@ export const site = {
   // "Let's talk" CTA everywhere: WhatsApp click-to-chat with a prefilled line.
   letsTalk: 'https://wa.me/918076919458?text=Hi%20Virat%2C%20I%20saw%20your%20latest%20result%20on%20Retail%20OS.%20Let%27s%20talk.',
   linkedin: 'https://www.linkedin.com/in/viratmohan/', // TODO: confirm exact handle
-  instagram: 'https://www.instagram.com/vmviews/',
+  instagram: 'https://www.instagram.com/viratmohan_devshop/',
   clarityhq: 'https://clarityhq.ai',
   bookingUrl: 'https://meetings-na2.hubspot.com/virat-mohan',
   location: {

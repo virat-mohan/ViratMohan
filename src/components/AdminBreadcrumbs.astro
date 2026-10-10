@@ -1,0 +1,28 @@
+---
+// The one breadcrumb for every viratmohan.com admin page. The trail comes from the route and from what the page loaded
+// (src/lib/admin-breadcrumbs.ts), never from text typed into the page.
+import { adminBreadcrumbs } from '../lib/admin-breadcrumbs';
+interface Props { tab?: string | null; resource?: string | null }
+const { tab = null, resource = null } = Astro.props;
+const crumbs = adminBreadcrumbs(Astro.url.pathname, { tab, resource });
+---
+<nav class="vm-crumbs" aria-label="Breadcrumb">
+  <ol>
+    {crumbs.map((c, i) => (
+      <li>
+        {c.href ? <a href={c.href}>{c.label}</a> : <span aria-current={i === crumbs.length - 1 ? 'page' : undefined} class={i === crumbs.length - 1 ? 'current' : 'plain'}>{c.label}</span>}
+      </li>
+    ))}
+  </ol>
+</nav>
+<style is:global>
+  .vm-crumbs { margin: 0 0 12px; font-family: inherit; }
+  .vm-crumbs ol { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; column-gap: 6px; font-size: 0.9375rem; line-height: 1.3; }
+  .vm-crumbs li { display: inline-flex; align-items: center; min-height: 44px; }
+  .vm-crumbs li + li::before { content: '›'; margin-right: 6px; opacity: 0.45; }
+  .vm-crumbs a { display: inline-flex; align-items: center; min-height: 44px; color: var(--terracotta, inherit); text-decoration: none; }
+  .vm-crumbs a:hover { text-decoration: underline; }
+  .vm-crumbs .current { color: var(--ink, inherit); font-weight: 600; }
+  .vm-crumbs .plain { color: var(--ink-soft, inherit); }
+  @media (max-width: 600px) { .vm-crumbs a { min-width: 44px; } }
+</style>

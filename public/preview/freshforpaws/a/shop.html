@@ -1,9 +1,42 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow"><title>Shop · Fresh For Paws · Mockup A</title>
-<link rel="preload" href="../fonts/questrial-400.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="../brand.css"><link rel="stylesheet" href="style.css"></head>
-<body><div class="mock">Mockup A · Fresh, Trusted, Elevated · sample content, not live</div>
-<header class="nav"><a class="logo" href="index.html">Fresh&nbsp;For&nbsp;Paws</a><nav><a href="index.html">Home</a><a href="shop.html" aria-current=page>Shop</a><a href="plan.html">Build a plan</a><a href="recipe.html">Recipes</a><a href="about.html">Our story</a><a href="faq.html">FAQ</a></nav><a class="btn small" href="plan.html">Build my plan</a></header>
-<main><section class="wrap"><p class="kick">Shop</p><h1>Fresh meals for every bowl</h1>
-<div class="tabs"><a href="shop.html">Dog meals</a><a href="shop.html">Fresh For Purrs</a><a href="shop.html">Mini Paws</a><a href="shop.html">Treats & toppers</a><a href="shop.html">Combos</a></div><div class="grid"><a class="card" href="recipe.html"><div class="ph" role="img" aria-label="Photo: Liv-Love"><span>Photo: Liv-Love</span></div><b>Liv-Love</b><span>Liver & Carrot · dogs</span><span class="price">₹ TBD</span></a><a class="card" href="recipe.html"><div class="ph" role="img" aria-label="Photo: Liv-Love"><span>Photo: Liv-Love</span></div><b>Liv-Love</b><span>Liver & Pumpkin · dogs</span><span class="price">₹ TBD</span></a><a class="card" href="recipe.html"><div class="ph" role="img" aria-label="Photo: Purrfect Chicken Delight"><span>Photo: Purrfect Chicken Delight</span></div><b>Purrfect Chicken Delight</b><span>Fresh For Purrs · cats</span><span class="price">₹ TBD</span></a><a class="card" href="recipe.html"><div class="ph" role="img" aria-label="Photo: Liverlicious"><span>Photo: Liverlicious</span></div><b>Liverlicious</b><span>Liver & Carrot · Fresh For Purrs</span><span class="price">₹ TBD</span></a><a class="card" href="recipe.html"><div class="ph" role="img" aria-label="Photo: Liv-Love"><span>Photo: Liv-Love</span></div><b>Liv-Love</b><span>Liver & Carrot · dogs</span><span class="price">₹ TBD</span></a><a class="card" href="recipe.html"><div class="ph" role="img" aria-label="Photo: Liv-Love"><span>Photo: Liv-Love</span></div><b>Liv-Love</b><span>Liver & Pumpkin · dogs</span><span class="price">₹ TBD</span></a><a class="card" href="recipe.html"><div class="ph" role="img" aria-label="Photo: Purrfect Chicken Delight"><span>Photo: Purrfect Chicken Delight</span></div><b>Purrfect Chicken Delight</b><span>Fresh For Purrs · cats</span><span class="price">₹ TBD</span></a><a class="card" href="recipe.html"><div class="ph" role="img" aria-label="Photo: Liverlicious"><span>Photo: Liverlicious</span></div><b>Liverlicious</b><span>Liver & Carrot · Fresh For Purrs</span><span class="price">₹ TBD</span></a></div></section></main>
-<footer class="foot"><div><b>Fresh For Paws</b><br>Choose Fresh, Choose Fresh For Paws! With love for our furry friends, since 2018.</div><div class="links"><a href="index.html">Home</a><a href="shop.html" aria-current=page>Shop</a><a href="plan.html">Build a plan</a><a href="recipe.html">Recipes</a><a href="about.html">Our story</a><a href="faq.html">FAQ</a></div><div class="small">Mockup by DevShop Retail OS for review. Photos, prices and recipes are placeholders until Srishti confirms.</div></footer>
-<a class="sticky" href="plan.html">Build my plan</a><script>(function(){var s=document.querySelector(".sticky"),h=document.querySelector("main>section");if(!s||!h||!("IntersectionObserver" in window)){s&&s.classList.add("show");return}new IntersectionObserver(function(e){s.classList.toggle("show",!e[0].isIntersecting)}).observe(h)})()</script></body></html>
+<link rel="preload" href="../fonts/questrial-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../brand.css"><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="mock">Mockup A · Fresh, Trusted, Elevated · preview, not live</div>
+<header class="nav">
+  <a class="logo" href="index.html"><img src="../img/logo.webp" alt="Fresh For Paws" height="36"> Fresh&nbsp;For&nbsp;Paws</a>
+  <nav><a href="index.html">Home</a><a href="shop.html" aria-current="page">Shop</a><a class="hl" href="plan.html">Build a plan</a><a href="recipe.html">Recipes</a><a href="about.html">Our story</a><a href="faq.html">FAQ</a></nav><details class="mnav"><summary>Menu</summary><div><a href="index.html">Home</a><a href="shop.html" aria-current="page">Shop</a><a class="hl" href="plan.html">Build a plan</a><a href="recipe.html">Recipes</a><a href="about.html">Our story</a><a href="faq.html">FAQ</a></div></details>
+  <a class="btn small plan-cta" href="plan.html">Build a plan</a>
+</header>
+<main>
+<section class="wrap">
+  <p class="kick">Shop</p>
+  <h1>Fresh meals for every bowl</h1>
+
+  <div class="tabs">
+    <a class="active" href="shop.html">All</a>
+    <a href="shop.html">Dogs — Non-veg</a>
+    <a href="shop.html">Dogs — Vegetarian</a>
+    <a href="shop.html">Fresh For Purrs (cats)</a>
+    <a href="shop.html">Mini Paws (puppies)</a>
+    <a href="shop.html">Toppers</a>
+  </div>
+
+  <div id="shopGrid"><p>Loading the menu from the store…</p></div>
+
+  <p style="margin-top:28px;opacity:.5;font-size:14px;text-align:center"><span id="shopSrc">Menu, prices and pictures come from the Fresh For Paws WooCommerce store.</span></p>
+</section>
+</main>
+
+<footer class="foot">
+  <div><b>Fresh For Paws</b><br>Choose Fresh, Choose Fresh For Paws!</div>
+  <div class="links"><a href="index.html">Home</a><a href="shop.html">Shop</a><a class="hl" href="plan.html">Build a plan</a><a href="recipe.html">Recipes</a><a href="about.html">Our story</a><a href="faq.html">FAQ</a></div>
+  <div class="small">Mockup by DevShop Retail OS for review. Menu, prices and pictures come from the Fresh For Paws WooCommerce store.</div>
+</footer>
+
+<a class="sticky" href="plan.html">Build my plan</a>
+<script>(function(){var s=document.querySelector(".sticky"),h=document.querySelector("main>section");if(!s||!h||!("IntersectionObserver" in window)){s&&s.classList.add("show");return}new IntersectionObserver(function(e){s.classList.toggle("show",!e[0].isIntersecting)}).observe(h)})()</script>
+<script src="app.js"></script>
+<script src="shop.js"></script>
+</body></html>

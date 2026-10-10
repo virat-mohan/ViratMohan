@@ -83,3 +83,15 @@ blockquote{line-height:1.55}cite{font-size:15px}
  .ph span{font-size:16px}
  .result .btn{width:100%}
 }
+
+/* ---- Mobile menu (the desktop nav is hidden under 760px) ---- */
+.mnav{display:none;margin-left:auto;position:relative}
+.mnav summary{list-style:none;cursor:pointer;min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center;padding:0 16px;border:2px solid currentColor;border-radius:999px;font-weight:700;font-size:15px;color:var(--ffp-teal)}
+.mnav summary::-webkit-details-marker{display:none}
+.mnav div{position:absolute;right:0;top:calc(100% + 8px);z-index:30;background:#fff;border:1px solid var(--ffp-line);border-radius:14px;box-shadow:0 12px 30px rgba(0,0,0,.12);min-width:220px;padding:8px;display:flex;flex-direction:column}
+.mnav div a{display:flex;align-items:center;min-height:48px;padding:0 14px;text-decoration:none;color:var(--ffp-ink);font-size:16px;border-radius:10px}
+.mnav div a[aria-current]{background:var(--ffp-mint);font-weight:700}
+@media (max-width:760px){.mnav{display:block}.nav{position:relative}}
+
+/* footer link tap targets */
+.foot .links a,.foot a{display:inline-flex;align-items:center;min-height:44px}

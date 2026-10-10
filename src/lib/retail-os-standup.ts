@@ -35,7 +35,8 @@ export type Standup = {
   envVerified: boolean | null; // deterministic environment check result; null = not run
 };
 
-const isOpen = (t: StandupTask) => t.status === 'todo' || t.status === 'doing';
+// 'pending' is a status the ops board really holds (Fresh For Paws had 8 of them): queued work is open work.
+const isOpen = (t: StandupTask) => t.status === 'todo' || t.status === 'doing' || t.status === 'pending';
 const isBlocked = (t: StandupTask) => t.status === 'blocked';
 const counts = (t: StandupTask) => t.status !== 'na';
 

@@ -9,8 +9,14 @@ import { getEnv } from '../../../lib/env';
 import { getOrigin } from '../../../lib/http';
 import { sendDemoDoneEmail } from '../../../lib/demo-email';
 import { isSingleEmailAddress, autoSendDecision } from '../../../lib/demo-send-guard';
+import { endpointLimit } from '../../../lib/rate-limit';
+
+// Public and unauthenticated. A submission runs a full demo generation (a large model call) and emails the admin; a prospect submits once.
+const limit = endpointLimit({ rules: [{ limit: 2, windowMs: 60_000 }, { limit: 5, windowMs: 3_600_000 }], body: { error: 'Too many requests from this address. Please wait a few minutes and try again.' } });
 
 export const POST: APIRoute = async ({ request }) => {
+  const limited = limit(request);
+  if (limited) return limited;
   const env = getEnv();
 
   let body: {

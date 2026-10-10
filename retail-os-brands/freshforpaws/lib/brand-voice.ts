@@ -37,7 +37,7 @@ const UNCONFIRMED: [RegExp, string][] = [
   [/\b(cures?|treats?|heals?|prevents?)\b.{0,30}\b(disease|allerg|cancer|kidney|diabet|infection)/i, 'medical claim'],
 ];
 const NAME_ERRORS: [RegExp, string][] = [
-  [/\bfreshforpaws\b(?!\.com)/i, 'write "Fresh For Paws" (three words)'],
+  [/(?<!#)\bfreshforpaws\b(?!\.com)/i, 'write "Fresh For Paws" (three words)'], // a hashtag (#FreshForPaws) is fine
   [/\bfresh 4 paws\b|\bfresh for paw\b(?!s)/i, 'brand name misspelt'],
   [/\bFresh for Paws\b/, 'capitalise "For": Fresh For Paws'],
   [/\bFFP\b/, 'no "FFP" in customer copy'],

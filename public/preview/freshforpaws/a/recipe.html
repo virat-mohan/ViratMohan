@@ -1,12 +1,71 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex,nofollow"><title>Liv-Love · Fresh For Paws · Mockup A</title>
-<link rel="preload" href="../fonts/questrial-400.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="../brand.css"><link rel="stylesheet" href="style.css"></head>
-<body><div class="mock">Mockup A · Fresh, Trusted, Elevated · sample content, not live</div>
-<header class="nav"><a class="logo" href="index.html">Fresh&nbsp;For&nbsp;Paws</a><nav><a href="index.html">Home</a><a href="shop.html">Shop</a><a href="plan.html">Build a plan</a><a href="recipe.html" aria-current=page>Recipes</a><a href="about.html">Our story</a><a href="faq.html">FAQ</a></nav><a class="btn small" href="plan.html">Build my plan</a></header>
-<main><section class="pdp wrap"><img class="ph sq real" src="../img/range-dogs.webp" alt="Fresh For Paws packs">
-<div><p class="kick">Dog meals</p><h1>Liv-Love</h1><p class="lead">Liver &amp; Carrot. A complete, ready-to-eat meal for dogs. (Ingredients and nutrition: from the product sheet.)</p>
-<p class="price big">₹ TBD <small>per pack · pack size TBD</small></p><a class="btn" href="plan.html">Add to my plan</a>
-<ul class="chips"><li>100% natural</li><li>Ready to eat</li><li>No fillers</li><li>No synthetic vitamins or minerals</li></ul>
-<h3>What's inside</h3><p>Ingredient list and nutrition table: from Srishti's product sheet.</p><div class="ph wide" role="img" aria-label="Photo: ingredient flat-lay"><span>Photo: ingredient flat-lay</span></div></div></section></main>
-<footer class="foot"><div><b>Fresh For Paws</b><br>Choose Fresh, Choose Fresh For Paws! With love for our furry friends, since 2018.</div><div class="links"><a href="index.html">Home</a><a href="shop.html">Shop</a><a href="plan.html">Build a plan</a><a href="recipe.html" aria-current=page>Recipes</a><a href="about.html">Our story</a><a href="faq.html">FAQ</a></div><div class="small">Mockup by DevShop Retail OS for review. Photos, prices and recipes are placeholders until Srishti confirms.</div></footer>
-<a class="sticky" href="plan.html">Build my plan</a><script>(function(){var s=document.querySelector(".sticky"),h=document.querySelector("main>section");if(!s||!h||!("IntersectionObserver" in window)){s&&s.classList.add("show");return}new IntersectionObserver(function(e){s.classList.toggle("show",!e[0].isIntersecting)}).observe(h)})()</script></body></html>
+<meta name="robots" content="noindex,nofollow"><title>Recipe · Fresh For Paws · Mockup A</title>
+<link rel="preconnect" href="https://freshforpaws.com" crossorigin>
+<link rel="preload" href="../fonts/questrial-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../brand.css"><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="mock">Mockup A · preview, not live · menu, prices and pictures read from the WooCommerce store</div>
+<header class="nav">
+  <a class="logo" href="index.html"><img src="../img/logo.webp" alt="Fresh For Paws" width="62" height="36"> Fresh&nbsp;For&nbsp;Paws</a>
+  <nav aria-label="Main"><a href="index.html">Home</a><a href="shop.html">Shop</a><a class="hl" href="plan.html">Build a plan</a><a href="recipe.html" aria-current="page">Recipes</a><a href="about.html">Our story</a><a href="faq.html">FAQ</a></nav>
+  <a class="btn small plan-cta" href="plan.html">Build a plan</a>
+  <details class="mnav"><summary>Menu</summary><div><a href="index.html">Home</a><a href="shop.html">Shop</a><a class="hl" href="plan.html">Build a plan</a><a href="recipe.html" aria-current="page">Recipes</a><a href="about.html">Our story</a><a href="faq.html">FAQ</a></div></details>
+</header>
+<main>
+<section class="wrap pdpwrap">
+  <nav class="crumbs" aria-label="Breadcrumb"><ol id="crumbs"><li><a href="index.html">Home</a></li><li><a href="shop.html">Shop</a></li><li aria-current="page" id="crumbNow">Recipe</li></ol></nav>
+  <div id="pdp"><p>Loading the recipe from the store…</p></div>
+  <div id="more" class="pdpmore"></div>
+</section>
+</main>
+<footer class="foot">
+  <div><b>Fresh For Paws</b><br>Choose Fresh, Choose Fresh For Paws!</div>
+  <div class="links"><a href="index.html">Home</a><a href="shop.html">Shop</a><a class="hl" href="plan.html">Build a plan</a><a href="recipe.html">Recipes</a><a href="about.html">Our story</a><a href="faq.html">FAQ</a></div>
+  <div class="small">Mockup by DevShop Retail OS for review. Menu, prices and pictures come from the Fresh For Paws WooCommerce store.</div>
+</footer>
+<div class="pdpbar" id="pdpBar" hidden><div><b id="barPrice"></b><small id="barName"></small></div><button class="btn" id="barAdd" type="button">Add to cart</button></div>
+<script src="app.js"></script>
+<script>
+(function(){
+  var q=new URLSearchParams(location.search), id=+(q.get('id')||1750), cur=null, size=null, qty=1, shot=0;
+  FFP.catalogue().then(function(d){
+    var p=d.products.filter(function(x){return x.id===id})[0]||d.products.filter(function(x){return x.id===1750})[0];
+    cur=p; size=p.sizes[0]; draw(d); document.title=p.name+' · Fresh For Paws · Mockup A'; document.getElementById('crumbNow').textContent=p.name;
+    var more=d.products.filter(function(x){return x.id!==p.id&&x.species===p.species&&x.group===p.group}).slice(0,4);
+    if(more.length) document.getElementById('more').innerHTML='<h2>More like this</h2><div class="grid">'+more.map(FFP.card).join('')+'</div>';
+  }).catch(function(){document.getElementById('pdp').innerHTML='<p>The menu could not be loaded. Reload the page.</p>'});
+  function draw(d){
+    var p=cur, f=p.species==='cat'?'../img/range-cats.webp':'../img/range-dogs.webp', imgs=(p.images&&p.images.length?p.images:[p.image||f]);
+    var plan=p.species==='cat'?'cat':(p.group==='puppy'?'puppy':'dog');
+    var desc=FFP.safeText(p.blurb);
+    var h='<div class="pdp"><div class="gal"><img id="main" src="'+FFP.esc(imgs[shot]||imgs[0])+'" alt="'+FFP.esc(p.name)+'" width="600" height="600" onerror="this.onerror=null;this.src=\''+f+'\'">';
+    if(imgs.length>1) h+='<div class="thumbs">'+imgs.map(function(u,i){return '<button type="button" class="th'+(i===shot?' on':'')+'" data-i="'+i+'" aria-label="Photo '+(i+1)+'"><img src="'+FFP.esc(u)+'" alt="" width="72" height="72" loading="lazy"></button>'}).join('')+'</div>';
+    h+='</div><div><p class="kick">'+FFP.esc(FFP.kind(p))+'</p><h1>'+FFP.esc(p.name)+'</h1>';
+    if(p.sizes.length>1||p.sizes[0].size) h+='<p class="lab">Size</p><div class="packs" id="sizes">'+p.sizes.map(function(s,i){return '<label class="'+(s===size?'selected':'')+'"><input type="radio" name="sz" value="'+i+'" '+(s===size?'checked':'')+' class="sr">'+FFP.esc(s.size||'One size')+'<span>'+FFP.rs(s.price)+'</span></label>'}).join('')+'</div>';
+    h+='<p class="price big" id="pp"></p>';
+    h+='<div class="qtyrow"><div class="qty" role="group" aria-label="Quantity"><button type="button" id="qm" aria-label="One less">−</button><output id="qv">1</output><button type="button" id="qp" aria-label="One more">+</button></div><button class="btn" id="add" type="button">Add to cart</button></div>';
+    h+='<p class="shipnote" id="shipn"></p>';
+    h+='<a class="planlink" href="plan.html?pet='+plan+'"><b>Not sure how much?</b> Tell us about your '+(plan==='cat'?'cat':plan==='puppy'?'puppy':'dog')+' and we build the plan. Try a taster first, or subscribe and save. <span>Build a plan →</span></a>';
+    h+='<ul class="chips"><li>100% natural</li><li>Ready to eat</li><li>No fillers</li><li>No synthetic vitamins</li></ul>';
+    if(desc) h+='<h3 style="margin-top:22px">What\'s inside</h3><p class="blurb">'+FFP.esc(desc)+'</p>';
+    h+='<p class="woo"><a href="'+FFP.wooAdd(p,size)+'" rel="noopener" id="woo">Open this on freshforpaws.com (live store) →</a></p>';
+    h+='</div></div>';
+    document.getElementById('pdp').innerHTML=h;
+    Array.prototype.forEach.call(document.querySelectorAll('.th'),function(b){b.onclick=function(){shot=+b.getAttribute('data-i');document.getElementById('main').src=imgs[shot];Array.prototype.forEach.call(document.querySelectorAll('.th'),function(x){x.classList.toggle('on',x===b)})}});
+    Array.prototype.forEach.call(document.querySelectorAll('input[name=sz]'),function(r){r.onchange=function(){size=p.sizes[+r.value];Array.prototype.forEach.call(document.querySelectorAll('#sizes label'),function(l){l.classList.remove('selected')});r.parentNode.classList.add('selected');upd()}});
+    document.getElementById('qm').onclick=function(){qty=Math.max(1,qty-1);upd()}; document.getElementById('qp').onclick=function(){qty=Math.min(20,qty+1);upd()};
+    var add=function(){FFP.Cart.add({id:p.id,vid:size.vid,name:p.name,size:size.size,price:size.price,qty:qty,image:p.image,url:p.url})};
+    document.getElementById('add').onclick=add; document.getElementById('barAdd').onclick=add;
+    document.getElementById('pdpBar').hidden=false; upd();
+  }
+  function upd(){
+    var t=size.price*qty;
+    document.getElementById('pp').innerHTML=FFP.rs(size.price)+' <small>'+(size.size?'per '+FFP.esc(size.size):'')+(qty>1?' · '+qty+' = '+FFP.rs(t):'')+'</small>';
+    document.getElementById('qv').textContent=qty;
+    document.getElementById('shipn').textContent=t>=FFP.FREE_FROM?'This order ships free.':'Orders of '+FFP.rs(FFP.FREE_FROM)+' and above ship free. Add '+FFP.rs(FFP.FREE_FROM-t)+' more. Orders up to ₹999 pay shipping at the courier rate.';
+    document.getElementById('barPrice').textContent=FFP.rs(t); document.getElementById('barName').textContent=cur.name+(size.size?' · '+size.size:'');
+    var w=document.getElementById('woo'); if(w) w.href=FFP.wooAdd(cur,size);
+  }
+})();
+</script>
+</body></html>

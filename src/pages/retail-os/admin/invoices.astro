@@ -1,4 +1,5 @@
 ---
+import AdminBreadcrumbs from '../../../components/AdminBreadcrumbs.astro';
 export const prerender = false;
 import { getEnv } from '../../../lib/env';
 import { serviceDb } from '../../../lib/ledger';
@@ -49,9 +50,12 @@ table{width:100%;border-collapse:collapse;font-size:13.5px;} th,td{padding:8px;b
 .chip{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border:1px solid var(--line);border-radius:999px;} .chip.paid{border-color:var(--sage,#2B8C86);color:var(--sage,#2B8C86);} .chip.void{color:var(--dim);}
 .scroll{overflow-x:auto;} details summary{cursor:pointer;}
 </style>
+  <link rel="stylesheet" href="/retail-os/admin-touch.css">
 </head>
 <body>
+<div class="vm-band"></div>
 <main class="wrap">
+  <AdminBreadcrumbs />
   <a class="logo" href="/founder" aria-label="DevShop Retail OS"><img src="/retail-os/email/devshop-logo.png" alt="DevShop" width="140" height="54" /><i>Retail OS™</i></a>
   <h1>Invoices</h1>
   <p class="sub">{invoices.length} issued · {inr(outstanding)} outstanding. Each invoice has its own link to share or save as PDF. <a href="/founder">Founder console</a></p>

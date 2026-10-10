@@ -63,3 +63,20 @@ No other accent colour is used on the site; CTAs are teal. Packaging colours bel
 - WhatsApp: first name, one line, one link. Sign-off: "Team Fresh For Paws" (GAP).
 - Instagram: hashtags #FreshForPaws #ChooseFreshForPaws (GAP: confirm the second).
 - Current facts: WhatsApp 97179 70559 (keep or replace: GAP).
+
+## Shipping and payment (Virat, 9 Oct 2026)
+- Orders up to ₹999 pay shipping at the actual Shiprocket quote. Orders of ₹1,000 and above ship free, with the cost inside the price.
+- Prepaid only (UPI or card through Razorpay). No cash on delivery.
+
+## Tell us about your dog (the plan builder)
+Added 9 Oct 2026 at Virat's request. Mockup A, `/preview/freshforpaws/a/plan.html`. It is the brand's signature journey: the owner tells us about the pet, we choose the meals and say why, and we price a taster, a one-time bundle or a subscription. One page serves three pets, chosen at the top: **My dog**, **My cat** (Fresh For Purrs) and **My puppy** (Mini Paws). The heading and breadcrumb follow the pet: "Tell us about your dog / cat / puppy".
+- **Flow:** three steps (Your pet, Your plan, Review) with a breadcrumb (Home, Build a plan, Tell us about your dog, Your plan, Review), working back button and a sticky price bar on phones.
+- **Voice:** warm, plain, no pressure; always explain the reason for a recommendation. Never "grain-free" (rice recipes arrive end Oct 2026).
+- **Asks:** name, breed, age, weight, boy or girl and neutered, how the ribs feel, diet preference (dogs only), foods never to feed (optional).
+- **How the plan is worked out:** resting energy 70 x kg^0.75 (NRC 2006, WSAVA) times a life-stage factor. Dogs: neutered adult 1.6, intact adult 1.8, puppy under 4 months 3.0, puppy from 4 months 2.0, senior 1.4. Cats: neutered adult 1.2, intact adult 1.4, growing kitten 2.5. Overweight and thin pets start on a gentler or higher factor. All from Hand et al., Small Animal Clinical Nutrition: vet starting points, not veterinary advice, and the page says so. Breed size sets when a dog counts as a puppy or senior.
+- **Meals a day:** adults two; puppies and kittens four when very young, three to about six months, then two to three.
+- **Menu logic:** up to three recipes from the live WooCommerce menu in rotation (a puppy gets the Mini Paws recipe), each with its reason; anything ticked as "never feed" is removed. Cats get meat recipes only. Large and giant breed puppies, and kittens, show a "confirm with Fresh For Paws" flag until the recipe is confirmed for them.
+- **Taster before a plan:** one pack of each recommended recipe at menu price, to mix in over 7 to 10 days (a quarter new on days 1 to 3, half on days 4 to 6, three quarters on days 7 to 9, then all). Then the customer starts a plan sized from how the taster went.
+- **Prices:** straight from WooCommerce. Proposed discounts for Virat to decide: one-time bundle 5%, every week 8%, twice a month 10%, every month 12%; the taster has none. Guardrail: the product share (25% of the sale) must still cover the real cost of the food.
+- **Images and data:** every menu item, price and picture comes from the WooCommerce Store API through `scripts/ffp-catalogue.mjs` (writes `public/preview/freshforpaws/catalogue.json`). Re-run it to refresh; the live build reads the same API server-side.
+- **Open (ask Srishti):** calories per 100 g and the guaranteed analysis of each recipe (the builder uses a marked "sample" placeholder); complete and balanced for which life stages, kittens and large-breed puppies in particular; shelf life and storage for a week, fortnight and month; cost per pack; delivery slots.
