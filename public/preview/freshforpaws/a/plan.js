@@ -240,11 +240,17 @@
     h+='<details class="pb-opt"><summary>Why we feed it this way</summary><ul class="pb-how"><li><b>Meals a day.</b> Adults do well on two. Puppies and kittens need smaller, more frequent meals: four a day when very young, three until about six months, then two to three (common veterinary guidance, including the WSAVA).</li><li><b>Same times each day.</b> A steady routine helps digestion and makes a change in appetite easy to spot.</li><li><b>Switching recipes.</b> Mix the new food in over 7 to 10 days: a quarter new on days 1 to 3, half on days 4 to 6, three quarters on days 7 to 9, then all.</li><li><b>Treats and toppers.</b> No more than about 10% of the day\'s calories.</li><li><b>Weigh every month.</b> '+(pet==='puppy'||p.stage==='kitten'?'Growing pets change fast, so we re-size at every delivery from the latest weight you enter. ':'We re-size the food when weight or age changes. ')+'If weight moves more than about 5% in a month, talk to your vet.</li></ul></details>';
     h+='<div class="pb-note"><b>What you can count on.</b> A message the day before each charge with a link to skip, pause, swap a recipe or cancel. Prepaid only, no cash on delivery.</div>';
     h+='<div class="pb-note warn"><b>For Virat and Srishti, not shown to customers.</b> At this price the product share (25% of the sale) is '+rs(t.net*0.25)+' per order. The food in this order must cost less than that to make.</div>';
-    h+='<div class="pb-actions"><button class="btn outline" id="b3" type="button">Back</button><button class="btn" id="n3" type="button">Place the order (demo)</button></div><p id="pbDone" class="pb-fine"></p>';
+    h+='<div class="pb-actions"><button class="btn outline" id="b3" type="button">Back</button><button class="btn" id="n3" type="button">Add to cart</button></div><p id="pbDone" class="pb-fine" role="status"></p>';
     $('s3').innerHTML=h;
     if(!t.taster){var shown=7; var cal=function(){var o='';sch.rows.slice(0,Math.min(shown,t.days)).forEach(function(r){o+='<div class="pb-day"><span class="d">Day '+r.day+'</span><b>'+esc(r.r.id)+'</b><span>'+r.meals+' × '+r.perMeal+' g</span></div>'});$('pbCal').innerHTML=o;$('calMore').hidden=(t.days<=shown)}; cal(); $('calMore').onclick=function(){shown=14;cal()};}
     else $('goPlan').onclick=function(){p.tier='fortnight';history.back()};
-    $('b3').onclick=function(){history.back()}; $('n3').onclick=function(){$('pbDone').textContent='Demo only: nothing was charged and no order was created. The live build opens Razorpay, then sets up the repeat schedule.'};
+    $('b3').onclick=function(){history.back()}; $('n3').onclick=function(){
+      var added=0; t.c.lines.forEach(function(l){var pr=l.r.p, sz=function(name){return pr.sizes.filter(function(s){return s.size===name})[0]};
+        if(pet==='cat'){var s0=pr.sizes[0]; FFP.Cart.add({id:pr.id,vid:s0.vid,name:pr.name,size:s0.size,price:s0.price,qty:l.pk.n1,image:pr.image,url:pr.url});added+=l.pk.n1}
+        else{ if(l.pk.n3){var s3=sz('300g');FFP.Cart.add({id:pr.id,vid:s3.vid,name:pr.name,size:s3.size,price:s3.price,qty:l.pk.n3,image:pr.image,url:pr.url});added+=l.pk.n3}
+              if(l.pk.n1){var s1=sz('100g');FFP.Cart.add({id:pr.id,vid:s1.vid,name:pr.name,size:s1.size,price:s1.price,qty:l.pk.n1,image:pr.image,url:pr.url});added+=l.pk.n1} }});
+      $('pbDone').innerHTML=added+' packs added to your cart at menu price. <a href="cart.html">Go to the cart</a>. The plan discount ('+(t.disc?Math.round(t.disc*100)+'%':'none for a taster')+') and the repeat schedule are set up at checkout on the live site.';
+    };
   }
 
   // ---- Start ----

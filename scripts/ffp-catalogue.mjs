@@ -16,7 +16,7 @@ for (const p of list) {
   if (p.type === 'variable') {
     for (const v of p.variations) {
       const d = await get(`${BASE}/${v.id}`);
-      sizes.push({ size: v.attributes[0]?.value ?? '', price: Number(d.prices.price) / 10 ** d.prices.currency_minor_unit });
+      sizes.push({ size: v.attributes[0]?.value ?? '', vid: v.id, price: Number(d.prices.price) / 10 ** d.prices.currency_minor_unit });
     }
   } else {
     const label = p.attributes.find((a) => a.name === 'Size')?.terms?.[0]?.name ?? '';

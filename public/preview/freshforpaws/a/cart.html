@@ -1,0 +1,46 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>Cart · Fresh For Paws · Mockup A</title>
+<link rel="preload" href="../fonts/questrial-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../brand.css"><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="mock">Mockup A · preview, not live · on the live site the cart and checkout are WooCommerce's</div>
+<header class="nav">
+  <a class="logo" href="index.html"><img src="../img/logo.webp" alt="Fresh For Paws" width="62" height="36"> Fresh&nbsp;For&nbsp;Paws</a>
+  <nav aria-label="Main"><a href="index.html">Home</a><a href="shop.html">Shop</a><a class="hl" href="plan.html">Build a plan</a><a href="recipe.html">Recipes</a><a href="about.html">Our story</a><a href="faq.html">FAQ</a></nav>
+  <a class="btn small plan-cta" href="plan.html">Build a plan</a>
+  <details class="mnav"><summary>Menu</summary><div><a href="index.html">Home</a><a href="shop.html">Shop</a><a class="hl" href="plan.html">Build a plan</a><a href="recipe.html">Recipes</a><a href="about.html">Our story</a><a href="faq.html">FAQ</a></div></details>
+</header>
+<main>
+<section class="wrap cartwrap">
+  <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="index.html">Home</a></li><li><a href="shop.html">Shop</a></li><li aria-current="page">Cart</li></ol></nav>
+  <h1>Your cart</h1>
+  <div id="cart"></div>
+</section>
+</main>
+<footer class="foot">
+  <div><b>Fresh For Paws</b><br>Choose Fresh, Choose Fresh For Paws!</div>
+  <div class="links"><a href="index.html">Home</a><a href="shop.html">Shop</a><a class="hl" href="plan.html">Build a plan</a><a href="recipe.html">Recipes</a><a href="about.html">Our story</a><a href="faq.html">FAQ</a></div>
+  <div class="small">Mockup by DevShop Retail OS for review.</div>
+</footer>
+<script src="app.js"></script>
+<script>
+(function(){
+  var el=document.getElementById('cart');
+  function draw(){
+    var items=FFP.Cart.items();
+    if(!items.length){el.innerHTML='<div class="cartempty"><p>Your cart is empty.</p><p><a class="btn" href="shop.html">Shop the menu</a> <a class="btn outline" href="plan.html">Build a plan</a></p></div>';return}
+    var sub=FFP.Cart.subtotal(), free=sub>=FFP.FREE_FROM;
+    var h='<div class="cartgrid"><ul class="cartlist">';
+    items.forEach(function(x){h+='<li><img src="'+FFP.esc(x.image||'../img/range-dogs.webp')+'" alt="" width="80" height="80" loading="lazy" onerror="this.onerror=null;this.src=\'../img/range-dogs.webp\'"><div class="ci"><b>'+FFP.esc(x.name)+'</b><span>'+FFP.esc(x.size)+' · '+FFP.rs(x.price)+'</span><div class="qty" role="group" aria-label="Quantity for '+FFP.esc(x.name)+'"><button type="button" data-k="'+FFP.esc(x.key)+'" data-d="-1" aria-label="One less">−</button><output>'+x.qty+'</output><button type="button" data-k="'+FFP.esc(x.key)+'" data-d="1" aria-label="One more">+</button></div></div><div class="cr"><b>'+FFP.rs(x.price*x.qty)+'</b><button type="button" class="rm" data-k="'+FFP.esc(x.key)+'" data-d="-999">Remove</button></div></li>'});
+    h+='</ul><aside class="cartsum"><h2>Order summary</h2><div class="row"><span>Subtotal</span><b>'+FFP.rs(sub)+'</b></div><div class="row"><span>Shipping</span><b>'+(free?'Free':'At checkout')+'</b></div>';
+    h+='<p class="shipnote">'+(free?'This order ships free.':'Add '+FFP.rs(FFP.FREE_FROM-sub)+' more for free shipping. Up to ₹999 the courier rate for your pincode is added at checkout.')+'</p>';
+    h+='<div class="meter" aria-hidden="true"><i style="width:'+Math.min(100,Math.round(sub/FFP.FREE_FROM*100))+'%"></i></div>';
+    h+='<button class="btn block" id="co" type="button">Checkout</button><p class="fine">Prepaid only: UPI or card. No cash on delivery.</p><p id="coMsg" class="fine" role="status"></p></aside></div>';
+    el.innerHTML=h;
+    Array.prototype.forEach.call(el.querySelectorAll('[data-k]'),function(b){b.onclick=function(){var k=b.getAttribute('data-k'),d=+b.getAttribute('data-d'),it=FFP.Cart.items().filter(function(x){return x.key===k})[0];FFP.Cart.set(k,d===-999?0:it.qty+d)}});
+    document.getElementById('co').onclick=function(){document.getElementById('coMsg').textContent='Demo only: nothing was charged. On the live site this opens WooCommerce checkout with Razorpay (UPI or card).'};
+  }
+  document.addEventListener('ffp:cart',draw); draw();
+})();
+</script>
+</body></html>

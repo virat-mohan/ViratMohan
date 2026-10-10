@@ -18,7 +18,7 @@
       items.forEach(function(p){
         var f=p.species==='cat'?'../img/range-cats.webp':'../img/range-dogs.webp';
         var price=p.sizes.map(function(s){return (s.size?esc(s.size)+' · ':'')+rs(s.price)}).join(' <small>| ')+(p.sizes.length>1?'</small>':'');
-        h+='<a class="card" href="recipe.html"><img src="'+esc(p.image||f)+'" alt="'+esc(p.name)+'" loading="lazy" onerror="this.onerror=null;this.src=\''+f+'\'"><div class="info"><b>'+esc(p.name)+'</b><span>'+(p.species==='cat'?'Cats':'Dogs')+'</span><span class="price">'+price+'</span></div></a>';
+        h+='<a class="card" href="recipe.html?id='+p.id+'"><img src="'+esc(p.image||f)+'" alt="'+esc(p.name)+'" loading="lazy" onerror="this.onerror=null;this.src=\''+f+'\'"><div class="info"><b>'+esc(p.name)+'</b><span>'+(p.species==='cat'?'Cats':'Dogs')+'</span><span class="price">'+price+'</span></div></a>';
       });
       h+='</div>';
     });
