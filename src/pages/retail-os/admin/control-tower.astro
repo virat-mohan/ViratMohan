@@ -248,6 +248,9 @@ const tab = TAB_NAMES.includes(resolvedTab as typeof TAB_NAMES[number]) ? resolv
     /* Agent + brand grids */
     .agent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
     .agent-card { padding: 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); }
+    .agent-btn { transition: border-color 0.15s, box-shadow 0.15s; }
+    .agent-btn:hover, .agent-btn:focus-visible { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(197,165,114,0.25); outline: none; }
+    .agent-btn.selected { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(197,165,114,0.4); }
     .agent-id { font-size: 0.8rem; color: var(--gold); font-weight: 600; }
     .agent-name { font-weight: 600; }
     .agent-role { font-size: 0.78rem; color: var(--ink-muted); }
@@ -840,30 +843,114 @@ const tab = TAB_NAMES.includes(resolvedTab as typeof TAB_NAMES[number]) ? resolv
       <div>
         <div class="card">
           <h2>Agent Organisation</h2>
-          <p style="font-size:0.85rem;color:var(--ink-muted);margin-bottom:16px">DS-00 Virat (founder) → DS-01 Myoho (guardian) → DS-02 Dev (CEO)</p>
+          <p style="font-size:0.85rem;color:var(--ink-muted);margin-bottom:16px">DS-00 Virat (founder) → DS-01 Myoho (guardian) → DS-02 Dev (CEO). Tap any agent to send a command.</p>
+
+          <h3>Leadership</h3>
+          <div class="agent-grid" style="margin-bottom:20px">
+            {[findAgent('DS-01')!, findAgent('DS-02')!].map((a) => {
+              const cert = storedAssessments.get(a.id);
+              const certLabel = cert?.length ? (cert.every(c => c.passed) ? 'Certified' : 'In training') : 'Not assessed';
+              const workCount = registry.list().filter(w => w.owner === a.id.toLowerCase().replace('-','_') && w.state !== 'closed').length;
+              return (
+                <button class="agent-card agent-btn" type="button" data-agent-id={a.id} data-agent-name={a.name} style="cursor:pointer;text-align:left;background:var(--card);font:inherit;width:100%">
+                  <div class="agent-id">{a.id}</div>
+                  <div class="agent-name">{a.name}</div>
+                  <div class="agent-role">{a.role === 'guardian' ? 'Guardian — mission, values, voice' : 'CEO — runs DevShop'}</div>
+                  <div style="display:flex;gap:8px;margin-top:6px;font-size:0.78rem">
+                    <span style={`color:${certLabel === 'Certified' ? '#2E7D32' : certLabel === 'In training' ? '#E67A33' : 'var(--ink-muted)'}`}>{certLabel}</span>
+                    {workCount > 0 && <span style="color:var(--ink-muted)">{workCount} open</span>}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
 
           <h3>Brand CEOs (report to Dev)</h3>
           <div class="agent-grid" style="margin-bottom:20px">
-            {brandCeos.map((a) => (
-              <div class="agent-card">
-                <div class="agent-id">{a.id}</div>
-                <div class="agent-name">{a.name}</div>
-                <div class="agent-role">{a.scope?.brand ? (BRAND_LABEL[a.scope.brand] ?? a.scope.brand) : 'Brand CEO'}</div>
-                <div style="font-size:0.8rem;color:var(--ink-muted);margin-top:4px">{BRAND_STATUS[a.scope?.brand ?? ''] ?? '—'}</div>
-              </div>
-            ))}
+            {brandCeos.map((a) => {
+              const cert = storedAssessments.get(a.id);
+              const certLabel = cert?.length ? (cert.every(c => c.passed) ? 'Certified' : 'In training') : 'Not assessed';
+              const workCount = registry.list().filter(w => w.owner === a.id.toLowerCase().replace('-','_') && w.state !== 'closed').length;
+              return (
+                <button class="agent-card agent-btn" type="button" data-agent-id={a.id} data-agent-name={a.name} data-brand={a.scope?.brand ?? ''} style="cursor:pointer;text-align:left;background:var(--card);font:inherit;width:100%">
+                  <div class="agent-id">{a.id}</div>
+                  <div class="agent-name">{a.name}</div>
+                  <div class="agent-role">{a.scope?.brand ? (BRAND_LABEL[a.scope.brand] ?? a.scope.brand) : 'Brand CEO'}</div>
+                  <div style="display:flex;gap:8px;margin-top:6px;font-size:0.78rem">
+                    <span style="color:var(--ink-muted)">{BRAND_STATUS[a.scope?.brand ?? ''] ?? '—'}</span>
+                    <span style={`color:${certLabel === 'Certified' ? '#2E7D32' : certLabel === 'In training' ? '#E67A33' : 'var(--ink-muted)'}`}>{certLabel}</span>
+                    {workCount > 0 && <span style="color:var(--ink-muted)">{workCount} open</span>}
+                  </div>
+                </button>
+              );
+            })}
           </div>
 
           <h3>Function heads (report to Dev)</h3>
-          <div class="agent-grid">
-            {hods.map((a) => (
-              <div class="agent-card">
-                <div class="agent-id">{a.id}</div>
-                <div class="agent-name">{a.name}</div>
-                <div class="agent-role">{a.capabilities.join(', ')}</div>
-              </div>
-            ))}
+          <div class="agent-grid" style="margin-bottom:20px">
+            {hods.map((a) => {
+              const cert = storedAssessments.get(a.id);
+              const certLabel = cert?.length ? (cert.every(c => c.passed) ? 'Certified' : 'In training') : 'Not assessed';
+              const workCount = registry.list().filter(w => w.owner === a.id.toLowerCase().replace('-','_') && w.state !== 'closed').length;
+              return (
+                <button class="agent-card agent-btn" type="button" data-agent-id={a.id} data-agent-name={a.name} style="cursor:pointer;text-align:left;background:var(--card);font:inherit;width:100%">
+                  <div class="agent-id">{a.id}</div>
+                  <div class="agent-name">{a.name}</div>
+                  <div class="agent-role">{a.capabilities.join(', ')}</div>
+                  <div style="display:flex;gap:8px;margin-top:6px;font-size:0.78rem">
+                    <span style={`color:${certLabel === 'Certified' ? '#2E7D32' : certLabel === 'In training' ? '#E67A33' : 'var(--ink-muted)'}`}>{certLabel}</span>
+                    {workCount > 0 && <span style="color:var(--ink-muted)">{workCount} open</span>}
+                  </div>
+                </button>
+              );
+            })}
           </div>
+
+          <h3>Specialists</h3>
+          <div class="agent-grid" style="margin-bottom:20px">
+            {AGENT_REGISTRY.filter(a => a.role === 'specialist').map((a) => {
+              const cert = storedAssessments.get(a.id);
+              const certLabel = cert?.length ? (cert.every(c => c.passed) ? 'Certified' : 'In training') : 'Not assessed';
+              const workCount = registry.list().filter(w => w.owner === a.id.toLowerCase().replace('-','_') && w.state !== 'closed').length;
+              return (
+                <button class="agent-card agent-btn" type="button" data-agent-id={a.id} data-agent-name={a.name} style="cursor:pointer;text-align:left;background:var(--card);font:inherit;width:100%">
+                  <div class="agent-id">{a.id}</div>
+                  <div class="agent-name">{a.name}</div>
+                  <div class="agent-role">{a.capabilities.join(', ')}</div>
+                  <div style="display:flex;gap:8px;margin-top:6px;font-size:0.78rem">
+                    <span style={`color:${certLabel === 'Certified' ? '#2E7D32' : certLabel === 'In training' ? '#E67A33' : 'var(--ink-muted)'}`}>{certLabel}</span>
+                    {workCount > 0 && <span style="color:var(--ink-muted)">{workCount} open</span>}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <h3>Human</h3>
+          <div class="agent-grid">
+            <div class="agent-card" style="border-color:var(--gold)">
+              <div class="agent-id">P-01</div>
+              <div class="agent-name">Prince</div>
+              <div class="agent-role">Tech operations — tasks only through Virat</div>
+              <div style="font-size:0.78rem;color:var(--ink-muted);margin-top:6px">{registry.list().filter(w => w.owner === 'p_01' && w.state !== 'closed').length} open</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Command panel: appears when you tap an agent -->
+        <div class="card" id="agent-command-panel" hidden>
+          <h2 id="agent-command-title">Send command</h2>
+          <form id="agent-command-form" class="ask">
+            <input type="hidden" id="agent-target-id" />
+            <input type="hidden" id="agent-target-brand" />
+            <label for="agent-command-text">Your instruction to this agent (routed via Dev)</label>
+            <textarea id="agent-command-text" maxlength="2000" required placeholder="What do you need from this agent?"></textarea>
+            <div style="display:flex;gap:12px;margin-top:12px;align-items:center">
+              <button type="submit" id="agent-command-send">Send</button>
+              <button type="button" id="agent-command-cancel" style="background:none;color:var(--ink-muted);border-color:var(--border)">Cancel</button>
+            </div>
+          </form>
+          <div id="agent-command-result" class="resp" hidden aria-live="polite" style="margin-top:16px"></div>
         </div>
 
         <div class="card">
@@ -961,6 +1048,65 @@ const tab = TAB_NAMES.includes(resolvedTab as typeof TAB_NAMES[number]) ? resolv
           if (d.outcome.mutationApplied) { const p = document.createElement('p'); p.style.marginTop = '12px'; const a = document.createElement('a'); a.href = '?tab=work'; a.textContent = 'See it in the Work Pipeline'; p.append(a); out.append(p); }
         } catch { out.textContent = 'Could not reach the CEO runtime. Try again.'; }
         finally { btn.disabled = false; btn.textContent = 'Send to the CEO'; }
+      });
+    }
+  </script>
+
+  <script>
+    // Agent command panel
+    document.querySelectorAll('.agent-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const panel = document.getElementById('agent-command-panel');
+        const title = document.getElementById('agent-command-title');
+        const idField = document.getElementById('agent-target-id');
+        const brandField = document.getElementById('agent-target-brand');
+        const txt = document.getElementById('agent-command-text');
+        const result = document.getElementById('agent-command-result');
+        document.querySelectorAll('.agent-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        idField.value = btn.dataset.agentId;
+        brandField.value = btn.dataset.brand || '';
+        title.textContent = `Command → ${btn.dataset.agentName} (${btn.dataset.agentId})`;
+        panel.hidden = false;
+        result.hidden = true;
+        txt.value = '';
+        txt.focus();
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
+    });
+    const cancelBtn = document.getElementById('agent-command-cancel');
+    if (cancelBtn) cancelBtn.addEventListener('click', () => {
+      document.getElementById('agent-command-panel').hidden = true;
+      document.querySelectorAll('.agent-btn').forEach(b => b.classList.remove('selected'));
+    });
+    const agentForm = document.getElementById('agent-command-form');
+    if (agentForm) {
+      const out = document.getElementById('agent-command-result');
+      const btn = document.getElementById('agent-command-send');
+      const row = (dl, k, v) => { if (v === null || v === undefined || v === '') return; const dt = document.createElement('dt'); dt.textContent = k; const dd = document.createElement('dd'); dd.textContent = v; dl.append(dt, dd); };
+      const ref = (w) => w ? `${w.ref} "${w.title}" (${w.state}${w.priority ? ', ' + w.priority : ''}${w.owner ? ', owner ' + w.owner : ''})` : null;
+      agentForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        btn.disabled = true; btn.textContent = 'Working…';
+        out.hidden = false; out.replaceChildren();
+        const agentId = document.getElementById('agent-target-id').value;
+        const brand = document.getElementById('agent-target-brand').value || null;
+        const text = document.getElementById('agent-command-text').value;
+        try {
+          const res = await fetch('/retail-os/api/admin/ceo-input', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text: `[To ${agentId}] ${text}`, brand }) });
+          const d = await res.json();
+          if (!res.ok) { out.textContent = d.error || 'Something went wrong'; return; }
+          const dl = document.createElement('dl');
+          row(dl, 'Understood', `${d.understood.kind}, ${d.understood.urgency}${d.understood.brand ? ', ' + d.understood.brand : ''}`);
+          row(dl, 'Result', d.outcome.summary);
+          row(dl, 'Work', ref(d.work));
+          row(dl, 'Authority', `${d.authority.capability} ${d.authority.level}${d.authority.allowed ? ', CEO may act' : ', needs ' + d.authority.holder}`);
+          if (d.routing) row(dl, 'Routing', `${d.routing.function} to ${d.routing.roleLabel} (current holder: ${d.routing.currentHolders.join(', ')})`);
+          row(dl, 'Escalation', d.escalation.required ? 'Needs your decision' : 'None');
+          row(dl, 'Next step', d.nextStep);
+          out.append(dl);
+        } catch { out.textContent = 'Could not reach the CEO runtime. Try again.'; }
+        finally { btn.disabled = false; btn.textContent = 'Send'; }
       });
     }
   </script>
