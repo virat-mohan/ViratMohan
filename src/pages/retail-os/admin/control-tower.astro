@@ -176,16 +176,63 @@ const CHANNEL_COLOR: Record<string, string> = {
   not_configured: '#A3A3A3',
 };
 
-const TAB_NAMES = ['ceo', 'today', 'meeting', 'work', 'agents', 'brands'] as const;
+const TAB_NAMES = ['ceo', 'today', 'org', 'meeting', 'work', 'agents', 'brands'] as const;
 const TAB_LABEL: Record<string, string> = {
   ceo: 'Talk to CEO',
   today: 'Today',
+  org: 'Organisation',
   meeting: 'Daily Meeting',
   work: 'Work',
   agents: 'Agents',
   brands: 'Brands',
 };
-const TAB_ALIAS: Record<string, string> = { board: 'today', pipeline: 'work' };
+const TAB_ALIAS: Record<string, string> = { board: 'today', pipeline: 'work', organisation: 'org' };
+
+// ── Org chart data (for the interactive SVG tree) ────────────────────────
+interface OrgNode {
+  id: string;
+  name: string;
+  title: string;
+  role: string;
+  children: string[];
+  cert: string;
+  certColor: string;
+  openWork: number;
+  brand?: string;
+}
+
+function buildOrgNodes(): OrgNode[] {
+  const nodes: OrgNode[] = [];
+  const addNode = (id: string, title: string, role: string, children: string[], brand?: string) => {
+    const cert = storedAssessments.get(id);
+    const certLabel = cert?.length ? (cert.every(c => c.passed) ? 'Certified' : 'In training') : 'Not assessed';
+    const certColor = certLabel === 'Certified' ? '#2E7D32' : certLabel === 'In training' ? '#E67A33' : '#A3A3A3';
+    const a = findAgent(id);
+    const openWork = registry.list().filter(w => w.owner?.id === id && w.state !== 'closed').length;
+    nodes.push({ id, name: a?.name ?? id, title, role, children, cert: certLabel, certColor, openWork, brand });
+  };
+
+  addNode('DS-00', 'Founder', 'founder', ['DS-01', 'P-01']);
+  addNode('DS-01', 'Guardian', 'guardian', ['DS-02']);
+  addNode('DS-02', 'CEO', 'ceo', ['MG-01', 'TC-01', 'CK-01', 'FP-01', 'KB-01', 'DS-10', 'DS-11', 'DS-12', 'DS-13', 'DS-14', 'DS-15', 'DS-17']);
+  addNode('MG-01', 'Moon Glasses', 'brand_ceo', [], 'moonglasses');
+  addNode('TC-01', 'Travaholic Caps', 'brand_ceo', [], 'caps');
+  addNode('CK-01', 'Ceremony Kitchen', 'brand_ceo', [], 'ceremonykitchen');
+  addNode('FP-01', 'Fresh For Paws', 'brand_ceo', [], 'freshforpaws');
+  addNode('KB-01', 'Korbi', 'brand_ceo', [], 'korbi');
+  addNode('DS-10', AGENT_TITLE['DS-10']?.split('·')[0]?.trim() ?? 'Quality', 'hod', []);
+  addNode('DS-11', AGENT_TITLE['DS-11']?.split('·')[0]?.trim() ?? 'Growth', 'hod', ['DS-16']);
+  addNode('DS-12', AGENT_TITLE['DS-12']?.split('·')[0]?.trim() ?? 'Sales', 'hod', []);
+  addNode('DS-13', AGENT_TITLE['DS-13']?.split('·')[0]?.trim() ?? 'Finance', 'hod', []);
+  addNode('DS-14', AGENT_TITLE['DS-14']?.split('·')[0]?.trim() ?? 'Customer Care', 'hod', []);
+  addNode('DS-15', AGENT_TITLE['DS-15']?.split('·')[0]?.trim() ?? 'Team', 'hod', []);
+  addNode('DS-16', AGENT_TITLE['DS-16']?.split('·')[0]?.trim() ?? 'Visual Design', 'specialist', []);
+  addNode('DS-17', AGENT_TITLE['DS-17']?.split('·')[0]?.trim() ?? 'Process Efficiency', 'specialist', []);
+  addNode('P-01', 'Tech Ops', 'human', []);
+  return nodes;
+}
+const orgNodes = buildOrgNodes();
+const orgNodesJson = JSON.stringify(orgNodes);
 const rawTab = Astro.url.searchParams.get('tab') ?? '';
 const resolvedTab = TAB_ALIAS[rawTab] ?? rawTab;
 const tab = TAB_NAMES.includes(resolvedTab as typeof TAB_NAMES[number]) ? resolvedTab : 'ceo';
@@ -851,6 +898,64 @@ const tab = TAB_NAMES.includes(resolvedTab as typeof TAB_NAMES[number]) ? resolv
       </div>
     )}
 
+    {/* ═══════════ TAB: ORGANISATION ═══════════ */}
+    {tab === 'org' && (
+      <div>
+        <div class="card" style="overflow-x:auto">
+          <h2>DevShop Organisation</h2>
+          <p style="font-size:0.85rem;color:var(--ink-muted);margin-bottom:16px">Interactive hierarchy. Tap any node to send a command via Dev (DS-02).</p>
+          <div id="org-chart" style="min-height:480px;position:relative"></div>
+        </div>
+
+        <!-- Reuse the agent command panel -->
+        <div class="card" id="org-command-panel" hidden>
+          <h2 id="org-command-title">Send command</h2>
+          <form id="org-command-form" class="ask">
+            <input type="hidden" id="org-target-id" />
+            <input type="hidden" id="org-target-brand" />
+            <label for="org-command-text">Your instruction to this agent (routed via Dev)</label>
+            <textarea id="org-command-text" maxlength="2000" required placeholder="What do you need from this agent?"></textarea>
+            <div style="display:flex;gap:12px;margin-top:12px;align-items:center">
+              <button type="submit" id="org-command-send">Send</button>
+              <button type="button" id="org-command-cancel" style="background:none;color:var(--ink-muted);border-color:var(--border)">Cancel</button>
+            </div>
+          </form>
+          <div id="org-command-result" class="resp" hidden aria-live="polite" style="margin-top:16px"></div>
+        </div>
+
+        <div class="card">
+          <h2>Shared Specialist Pool</h2>
+          <p style="font-size:0.85rem;color:var(--ink-muted);margin-bottom:12px">Each HOD serves all brands. Brand CEOs own results; HODs own competence and standards.</p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px">
+            {AGENT_REGISTRY.filter(a => a.role === 'hod').map(a => {
+              const cert = storedAssessments.get(a.id);
+              const certLabel = cert?.length ? (cert.every(c => c.passed) ? 'Certified' : 'In training') : 'Not assessed';
+              const brandWork = ['moonglasses','caps','ceremonykitchen','freshforpaws','korbi'].map(b => {
+                const count = registry.list().filter(w => w.owner?.id === a.id && w.scope?.brand === b && w.state !== 'closed').length;
+                return count > 0 ? `${BRAND_LABEL[b] ?? b}: ${count}` : null;
+              }).filter(Boolean);
+              return (
+                <div style="border:1px solid var(--border);border-radius:8px;padding:14px;background:var(--card)">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                    <span style="font-weight:600">{a.id} {a.name}</span>
+                    <span style={`font-size:0.78rem;color:${certLabel === 'Certified' ? '#2E7D32' : certLabel === 'In training' ? '#E67A33' : 'var(--ink-muted)'}`}>{certLabel}</span>
+                  </div>
+                  <div style="font-size:0.82rem;color:var(--ink-muted);margin-bottom:4px">{AGENT_TITLE[a.id] ?? a.capabilities.join(', ')}</div>
+                  {brandWork.length > 0 ? (
+                    <div style="font-size:0.78rem;margin-top:6px">
+                      {brandWork.map(bw => <div style="color:var(--ink-muted)">{bw}</div>)}
+                    </div>
+                  ) : (
+                    <div style="font-size:0.78rem;color:var(--ink-muted);margin-top:6px">No open brand work</div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    )}
+
     {/* ═══════════ TAB: AGENTS ═══════════ */}
     {tab === 'agents' && (
       <div>
@@ -1147,6 +1252,220 @@ const tab = TAB_NAMES.includes(resolvedTab as typeof TAB_NAMES[number]) ? resolv
         } catch { msg.textContent = 'Could not reach the lifecycle service. Try again.'; btn.disabled = false; }
       });
     });
+  </script>
+
+  <!-- Organisation chart rendering -->
+  <script define:vars={{ orgNodesJson }}>
+  (function() {
+    const container = document.getElementById('org-chart');
+    if (!container) return;
+
+    const nodes = JSON.parse(orgNodesJson);
+    const nodeMap = {};
+    nodes.forEach(n => { nodeMap[n.id] = n; });
+
+    const ROLE_COLOR = {
+      founder: '#C5A572',
+      guardian: '#91AFC0',
+      ceo: '#15130F',
+      brand_ceo: '#C17A56',
+      hod: '#1A1A1A',
+      specialist: '#6B6B6B',
+      human: '#D4AF37',
+    };
+
+    const NODE_W = 140;
+    const NODE_H = 72;
+    const GAP_X = 16;
+    const GAP_Y = 48;
+
+    // Layout: assign x,y to each node using a simple recursive tree layout
+    const positions = {};
+    let nextX = 0;
+
+    function layoutTree(id, depth) {
+      const node = nodeMap[id];
+      if (!node) return 0;
+      const children = node.children.filter(c => nodeMap[c]);
+      if (children.length === 0) {
+        const x = nextX;
+        nextX += NODE_W + GAP_X;
+        positions[id] = { x, y: depth * (NODE_H + GAP_Y) };
+        return x;
+      }
+      const childXs = children.map(c => layoutTree(c, depth + 1));
+      const minX = Math.min(...childXs);
+      const maxChild = children[children.length - 1];
+      const maxX = positions[maxChild].x;
+      const myX = (minX + maxX) / 2;
+      positions[id] = { x: myX, y: depth * (NODE_H + GAP_Y) };
+      return myX;
+    }
+
+    layoutTree('DS-00', 0);
+
+    // Calculate SVG dimensions
+    const allPos = Object.values(positions);
+    const svgW = Math.max(...allPos.map(p => p.x)) + NODE_W + 20;
+    const svgH = Math.max(...allPos.map(p => p.y)) + NODE_H + 20;
+
+    // Build SVG
+    const ns = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('viewBox', `0 0 ${svgW} ${svgH}`);
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('height', svgH);
+    svg.style.fontFamily = "'DM Sans', system-ui, sans-serif";
+    svg.style.cursor = 'default';
+
+    // Draw lines first
+    nodes.forEach(n => {
+      if (!positions[n.id]) return;
+      const from = positions[n.id];
+      n.children.forEach(cid => {
+        if (!positions[cid]) return;
+        const to = positions[cid];
+        const path = document.createElementNS(ns, 'path');
+        const fx = from.x + NODE_W / 2;
+        const fy = from.y + NODE_H;
+        const tx = to.x + NODE_W / 2;
+        const ty = to.y;
+        const midY = fy + (ty - fy) / 2;
+        path.setAttribute('d', `M${fx},${fy} C${fx},${midY} ${tx},${midY} ${tx},${ty}`);
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke', '#E8E2D8');
+        path.setAttribute('stroke-width', '1.5');
+        svg.appendChild(path);
+      });
+    });
+
+    // Draw nodes
+    nodes.forEach(n => {
+      if (!positions[n.id]) return;
+      const pos = positions[n.id];
+      const g = document.createElementNS(ns, 'g');
+      g.setAttribute('transform', `translate(${pos.x}, ${pos.y})`);
+      g.style.cursor = 'pointer';
+      g.setAttribute('data-agent-id', n.id);
+      g.setAttribute('data-agent-name', n.name);
+      if (n.brand) g.setAttribute('data-brand', n.brand);
+
+      const rect = document.createElementNS(ns, 'rect');
+      rect.setAttribute('width', NODE_W);
+      rect.setAttribute('height', NODE_H);
+      rect.setAttribute('rx', '8');
+      rect.setAttribute('fill', '#FFFFFF');
+      rect.setAttribute('stroke', ROLE_COLOR[n.role] || '#E8E2D8');
+      rect.setAttribute('stroke-width', '2');
+      g.appendChild(rect);
+
+      // Accent bar at top
+      const bar = document.createElementNS(ns, 'rect');
+      bar.setAttribute('width', NODE_W);
+      bar.setAttribute('height', '4');
+      bar.setAttribute('rx', '8');
+      bar.setAttribute('fill', ROLE_COLOR[n.role] || '#E8E2D8');
+      g.appendChild(bar);
+
+      // ID + Name
+      const idText = document.createElementNS(ns, 'text');
+      idText.setAttribute('x', '10');
+      idText.setAttribute('y', '22');
+      idText.setAttribute('font-size', '10');
+      idText.setAttribute('fill', '#6B6B6B');
+      idText.textContent = n.id;
+      g.appendChild(idText);
+
+      const nameText = document.createElementNS(ns, 'text');
+      nameText.setAttribute('x', '10');
+      nameText.setAttribute('y', '38');
+      nameText.setAttribute('font-size', '13');
+      nameText.setAttribute('font-weight', '600');
+      nameText.setAttribute('fill', '#1A1A1A');
+      nameText.textContent = n.name;
+      g.appendChild(nameText);
+
+      // Title
+      const titleText = document.createElementNS(ns, 'text');
+      titleText.setAttribute('x', '10');
+      titleText.setAttribute('y', '52');
+      titleText.setAttribute('font-size', '9');
+      titleText.setAttribute('fill', '#6B6B6B');
+      titleText.textContent = n.title.length > 20 ? n.title.slice(0, 18) + '…' : n.title;
+      g.appendChild(titleText);
+
+      // Cert dot + open work
+      const certDot = document.createElementNS(ns, 'circle');
+      certDot.setAttribute('cx', '14');
+      certDot.setAttribute('cy', '65');
+      certDot.setAttribute('r', '4');
+      certDot.setAttribute('fill', n.certColor);
+      g.appendChild(certDot);
+
+      if (n.openWork > 0) {
+        const workText = document.createElementNS(ns, 'text');
+        workText.setAttribute('x', '24');
+        workText.setAttribute('y', '68');
+        workText.setAttribute('font-size', '9');
+        workText.setAttribute('fill', '#6B6B6B');
+        workText.textContent = n.openWork + ' open';
+        g.appendChild(workText);
+      }
+
+      // Hover effect
+      g.addEventListener('mouseenter', () => { rect.setAttribute('stroke-width', '3'); });
+      g.addEventListener('mouseleave', () => { rect.setAttribute('stroke-width', '2'); });
+
+      // Click → command panel
+      g.addEventListener('click', () => {
+        const panel = document.getElementById('org-command-panel');
+        const title = document.getElementById('org-command-title');
+        const idField = document.getElementById('org-target-id');
+        const brandField = document.getElementById('org-target-brand');
+        const txt = document.getElementById('org-command-text');
+        const result = document.getElementById('org-command-result');
+
+        title.textContent = 'Command → ' + n.name + ' (' + n.id + ')';
+        idField.value = n.id;
+        brandField.value = n.brand || '';
+        txt.value = '';
+        result.hidden = true;
+        panel.hidden = false;
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        txt.focus();
+      });
+
+      svg.appendChild(g);
+    });
+
+    container.appendChild(svg);
+
+    // Command panel handlers for org tab
+    const cancelBtn = document.getElementById('org-command-cancel');
+    if (cancelBtn) cancelBtn.onclick = () => { document.getElementById('org-command-panel').hidden = true; };
+
+    const orgForm = document.getElementById('org-command-form');
+    if (orgForm) orgForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const out = document.getElementById('org-command-result');
+      const btn = document.getElementById('org-command-send');
+      if (!btn || !out) return;
+      btn.disabled = true;
+      out.hidden = true;
+      try {
+        const agentId = document.getElementById('org-target-id').value;
+        const brand = document.getElementById('org-target-brand').value || undefined;
+        const text = document.getElementById('org-command-text').value;
+        const body = { text: '[To ' + agentId + '] ' + text };
+        if (brand) body.brand = brand;
+        const res = await fetch('/retail-os/api/admin/ceo-input', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+        const d = await res.json();
+        out.hidden = false;
+        out.innerHTML = '<strong>' + (d.outcome?.kind || 'done') + '</strong><br>' + (d.outcome?.summary || d.error || 'Processed') + (d.outcome?.nextStep ? '<br><em>Next: ' + d.outcome.nextStep + '</em>' : '');
+      } catch { out.hidden = false; out.textContent = 'Could not reach the CEO endpoint.'; }
+      btn.disabled = false;
+    };
+  })();
   </script>
 </body>
 </html>
