@@ -7,11 +7,17 @@ import { sendEmail } from '../../../lib/email';
 import { getOrigin } from '../../../lib/http';
 import { renderRetailOsEmail } from '../../../lib/retail-os-email';
 import { mailConfigured } from '../../../lib/mail/send';
+import { endpointLimit } from '../../../lib/rate-limit';
+
+// Public and unauthenticated. Emails a private link to an address with an application; the response never says whether one exists, and neither does the 429.
+const limit = endpointLimit({ rules: [{ limit: 3, windowMs: 60_000 }, { limit: 10, windowMs: 3_600_000 }], body: { error: 'Too many requests. Please wait a minute and try again.' } });
 
 // Public, deliberately vague response either way (never confirms/denies
 // whether an email has an application on file) — same shape as a password-
 // reset endpoint, to avoid leaking who has applied.
 export const POST: APIRoute = async ({ request }) => {
+  const limited = limit(request);
+  if (limited) return limited;
   const env = getEnv();
   const origin = getOrigin(request);
 

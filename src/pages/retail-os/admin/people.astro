@@ -1,0 +1,199 @@
+---
+import AdminBreadcrumbs from '../../../components/AdminBreadcrumbs.astro';
+export const prerender = false;
+import { getEnv } from '../../../lib/env';
+import { serviceDb } from '../../../lib/ledger';
+import { createSupabaseWorkStore } from '../../../lib/work/db-store';
+import { loadRegistry } from '../../../lib/work/db-registry';
+import { InMemoryWorkRegistry } from '../../../lib/work/registry';
+import { HUMAN_REGISTRY, workerWorkView, workerPerformance, peopleSummary } from '../../../lib/ceo/people';
+import type { WorkItem } from '../../../lib/work/types';
+
+const env = getEnv();
+let items: WorkItem[] = [];
+let dataSource = 'empty';
+
+if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
+  try {
+    const sb = serviceDb(env);
+    const store = createSupabaseWorkStore(sb);
+    const registry = await loadRegistry(store);
+    items = registry.list();
+    dataSource = 'supabase';
+  } catch { /* falls back to empty */ }
+}
+
+const now = new Date();
+const selected = Astro.url.searchParams.get('worker') ?? HUMAN_REGISTRY[0]?.id ?? null;
+const worker = HUMAN_REGISTRY.find(w => w.id === selected) ?? null;
+const view = worker ? workerWorkView(worker.id, items, now) : null;
+const perf = worker ? workerPerformance(worker.id, items, now) : null;
+const allSummary = peopleSummary(items, now);
+
+const STATE_LABEL: Record<string, string> = {
+  new: 'New', triaged: 'Triaged', assigned: 'Assigned', in_progress: 'In Progress',
+  waiting: 'Waiting', blocked: 'Blocked', pending_approval: 'Pending Approval',
+  resolved: 'Resolved', verification: 'Verification', closed: 'Closed', reopened: 'Reopened',
+};
+---
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>People OS — DevShop Retail OS</title>
+  <link rel="stylesheet" href="/brand/tokens.css" />
+  <link rel="stylesheet" href="/retail-os/admin-touch.css" />
+  <style>
+    body { font-family: var(--font-sans, system-ui); background: var(--paper, #faf8f4); color: var(--ink, #1a1a1a); margin: 0; padding: 0 16px 40px; }
+    h1 { font-family: var(--font-display, Georgia); font-size: 1.5rem; font-weight: 600; margin: 24px 0 8px; }
+    h2 { font-size: 1.1rem; margin: 20px 0 8px; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin: 16px 0; }
+    .kpi { background: #fff; border: 1px solid #e8e4de; border-radius: 8px; padding: 12px; text-align: center; }
+    .kpi-value { font-size: 1.5rem; font-weight: 700; }
+    .kpi-label { font-size: 0.75rem; color: #888; margin-top: 2px; }
+    .section { background: #fff; border: 1px solid #e8e4de; border-radius: 8px; padding: 16px; margin: 12px 0; }
+    .work-item { padding: 10px 0; border-bottom: 1px solid #f0ede8; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .work-item:last-child { border-bottom: none; }
+    .wi-title { font-weight: 500; }
+    .wi-meta { font-size: 0.8rem; color: #888; }
+    .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; }
+    .badge-overdue { background: #fef3f2; color: #c1272d; }
+    .badge-blocked { background: #fef3f2; color: #c1272d; }
+    .badge-progress { background: #f0f7ea; color: #2d5016; }
+    .badge-waiting { background: #fef9e8; color: #8b7355; }
+    .worker-info { background: #fff; border: 1px solid #e8e4de; border-radius: 8px; padding: 16px; margin: 12px 0; }
+    .empty { color: #aaa; font-size: 0.9rem; padding: 12px 0; }
+    @media (max-width: 600px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+  </style>
+</head>
+<body>
+  <div class="vm-band"></div>
+  <AdminBreadcrumbs items={[{ label: 'Retail OS', href: '/retail-os/admin' }, { label: 'People OS' }]} />
+  <h1>People OS</h1>
+  <p style="color:#666; font-size:0.9rem; margin-top:0;">
+    {HUMAN_REGISTRY.length} team member{HUMAN_REGISTRY.length !== 1 ? 's' : ''} · Data: {dataSource}
+  </p>
+
+  {worker && perf && view && (
+    <>
+      <div class="worker-info">
+        <strong>{worker.id} {worker.name}</strong> · {worker.role}
+        <div style="font-size:0.85rem; color:#666; margin-top:4px;">
+          {worker.email_work} · Reports to {worker.reports_to} · Since {worker.started_at.slice(0, 10)}
+        </div>
+        <div style="font-size:0.85rem; color:#666; margin-top:2px;">Scope: {worker.scope}</div>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-value">{perf.tasks_total}</div><div class="kpi-label">Total Work</div></div>
+        <div class="kpi"><div class="kpi-value">{perf.tasks_in_progress}</div><div class="kpi-label">In Progress</div></div>
+        <div class="kpi"><div class="kpi-value">{perf.tasks_done}</div><div class="kpi-label">Completed</div></div>
+        <div class="kpi"><div class="kpi-value" style={perf.tasks_overdue > 0 ? 'color:#c1272d' : ''}>{perf.tasks_overdue}</div><div class="kpi-label">Overdue</div></div>
+        <div class="kpi"><div class="kpi-value">{perf.tasks_blocked}</div><div class="kpi-label">Blocked</div></div>
+        <div class="kpi"><div class="kpi-value">{perf.tasks_waiting}</div><div class="kpi-label">Waiting</div></div>
+        <div class="kpi"><div class="kpi-value">{perf.avg_completion_hours ?? '—'}</div><div class="kpi-label">Avg Hours</div></div>
+        <div class="kpi"><div class="kpi-value">{perf.sla_adherence != null ? `${perf.sla_adherence}%` : '—'}</div><div class="kpi-label">SLA %</div></div>
+      </div>
+
+      {view.overdue.length > 0 && (
+        <div class="section">
+          <h2 style="margin-top:0;">Overdue ({view.overdue.length})</h2>
+          {view.overdue.map(i => (
+            <div class="work-item">
+              <div>
+                <span class="wi-title">{i.title}</span>
+                <div class="wi-meta">{i.ref} · {i.priority} · Due {i.deadline?.at?.slice(0, 10)}</div>
+              </div>
+              <span class="badge badge-overdue">OVERDUE</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {view.due_today.length > 0 && (
+        <div class="section">
+          <h2 style="margin-top:0;">Due Today ({view.due_today.length})</h2>
+          {view.due_today.map(i => (
+            <div class="work-item">
+              <span class="wi-title">{i.title}</span>
+              <span class="wi-meta">{i.ref} · {i.priority}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div class="section">
+        <h2 style="margin-top:0;">In Progress ({view.in_progress.length})</h2>
+        {view.in_progress.length === 0 ? <div class="empty">No work in progress</div> : view.in_progress.map(i => (
+          <div class="work-item">
+            <span class="wi-title">{i.title}</span>
+            <div><span class="badge badge-progress">IN PROGRESS</span> <span class="wi-meta">{i.ref} · {i.priority}</span></div>
+          </div>
+        ))}
+      </div>
+
+      {view.blocked.length > 0 && (
+        <div class="section">
+          <h2 style="margin-top:0;">Blocked ({view.blocked.length})</h2>
+          {view.blocked.map(i => (
+            <div class="work-item">
+              <div>
+                <span class="wi-title">{i.title}</span>
+                <div class="wi-meta">{i.blocked?.reason ?? 'No reason given'}</div>
+              </div>
+              <span class="badge badge-blocked">BLOCKED</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {view.waiting.length > 0 && (
+        <div class="section">
+          <h2 style="margin-top:0;">Waiting ({view.waiting.length})</h2>
+          {view.waiting.map(i => (
+            <div class="work-item">
+              <div>
+                <span class="wi-title">{i.title}</span>
+                <div class="wi-meta">{i.waiting?.on ?? ''}</div>
+              </div>
+              <span class="badge badge-waiting">WAITING</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {view.pending_approval.length > 0 && (
+        <div class="section">
+          <h2 style="margin-top:0;">Pending Approval ({view.pending_approval.length})</h2>
+          {view.pending_approval.map(i => (
+            <div class="work-item">
+              <span class="wi-title">{i.title}</span>
+              <span class="wi-meta">{i.ref} · {i.approval?.authority ?? ''}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div class="section">
+        <h2 style="margin-top:0;">Assigned / Queued ({view.assigned.length})</h2>
+        {view.assigned.length === 0 ? <div class="empty">No queued work</div> : view.assigned.map(i => (
+          <div class="work-item">
+            <span class="wi-title">{i.title}</span>
+            <span class="wi-meta">{i.ref} · {i.priority} · {STATE_LABEL[i.state]}</span>
+          </div>
+        ))}
+      </div>
+
+      <div class="section">
+        <h2 style="margin-top:0;">Completed ({view.completed.length})</h2>
+        {view.completed.length === 0 ? <div class="empty">No completed work yet</div> : view.completed.slice(0, 20).map(i => (
+          <div class="work-item">
+            <span class="wi-title">{i.title}</span>
+            <span class="wi-meta">{i.ref} · Closed {i.closed_at?.slice(0, 10) ?? ''}</span>
+          </div>
+        ))}
+      </div>
+    </>
+  )}
+</body>
+</html>

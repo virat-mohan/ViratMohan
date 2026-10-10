@@ -2,6 +2,7 @@ import type { RetailOsApplication } from './retail-os-db';
 import { getRetailOsDb } from './retail-os-db';
 import { generateBusinessPlan, computePlanFromDrivers, applyStrategy, STANDARD_SPLIT_PCT, BUSINESS_PLAN_PROMPT_VERSION } from './retail-os-business-plan';
 import { generateDesignDirection, DESIGN_DIRECTION_PROMPT_VERSION } from './retail-os-design-direction';
+import { resolveOperationModel } from './intelligence/provider';
 
 type Db = ReturnType<typeof getRetailOsDb>;
 
@@ -57,7 +58,7 @@ export async function createPlanForApplication(db: Db, app: RetailOsApplication,
 
   return db.saveBusinessPlan({
     application_id: app.id,
-    model: 'claude-sonnet-5',
+    model: resolveOperationModel('plan.business_plan'),
     prompt_version: BUSINESS_PLAN_PROMPT_VERSION,
     research_notes: extraNotes.trim(),
     assumptions: output.assumptions ?? [],
@@ -98,7 +99,7 @@ export async function createDesignForApplication(db: Db, app: RetailOsApplicatio
     const p = o.colorPalette;
     ids.push(await db.saveDesignDirection({
       application_id: app.id,
-      model: 'claude-sonnet-5',
+      model: resolveOperationModel('design.direction'),
       prompt_version: DESIGN_DIRECTION_PROMPT_VERSION,
       has_existing_site: !!output.hasExistingSite,
       primary_reference: cleanRef(o.primaryReference ?? { name: '', url: '', note: '' }),

@@ -1,5 +1,5 @@
 {
   "extends": "astro/tsconfigs/strict",
   "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist", "retail-os-brands/**/supabase/functions"]
+  "exclude": ["dist", "retail-os-brands/**/supabase/functions", "starters"]
 }

@@ -149,7 +149,7 @@ export function isStalled(lead: StallLead, rows: AccessRow[], now: Date): boolea
 // Drafts (all go to Virat for approval; sendAfter is inside 9am-8pm IST, Mon-Sat)
 // ---------------------------------------------------------------------------------------------------
 
-export type Draft = { purpose: 'access_request' | 'access_reminder' | 'plan_cover'; subject: string; body: string; sendAfter: string };
+export type Draft = { purpose: 'access_request' | 'access_reminder' | 'plan_cover' | 'nda_request' | 'nda_reminder'; subject: string; body: string; sendAfter: string };
 const hi = (name?: string | null) => (name?.trim() ? `Hi ${name.trim().split(/\s+/)[0]},` : 'Hi,');
 const wa = (n?: string) => (n ? `\nLet's talk: https://wa.me/${n.replace(/\D/g, '')}` : "\nLet's talk.");
 

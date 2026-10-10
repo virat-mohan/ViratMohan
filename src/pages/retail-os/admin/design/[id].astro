@@ -1,4 +1,5 @@
 ---
+import AdminBreadcrumbs from '../../../../components/AdminBreadcrumbs.astro';
 export const prerender = false;
 import { getRetailOsDb } from '../../../../lib/retail-os-db';
 import { getEnv } from '../../../../lib/env';
@@ -19,6 +20,7 @@ const design = designs[0] ?? null;
 <meta name="robots" content="noindex" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/brand/tokens.css">
 <style>
   :root{ --cream:#F4EAD4; --ink:#1A1410; --ink-soft:#4A4038; --gold:#D4AF37; --terracotta:#D9714B; --teal:#2B8C86; --line: rgba(26,20,16,0.14); }
   *{box-sizing:border-box;}
@@ -48,9 +50,12 @@ const design = designs[0] ?? null;
   ul.ux{margin:0; padding-left:20px; font-size:13px;}
   ul.ux li{margin-bottom:8px;}
 </style>
+  <link rel="stylesheet" href="/retail-os/admin-touch.css">
 </head>
 <body>
+<div class="vm-band"></div>
 <div class="wrap">
+  <AdminBreadcrumbs resource={app?.brand_name ?? null} />
   <a class="back" href="/retail-os/admin">← All applications</a>
 
   {!app ? (

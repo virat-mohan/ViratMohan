@@ -10,9 +10,8 @@
 // chat, and an answer learned from WhatsApp or the FAQ reaches email drafts.
 // Nothing becomes public knowledge until Virat publishes it (PLAYBOOK: humans decide).
 import { createClient } from '@supabase/supabase-js';
+import type { Env } from './env';
 import { getFaqDb } from './retail-os-faq';
-
-type Env = { SUPABASE_URL: string; SUPABASE_SERVICE_ROLE_KEY: string };
 
 export type Via = 'chat' | 'email';
 export const REASON_UNANSWERED: Record<Via, string> = { chat: 'chat_no_match', email: 'email_no_match' };

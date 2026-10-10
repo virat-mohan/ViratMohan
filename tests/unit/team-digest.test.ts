@@ -3,7 +3,7 @@ import { buildMemberDigest, renderTeamDigest } from '../../src/lib/team-digest';
 import type { OpsLog, OpsTask, TeamMember } from '../../src/lib/retail-os-ops';
 
 const member: TeamMember = { id: 'm1', name: 'Sample', email: 's@example.com', role: 'Ops', token: 'tok', started_on: '2026-09-26', monthly_inr: null, active: true, created_at: '2026-09-26T00:00:00Z' };
-const task = (id: string, status: OpsTask['status'], due_on: string | null, updated_at: string): OpsTask => ({ id, member_id: 'm1', brand_key: 'b', brand_name: 'Brand', stage: 1, stage_label: 'S', task: `Task ${id}`, owner: 'team', status, note: null, due_on, sort: 0, updated_at });
+const task = (id: string, status: OpsTask['status'], due_on: string | null, updated_at: string): OpsTask => ({ id, member_id: 'm1', brand_key: 'b', brand_name: 'Brand', stage: 1, stage_label: 'S', task: `Task ${id}`, owner: 'team', status, note: null, due_on, sort: 0, updated_at, objective: 'test-obj', priority: 2 });
 const since = '2026-09-26T04:00:00Z';
 const today = '2026-09-27';
 

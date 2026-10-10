@@ -6,11 +6,22 @@ import { sendEmail } from '../../../lib/email';
 import { serverBrain } from '../../../lib/brain';
 import { mailConfigured } from '../../../lib/mail/send';
 import { knowledgeLoop, questionIn } from '../../../lib/knowledge-loop';
+import { governedMessages, ModelGateError } from '../../../lib/intelligence/provider';
+import { endpointLimit } from '../../../lib/rate-limit';
+
+// Each request can make up to three model calls. 10 a minute is a fast typist; 100 an hour is a long conversation.
+const limit = endpointLimit({
+  rules: [{ limit: 10, windowMs: 60_000 }, { limit: 100, windowMs: 3_600_000 }],
+  body: { reply: "You're sending messages quickly. Give me a minute, or message Virat directly on WhatsApp.", error: 'rate limited' },
+});
 
 type Msg = { role: 'user' | 'assistant'; content: string };
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { 'content-type': 'application/json' } });
 
 export const POST: APIRoute = async ({ request }) => {
+  // Counted before the body is read, so a malformed request still uses up the client's allowance.
+  const limited = limit(request);
+  if (limited) return limited;
   const body = (await request.json().catch(() => null)) as { sessionId?: string; page?: string; messages?: Msg[] } | null;
   const sessionId = String(body?.sessionId || '').slice(0, 64);
   const messages = (body?.messages || []).filter((m) => (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
@@ -42,11 +53,16 @@ export const POST: APIRoute = async ({ request }) => {
   let convo: unknown[] = messages;
   let escalated = false;
   for (let round = 0; round < 3; round++) {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: 'claude-sonnet-5', max_tokens: 500, system, tools: [LEAD_TOOL, VIRAT_TOOL], messages: convo }),
-    });
+    let res: Response;
+    try {
+      ({ res } = await governedMessages({
+        operation: 'chat.public_lead', round, apiKey: env.ANTHROPIC_API_KEY,
+        body: { max_tokens: 500, system, tools: [LEAD_TOOL, VIRAT_TOOL], messages: convo },
+      }));
+    } catch (e) {
+      if (e instanceof ModelGateError) { console.error('chat model gate', e.message); return json({ error: 'upstream' }, 502); }
+      throw e;
+    }
     if (!res.ok) { console.error('chat claude', res.status, (await res.text()).slice(0, 300)); return json({ error: 'upstream' }, 502); }
     const data = await res.json();
     const uses = (data.content || []).filter((b: { type: string }) => b.type === 'tool_use');

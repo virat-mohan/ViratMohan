@@ -11,12 +11,11 @@
 //    every option starts from a proven reference worth adopting directly.
 //
 // See retail-os-business-plan.ts for the native web_search tool caveat —
-// same MODEL/ANTHROPIC_VERSION/WEB_SEARCH_TOOL_TYPE apply here.
+// same WEB_SEARCH_TOOL_TYPE applies here. The model is chosen by the invocation gate, not here.
 
-const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
-const ANTHROPIC_VERSION = '2023-06-01';
+import { governedMessages } from './intelligence/provider';
+
 const WEB_SEARCH_TOOL_TYPE = 'web_search_20250305';
-const MODEL = 'claude-sonnet-5';
 const MAX_TOKENS = 5000;
 export const DESIGN_DIRECTION_PROMPT_VERSION = '2026-09-24.1-three-angles';
 const CLAUDE_TIMEOUT_MS = 200_000;
@@ -160,17 +159,16 @@ async function generateOne(app: DesignBrandContext, apiKey: string, homepageSign
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS);
   try {
-    const res = await fetch(ANTHROPIC_API_URL, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': ANTHROPIC_VERSION },
-      body: JSON.stringify({
-        model: MODEL,
+    const { res } = await governedMessages({
+      operation: 'design.direction',
+      apiKey,
+      body: {
         max_tokens: MAX_TOKENS,
         system: SYSTEM_PROMPT,
         messages: [{ role: 'user', content: `${buildUserMessage(app, homepageSignal)}\n\nANGLE FOR THIS DIRECTION: ${hasSomething ? angle.withSite : angle.withoutSite}` }],
         tools: [{ type: WEB_SEARCH_TOOL_TYPE, name: 'web_search' }, DESIGN_TOOL],
         tool_choice: { type: 'auto' },
-      }),
+      },
       signal: controller.signal,
     });
     if (!res.ok) {

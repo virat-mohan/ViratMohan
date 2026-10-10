@@ -1,4 +1,5 @@
 ---
+import AdminBreadcrumbs from '../../../components/AdminBreadcrumbs.astro';
 export const prerender = false;
 import { getEnv } from '../../../lib/env';
 import { serviceDb } from '../../../lib/ledger';
@@ -130,9 +131,12 @@ const cell = (c: Cell) => c.value === null ? null : inr(c.value);
     .rights thead{display:none;} .rights tr{display:block;border-bottom:1px solid var(--line);padding:10px 0;} .rights td{display:flex;justify-content:space-between;gap:12px;border:0;padding:3px 0;} .rights td::before{content:attr(data-l);color:var(--dim);font-size:13px;} .rights td:first-child{font-weight:600;} .rights td:first-child::before{display:none;}
   }
 </style>
+  <link rel="stylesheet" href="/retail-os/admin-touch.css">
 </head>
 <body>
+<div class="vm-band"></div>
 <div class="wrap">
+  <AdminBreadcrumbs tab={tab} />
   <div class="top">
     <div><p class="eyebrow">DevShop Retail OS</p><h1>Org board</h1></div>
     <nav><a href="/retail-os/admin/console">Command Centre</a><a href="/retail-os/admin/console?tab=team">Team</a><a href="/retail-os/admin/inbox">WhatsApp inbox</a></nav>

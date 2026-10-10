@@ -1,4 +1,5 @@
 ---
+import AdminBreadcrumbs from '../../../components/AdminBreadcrumbs.astro';
 export const prerender = false;
 import { getEnv } from '../../../lib/env';
 import { brandsDb, termsLine, STATUS_LABEL, MODEL_LABEL, type Brand } from '../../../lib/brands';
@@ -42,9 +43,12 @@ textarea{min-height:70px;}
 .add{border:1px solid var(--line);border-radius:16px;padding:20px;margin:0 0 30px;background:rgba(255,255,255,.4);}
 .err{color:var(--terracotta);}
 </style>
+  <link rel="stylesheet" href="/retail-os/admin-touch.css">
 </head>
 <body>
+<div class="vm-band"></div>
 <main class="wrap">
+  <AdminBreadcrumbs />
   <a class="logo" href="/founder" aria-label="DevShop Retail OS"><img src="/retail-os/email/devshop-logo.png" alt="DevShop" width="140" height="54" /><i>Retail OS™</i></a>
   <h1>Brands</h1>
   <p class="sub">{brands.length} brands: who DevShop works with, on what terms, and who to call. Changes here show on the <a href="/founder">founder console</a> at once.</p>

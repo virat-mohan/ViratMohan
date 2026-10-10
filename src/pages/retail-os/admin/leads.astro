@@ -1,4 +1,5 @@
 ---
+import AdminBreadcrumbs from '../../../components/AdminBreadcrumbs.astro';
 export const prerender = false;
 import { getEnv } from '../../../lib/env';
 import { serviceDb } from '../../../lib/ledger';
@@ -92,9 +93,12 @@ li.inbound::before{background:var(--gold);} li.awaiting_approval::before{backgro
 .empty{color:var(--dim);font-family:var(--serif);font-size:1.3rem;padding:40px 0;}
 @media (prefers-reduced-motion:no-preference){.lead{animation:rise .45s ease-out both;}@keyframes rise{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}}
 </style>
+  <link rel="stylesheet" href="/retail-os/admin-touch.css">
 </head>
 <body>
+<div class="vm-band"></div>
 <main class="wrap">
+  <AdminBreadcrumbs />
   <a class="logo" href="/founder" aria-label="DevShop Retail OS"><img src="/retail-os/email/devshop-logo.png" alt="DevShop" width="140" height="54" /><i>Retail OS™</i></a>
   <h1>Leads</h1>
   <p class="sub">{active.length} in the journey{late.length ? `, ${late.length} slipping` : ''}{waiting ? `, ${waiting} ${waiting === 1 ? 'email' : 'emails'} waiting for your tap` : ''}. Target: live in 7 days from NDA signed and data connected. <a href="/api/admin/gmail/connect">Gmail</a> · <a href="/retail-os/admin/console">Console</a></p>

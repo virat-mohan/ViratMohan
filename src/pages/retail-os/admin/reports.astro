@@ -1,4 +1,5 @@
 ---
+import AdminBreadcrumbs from '../../../components/AdminBreadcrumbs.astro';
 export const prerender = false;
 import { getRetailOsDb } from '../../../lib/retail-os-db';
 import type { ReportSchedule } from '../../../lib/retail-os-db';
@@ -46,6 +47,7 @@ const brandName = (k: string) => brands.find((b) => b.key === k)?.name ?? k;
 <meta name="robots" content="noindex" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/brand/tokens.css">
 <style>
   :root{ --cream:#F4EAD4; --ink:#1A1410; --ink-soft:#4A4038; --terracotta:#D9714B; --red:#B3261E; --line: rgba(26,20,16,0.14); }
   *{box-sizing:border-box;}
@@ -71,9 +73,12 @@ const brandName = (k: string) => brands.find((b) => b.key === k)?.name ?? k;
   .c.ok::before{background:#3e8e5a;}
   .c.bad span{color:var(--terracotta); font-weight:600;}
 </style>
+  <link rel="stylesheet" href="/retail-os/admin-touch.css">
 </head>
 <body>
+<div class="vm-band"></div>
 <div class="wrap">
+  <AdminBreadcrumbs />
   <div class="top">
     <h1 style="font-size:1.7rem;">Brand reports</h1>
     <nav><a href="/retail-os/admin/console">Founder console</a><a href="/retail-os/admin">Applications</a></nav>

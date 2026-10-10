@@ -21,7 +21,7 @@ const SITE = 'https://viratmohan.com';
 export async function submitForApproval(env: Env, sb: SupabaseClient, d: JourneyDraft, now = new Date()): Promise<{ messageId: string; approveUrl: string | null; sent: boolean }> {
   const { data, error } = await sb.from('lead_messages').insert({
     lead_id: d.leadId, direction: 'outbound', channel: 'email', status: 'awaiting_approval',
-    subject: d.subject, body: d.body, purpose: d.purpose, send_after: d.sendAfter, created_by: d.createdBy ?? 'lead-journey',
+    subject: d.subject, body: d.body, meta: { purpose: d.purpose, sendAfter: d.sendAfter }, created_by: d.createdBy ?? 'lead-journey',
   }).select('id').single();
   if (error) throw new Error(`lead draft: ${error.message}`);
   const messageId = data.id as string;
@@ -37,8 +37,9 @@ export async function submitForApproval(env: Env, sb: SupabaseClient, d: Journey
     // On any doubt or failure we do not send — we park for approval.
     const dupSince = new Date(now.getTime() - 10 * 60_000).toISOString();
     const { data: recent } = await sb.from('lead_messages')
-      .select('id').eq('lead_id', d.leadId).eq('purpose', d.purpose).eq('status', 'sent').gte('at', dupSince).limit(1);
-    if (!recent?.length) {
+      .select('id, meta').eq('lead_id', d.leadId).eq('status', 'sent').gte('at', dupSince).limit(10);
+    const recentSamePurpose = (recent ?? []).filter((m) => (m.meta as any)?.purpose === d.purpose);
+    if (!recentSamePurpose.length) {
       try {
         await sendNow(env, sb, { id: messageId, lead_id: d.leadId, subject: d.subject, body: d.body, purpose: d.purpose, to: d.toEmail }, now,
           { auto: true, rule: `ALLOWLIST_${d.purpose.toUpperCase()}`, recipient: d.toEmail, template: d.purpose });

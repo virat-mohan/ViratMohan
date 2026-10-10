@@ -88,3 +88,18 @@ describe('verifyBrandEnvironment (deterministic, fail-closed)', () => {
     expect(body).not.toContain('SECRET_SERVICE_KEY');
   });
 });
+
+describe("'pending' tasks are open work (the ops board really holds them)", () => {
+  it('stage 1 tasks that are only pending keep the stand-up in PROVISIONING, not READY_FOR_GO_LIVE', () => {
+    // Fresh For Paws had 8 stage-1 tasks with status 'pending'. Before the fix they were neither open nor done.
+    const tasks = [t(0, 'done'), t(1, 'pending'), t(1, 'pending'), t(9, 'todo', 'founder')];
+    const s = computeStandup(tasks, false);
+    expect(s.status).toBe('PROVISIONING');
+    expect(s.open).toBe(3);
+    expect(nextAction(tasks)?.task).toBe('s1-pending');
+  });
+
+  it('a pending configuration task keeps it CONFIGURATION_REQUIRED even when the environment is verified', () => {
+    expect(computeStandup([t(0, 'done'), t(5, 'pending'), t(9, 'todo', 'founder')], false, true).status).toBe('CONFIGURATION_REQUIRED');
+  });
+});

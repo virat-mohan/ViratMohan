@@ -1,0 +1,200 @@
+/* Retail OS Brand Dashboard Shell — base styles.
+   Uses CSS custom properties set by DashboardShell from brand tokens. */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; }
+
+body {
+  font-family: var(--ds-font-sans, 'Inter', system-ui, sans-serif);
+  background: var(--ds-bg, #f4ead4);
+  color: var(--ds-ink, #1a1410);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.dashboard-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.dashboard-nav {
+  width: 260px;
+  flex-shrink: 0;
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 1.5rem 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.dashboard-nav__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 1.25rem 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.dashboard-nav__logo { border-radius: 6px; }
+
+.dashboard-nav__brand {
+  font-family: var(--ds-font-display, 'Anton', sans-serif);
+  font-size: 1.125rem;
+  letter-spacing: 0.01em;
+}
+
+.dashboard-nav__sections {
+  list-style: none;
+  padding: 1rem 0;
+}
+
+.dashboard-nav__section { margin: 0; }
+
+.dashboard-nav__link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 1.25rem;
+  color: inherit;
+  text-decoration: none;
+  font-size: 0.9375rem;
+  transition: background-color 0.15s;
+  min-height: 44px;
+}
+
+.dashboard-nav__link:hover { background: rgba(0, 0, 0, 0.04); }
+
+.dashboard-nav__link--active {
+  background: rgba(0, 0, 0, 0.06);
+  font-weight: 600;
+  border-left: 3px solid var(--ds-gold, #d4af37);
+  padding-left: calc(1.25rem - 3px);
+}
+
+.dashboard-nav__count {
+  font-size: 0.75rem;
+  opacity: 0.5;
+}
+
+.dashboard-shell__main {
+  flex: 1;
+  padding: 2rem;
+  min-width: 0;
+}
+
+/* Phone: collapse sidebar to bottom nav */
+@media (max-width: 768px) {
+  .dashboard-shell { flex-direction: column-reverse; }
+
+  .dashboard-nav {
+    width: 100%;
+    height: auto;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    border-right: none;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    padding: 0;
+    background: var(--ds-bg, #f4ead4);
+  }
+
+  .dashboard-nav__header { display: none; }
+
+  .dashboard-nav__sections {
+    display: flex;
+    overflow-x: auto;
+    padding: 0;
+    gap: 0;
+  }
+
+  .dashboard-nav__link {
+    padding: 0.75rem 1rem;
+    font-size: 0.8125rem;
+    white-space: nowrap;
+    min-height: 48px;
+  }
+
+  .dashboard-nav__link--active {
+    border-left: none;
+    border-top: 2px solid var(--ds-gold, #d4af37);
+    padding-left: 1rem;
+  }
+
+  .dashboard-nav__count { display: none; }
+
+  .dashboard-shell__main {
+    padding: 1rem;
+    padding-bottom: 4rem;
+  }
+}
+
+/* — Breadcrumbs — */
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  font-size: 0.8125rem;
+  color: rgba(0, 0, 0, 0.45);
+  margin-bottom: 1rem;
+}
+
+.breadcrumbs__item { display: inline-flex; align-items: center; gap: 2px; }
+.breadcrumbs__sep { margin: 0 4px; }
+.breadcrumbs__link { color: var(--ds-gold, #d4af37); text-decoration: none; }
+.breadcrumbs__link:hover { text-decoration: underline; }
+.breadcrumbs__current { color: var(--ds-ink, #1a1410); font-weight: 500; }
+
+/* — Responsive data cards (tables → stacked on mobile) — */
+.data-table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
+.data-table th { text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: rgba(0, 0, 0, 0.45); padding: 0.5rem 0.75rem; border-bottom: 1px solid rgba(0, 0, 0, 0.08); }
+.data-table td { padding: 0.75rem; border-bottom: 1px solid rgba(0, 0, 0, 0.04); vertical-align: top; }
+
+@media (max-width: 600px) {
+  .data-table thead { display: none; }
+  .data-table, .data-table tbody, .data-table tr, .data-table td { display: block; }
+  .data-table tr { padding: 0.75rem 0; border-bottom: 1px solid rgba(0, 0, 0, 0.06); }
+  .data-table td { padding: 0.25rem 0; border: none; }
+  .data-table td::before { content: attr(data-label); display: block; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; color: rgba(0, 0, 0, 0.4); margin-bottom: 2px; }
+}
+
+/* Command Centre */
+.command-centre h1 {
+  font-family: var(--ds-font-display, 'Anton', sans-serif);
+  font-size: 1.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.command-centre h2 {
+  font-family: var(--ds-font-serif, 'Instrument Serif', serif);
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  color: var(--ds-gold, #d4af37);
+}
+
+.command-centre__capabilities ul,
+.command-centre__sections ul {
+  list-style: none;
+  padding: 0;
+}
+
+.command-centre__capability {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.command-centre__cap-state {
+  font-size: 0.8125rem;
+  opacity: 0.5;
+  font-style: italic;
+}
+
+.command-centre__sections { margin-top: 2rem; }
+
+.command-centre__sections li {
+  padding: 0.5rem 0;
+  font-size: 0.9375rem;
+}
