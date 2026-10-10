@@ -14,8 +14,8 @@ describe('Estate registry', () => {
 
   it('groups repos by business function', () => {
     const g = reposByGroup();
-    expect(g.get('03')?.length).toBeGreaterThanOrEqual(2);
-    expect(g.get('05')?.length).toBeGreaterThanOrEqual(3);
+    expect(g.get('platform')?.length).toBeGreaterThanOrEqual(2);
+    expect(g.get('live')?.length).toBeGreaterThanOrEqual(3);
   });
 
   it('finds the repo for a brand key', () => {
