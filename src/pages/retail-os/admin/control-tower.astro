@@ -24,6 +24,8 @@ import {
   type OrgDecision, type OnboardingRecord, type DashboardConfig,
 } from '../../../lib/ceo/db-stores';
 import type { AssessmentResult } from '../../../lib/ceo/agent-training';
+import { REPO_ESTATE, ESTATE_GROUPS, ACTIVE_CLIENTS, reposByGroup, STATUS_LABEL, RETAIL_OS_STATUS_LABEL, FRAMEWORK_LABEL, type RepoEntry } from '../../../lib/ceo/estate-registry';
+import { checkCollisions, ownershipSummary, repoWorkStatus } from '../../../lib/ceo/parallel-work';
 
 const now = new Date();
 let registry: InMemoryWorkRegistry;
@@ -176,17 +178,18 @@ const CHANNEL_COLOR: Record<string, string> = {
   not_configured: '#A3A3A3',
 };
 
-const TAB_NAMES = ['ceo', 'today', 'org', 'meeting', 'work', 'agents', 'brands'] as const;
+const TAB_NAMES = ['ceo', 'today', 'org', 'projects', 'meeting', 'work', 'agents', 'brands'] as const;
 const TAB_LABEL: Record<string, string> = {
   ceo: 'Talk to CEO',
   today: 'Today',
   org: 'Organisation',
+  projects: 'Projects',
   meeting: 'Daily Meeting',
   work: 'Work',
   agents: 'Agents',
   brands: 'Brands',
 };
-const TAB_ALIAS: Record<string, string> = { board: 'today', pipeline: 'work', organisation: 'org' };
+const TAB_ALIAS: Record<string, string> = { board: 'today', pipeline: 'work', organisation: 'org', repos: 'projects', repositories: 'projects' };
 
 // ── Org chart data (for the interactive SVG tree) ────────────────────────
 interface OrgNode {
@@ -233,6 +236,12 @@ function buildOrgNodes(): OrgNode[] {
 }
 const orgNodes = buildOrgNodes();
 const orgNodesJson = JSON.stringify(orgNodes);
+
+// Projects & Repos data
+const grouped = reposByGroup();
+const repoWork = repoWorkStatus(registry);
+const ownership = ownershipSummary(registry);
+
 const rawTab = Astro.url.searchParams.get('tab') ?? '';
 const resolvedTab = TAB_ALIAS[rawTab] ?? rawTab;
 const tab = TAB_NAMES.includes(resolvedTab as typeof TAB_NAMES[number]) ? resolvedTab : 'ceo';
@@ -1082,6 +1091,98 @@ const tab = TAB_NAMES.includes(resolvedTab as typeof TAB_NAMES[number]) ? resolv
               </div>
             ))}
           </div>
+        </div>
+      </div>
+    )}
+
+    {/* ═══════════ TAB: PROJECTS & REPOSITORIES ═══════════ */}
+    {tab === 'projects' && (
+      <div>
+        <div class="card">
+          <h2>Repository Estate</h2>
+          <p class="subtitle" style="margin-bottom:16px">12 repositories under virat-mohan · grouped by business function · source: ESTATE.md §5</p>
+
+          {ESTATE_GROUPS.map(g => {
+            const repos = grouped.get(g.id);
+            if (!repos?.length) return null;
+            return (
+              <div style="margin-bottom:24px">
+                <h3 style="font-size:0.9rem;color:var(--gold);margin-bottom:8px">{g.id} · {g.label}</h3>
+                <div style="display:grid;gap:8px">
+                  {repos.map((r: RepoEntry) => {
+                    const rw = repoWork.find(w => w.repo.slug === r.slug);
+                    return (
+                      <div style="display:grid;grid-template-columns:1fr auto;gap:8px;padding:12px;background:#FAFAF6;border-radius:8px;border:1px solid #E8E2D8">
+                        <div>
+                          <div style="font-weight:600;font-size:0.88rem">{r.name}</div>
+                          <div style="font-size:0.78rem;color:var(--ink-muted)">{r.slug} · {FRAMEWORK_LABEL[r.framework]}{r.database ? ` · ${r.database}` : ''}</div>
+                          {r.notes && <div style="font-size:0.75rem;color:var(--ink-muted);margin-top:2px">{r.notes}</div>}
+                        </div>
+                        <div style="text-align:right;font-size:0.78rem">
+                          <span class={`brand-status ${r.retailOsStatus === 'live' ? 'brand-live' : r.status === 'active_production' ? 'brand-impl' : 'brand-staged'}`}>
+                            {r.retailOsStatus ? RETAIL_OS_STATUS_LABEL[r.retailOsStatus] : STATUS_LABEL[r.status]}
+                          </span>
+                          {rw && rw.openItems > 0 && (
+                            <div style="margin-top:4px;font-size:0.75rem;color:var(--terracotta)">
+                              {rw.openItems} open · {rw.inProgress} in progress
+                              {rw.activeOwners.length > 0 && <span> · {rw.activeOwners.join(', ')}</span>}
+                            </div>
+                          )}
+                          {r.deployment && <div style="font-size:0.72rem;color:var(--ink-muted);margin-top:2px">{r.deployment}</div>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <!-- Active Clients -->
+        <div class="card">
+          <h2>Active Clients</h2>
+          <div style="font-size:0.82rem">
+            <div class="brand-meeting" style="font-weight:600;color:var(--ink-muted);grid-template-columns:1fr 1fr 1fr 1fr auto">
+              <span>Brand</span><span>Commercial</span><span>Technical</span><span>Repo</span><span>CEO</span>
+            </div>
+            {ACTIVE_CLIENTS.map(c => (
+              <div class="brand-meeting" style="grid-template-columns:1fr 1fr 1fr 1fr auto">
+                <span style="font-weight:500">{c.brand}</span>
+                <span>{c.commercial}</span>
+                <span class={c.technical.includes('Live') ? 'brand-live' : c.technical.includes('Provisioning') ? 'brand-staged' : 'brand-impl'} style="font-size:0.78rem">
+                  {c.technical}
+                </span>
+                <span style="font-size:0.78rem;color:var(--ink-muted)">{c.repo ?? '—'}</span>
+                <span style="color:var(--gold);font-size:0.78rem">{c.brandCeoId} {c.brandCeoName}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <!-- Ownership & Collision Detection (Phase 4) -->
+        <div class="card">
+          <h2>Work Ownership</h2>
+          <p class="subtitle" style="margin-bottom:12px">Who owns what across the estate — parallel work visibility</p>
+          {ownership.length === 0 ? (
+            <p style="color:var(--ink-muted);font-size:0.82rem">No open work items with assigned owners.</p>
+          ) : (
+            <div style="font-size:0.82rem">
+              <div class="brand-meeting" style="font-weight:600;color:var(--ink-muted);grid-template-columns:auto 1fr repeat(4, auto)">
+                <span>Agent</span><span>Name</span><span>Open</span><span>Active</span><span>Blocked</span><span>Brands</span>
+              </div>
+              {ownership.map(o => (
+                <div class="brand-meeting" style="grid-template-columns:auto 1fr repeat(4, auto)">
+                  <span style="color:var(--gold)">{o.agentId}</span>
+                  <span>{o.agentName}</span>
+                  <span>{o.openItems}</span>
+                  <span style={o.inProgress > 0 ? 'color:var(--terracotta);font-weight:600' : ''}>{o.inProgress}</span>
+                  <span style={o.blocked > 0 ? 'color:var(--tag-p1);font-weight:600' : ''}>{o.blocked}</span>
+                  <span style="font-size:0.75rem;color:var(--ink-muted)">{o.brands.join(', ') || '—'}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     )}

@@ -133,6 +133,10 @@ describe('only authorized surfaces reach the Work Registry', () => {
     'src/lib/ceo/people-action.ts',
     'src/pages/retail-os/api/admin/people-action.ts',
     'tests/unit/ceo-integration/runtime-activation.test.ts',
+    'src/lib/ceo/estate-registry.ts',
+    'src/lib/ceo/parallel-work.ts',
+    'tests/unit/ceo-integration/parallel-work.test.ts',
+    'tests/unit/ceo-integration/shared-specialist.test.ts',
   ]);
 
   it('only authorized surfaces import Work Registry code', () => {
