@@ -1,4 +1,4 @@
-// Operating System acceptance tests: the 13 mandatory end-to-end tests from the directive.
+// Operating System acceptance tests: 20 mandatory end-to-end tests from the directive.
 // These prove the CEO layer, agent training, people OS, onboarding, dashboard generation
 // and authority model work together as one system. All use the pure in-memory Work Registry.
 
@@ -505,5 +505,143 @@ describe('13. Memory/intelligence persistence', () => {
     ];
     expect(decisions.filter(d => !d.superseded_by)).toHaveLength(1);
     expect(decisions.filter(d => !d.superseded_by)[0].decision).toBe('New policy');
+  });
+});
+
+// ── Phase 6–8: Tests 14–20 ─────────────────────────────────────────────────
+
+import { readFileSync } from 'fs';
+import { join } from 'path';
+import {
+  parseLearningsMd,
+  workLearningToRecord,
+  checkLearnings,
+  learningsSummary,
+} from '../../../src/lib/ceo/shared-learning';
+import {
+  routeAgentMessage,
+  escalationChain,
+  validateEscalationPath,
+  resetMessageCounter,
+} from '../../../src/lib/ceo/agent-messaging';
+import { checkCollisions } from '../../../src/lib/ceo/parallel-work';
+import { specialistForBrand, validateBrandIsolation } from '../../../src/lib/ceo/specialist-pool';
+import { REPO_ESTATE, ACTIVE_CLIENTS, reposByGroup, liveRepos } from '../../../src/lib/ceo/estate-registry';
+
+describe('14. Shared learning: incident close → lesson stored', () => {
+  it('work item learning converts to a queryable record', () => {
+    const record = workLearningToRecord('WRK-INC-01', {
+      lesson: 'Always deploy before sending checkout links',
+      reference: 'link-check.ts',
+      rule_added: true,
+    }, '2026-10-10T10:00:00Z');
+    expect(record.source).toBe('work_registry');
+    expect(record.workItemId).toBe('WRK-INC-01');
+    expect(record.date).toBe('2026-10-10');
+    expect(record.modules.length).toBeGreaterThan(0);
+  });
+});
+
+describe('15. Shared learning: agent retrieves relevant lesson before acting', () => {
+  it('checkout module query returns relevant learnings', () => {
+    const content = readFileSync(join(__dirname, '../../../case-study/LEARNINGS.md'), 'utf-8');
+    const records = parseLearningsMd(content);
+    const relevant = checkLearnings(records, { modules: ['checkout'] });
+    expect(relevant.length).toBeGreaterThan(0);
+    expect(relevant.some(r => r.trigger.toLowerCase().includes('payment') || r.rule.toLowerCase().includes('checkout'))).toBe(true);
+  });
+});
+
+describe('16. LEARNINGS.md parsed and queryable', () => {
+  it('all entries are structured with date, trigger, rule and modules', () => {
+    const content = readFileSync(join(__dirname, '../../../case-study/LEARNINGS.md'), 'utf-8');
+    const records = parseLearningsMd(content);
+    const summary = learningsSummary(records);
+    expect(summary.total).toBeGreaterThanOrEqual(70);
+    expect(Object.keys(summary.byModule).length).toBeGreaterThan(5);
+    expect(records.every(r => r.date && r.trigger && r.rule)).toBe(true);
+  });
+});
+
+describe('17. Inter-agent message routes through CEO', () => {
+  it('brand CEO message to HoD routes through CEO', () => {
+    resetMessageCounter();
+    const r = routeAgentMessage('MG-01', 'DS-02', 'Moon monthly report', '2026-10-10T10:00:00Z');
+    expect(r.ok).toBe(true);
+    expect(r.message.routedThrough).toBe('DS-02');
+  });
+});
+
+describe('18. Direct agent-to-agent message refused', () => {
+  it('Moon CEO cannot message Trav CEO directly', () => {
+    resetMessageCounter();
+    const r = routeAgentMessage('MG-01', 'TC-01', 'Share your numbers', '2026-10-10T10:00:00Z');
+    expect(r.ok).toBe(false);
+    expect(r.blocked).toBe(true);
+    expect(r.blockReason).toContain('CEO');
+  });
+});
+
+describe('19. Escalation chain enforced end-to-end', () => {
+  it('specialist escalates HoD → CEO → Myoho → Virat', () => {
+    const chain = escalationChain('DS-16');
+    expect(chain.map(s => s.agentId)).toEqual(['DS-11', 'DS-02', 'DS-01', 'DS-00']);
+
+    const toVirat = validateEscalationPath('DS-16', 'DS-00');
+    expect(toVirat.valid).toBe(true);
+    expect(toVirat.path.length).toBe(4);
+
+    const toUnrelated = validateEscalationPath('DS-16', 'TC-01');
+    expect(toUnrelated.valid).toBe(false);
+  });
+});
+
+describe('20. Full cycle: founder → CEO → specialist → learning → next agent reads it', () => {
+  it('end-to-end: input creates work, learning is stored and retrieved', () => {
+    const r = new InMemoryWorkRegistry();
+    const input = classifyFounderInput(
+      'Run the health check for Moon — Grow should handle it',
+      VIRAT,
+      { brand: 'moonglasses', now: new Date('2026-10-10T10:00:00Z') },
+    );
+    const outcome = processFounderInput(input, r, { now: new Date('2026-10-10T10:00:00Z') });
+    expect(outcome.kind).toBe('work_created');
+    expect(outcome.workItem).toBeDefined();
+
+    // Simulate closing with a learning
+    const item = outcome.workItem!;
+    r.transition(item.id, 'in_progress', CEO);
+    r.transition(item.id, 'resolved', CEO, {
+      payload: { resolution: { summary: 'Health check passed', method: 'automated', evidence_ids: [] } },
+    });
+    r.transition(item.id, 'verification', CEO, {
+      payload: { closure: { verified_by: VIRAT, verified_at: '2026-10-10T11:00:00Z', method: 'live check', evidence_ids: [] } },
+    });
+    r.setLearning(item.id, {
+      lesson: 'Always run health checks after deploying checkout changes',
+      reference: 'scripts/health/check.mjs',
+      rule_added: true,
+    }, CEO);
+
+    // Convert to shared learning record
+    const record = workLearningToRecord(item.id, r.get(item.id)!.learning!, '2026-10-10T11:00:00Z');
+    expect(record.source).toBe('work_registry');
+    expect(record.modules).toContain('health');
+
+    // Next agent queries for checkout learnings and finds it
+    const content = readFileSync(join(__dirname, '../../../case-study/LEARNINGS.md'), 'utf-8');
+    const allRecords = [...parseLearningsMd(content), record];
+    const relevant = checkLearnings(allRecords, { modules: ['health', 'checkout'] });
+    expect(relevant.some(lr => lr.workItemId === item.id)).toBe(true);
+
+    // Estate is intact
+    expect(REPO_ESTATE.length).toBe(12);
+    expect(ACTIVE_CLIENTS.length).toBe(5);
+    expect(liveRepos().length).toBe(3);
+
+    // Messaging works
+    resetMessageCounter();
+    const msg = routeAgentMessage('DS-02', 'MG-01', 'Health check passed', '2026-10-10T12:00:00Z');
+    expect(msg.ok).toBe(true);
   });
 });

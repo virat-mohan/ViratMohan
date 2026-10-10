@@ -137,6 +137,9 @@ describe('only authorized surfaces reach the Work Registry', () => {
     'src/lib/ceo/parallel-work.ts',
     'tests/unit/ceo-integration/parallel-work.test.ts',
     'tests/unit/ceo-integration/shared-specialist.test.ts',
+    'src/lib/ceo/shared-learning.ts',
+    'tests/unit/ceo-integration/shared-learning.test.ts',
+    'tests/unit/ceo-integration/agent-messaging.test.ts',
   ]);
 
   it('only authorized surfaces import Work Registry code', () => {
