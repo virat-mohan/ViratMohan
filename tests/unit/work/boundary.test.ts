@@ -95,6 +95,8 @@ describe('only authorized surfaces reach the Work Registry', () => {
     'src/lib/ceo/priority-policy.ts',
     'src/lib/ceo/work-matcher.ts',
     'src/lib/ceo/decision-quality.test.ts',
+    'src/lib/ceo/specialist-pool.ts',
+    'src/lib/ceo/specialist-pool.test.ts',
     'scripts/verify/ceo-live.ts',
     'scripts/verify/ceo-live-run.ts',
     'scripts/verify/live-concurrency.ts',

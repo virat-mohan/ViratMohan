@@ -353,18 +353,30 @@ function workFlow(c: Ctx): OrchestratorOutcome {
   let nextStep = `Work with ${owner.id}`;
   if (c.routing && assigned?.ok) {
     const ev = c.registry.addEvidence(id, { kind: 'note', ref: `founder-input:${c.input.id}`, summary: c.input.text }, CEO);
-    const req = ev.ok
-      ? c.registry.requestApproval(id, {
-          requested_from: 'virat',
-          authority: roleForFunction(c.routing.function, c.bindings).assignmentAuthority,
-          reason: `Technical deployment work needs the ${c.routing.roleLabel}`,
-          evidence_ids: [ev.value.id],
-          recommendation: `Assign to ${c.routing.role} (current holder: ${c.routing.currentHolders.join(', ')}) once approved`,
-        }, CEO)
-      : null;
-    steps.push(req?.ok ? `approval requested from ${c.routing.approval.from}` : `approval request failed: ${req ? req.error.message : 'evidence not added'}`);
-    escalationRequired = true;
-    nextStep = `Awaiting Virat's approval before assigning to ${c.routing.roleLabel}`;
+    const role = roleForFunction(c.routing.function, c.bindings);
+    const holderIsAgent = role.holders.length > 0 && role.holders[0].actor.kind === 'agent';
+
+    if (holderIsAgent) {
+      // Shared specialist (agent): CEO assigns directly, no approval gate
+      const holder = role.holders[0];
+      const re = c.registry.reassign(id, holder.actor, CEO, `CEO assigned to ${role.label} (${holder.name}): shared specialist`, { keepPreviousAsSupporting: true });
+      steps.push(re.ok ? `assigned to specialist ${role.id} (${holder.name})` : `specialist assignment failed: ${re.error.message}`);
+      nextStep = `${holder.name} executes within brand scope`;
+    } else {
+      // Human role (e.g. Prince): needs Virat's approval
+      const req = ev.ok
+        ? c.registry.requestApproval(id, {
+            requested_from: 'virat',
+            authority: role.assignmentAuthority,
+            reason: `Technical deployment work needs the ${c.routing.roleLabel}`,
+            evidence_ids: [ev.value.id],
+            recommendation: `Assign to ${c.routing.role} (current holder: ${c.routing.currentHolders.join(', ')}) once approved`,
+          }, CEO)
+        : null;
+      steps.push(req?.ok ? `approval requested from ${c.routing.approval.from}` : `approval request failed: ${req ? req.error.message : 'evidence not added'}`);
+      escalationRequired = true;
+      nextStep = `Awaiting Virat's approval before assigning to ${c.routing.roleLabel}`;
+    }
   }
 
   const trace = logTrace(c, id, null, `new work created; ${steps.join('; ')}`);
